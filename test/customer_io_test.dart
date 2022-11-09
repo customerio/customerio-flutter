@@ -1,29 +1,34 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:customer_io/customer_io.dart';
-import 'package:customer_io/customer_io_platform_interface.dart';
+import 'package:customer_io/customer_io_config.dart';
 import 'package:customer_io/customer_io_method_channel.dart';
+import 'package:customer_io/customer_io_platform_interface.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-class MockCustomerIoPlatform 
+class MockCustomerIoPlatform
     with MockPlatformInterfaceMixin
-    implements CustomerIoPlatform {
-
+    implements CustomerIOPlatform {
   @override
   Future<String?> getPlatformVersion() => Future.value('42');
+
+  @override
+  Future<void> initialize({required CustomerIOConfig config}) {
+    // TODO: implement config
+    throw UnimplementedError();
+  }
 }
 
 void main() {
-  final CustomerIoPlatform initialPlatform = CustomerIoPlatform.instance;
+  final CustomerIOPlatform initialPlatform = CustomerIOPlatform.instance;
 
-  test('$MethodChannelCustomerIo is the default instance', () {
-    expect(initialPlatform, isInstanceOf<MethodChannelCustomerIo>());
+  test('$CustomerIOMethodChannel is the default instance', () {
+    expect(initialPlatform, isInstanceOf<CustomerIOMethodChannel>());
   });
 
   test('getPlatformVersion', () async {
-    CustomerIo customerIoPlugin = CustomerIo();
     MockCustomerIoPlatform fakePlatform = MockCustomerIoPlatform();
-    CustomerIoPlatform.instance = fakePlatform;
-  
-    expect(await customerIoPlugin.getPlatformVersion(), '42');
+    CustomerIOPlatform.instance = fakePlatform;
+
+    expect(await CustomerIo.getPlatformVersion(), '42');
   });
 }

@@ -1,10 +1,20 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:customer_io/customer_io.dart';
+import 'package:customer_io/customer_io_config.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await CustomerIo.initialize(
+    config: CustomerIOConfig(
+      siteId: "",
+      apiKey: "",
+    ),
+  );
+
   runApp(const MyApp());
 }
 
@@ -17,7 +27,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
-  final _customerIoPlugin = CustomerIo();
 
   @override
   void initState() {
@@ -32,7 +41,7 @@ class _MyAppState extends State<MyApp> {
     // We also handle the message potentially returning null.
     try {
       platformVersion =
-          await _customerIoPlugin.getPlatformVersion() ?? 'Unknown platform version';
+          await CustomerIo.getPlatformVersion() ?? 'Unknown platform version';
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }

@@ -1,0 +1,37 @@
+PODS:
+  - customer_io (0.0.1):
+    - CustomerIO/Tracking
+    - Flutter
+  - CustomerIO/Tracking (1.2.2):
+    - CustomerIOTracking (= 1.2.2)
+  - CustomerIOCommon (1.2.2)
+  - CustomerIOTracking (1.2.2):
+    - CustomerIOCommon (= 1.2.2)
+  - Flutter (1.0.0)
+
+DEPENDENCIES:
+  - customer_io (from `.symlinks/plugins/customer_io/ios`)
+  - Flutter (from `Flutter`)
+
+SPEC REPOS:
+  trunk:
+    - CustomerIO
+    - CustomerIOCommon
+    - CustomerIOTracking
+
+EXTERNAL SOURCES:
+  customer_io:
+    :path: ".symlinks/plugins/customer_io/ios"
+  Flutter:
+    :path: Flutter
+
+SPEC CHECKSUMS:
+  customer_io: 99ae280180a2fe4c0514f28a8da5e7a66734a612
+  CustomerIO: 0a31ad1baed6cd952469b9098e2e73fa96cec70e
+  CustomerIOCommon: 3bf82c3574205819a69baa1f0bc5b47671dd2d19
+  CustomerIOTracking: 101dc8c25eff807eadc8fbcf83b76f98fb5832a5
+  Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
+
+PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
+
+COCOAPODS: 1.11.3
