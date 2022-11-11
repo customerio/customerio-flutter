@@ -57,9 +57,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
             val region = configData.getProperty<String>(
                 Keys.Environment.REGION
             )?.takeIfNotBlank().toRegion()
-
-            logger.info("Config: $configData")
-
+            
             CustomerIO.Builder(
                 siteId = siteId,
                 apiKey = apiKey,
