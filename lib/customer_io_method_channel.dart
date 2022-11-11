@@ -22,9 +22,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     required CustomerIOConfig config,
   }) async {
     try {
-      await methodChannel.invokeMethod('initialize', {
-        'config': config.toMap(),
-      });
+      await methodChannel.invokeMethod('initialize', config.toMap());
     } on PlatformException catch (exception) {
       if (kDebugMode) {
         print(exception);

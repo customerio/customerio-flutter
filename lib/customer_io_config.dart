@@ -1,7 +1,6 @@
 import 'customer_io_enums.dart';
 
 /// Configure plugin using CustomerIOConfig
-
 class CustomerIOConfig {
   final String siteId;
   final String apiKey;

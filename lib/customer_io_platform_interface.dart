@@ -2,7 +2,6 @@ import 'package:customer_io/customer_io_config.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'customer_io_method_channel.dart';
-import 'customer_io_platform_interface.dart';
 
 /// The default instance of [CustomerIOPlatform] to use
 ///

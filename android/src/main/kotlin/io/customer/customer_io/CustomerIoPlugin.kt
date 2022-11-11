@@ -37,7 +37,6 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
         when (call.method) {
             "getPlatformVersion" -> {
                 result.success("Android-${android.os.Build.VERSION.RELEASE}")
-                CustomerIO.instance().identify("flutt-man")
             }
             "initialize" -> {
                 initialize(call, result)
@@ -52,12 +51,14 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
     private fun initialize(call: MethodCall, result: Result) {
         try {
             val application: Application = context.applicationContext as Application
-            val configData = call.argument<Map<String, Any>>("config") ?: emptyMap()
+            val configData = call.arguments as? Map<String, Any> ?: emptyMap()
             val siteId = configData.getString(Keys.Environment.SITE_ID)
             val apiKey = configData.getString(Keys.Environment.API_KEY)
             val region = configData.getProperty<String>(
                 Keys.Environment.REGION
             )?.takeIfNotBlank().toRegion()
+
+            logger.info("Config: $configData")
 
             CustomerIO.Builder(
                 siteId = siteId,
