@@ -37,29 +37,23 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
             return
         }
         
-        CustomerIO.initialize(siteId: siteId, apiKey: apiKey, region: Region.from(regionStr: region))
-        setUserAgentClient(params: params)
-        setupConfig(params: params)
-    }
-    
-    private func setUserAgentClient(params : Dictionary<String, Any>){
-        let version = params[Keys.PackageConfig.version] as? String ?? "n/a"
-        let sdkSource = SdkWrapperConfig.Source.flutter
-        CustomerIO.config {
-            $0._sdkWrapperConfig = SdkWrapperConfig(source: sdkSource, version: version )
-        }
-    }
-    
-    private func setupConfig(params : Dictionary<String, Any>){
-        CustomerIO.config {
-            $0.autoTrackDeviceAttributes = params[Keys.Config.autoTrackDeviceAttributes] as! Bool
-            $0.logLevel = CioLogLevel.from(for: params[Keys.Config.logLevel] as! String)
-            $0.autoTrackPushEvents = params[Keys.Config.autoTrackPushEvents] as! Bool
-            $0.backgroundQueueMinNumberOfTasks = params[Keys.Config.backgroundQueueMinNumberOfTasks] as! Int
-            $0.backgroundQueueSecondsDelay = params[Keys.Config.backgroundQueueSecondsDelay] as! Seconds
+        CustomerIO.initialize(siteId: siteId, apiKey: apiKey, region: Region.from(regionStr: region)){
+            config in
+            config._sdkWrapperConfig = self.getUserAgent(params: params)
+            config.autoTrackDeviceAttributes = params[Keys.Config.autoTrackDeviceAttributes] as! Bool
+            config.logLevel = CioLogLevel.from(for: params[Keys.Config.logLevel] as! String)
+            config.autoTrackPushEvents = params[Keys.Config.autoTrackPushEvents] as! Bool
+            config.backgroundQueueMinNumberOfTasks = params[Keys.Config.backgroundQueueMinNumberOfTasks] as! Int
+            config.backgroundQueueSecondsDelay = params[Keys.Config.backgroundQueueSecondsDelay] as! Seconds
             if let trackingApiUrl = params[Keys.Config.trackingApiUrl] as? String, !trackingApiUrl.isEmpty {
-                $0.trackingApiUrl = trackingApiUrl
+                config.trackingApiUrl = trackingApiUrl
             }
         }
+    }
+    
+    private func getUserAgent(params : Dictionary<String, Any>) -> SdkWrapperConfig{
+        let version = params[Keys.PackageConfig.version] as? String ?? "n/a"
+        let sdkSource = SdkWrapperConfig.Source.flutter
+        return SdkWrapperConfig(source: sdkSource, version: version )
     }
 }
