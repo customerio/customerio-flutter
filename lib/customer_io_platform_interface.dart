@@ -33,4 +33,9 @@ abstract class CustomerIOPlatform extends PlatformInterface {
   }) {
     throw UnimplementedError('config() has not been implemented.');
   }
+
+  void identify(
+      {required String identifier, required Map<String, dynamic> attributes}) {
+    throw UnimplementedError('identify() has not been implemented.');
+  }
 }

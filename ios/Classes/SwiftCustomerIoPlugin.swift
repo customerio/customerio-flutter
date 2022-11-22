@@ -21,13 +21,69 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
                 initialize(params: params)
                 result(true)
             } else{
+                result(FlutterError(code: "initialize", message: "params not available", details: nil))
+            }
+        case "identify":
+            if let params = call.arguments as? Dictionary<String, Any> {
+                print(params)
+                identify(params: params)
+            } else{
                 print("initialize: params not available")
-                result(FlutterError())
             }
         default:
             result(FlutterMethodNotImplemented)
         }
     }
+    
+    private func identify(params : Dictionary<String, Any>){
+        guard let identifier = params[Keys.Tracking.identifier] as? String
+        else {
+            return
+        }
+        
+        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, Any> else{
+            CustomerIO.shared.identify(identifier: identifier)
+            return
+        }
+        
+        CustomerIO.shared.identify(identifier: identifier, body: attributes)
+    }
+    
+    private func clearIdentify() {
+        CustomerIO.shared.clearIdentify()
+    }
+    
+    private func track(params : Dictionary<String, Any>)  {
+        guard let name = params[Keys.Tracking.eventName] as? String
+        else {
+            return
+        }
+        
+        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, Any> else{
+            CustomerIO.shared.track(name: name)
+            return
+        }
+        
+        CustomerIO.shared.track(name: name, data: attributes)
+        
+    }
+    
+    private func setDeviceAttributes(params : Dictionary<String, Any>){
+        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, Any>
+        else {
+            return
+        }
+        CustomerIO.shared.deviceAttributes = attributes
+    }
+    
+    private func setProfileAttributes(params : Dictionary<String, Any>){
+        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, Any>
+        else {
+            return
+        }
+        CustomerIO.shared.profileAttributes = attributes
+    }
+    
     
     private func initialize(params : Dictionary<String, Any>){
         guard let siteId = params[Keys.Environment.siteId] as? String,

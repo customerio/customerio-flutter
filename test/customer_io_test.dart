@@ -16,6 +16,11 @@ class MockCustomerIoPlatform
     // TODO: implement config
     throw UnimplementedError();
   }
+
+  @override
+  void identify({required String identifier, required Map<String, dynamic> attributes}) {
+    // TODO: implement identify
+  }
 }
 
 void main() {

@@ -9,6 +9,12 @@ import Foundation
 
 struct Keys {
     
+    struct Tracking {
+        static let identifier = "identifier"
+        static let attributes = "attributes"
+        static let eventName = "eventName"
+    }
+    
     struct Environment{
         static let siteId = "siteId"
         static let apiKey = "apiKey"

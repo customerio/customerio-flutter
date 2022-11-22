@@ -15,4 +15,10 @@ class CustomerIo {
   }) {
     return _customerIO.initialize(config: config);
   }
+
+  static void identify(
+      {required String identifier,
+      Map<String, dynamic> attributes = const {}}) {
+    return _customerIO.identify(identifier: identifier, attributes: attributes);
+  }
 }

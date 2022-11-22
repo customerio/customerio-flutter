@@ -1,6 +1,12 @@
 package io.customer.customer_io.constant
 
 internal object Keys {
+
+    object Tracking {
+        const val IDENTIFIER = "identifier"
+        const val ATTRIBUTES = "attributes"
+    }
+
     object Environment {
         const val SITE_ID = "siteId"
         const val API_KEY = "apiKey"

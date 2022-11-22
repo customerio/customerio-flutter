@@ -19,7 +19,7 @@ import io.flutter.plugin.common.MethodChannel.Result
  * Android implementation of plugin that will let Flutter developers to
  * interact with a Android platform
  * */
-class CustomerIOPlugin : FlutterPlugin, MethodCallHandler {
+class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -32,7 +32,8 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler {
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         context = flutterPluginBinding.applicationContext
-        flutterCommunicationChannel = MethodChannel(flutterPluginBinding.binaryMessenger, "customer_io")
+        flutterCommunicationChannel =
+            MethodChannel(flutterPluginBinding.binaryMessenger, "customer_io")
         flutterCommunicationChannel.setMethodCallHandler(this)
     }
 
@@ -44,9 +45,25 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler {
             "initialize" -> {
                 initialize(call, result)
             }
+            "identify" -> {
+                identify(call.arguments)
+            }
             else -> {
                 result.notImplemented()
             }
+        }
+    }
+
+    private fun identify(arguments: Any?) {
+        try {
+            val configData = arguments as? Map<String, Any> ?: emptyMap()
+            logger.debug(configData.toString())
+            val identifier = configData.getString(Keys.Tracking.IDENTIFIER)
+            val attributes =
+                configData.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: emptyMap()
+            CustomerIO.instance().identify(identifier, attributes)
+        } catch (e: Exception) {
+            logger.error("Failed to identify, ${e.message}")
         }
     }
 
@@ -74,7 +91,7 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler {
             result.success(true)
         } catch (e: Exception) {
             logger.error("Failed to initialize Customer.io instance from app, ${e.message}")
-            result.error("FlutterSegmentException", e.localizedMessage, null);
+            result.error("initialize", e.localizedMessage, null);
         }
     }
 
@@ -99,8 +116,8 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler {
         config.getProperty<Boolean>(Keys.Config.AUTO_TRACK_DEVICE_ATTRIBUTES)?.let { value ->
             autoTrackDeviceAttributes(shouldTrackDeviceAttributes = value)
         }
-        config.getProperty<Double>(Keys.Config.BACKGROUND_QUEUE_MIN_NUMBER_OF_TASKS)?.let { value ->
-            setBackgroundQueueMinNumberOfTasks(backgroundQueueMinNumberOfTasks = value.toInt())
+        config.getProperty<Int>(Keys.Config.BACKGROUND_QUEUE_MIN_NUMBER_OF_TASKS)?.let { value ->
+            setBackgroundQueueMinNumberOfTasks(backgroundQueueMinNumberOfTasks = value)
         }
         config.getProperty<Double>(Keys.Config.BACKGROUND_QUEUE_SECONDS_DELAY)?.let { value ->
             setBackgroundQueueSecondsDelay(backgroundQueueSecondsDelay = value)

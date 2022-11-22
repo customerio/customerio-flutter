@@ -29,4 +29,17 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       }
     }
   }
+
+  @override
+  void identify({required String identifier,
+    Map<String, dynamic> attributes = const {}}) async {
+    try {
+      final payload = {'identifier': identifier, 'attributes': attributes};
+      await methodChannel.invokeMethod('identify', payload);
+    } on PlatformException catch (exception) {
+      if (kDebugMode) {
+        print(exception);
+      }
+    }
+  }
 }
