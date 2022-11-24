@@ -1,13 +1,16 @@
 PODS:
   - customer_io (0.0.1):
-    - CustomerIO/Tracking
+    - CustomerIOMessagingInApp (~> 1.2.6)
+    - CustomerIOTracking (~> 1.2.6)
     - Flutter
-  - CustomerIO/Tracking (1.2.2):
-    - CustomerIOTracking (= 1.2.2)
-  - CustomerIOCommon (1.2.2)
-  - CustomerIOTracking (1.2.2):
-    - CustomerIOCommon (= 1.2.2)
+  - CustomerIOCommon (1.2.6)
+  - CustomerIOMessagingInApp (1.2.6):
+    - CustomerIOTracking (= 1.2.6)
+    - Gist (~> 2.2.1)
+  - CustomerIOTracking (1.2.6):
+    - CustomerIOCommon (= 1.2.6)
   - Flutter (1.0.0)
+  - Gist (2.2.2)
 
 DEPENDENCIES:
   - customer_io (from `.symlinks/plugins/customer_io/ios`)
@@ -15,9 +18,10 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
-    - CustomerIO
     - CustomerIOCommon
+    - CustomerIOMessagingInApp
     - CustomerIOTracking
+    - Gist
 
 EXTERNAL SOURCES:
   customer_io:
@@ -26,11 +30,12 @@ EXTERNAL SOURCES:
     :path: Flutter
 
 SPEC CHECKSUMS:
-  customer_io: 99ae280180a2fe4c0514f28a8da5e7a66734a612
-  CustomerIO: 0a31ad1baed6cd952469b9098e2e73fa96cec70e
-  CustomerIOCommon: 3bf82c3574205819a69baa1f0bc5b47671dd2d19
-  CustomerIOTracking: 101dc8c25eff807eadc8fbcf83b76f98fb5832a5
+  customer_io: 1d87e347f5413fd849e9b185be08d3d0b4de16b8
+  CustomerIOCommon: a427cf053f8effbaafc715c151342732c0f8d4b3
+  CustomerIOMessagingInApp: 34505598985348b913d10cbdc9cdd288bff715b5
+  CustomerIOTracking: 52a97a4d8f5adb789add4439f3e483907c6d475e
   Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
+  Gist: 3269391440cbe3637db6733964dd53ea32a3ce56
 
 PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
 

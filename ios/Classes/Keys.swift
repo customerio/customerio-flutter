@@ -9,6 +9,17 @@ import Foundation
 
 struct Keys {
     
+    struct Methods{
+        static let initialize = "initialize"
+        static let identify = "identify"
+        static let clearIdentify = "clearIdentify"
+        static let track = "track"
+        static let screen = "screen"
+        static let setDeviceAttributes = "setDeviceAttributes"
+        static let setProfileAttributes = "setProfileAttributes"
+
+    }
+    
     struct Tracking {
         static let identifier = "identifier"
         static let attributes = "attributes"

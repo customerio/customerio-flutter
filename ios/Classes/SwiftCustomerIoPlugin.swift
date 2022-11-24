@@ -2,6 +2,7 @@ import Flutter
 import UIKit
 import CioTracking
 import Common
+import CioMessagingInApp
 
 public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     
@@ -13,25 +14,45 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch(call.method) {
-        case "getPlatformVersion":
-            result("iOS " + UIDevice.current.systemVersion)
-        case "initialize":
-            if let params = call.arguments as? Dictionary<String, Any> {
-                print(params)
-                initialize(params: params)
-                result(true)
-            } else{
-                result(FlutterError(code: "initialize", message: "params not available", details: nil))
+        case Keys.Methods.initialize:
+            checkParamsAndExecute(caller: Keys.Methods.initialize,
+                                  arguments: call.arguments,
+                                  result: result) {
+                initialize(params: $0)
             }
-        case "identify":
-            if let params = call.arguments as? Dictionary<String, Any> {
-                print(params)
-                identify(params: params)
-            } else{
-                print("initialize: params not available")
+        case Keys.Methods.clearIdentify:
+            clearIdentify()
+        case Keys.Methods.track:
+            checkParamsAndExecute(caller: Keys.Methods.track,
+                                  arguments: call.arguments,
+                                  result: result) {
+                track(params: $0)
+            }
+        case Keys.Methods.screen:
+            checkParamsAndExecute(caller: Keys.Methods.screen,
+                                  arguments: call.arguments,
+                                  result: result) {
+                screen(params: $0)
+            }
+        case Keys.Methods.identify:
+            checkParamsAndExecute(caller: Keys.Methods.identify,
+                                  arguments: call.arguments,
+                                  result: result) {
+                identify(params: $0)
             }
         default:
             result(FlutterMethodNotImplemented)
+        }
+    }
+    
+    private func checkParamsAndExecute(caller: String, arguments: Any?, result: @escaping FlutterResult,
+                                       method: (_: Dictionary<String, Any>)  -> Void) {
+        if let attributes = arguments as? Dictionary<String, Any> {
+            print(attributes)
+            method(attributes)
+            result(true)
+        } else{
+            result(FlutterError(code: caller, message: "params not available", details: nil))
         }
     }
     
@@ -67,6 +88,21 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
         CustomerIO.shared.track(name: name, data: attributes)
         
     }
+    
+    func screen(params : Dictionary<String, Any>) {
+        guard let name = params[Keys.Tracking.eventName] as? String
+        else {
+            return
+        }
+        
+        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, Any> else{
+            CustomerIO.shared.screen(name: name)
+            return
+        }
+        
+        CustomerIO.shared.screen(name: name, data: attributes)
+    }
+    
     
     private func setDeviceAttributes(params : Dictionary<String, Any>){
         guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, Any>
@@ -111,5 +147,15 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
         let version = params[Keys.PackageConfig.version] as? String ?? "n/a"
         let sdkSource = SdkWrapperConfig.Source.flutter
         return SdkWrapperConfig(source: sdkSource, version: version )
+    }
+    
+    
+    /**
+     Intialize in-app using customerio package
+     */
+    private func initializeInApp(organizationId: String){
+        DispatchQueue.main.async {
+            MessagingInApp.shared.initialize(organizationId: organizationId)
+        }
     }
 }
