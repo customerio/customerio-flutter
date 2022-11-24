@@ -18,6 +18,7 @@ rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
+        maven { url 'https://maven.gist.build' }
     }
 }
 
@@ -41,10 +42,15 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 21
     }
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    // Customer.io SDK
+    def cioVersion = "3.2.0-alpha.1"
+    implementation "io.customer.android:tracking:$cioVersion"
+    implementation "io.customer.android:messaging-push-fcm:$cioVersion"
+    implementation "io.customer.android:messaging-in-app:$cioVersion"
 }
