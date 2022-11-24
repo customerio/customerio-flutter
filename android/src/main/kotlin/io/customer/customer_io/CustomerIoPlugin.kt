@@ -81,11 +81,8 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler {
     private fun getUserAgentClient(packageConfig: Map<String, Any?>?): Client {
         val sourceSDKVersion = packageConfig?.getProperty<String>(
             Keys.PackageConfig.SOURCE_SDK_VERSION
-        )?.takeIfNotBlank() ?: packageConfig?.getProperty<String>(
-            Keys.PackageConfig.SOURCE_SDK_VERSION_COMPAT
         )?.takeIfNotBlank() ?: "n/a"
-        // TODO: change it to flutter
-        return Client.ReactNative(sdkVersion = sourceSDKVersion)
+        return Client.Flutter(sdkVersion = sourceSDKVersion)
     }
 
     private fun CustomerIO.Builder.setupConfig(config: Map<String, Any?>?): CustomerIO.Builder {
