@@ -28,7 +28,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
     private lateinit var context: Context
 
     private val logger: Logger
-        get() = CustomerIOShared.instance().diGraph.logger
+        get() = CustomerIOShared.instance().diStaticGraph.logger
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         context = flutterPluginBinding.applicationContext
@@ -37,62 +37,128 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
         flutterCommunicationChannel.setMethodCallHandler(this)
     }
 
+    private fun MethodCall.toNativeMethodCall(
+        result: Result,
+        performAction: (params: Map<String, Any>) -> Unit
+    ) {
+        try {
+            val params = this.arguments as? Map<String, Any> ?: emptyMap()
+            performAction(params)
+            result.success(true)
+        } catch (e: Exception) {
+            result.error(this.method, e.localizedMessage, null);
+        }
+    }
+
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         when (call.method) {
-            "getPlatformVersion" -> {
-                result.success("Android-${android.os.Build.VERSION.RELEASE}")
+            Keys.Methods.INITIALIZE -> {
+                call.toNativeMethodCall(result) {
+                    initialize(it)
+                }
             }
-            "initialize" -> {
-                initialize(call, result)
+            Keys.Methods.IDENTIFY -> {
+                call.toNativeMethodCall(result) {
+                    identify(it)
+                }
             }
-            "identify" -> {
-                identify(call.arguments)
+            Keys.Methods.SCREEN -> {
+                call.toNativeMethodCall(result) {
+                    screen(it)
+                }
             }
+            Keys.Methods.TRACK -> {
+                call.toNativeMethodCall(result) {
+                    track(it)
+                }
+            }
+            Keys.Methods.SET_DEVICE_ATTRIBUTES -> {
+                call.toNativeMethodCall(result) {
+                    setDeviceAttributes(it)
+                }
+            }
+            Keys.Methods.SET_PROFILE_ATTRIBUTES -> {
+                call.toNativeMethodCall(result) {
+                    setProfileAttributes(it)
+                }
+            }
+            Keys.Methods.CLEAR_IDENTIFY -> {
+                clearIdentity()
+            }
+
             else -> {
                 result.notImplemented()
             }
         }
     }
 
-    private fun identify(arguments: Any?) {
-        try {
-            val configData = arguments as? Map<String, Any> ?: emptyMap()
-            logger.debug(configData.toString())
-            val identifier = configData.getString(Keys.Tracking.IDENTIFIER)
-            val attributes =
-                configData.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: emptyMap()
-            CustomerIO.instance().identify(identifier, attributes)
-        } catch (e: Exception) {
-            logger.error("Failed to identify, ${e.message}")
+    private fun clearIdentity() {
+        CustomerIO.instance().clearIdentify()
+    }
+
+    private fun identify(params: Map<String, Any>) {
+        val identifier = params.getString(Keys.Tracking.IDENTIFIER)
+        val attributes =
+            params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: emptyMap()
+        CustomerIO.instance().identify(identifier, attributes)
+    }
+
+    fun track(params: Map<String, Any>) {
+        val name = params.getString(Keys.Tracking.EVENT_NAME)
+        val attributes =
+            params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: emptyMap()
+
+        if (attributes.isEmpty()) {
+            CustomerIO.instance().track(name)
+        } else {
+            CustomerIO.instance().track(name, attributes)
         }
     }
 
+    fun setDeviceAttributes(params: Map<String, Any>) {
+        val attributes =
+            params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: emptyMap()
 
-    private fun initialize(call: MethodCall, result: Result) {
-        try {
-            val application: Application = context.applicationContext as Application
-            val configData = call.arguments as? Map<String, Any> ?: emptyMap()
-            val siteId = configData.getString(Keys.Environment.SITE_ID)
-            val apiKey = configData.getString(Keys.Environment.API_KEY)
-            val region = configData.getProperty<String>(
-                Keys.Environment.REGION
-            )?.takeIfNotBlank().toRegion()
+        CustomerIO.instance().deviceAttributes = attributes
+    }
 
-            CustomerIO.Builder(
-                siteId = siteId,
-                apiKey = apiKey,
-                region = region,
-                appContext = application,
-            ).apply {
-                setClient(client = getUserAgentClient(packageConfig = configData))
-                setupConfig(configData)
-            }.build()
-            logger.info("Customer.io instance initialized successfully")
-            result.success(true)
-        } catch (e: Exception) {
-            logger.error("Failed to initialize Customer.io instance from app, ${e.message}")
-            result.error("initialize", e.localizedMessage, null);
+    fun setProfileAttributes(params: Map<String, Any>) {
+        val attributes =
+            params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: return
+
+        CustomerIO.instance().profileAttributes = attributes
+    }
+
+    fun screen(params: Map<String, Any>) {
+        val name = params.getString(Keys.Tracking.EVENT_NAME)
+        val attributes =
+            params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: emptyMap()
+
+        if (attributes.isEmpty()) {
+            CustomerIO.instance().screen(name)
+        } else {
+            CustomerIO.instance().screen(name, attributes)
         }
+    }
+
+    private fun initialize(configData: Map<String, Any>) {
+        val application: Application = context.applicationContext as Application
+        val siteId = configData.getString(Keys.Environment.SITE_ID)
+        val apiKey = configData.getString(Keys.Environment.API_KEY)
+        val region = configData.getProperty<String>(
+            Keys.Environment.REGION
+        )?.takeIfNotBlank().toRegion()
+
+        CustomerIO.Builder(
+            siteId = siteId,
+            apiKey = apiKey,
+            region = region,
+            appContext = application,
+        ).apply {
+            setClient(client = getUserAgentClient(packageConfig = configData))
+            setupConfig(configData)
+        }.build()
+        logger.info("Customer.io instance initialized successfully")
     }
 
     private fun getUserAgentClient(packageConfig: Map<String, Any?>?): Client {

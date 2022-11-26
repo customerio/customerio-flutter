@@ -24,10 +24,6 @@ abstract class CustomerIOPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<String?> getPlatformVersion() {
-    throw UnimplementedError('platformVersion() has not been implemented.');
-  }
-
   Future<void> initialize({
     required CustomerIOConfig config,
   }) {
@@ -35,7 +31,32 @@ abstract class CustomerIOPlatform extends PlatformInterface {
   }
 
   void identify(
-      {required String identifier, required Map<String, dynamic> attributes}) {
+      {required String identifier, Map<String, dynamic> attributes = const {}}) {
     throw UnimplementedError('identify() has not been implemented.');
   }
+
+  void clearIdentify(){
+    throw UnimplementedError('clearIdentify() has not been implemented.');
+  }
+
+  void track(
+      {required String name, Map<String, dynamic> attributes = const {}}) {
+    throw UnimplementedError('track() has not been implemented.');
+  }
+
+  void screen(
+      {required String name, Map<String, dynamic> attributes = const {}}) {
+    throw UnimplementedError('screen() has not been implemented.');
+  }
+
+  void setDeviceAttributes(
+      {required Map<String, dynamic> attributes}) {
+    throw UnimplementedError('setDeviceAttributes() has not been implemented.');
+  }
+
+  void setProfileAttributes(
+      {required Map<String, dynamic> attributes}) {
+    throw UnimplementedError('setProfileAttributes() has not been implemented.');
+  }
+
 }

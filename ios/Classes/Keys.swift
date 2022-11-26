@@ -17,7 +17,7 @@ struct Keys {
         static let screen = "screen"
         static let setDeviceAttributes = "setDeviceAttributes"
         static let setProfileAttributes = "setProfileAttributes"
-
+        
     }
     
     struct Tracking {

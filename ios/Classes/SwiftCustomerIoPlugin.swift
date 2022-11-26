@@ -15,46 +15,32 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch(call.method) {
         case Keys.Methods.initialize:
-            checkParamsAndExecute(caller: Keys.Methods.initialize,
-                                  arguments: call.arguments,
-                                  result: result) {
-                initialize(params: $0)
-            }
+            call.toNativeMethodCall(
+                result: result) {
+                    initialize(params: $0)
+                }
         case Keys.Methods.clearIdentify:
             clearIdentify()
         case Keys.Methods.track:
-            checkParamsAndExecute(caller: Keys.Methods.track,
-                                  arguments: call.arguments,
-                                  result: result) {
-                track(params: $0)
-            }
+            call.toNativeMethodCall(
+                result: result) {
+                    track(params: $0)
+                }
         case Keys.Methods.screen:
-            checkParamsAndExecute(caller: Keys.Methods.screen,
-                                  arguments: call.arguments,
-                                  result: result) {
-                screen(params: $0)
-            }
+            call.toNativeMethodCall(
+                result: result) {
+                    screen(params: $0)
+                }
         case Keys.Methods.identify:
-            checkParamsAndExecute(caller: Keys.Methods.identify,
-                                  arguments: call.arguments,
-                                  result: result) {
-                identify(params: $0)
-            }
+            call.toNativeMethodCall(
+                result: result) {
+                    identify(params: $0)
+                }
         default:
             result(FlutterMethodNotImplemented)
         }
     }
     
-    private func checkParamsAndExecute(caller: String, arguments: Any?, result: @escaping FlutterResult,
-                                       method: (_: Dictionary<String, Any>)  -> Void) {
-        if let attributes = arguments as? Dictionary<String, Any> {
-            print(attributes)
-            method(attributes)
-            result(true)
-        } else{
-            result(FlutterError(code: caller, message: "params not available", details: nil))
-        }
-    }
     
     private func identify(params : Dictionary<String, Any>){
         guard let identifier = params[Keys.Tracking.identifier] as? String
@@ -157,5 +143,23 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
         DispatchQueue.main.async {
             MessagingInApp.shared.initialize(organizationId: organizationId)
         }
+    }
+}
+
+private extension FlutterMethodCall {
+    func toNativeMethodCall( result: @escaping FlutterResult,
+                             method: (_: Dictionary<String, Any>) throws -> Void) {
+        do {
+            if let attributes = self.arguments as? Dictionary<String, Any> {
+                print(attributes)
+                try method(attributes)
+                result(true)
+            } else{
+                result(FlutterError(code: self.method, message: "params not available", details: nil))
+            }
+        } catch {
+            result(FlutterError(code: self.method, message: "Unexpected error: \(error).", details: nil))
+        }
+        
     }
 }
