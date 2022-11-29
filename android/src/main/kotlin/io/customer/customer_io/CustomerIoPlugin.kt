@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.annotation.NonNull
 import io.customer.customer_io.constant.Keys
 import io.customer.customer_io.extension.*
+import io.customer.messaginginapp.ModuleMessagingInApp
 import io.customer.sdk.CustomerIO
 import io.customer.sdk.CustomerIOShared
 import io.customer.sdk.data.store.Client
@@ -148,6 +149,9 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
         val region = configData.getProperty<String>(
             Keys.Environment.REGION
         )?.takeIfNotBlank().toRegion()
+        val organizationId = configData.getProperty<String>(
+            Keys.Environment.ORGANIZATION_ID
+        )?.takeIfNotBlank()
 
         CustomerIO.Builder(
             siteId = siteId,
@@ -157,6 +161,13 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
         ).apply {
             setClient(client = getUserAgentClient(packageConfig = configData))
             setupConfig(configData)
+            if (!organizationId.isNullOrBlank()) {
+                addCustomerIOModule(
+                    module = ModuleMessagingInApp(
+                        organizationId = organizationId,
+                    )
+                )
+            }
         }.build()
         logger.info("Customer.io instance initialized successfully")
     }

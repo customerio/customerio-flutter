@@ -110,7 +110,8 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     private func initialize(params : Dictionary<String, Any>){
         guard let siteId = params[Keys.Environment.siteId] as? String,
               let apiKey = params[Keys.Environment.apiKey] as? String,
-              let region = params[Keys.Environment.region] as? String
+              let region = params[Keys.Environment.region] as? String,
+              let organizationId = params[Keys.Environment.organizationId] as? String
         else {
             return
         }
@@ -127,6 +128,10 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
                 config.trackingApiUrl = trackingApiUrl
             }
         }
+        
+        if organizationId != "" {
+            initializeInApp(organizationId: organizationId)
+        }
     }
     
     private func getUserAgent(params : Dictionary<String, Any>) -> SdkWrapperConfig{
@@ -137,7 +142,7 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     
     
     /**
-     Intialize in-app using customerio package
+     Initialize in-app using customerio plugin
      */
     private func initializeInApp(organizationId: String){
         DispatchQueue.main.async {
