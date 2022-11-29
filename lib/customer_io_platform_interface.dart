@@ -31,11 +31,12 @@ abstract class CustomerIOPlatform extends PlatformInterface {
   }
 
   void identify(
-      {required String identifier, Map<String, dynamic> attributes = const {}}) {
+      {required String identifier,
+      Map<String, dynamic> attributes = const {}}) {
     throw UnimplementedError('identify() has not been implemented.');
   }
 
-  void clearIdentify(){
+  void clearIdentify() {
     throw UnimplementedError('clearIdentify() has not been implemented.');
   }
 
@@ -49,14 +50,12 @@ abstract class CustomerIOPlatform extends PlatformInterface {
     throw UnimplementedError('screen() has not been implemented.');
   }
 
-  void setDeviceAttributes(
-      {required Map<String, dynamic> attributes}) {
+  void setDeviceAttributes({required Map<String, dynamic> attributes}) {
     throw UnimplementedError('setDeviceAttributes() has not been implemented.');
   }
 
-  void setProfileAttributes(
-      {required Map<String, dynamic> attributes}) {
-    throw UnimplementedError('setProfileAttributes() has not been implemented.');
+  void setProfileAttributes({required Map<String, dynamic> attributes}) {
+    throw UnimplementedError(
+        'setProfileAttributes() has not been implemented.');
   }
-
 }

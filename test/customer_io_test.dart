@@ -18,7 +18,8 @@ class MockCustomerIoPlatform
   }
 
   @override
-  void identify({required String identifier, required Map<String, dynamic> attributes}) {
+  void identify(
+      {required String identifier, required Map<String, dynamic> attributes}) {
     // TODO: implement identify
   }
 }

@@ -3,13 +3,13 @@ package io.customer.customer_io.constant
 internal object Keys {
 
     object Methods {
-        const val  INITIALIZE = "initialize"
-        const val  IDENTIFY = "identify"
-        const val  CLEAR_IDENTIFY = "clearIdentify"
-        const val  TRACK = "track"
-        const val  SCREEN = "screen"
-        const val  SET_DEVICE_ATTRIBUTES = "setDeviceAttributes"
-        const val  SET_PROFILE_ATTRIBUTES = "setProfileAttributes"
+        const val INITIALIZE = "initialize"
+        const val IDENTIFY = "identify"
+        const val CLEAR_IDENTIFY = "clearIdentify"
+        const val TRACK = "track"
+        const val SCREEN = "screen"
+        const val SET_DEVICE_ATTRIBUTES = "setDeviceAttributes"
+        const val SET_PROFILE_ATTRIBUTES = "setProfileAttributes"
     }
 
     object Tracking {
