@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:customer_io/customer_io.dart';
 import 'package:customer_io/customer_io_config.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,27 +31,20 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     initPlatformState();
+    CustomerIo.identify(
+        identifier: "and-flut-wow",
+        attributes: {"name": "yolo", "age": 10, "weight": 33.3});
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    // We also handle the message potentially returning null.
-    try {
-      platformVersion =
-          await CustomerIo.getPlatformVersion() ?? 'Unknown platform version';
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
-
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
     // setState to update our non-existent appearance.
     if (!mounted) return;
 
     setState(() {
-      _platformVersion = platformVersion;
+      _platformVersion = "Platform";
     });
   }
 
