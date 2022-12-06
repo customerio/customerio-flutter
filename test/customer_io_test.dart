@@ -8,8 +8,6 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 class MockCustomerIoPlatform
     with MockPlatformInterfaceMixin
     implements CustomerIOPlatform {
-  @override
-  Future<String?> getPlatformVersion() => Future.value('42');
 
   @override
   Future<void> initialize({required CustomerIOConfig config}) {
@@ -18,10 +16,35 @@ class MockCustomerIoPlatform
   }
 
   @override
-  void identify(
-      {required String identifier, required Map<String, dynamic> attributes}) {
+  void clearIdentify() {
+    // TODO: implement clearIdentify
+  }
+
+  @override
+  void identify({required String identifier, Map<String, dynamic> attributes = const {}}) {
     // TODO: implement identify
   }
+
+  @override
+  void screen({required String name, Map<String, dynamic> attributes = const {}}) {
+    // TODO: implement screen
+  }
+
+  @override
+  void setDeviceAttributes({required Map<String, dynamic> attributes}) {
+    // TODO: implement setDeviceAttributes
+  }
+
+  @override
+  void setProfileAttributes({required Map<String, dynamic> attributes}) {
+    // TODO: implement setProfileAttributes
+  }
+
+  @override
+  void track({required String name, Map<String, dynamic> attributes = const {}}) {
+    // TODO: implement track
+  }
+
 }
 
 void main() {
@@ -29,12 +52,5 @@ void main() {
 
   test('$CustomerIOMethodChannel is the default instance', () {
     expect(initialPlatform, isInstanceOf<CustomerIOMethodChannel>());
-  });
-
-  test('getPlatformVersion', () async {
-    MockCustomerIoPlatform fakePlatform = MockCustomerIoPlatform();
-    CustomerIOPlatform.instance = fakePlatform;
-
-    expect(await CustomerIo.getPlatformVersion(), '42');
   });
 }

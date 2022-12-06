@@ -40,8 +40,7 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
             result(FlutterMethodNotImplemented)
         }
     }
-    
-    
+        
     private func identify(params : Dictionary<String, Any>){
         guard let identifier = params[Keys.Tracking.identifier] as? String
         else {
@@ -140,7 +139,6 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
         return SdkWrapperConfig(source: sdkSource, version: version )
     }
     
-    
     /**
      Initialize in-app using customerio plugin
      */
@@ -167,4 +165,5 @@ private extension FlutterMethodCall {
         }
         
     }
+
 }

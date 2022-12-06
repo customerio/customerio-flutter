@@ -86,7 +86,6 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
             Keys.Methods.CLEAR_IDENTIFY -> {
                 clearIdentity()
             }
-
             else -> {
                 result.notImplemented()
             }
@@ -171,6 +170,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
         }.build()
         logger.info("Customer.io instance initialized successfully")
     }
+
 
     private fun getUserAgentClient(packageConfig: Map<String, Any?>?): Client {
         val sourceSDKVersion = packageConfig?.getProperty<String>(
