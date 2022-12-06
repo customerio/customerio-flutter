@@ -5,7 +5,7 @@ class CustomerIOConfig {
   final String siteId;
   final String apiKey;
   Region region;
-  String? organizationId;
+  String organizationId;
 
   CioLogLevel logLevel;
   bool autoTrackDeviceAttributes;
@@ -20,7 +20,7 @@ class CustomerIOConfig {
       {required this.siteId,
       required this.apiKey,
       this.region = Region.us,
-      this.organizationId,
+      this.organizationId = "",
       this.logLevel = CioLogLevel.debug,
       this.autoTrackDeviceAttributes = true,
       this.trackingApiUrl = "",
