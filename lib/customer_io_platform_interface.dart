@@ -58,10 +58,4 @@ abstract class CustomerIOPlatform extends PlatformInterface {
     throw UnimplementedError(
         'setProfileAttributes() has not been implemented.');
   }
-
-  Future<void> initialize({
-    required CustomerIOConfig config,
-  }) {
-    throw UnimplementedError('config() has not been implemented.');
-  }
 }
