@@ -10,8 +10,8 @@ void main() async {
 
   await CustomerIo.initialize(
     config: CustomerIOConfig(
-      siteId: "",
-      apiKey: "",
+      siteId: "YOUR_SITE_ID",
+      apiKey: "YOUR_API_KEY",
     ),
   );
 

@@ -1,0 +1,81 @@
+# File downloaded by CI
+credentials.json
+
+# Do not include pubspec.lock https://dart.dev/guides/libraries/private-files#pubspeclock
+pubspec.lock
+
+# Do not include google services jsons
+
+**/GoogleService-Info.plist
+
+## Fastlane
+ios/fastlane/report.xml
+android/fastlane/report.xml
+
+## Tests
+coverage/
+
+## iOS build artifacts
+*.dSYM.zip
+*.ipa
+
+git filter-branch --tree-filter 'rm -f example/android/app/google-services.json' HEAD
+
+## Dont keep podfile lock since we have fixed versions on pubspec.yaml
+## https://stackoverflow.com/a/58400616/273119
+ios/Podfile.lock
+**.g.dart
+**.chopper.dart
+**.mocks.dart
+# Intl generated
+lib/generated/
+
+## https://pub.dev/packages/flutter_config
+ios/.envfile
+**/ios/Flutter/tmp.xcconfig
+
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+
+# Web related
+lib/generated_plugin_registrant.dart
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Exceptions to above rules.
+!/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
+Footer
