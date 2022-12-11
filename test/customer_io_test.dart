@@ -1,4 +1,3 @@
-import 'package:customer_io/customer_io.dart';
 import 'package:customer_io/customer_io_config.dart';
 import 'package:customer_io/customer_io_method_channel.dart';
 import 'package:customer_io/customer_io_platform_interface.dart';
