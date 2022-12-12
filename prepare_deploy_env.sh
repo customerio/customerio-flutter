@@ -24,6 +24,11 @@ if [ -z "${PUB_DEV_PUBLISH_EXPIRATION}" ]; then
   exit 1
 fi
 
+if [ -z "${PUB_DEV_PUBLISH_ID_TOKEN}" ]; then
+  echo "Missing PUB_DEV_PUBLISH_ID_TOKEN environment variable"
+  exit 1
+fi
+
 # Create credentials.json file.
 mkdir -p $HOME/.config/dart
 cat <<EOF > $HOME/.config/dart/pub-credentials.json
@@ -31,7 +36,7 @@ cat <<EOF > $HOME/.config/dart/pub-credentials.json
   "accessToken":"${PUB_DEV_PUBLISH_ACCESS_TOKEN}",
   "refreshToken":"${PUB_DEV_PUBLISH_REFRESH_TOKEN}",
   "tokenEndpoint":"${PUB_DEV_PUBLISH_TOKEN_ENDPOINT}",
-  "idToken":"${PUB_DEV_PUBLISH_TOKEN_ID}",
+  "idToken":"${PUB_DEV_PUBLISH_ID_TOKEN}",
   "scopes":["https://www.googleapis.com/auth/userinfo.email","openid"],
   "expiration":${PUB_DEV_PUBLISH_EXPIRATION}
 }
