@@ -15,8 +15,9 @@ A plugin for Customer.io
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
-  s.dependency "CustomerIOTracking", '~> 1.2.6'
-  s.dependency "CustomerIOMessagingInApp", '~> 1.2.6'
+  s.dependency "CustomerIOTracking", '~> 1.2.7'
+  s.dependency "CustomerIOMessagingInApp", '~> 1.2.7'
+  s.dependency "CustomerIO/MessagingPushFCM", '~> 1.2.7'
   s.platform = :ios, '13.0'
 
   # Flutter.framework does not contain a i386 slice.
