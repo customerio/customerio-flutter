@@ -10,7 +10,6 @@ concurrency:
 jobs:
   lint:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v2
