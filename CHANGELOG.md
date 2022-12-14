@@ -1,3 +1,7 @@
+## 0.0.1-alpha.3
+
+* iOS version bump
+
 ## 0.0.1-alpha.2
 
 * Push messaging support
