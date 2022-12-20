@@ -6,6 +6,8 @@ import androidx.annotation.NonNull
 import io.customer.customer_io.constant.Keys
 import io.customer.customer_io.extension.*
 import io.customer.messaginginapp.ModuleMessagingInApp
+import io.customer.messagingpush.MessagingPushModuleConfig
+import io.customer.messagingpush.ModuleMessagingPushFCM
 import io.customer.sdk.CustomerIO
 import io.customer.sdk.CustomerIOShared
 import io.customer.sdk.data.store.Client
@@ -160,6 +162,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
         ).apply {
             setClient(client = getUserAgentClient(packageConfig = configData))
             setupConfig(configData)
+            addCustomerIOModule(module = configureModuleMessagingPushFCM(configData))
             if (!organizationId.isNullOrBlank()) {
                 addCustomerIOModule(
                     module = ModuleMessagingInApp(
@@ -171,6 +174,15 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
         logger.info("Customer.io instance initialized successfully")
     }
 
+    private fun configureModuleMessagingPushFCM(config: Map<String, Any?>?): ModuleMessagingPushFCM {
+        return ModuleMessagingPushFCM(
+            config = MessagingPushModuleConfig.Builder().apply {
+                config?.getProperty<Boolean>(Keys.Config.AUTO_TRACK_PUSH_EVENTS)?.let { value ->
+                    setAutoTrackPushEvents(autoTrackPushEvents = value)
+                }
+            }.build(),
+        )
+    }
 
     private fun getUserAgentClient(packageConfig: Map<String, Any?>?): Client {
         val sourceSDKVersion = packageConfig?.getProperty<String>(
