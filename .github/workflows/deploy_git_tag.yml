@@ -50,7 +50,7 @@ jobs:
             {
               "text": "Flutter SDK git tag created",
               "username": "Flutter deployment bot",
-              "icon_url": "https://storage.googleapis.com/cms-storage-bucket/c823e53b3a1a7b0d36a9.png",
+              "icon_url": "https://img.icons8.com/color/512/flutter.png",
               "channel": "#squad-mobile",
               "blocks": [
                 {
@@ -67,7 +67,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Version ${{ steps.semantic-release.outputs.new_release_version }}*\n\nFlutter SDK deployment progress:\n ~1. <https://github.com/${{github.repository}}/releases/tag/${{steps.semantic-release.outputs.new_release_version}}|create git tag>~\n2. deploy to npm\n\n"
+                    "text": "*Version ${{ steps.semantic-release.outputs.new_release_version }}*\n\nFlutter SDK deployment progress:\n ~1. <https://github.com/${{github.repository}}/releases/tag/${{steps.semantic-release.outputs.new_release_version}}|create git tag>~\n2. deploy to pub.dev\n\n"
                   }
                 }
               ]
@@ -85,7 +85,7 @@ jobs:
             {
               "text": "Flutter SDK deployment failure",
               "username": "Flutter deployment bot",
-              "icon_url": "https://storage.googleapis.com/cms-storage-bucket/c823e53b3a1a7b0d36a9.png",
+              "icon_url": "https://img.icons8.com/color/512/flutter.png",
               "channel": "#squad-mobile",
               "blocks": [
                 {

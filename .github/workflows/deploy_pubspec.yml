@@ -30,16 +30,16 @@ jobs:
           # Use block kit to format the Slack message: https://app.slack.com/block-kit-builder
           payload: |
             {
-              "text": "Flutter SDK deployed to npm",
+              "text": "Flutter SDK deployed to pub.dev",
               "username": "Flutter deployment bot",
-              "icon_url": "https://storage.googleapis.com/cms-storage-bucket/c823e53b3a1a7b0d36a9.png",
+              "icon_url": "https://img.icons8.com/color/512/flutter.png",
               "channel": "#squad-mobile",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Flutter* SDK deployed to npm! (deployment step 2 of 2)"
+                    "text": "*Flutter* SDK deployed to pub.dev! (deployment step 2 of 2)"
                   }
                 },
                 {
@@ -49,7 +49,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Version ${{ github.event.release.tag_name }}*\n\nFlutter SDK deployment progress:\n ~1. <https://github.com/${{github.repository}}/releases/tag/${{ github.event.release.tag_name }}|create git tag>~\n~2. deploy to npm~\n\n"
+                    "text": "*Version ${{ github.event.release.tag_name }}*\n\nFlutter SDK deployment progress:\n ~1. <https://github.com/${{github.repository}}/releases/tag/${{ github.event.release.tag_name }}|create git tag>~\n~2. deploy to pub.dev~\n\n"
                   }
                 }
               ]
@@ -67,7 +67,7 @@ jobs:
             {
               "text": "Flutter SDK deployment failure",
               "username": "Flutter deployment bot",
-              "icon_url": "https://storage.googleapis.com/cms-storage-bucket/c823e53b3a1a7b0d36a9.png",
+              "icon_url": "https://img.icons8.com/color/512/flutter.png",
               "channel": "#squad-mobile",
               "blocks": [
                 {
@@ -84,7 +84,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "Flutter SDK failed deployment during step *deploy to npm*. View <https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|CI server logs> to learn why and fix the issue. <https://github.com/customerio/mobile/blob/main/GIT-WORKFLOW.md|Learn more about the deployment process and how to fix errors>."
+                    "text": "Flutter SDK failed deployment during step *deploy to pub.dev*. View <https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|CI server logs> to learn why and fix the issue. <https://github.com/customerio/mobile/blob/main/GIT-WORKFLOW.md|Learn more about the deployment process and how to fix errors>."
                   }
                 }
               ]
