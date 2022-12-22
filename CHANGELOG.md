@@ -1,3 +1,10 @@
+## [1.0.0-alpha.2](https://github.com/customerio/customerio-flutter/compare/1.0.0-alpha.1...1.0.0-alpha.2) (2022-12-22)
+
+
+### Bug Fixes
+
+* updated icon and typo ([57c6eef](https://github.com/customerio/customerio-flutter/commit/57c6eefb7d77bc88972450d75e74f1982abb8b16))
+
 ## 1.0.0-alpha.1 (2022-12-22)
 
 
