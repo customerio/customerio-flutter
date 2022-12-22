@@ -12,6 +12,6 @@ NEW_VERSION="$1"
 
 echo "Updating pubspec.yaml to new version: $NEW_VERSION"
 
-sed -i '' 's/^\(version: \).*$/\1'"$NEW_VERSION"'/' pubspec.yaml
+sed -i 's/^\(version: \).*$/\1'"$NEW_VERSION"'/' pubspec.yaml
 
 echo "Check pubspec.yaml file. You should see version inside has been updated!"
