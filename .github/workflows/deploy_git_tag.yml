@@ -67,7 +67,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Version ${{ steps.semantic-release.outputs.new_release_version }}*\n\nFlutter SDK deployment progress:\n ~1. <https://github.com/${{github.repository}}/releases/tag/${{steps.semantic-release.outputs.new_release_version}}|create git tag>~\n2. deploy to npm\n\n"
+                    "text": "*Version ${{ steps.semantic-release.outputs.new_release_version }}*\n\nFlutter SDK deployment progress:\n ~1. <https://github.com/${{github.repository}}/releases/tag/${{steps.semantic-release.outputs.new_release_version}}|create git tag>~\n2. deploy to pub.dev\n\n"
                   }
                 }
               ]
