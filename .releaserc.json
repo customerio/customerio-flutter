@@ -22,7 +22,7 @@
     ["@semantic-release/git", {
       "assets": [
         "CHANGELOG.md",
-        "package.json"
+        "pubspec.yaml"
       ],
       "message": "chore: prepare for ${nextRelease.version}\n\n${nextRelease.notes}"
     }
