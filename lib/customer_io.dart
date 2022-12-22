@@ -1,8 +1,8 @@
 import 'customer_io_config.dart';
 import 'customer_io_platform_interface.dart';
 
-class CustomerIo {
-  const CustomerIo._();
+class CustomerIO {
+  const CustomerIO._();
 
   static CustomerIOPlatform get _customerIO => CustomerIOPlatform.instance;
 
