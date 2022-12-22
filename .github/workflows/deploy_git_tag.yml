@@ -50,7 +50,7 @@ jobs:
             {
               "text": "Flutter SDK git tag created",
               "username": "Flutter deployment bot",
-              "icon_url": "https://storage.googleapis.com/cms-storage-bucket/c823e53b3a1a7b0d36a9.png",
+              "icon_url": "https://img.icons8.com/color/512/flutter.png",
               "channel": "#squad-mobile",
               "blocks": [
                 {
@@ -85,7 +85,7 @@ jobs:
             {
               "text": "Flutter SDK deployment failure",
               "username": "Flutter deployment bot",
-              "icon_url": "https://storage.googleapis.com/cms-storage-bucket/c823e53b3a1a7b0d36a9.png",
+              "icon_url": "https://img.icons8.com/color/512/flutter.png",
               "channel": "#squad-mobile",
               "blocks": [
                 {
