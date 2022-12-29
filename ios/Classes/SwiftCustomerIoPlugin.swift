@@ -36,6 +36,14 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
                 result: result) {
                     identify(params: $0)
                 }
+        case Keys.Methods.setProfileAttributes:
+            call.toNativeMethodCall(result: result) {
+                setProfileAttributes(params: $0)
+            }
+        case Keys.Methods.setDeviceAttributes:
+            call.toNativeMethodCall(result: result) {
+                setDeviceAttributes(params: $0)
+            }
         default:
             result(FlutterMethodNotImplemented)
         }
