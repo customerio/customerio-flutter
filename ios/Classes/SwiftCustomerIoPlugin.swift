@@ -49,13 +49,13 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
         }
     }
         
-    private func identify(params : Dictionary<String, Any>){
+    private func identify(params : Dictionary<String, AnyHashable>){
         guard let identifier = params[Keys.Tracking.identifier] as? String
         else {
             return
         }
         
-        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, Any> else{
+        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable> else{
             CustomerIO.shared.identify(identifier: identifier)
             return
         }
@@ -67,13 +67,13 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
         CustomerIO.shared.clearIdentify()
     }
     
-    private func track(params : Dictionary<String, Any>)  {
+    private func track(params : Dictionary<String, AnyHashable>)  {
         guard let name = params[Keys.Tracking.eventName] as? String
         else {
             return
         }
         
-        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, Any> else{
+        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable> else{
             CustomerIO.shared.track(name: name)
             return
         }
@@ -82,13 +82,13 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
         
     }
     
-    func screen(params : Dictionary<String, Any>) {
+    func screen(params : Dictionary<String, AnyHashable>) {
         guard let name = params[Keys.Tracking.eventName] as? String
         else {
             return
         }
         
-        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, Any> else{
+        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable> else{
             CustomerIO.shared.screen(name: name)
             return
         }
@@ -97,16 +97,16 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     }
     
     
-    private func setDeviceAttributes(params : Dictionary<String, Any>){
-        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, Any>
+    private func setDeviceAttributes(params : Dictionary<String, AnyHashable>){
+        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable>
         else {
             return
         }
         CustomerIO.shared.deviceAttributes = attributes
     }
     
-    private func setProfileAttributes(params : Dictionary<String, Any>){
-        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, Any>
+    private func setProfileAttributes(params : Dictionary<String, AnyHashable>){
+        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable>
         else {
             return
         }
@@ -114,7 +114,7 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     }
     
     
-    private func initialize(params : Dictionary<String, Any>){
+    private func initialize(params : Dictionary<String, AnyHashable>){
         guard let siteId = params[Keys.Environment.siteId] as? String,
               let apiKey = params[Keys.Environment.apiKey] as? String,
               let region = params[Keys.Environment.region] as? String,
@@ -159,9 +159,9 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
 
 private extension FlutterMethodCall {
     func toNativeMethodCall( result: @escaping FlutterResult,
-                             method: (_: Dictionary<String, Any>) throws -> Void) {
+                             method: (_: Dictionary<String, AnyHashable>) throws -> Void) {
         do {
-            if let attributes = self.arguments as? Dictionary<String, Any> {
+            if let attributes = self.arguments as? Dictionary<String, AnyHashable> {
                 print(attributes)
                 try method(attributes)
                 result(true)
