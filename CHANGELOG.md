@@ -1,3 +1,10 @@
+## [1.0.0-alpha.4](https://github.com/customerio/customerio-flutter/compare/1.0.0-alpha.3...1.0.0-alpha.4) (2022-12-30)
+
+
+### Bug Fixes
+
+* obj-c bindings issue ([0dbe4ef](https://github.com/customerio/customerio-flutter/commit/0dbe4ef4a893df10d5bf060b6635240699357fa1))
+
 ## [1.0.0-alpha.3](https://github.com/customerio/customerio-flutter/compare/1.0.0-alpha.2...1.0.0-alpha.3) (2022-12-29)
 
 
