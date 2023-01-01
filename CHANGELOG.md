@@ -1,3 +1,10 @@
+## [1.0.0-alpha.5](https://github.com/customerio/customerio-flutter/compare/1.0.0-alpha.4...1.0.0-alpha.5) (2023-01-01)
+
+
+### Bug Fixes
+
+* plugin version in user-agent ([a10e482](https://github.com/customerio/customerio-flutter/commit/a10e482de83bb4f648408f99a2bed1cade6561c7))
+
 ## [1.0.0-alpha.4](https://github.com/customerio/customerio-flutter/compare/1.0.0-alpha.3...1.0.0-alpha.4) (2022-12-30)
 
 
