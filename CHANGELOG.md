@@ -1,3 +1,10 @@
+## [1.0.0-alpha.6](https://github.com/customerio/customerio-flutter/compare/1.0.0-alpha.5...1.0.0-alpha.6) (2023-01-01)
+
+
+### Bug Fixes
+
+* formatting issues ([d67fa7e](https://github.com/customerio/customerio-flutter/commit/d67fa7eea264d20e1b6314277bef926150625f4e))
+
 ## [1.0.0-alpha.5](https://github.com/customerio/customerio-flutter/compare/1.0.0-alpha.4...1.0.0-alpha.5) (2023-01-01)
 
 
