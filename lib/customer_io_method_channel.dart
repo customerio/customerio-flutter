@@ -123,5 +123,4 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       }
     }
   }
-
 }

@@ -7,7 +7,6 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 class MockCustomerIoPlatform
     with MockPlatformInterfaceMixin
     implements CustomerIOPlatform {
-
   @override
   Future<void> initialize({required CustomerIOConfig config}) {
     // TODO: implement config
@@ -20,12 +19,15 @@ class MockCustomerIoPlatform
   }
 
   @override
-  void identify({required String identifier, Map<String, dynamic> attributes = const {}}) {
+  void identify(
+      {required String identifier,
+      Map<String, dynamic> attributes = const {}}) {
     // TODO: implement identify
   }
 
   @override
-  void screen({required String name, Map<String, dynamic> attributes = const {}}) {
+  void screen(
+      {required String name, Map<String, dynamic> attributes = const {}}) {
     // TODO: implement screen
   }
 
@@ -40,10 +42,10 @@ class MockCustomerIoPlatform
   }
 
   @override
-  void track({required String name, Map<String, dynamic> attributes = const {}}) {
+  void track(
+      {required String name, Map<String, dynamic> attributes = const {}}) {
     // TODO: implement track
   }
-
 }
 
 void main() {

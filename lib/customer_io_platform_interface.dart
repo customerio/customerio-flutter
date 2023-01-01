@@ -24,7 +24,6 @@ abstract class CustomerIOPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  
   Future<void> initialize({
     required CustomerIOConfig config,
   }) {
