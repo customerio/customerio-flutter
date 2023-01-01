@@ -3,16 +3,13 @@
 # Run `pod lib lint customer_io.podspec` to validate before publishing.
 #
 Pod::Spec.new do |s|
-  s.name             = 'customer_io'
-  s.version          = '0.0.1'
-  s.summary          = 'A plugin for Customer.io'
-  s.description      = <<-DESC
-A plugin for Customer.io
-                       DESC
-  s.homepage         = 'http://example.com'
-  s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Your Company' => 'email@example.com' }
-  s.source           = { :path => '.' }
+  s.name        = 'customer_io'
+  s.version     = '1.0.0-alpha.4'
+  s.summary     = 'Customer.io plugin for Flutter'
+  s.homepage    = 'https://customer.io/'
+  s.license     = { :file => '../LICENSE' }
+  s.author      = { "CustomerIO Team" => "win@customer.io" }
+  s.source      = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
   s.platform = :ios, '13.0'

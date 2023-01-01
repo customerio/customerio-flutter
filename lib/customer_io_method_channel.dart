@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-
 import 'customer_io_config.dart';
 import 'customer_io_const.dart';
 import 'customer_io_platform_interface.dart';
+import 'customer_io_plugin_version.dart';
 
 /// An implementation of [CustomerIOPlatform] that uses method channels.
 class CustomerIOMethodChannel extends CustomerIOPlatform {
@@ -11,11 +11,13 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   @visibleForTesting
   final methodChannel = const MethodChannel('customer_io');
 
+  /// To initialize the plugin
   @override
   Future<void> initialize({
     required CustomerIOConfig config,
   }) async {
     try {
+      config.version = version;
       await methodChannel.invokeMethod(MethodConsts.initialize, config.toMap());
     } on PlatformException catch (exception) {
       if (kDebugMode) {
@@ -24,6 +26,10 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     }
   }
 
+  /// Identify a person using a unique identifier, eg. email id.
+  /// Note that you can identify only 1 profile at a time. In case, multiple
+  /// identifiers are attempted to be identified, then the last identified profile
+  /// will be removed automatically.
   @override
   void identify(
       {required String identifier,
@@ -41,6 +47,8 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     }
   }
 
+  /// To track user events like loggedIn, addedItemToCart etc.
+  /// You may also track events with additional yet optional data.
   @override
   void track(
       {required String name,
@@ -58,6 +66,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     }
   }
 
+  /// Track screen events to record the screens a user visits
   @override
   void screen(
       {required String name,
@@ -75,6 +84,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     }
   }
 
+  /// Call this function to stop identifying a person.
   @override
   void clearIdentify() {
     try {
@@ -86,6 +96,8 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     }
   }
 
+  /// Set custom user profile information such as user preference, specific
+  /// user actions etc
   @override
   void setProfileAttributes({required Map<String, dynamic> attributes}) {
     try {
@@ -98,6 +110,8 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     }
   }
 
+  /// Use this function to send custom device attributes
+  /// such as app preferences, timezone etc
   @override
   void setDeviceAttributes({required Map<String, dynamic> attributes}) {
     try {
@@ -109,4 +123,5 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       }
     }
   }
+
 }
