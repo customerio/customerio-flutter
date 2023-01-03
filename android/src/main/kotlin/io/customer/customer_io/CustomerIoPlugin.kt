@@ -9,7 +9,7 @@ import io.customer.messagingpush.MessagingPushModuleConfig
 import io.customer.messagingpush.ModuleMessagingPushFCM
 import io.customer.sdk.CustomerIO
 import io.customer.sdk.CustomerIOShared
-import io.customer.sdk.WrapperKeys
+import io.customer.sdk.SharedWrapperKeys
 import io.customer.sdk.data.store.Client
 import io.customer.sdk.extensions.*
 import io.customer.sdk.util.Logger
@@ -176,7 +176,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
         val builder = configData.getCustomerIOBuilder(application)
 
         val organizationId = configData.getProperty<String>(
-            WrapperKeys.Environment.ORGANIZATION_ID
+            SharedWrapperKeys.Environment.ORGANIZATION_ID
         )?.takeIfNotBlank()
 
         builder.apply {
@@ -196,7 +196,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
     private fun configureModuleMessagingPushFCM(config: Map<String, Any?>?): ModuleMessagingPushFCM {
         return ModuleMessagingPushFCM(
             config = MessagingPushModuleConfig.Builder().apply {
-                config?.getProperty<Boolean>(WrapperKeys.Config.AUTO_TRACK_PUSH_EVENTS)
+                config?.getProperty<Boolean>(SharedWrapperKeys.Config.AUTO_TRACK_PUSH_EVENTS)
                     ?.let { value ->
                         setAutoTrackPushEvents(autoTrackPushEvents = value)
                     }
@@ -206,7 +206,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
 
     private fun getUserAgentClient(packageConfig: Map<String, Any?>?): Client {
         val sourceSDKVersion = packageConfig?.getProperty<String>(
-            WrapperKeys.PackageConfig.SOURCE_SDK_VERSION
+            SharedWrapperKeys.PackageConfig.SOURCE_SDK_VERSION
         )?.takeIfNotBlank() ?: "n/a"
         return Client.Flutter(sdkVersion = sourceSDKVersion)
     }
