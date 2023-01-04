@@ -596,4 +596,7 @@ healthchecksdb
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
 
+# Env variables
+*.env
+
 # End of https://www.gitignore.io/api/git,dart,flutter,intellij,webstorm,visualstudio

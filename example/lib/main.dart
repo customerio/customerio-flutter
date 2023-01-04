@@ -1,17 +1,20 @@
 import 'package:customer_io/customer_io.dart';
 import 'package:customer_io/customer_io_config.dart';
+import 'package:customer_io/customer_io_enums.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await dotenv.load(fileName: "credentials.env");
   await CustomerIO.initialize(
     config: CustomerIOConfig(
-      siteId: "YOUR_SITE_ID",
-      apiKey: "YOUR_API_KEY",
-    ),
+        siteId: dotenv.get('siteId', fallback: 'YOUR_SITE_ID'),
+        apiKey: dotenv.get('apiKey', fallback: 'YOUR_API_KEY'),
+        autoTrackDeviceAttributes: true,
+        autoTrackPushEvents: true),
   );
-
   runApp(const MyApp());
 }
 
@@ -26,9 +29,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    CustomerIO.identify(
-        identifier: "flutter-example",
-        attributes: {"name": "Flutter CIO", "email": "example@flutter.io"});
+    CustomerIO.identify(identifier: "flutter_missing_feat_1");
   }
 
   @override
@@ -81,6 +82,27 @@ class _MyAppState extends State<MyApp> {
                   onPressed: () {
                     CustomerIO.setProfileAttributes(
                         attributes: {"age": 31, "height": 5.9, "gender": "M"});
+                  },
+                ),
+              ),
+              const Spacer(),
+              Center(
+                child: ElevatedButton(
+                  child: const Text('REGISTER DEVICE'),
+                  onPressed: () {
+                    CustomerIO.registerDeviceToken(deviceToken: "device-token");
+                  },
+                ),
+              ),
+              const Spacer(),
+              Center(
+                child: ElevatedButton(
+                  child: const Text('TRACK METRIC'),
+                  onPressed: () {
+                    CustomerIO.trackMetric(
+                        deliveryID: "deliveryID101",
+                        deviceToken: "deviceToken2011",
+                        event: MetricEvent.clicked);
                   },
                 ),
               ),
