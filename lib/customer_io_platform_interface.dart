@@ -1,4 +1,5 @@
 import 'package:customer_io/customer_io_config.dart';
+import 'package:customer_io/customer_io_enums.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'customer_io_method_channel.dart';
@@ -43,6 +44,17 @@ abstract class CustomerIOPlatform extends PlatformInterface {
   void track(
       {required String name, Map<String, dynamic> attributes = const {}}) {
     throw UnimplementedError('track() has not been implemented.');
+  }
+
+  void trackMetric(
+      {required String deliveryID,
+      required String deviceToken,
+      required MetricEvent event}) {
+    throw UnimplementedError('trackMetric() has not been implemented.');
+  }
+
+  void registerDeviceToken({required String deviceToken}) {
+    throw UnimplementedError('registerDeviceToken() has not been implemented.');
   }
 
   void screen(

@@ -1,5 +1,7 @@
+import 'package:customer_io/customer_io_enums.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
 import 'customer_io_config.dart';
 import 'customer_io_const.dart';
 import 'customer_io_platform_interface.dart';
@@ -66,6 +68,26 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     }
   }
 
+  /// Track a push metric
+  @override
+  void trackMetric(
+      {required String deliveryID,
+      required String deviceToken,
+      required MetricEvent event}) async {
+    try {
+      final payload = {
+        TrackingConsts.deliveryId: deliveryID,
+        TrackingConsts.deliveryToken: deviceToken,
+        TrackingConsts.metricEvent: event.name,
+      };
+      methodChannel.invokeMethod(MethodConsts.trackMetric, payload);
+    } on PlatformException catch (exception) {
+      if (kDebugMode) {
+        print(exception);
+      }
+    }
+  }
+
   /// Track screen events to record the screens a user visits
   @override
   void screen(
@@ -77,6 +99,22 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
         TrackingConsts.attributes: attributes
       };
       methodChannel.invokeMethod(MethodConsts.screen, payload);
+    } on PlatformException catch (exception) {
+      if (kDebugMode) {
+        print(exception);
+      }
+    }
+  }
+
+  /// Register a new device token with Customer.io, associated with the current active customer. If there
+  /// is no active customer, this will fail to register the device
+  @override
+  void registerDeviceToken({required String deviceToken}) async {
+    try {
+      final payload = {
+        TrackingConsts.token: deviceToken,
+      };
+      methodChannel.invokeMethod(MethodConsts.registerDeviceToken, payload);
     } on PlatformException catch (exception) {
       if (kDebugMode) {
         print(exception);

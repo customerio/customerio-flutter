@@ -76,6 +76,11 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
                     track(it)
                 }
             }
+            Keys.Methods.TRACK_METRIC -> {
+                call.toNativeMethodCall(result) {
+                    trackMetric(it)
+                }
+            }
             Keys.Methods.REGISTER_DEVICE_TOKEN -> {
                 call.toNativeMethodCall(result) {
                     registerDeviceToken(it)
