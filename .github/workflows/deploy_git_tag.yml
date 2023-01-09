@@ -51,7 +51,7 @@ jobs:
               "text": "Flutter SDK git tag created",
               "username": "Flutter deployment bot",
               "icon_url": "https://img.icons8.com/color/512/flutter.png",
-              "channel": "#squad-mobile",
+              "channel": "#mobile-deployments",
               "blocks": [
                 {
                   "type": "section",
@@ -86,7 +86,7 @@ jobs:
               "text": "Flutter SDK deployment failure",
               "username": "Flutter deployment bot",
               "icon_url": "https://img.icons8.com/color/512/flutter.png",
-              "channel": "#squad-mobile",
+              "channel": "#mobile-deployments",
               "blocks": [
                 {
                   "type": "section",
