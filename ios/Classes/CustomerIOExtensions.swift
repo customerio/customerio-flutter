@@ -1,10 +1,3 @@
-//
-//  CustomerIOExtensions.swift
-//  customer_io
-//
-//  Created by ShahrozAli on 11/11/22.
-//
-
 import Foundation
 import CioTracking
 
@@ -35,5 +28,11 @@ extension CioLogLevel {
         default:
             return .error
         }
+    }
+}
+
+extension String {
+    func getEvent() -> Metric? {
+        return Metric(rawValue: self.lowercased())
     }
 }
