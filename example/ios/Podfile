@@ -31,6 +31,10 @@ target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
+  pod 'CustomerIO/Tracking', :path => '~/code/customerio-ios/'
+  pod 'CustomerIO/MessagingInApp', :path => '~/code/customerio-ios/'
+  pod 'CustomerIO/MessagingPushFCM', :path => '~/code/customerio-ios/'
+  
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
 
