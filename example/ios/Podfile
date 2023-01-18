@@ -30,19 +30,6 @@ flutter_ios_podfile_setup
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
-
-  # Automatically install local version of the iOS SDK if the iOS SDK source code is installed alongside the flutter SDK. 
-  local_ios_sdk_install_path = File.expand_path(File.join('..', '..', '..', '..', "customerio-ios"), __FILE__)
-  if Dir.exist?(local_ios_sdk_install_path)
-    puts "Installing local version of the iOS SDK for convenient development. Path of iOS SDK: #{local_ios_sdk_install_path}"
-
-    # These entries will override the dependencies found in the .podspec in this Flutter project. 
-    pod 'CustomerIO/Tracking', :path => local_ios_sdk_install_path
-    pod 'CustomerIO/MessagingInApp', :path => local_ios_sdk_install_path
-    pod 'CustomerIO/MessagingPushFCM', :path => local_ios_sdk_install_path
-  else 
-    puts "Note: If you install the Customer.io iOS SDK source code to path #{local_ios_sdk_install_path}, the iOS example app will use that local version of the SDK for convenient local development."
-  end
   
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
