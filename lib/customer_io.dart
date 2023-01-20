@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'customer_io_config.dart';
 import 'customer_io_platform_interface.dart';
+import 'customer_io_models.dart';
 
 class CustomerIO {
   const CustomerIO._();
@@ -69,5 +72,14 @@ class CustomerIO {
   /// @param attributes additional attributes for a user profile
   static void setProfileAttributes({required Map<String, dynamic> attributes}) {
     return _customerIO.setProfileAttributes(attributes: attributes);
+  }
+
+  /// Subscribes to the stream of in-app messages and calls [onEvent] when it
+  /// receives an in-app message.
+  StreamSubscription subscribeToInAppMessages(
+      void Function(InAppMessage) onEvent) {
+
+    StreamSubscription subscription = inAppMessageStreamController.stream.listen(onEvent);
+    return subscription;
   }
 }

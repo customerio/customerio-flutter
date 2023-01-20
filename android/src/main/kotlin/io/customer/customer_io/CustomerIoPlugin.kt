@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.annotation.NonNull
 import io.customer.customer_io.constant.Keys
 import io.customer.customer_io.extension.*
+import io.customer.messaginginapp.MessagingInAppModuleConfig
 import io.customer.messaginginapp.ModuleMessagingInApp
 import io.customer.messagingpush.MessagingPushModuleConfig
 import io.customer.messagingpush.ModuleMessagingPushFCM
@@ -167,6 +168,8 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
                 addCustomerIOModule(
                     module = ModuleMessagingInApp(
                         organizationId = organizationId,
+                        config = MessagingInAppModuleConfig.Builder()
+                            .setEventListener(eventListenerMock).build(),
                     )
                 )
             }
@@ -188,7 +191,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
         val sourceSDKVersion = packageConfig?.getProperty<String>(
             Keys.PackageConfig.SOURCE_SDK_VERSION
         )?.takeIfNotBlank() ?: "n/a"
-        return Client.Flutter(sdkVersion = sourceSDKVersion)
+        return Client.Android(sourceSDKVersion)
     }
 
     private fun CustomerIO.Builder.setupConfig(config: Map<String, Any?>?): CustomerIO.Builder {
