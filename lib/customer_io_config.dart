@@ -5,8 +5,6 @@ class CustomerIOConfig {
   final String siteId;
   final String apiKey;
   Region region;
-  @Deprecated(
-      "organizationId is deprecated and isn't required anymore, use enableInApp instead. This field will be removed in the next release.")
   String organizationId;
   CioLogLevel logLevel;
   bool autoTrackDeviceAttributes;
