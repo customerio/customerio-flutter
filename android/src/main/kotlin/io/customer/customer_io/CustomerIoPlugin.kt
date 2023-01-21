@@ -41,15 +41,14 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
     }
 
     private fun MethodCall.toNativeMethodCall(
-        result: Result,
-        performAction: (params: Map<String, Any>) -> Unit
+        result: Result, performAction: (params: Map<String, Any>) -> Unit
     ) {
         try {
             val params = this.arguments as? Map<String, Any> ?: emptyMap()
             performAction(params)
             result.success(true)
         } catch (e: Exception) {
-            result.error(this.method, e.localizedMessage, null);
+            result.error(this.method, e.localizedMessage, null)
         }
     }
 
@@ -125,8 +124,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
     }
 
     fun setProfileAttributes(params: Map<String, Any>) {
-        val attributes =
-            params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: return
+        val attributes = params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: return
 
         CustomerIO.instance().profileAttributes = attributes
     }
@@ -153,6 +151,9 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
         val organizationId = configData.getProperty<String>(
             Keys.Environment.ORGANIZATION_ID
         )?.takeIfNotBlank()
+        val enableInApp = configData.getProperty<Boolean>(
+            Keys.Environment.ENABLE_IN_APP
+        )
 
         CustomerIO.Builder(
             siteId = siteId,
@@ -163,12 +164,14 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
             setClient(client = getUserAgentClient(packageConfig = configData))
             setupConfig(configData)
             addCustomerIOModule(module = configureModuleMessagingPushFCM(configData))
-            if (!organizationId.isNullOrBlank()) {
-                addCustomerIOModule(
-                    module = ModuleMessagingInApp(
-                        organizationId = organizationId,
+            if (!organizationId.isNullOrBlank() || enableInApp == true) {
+                organizationId?.let {
+                    addCustomerIOModule(
+                        module = ModuleMessagingInApp(
+                            organizationId = it,
+                        )
                     )
-                )
+                }
             }
         }.build()
         logger.info("Customer.io instance initialized successfully")

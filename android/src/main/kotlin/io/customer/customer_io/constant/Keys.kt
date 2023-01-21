@@ -23,6 +23,7 @@ internal object Keys {
         const val API_KEY = "apiKey"
         const val REGION = "region"
         const val ORGANIZATION_ID = "organizationId"
+        const val ENABLE_IN_APP = "enableInApp"
     }
 
     object Config {

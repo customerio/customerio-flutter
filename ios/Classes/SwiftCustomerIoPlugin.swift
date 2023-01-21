@@ -48,7 +48,7 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
             result(FlutterMethodNotImplemented)
         }
     }
-        
+    
     private func identify(params : Dictionary<String, AnyHashable>){
         guard let identifier = params[Keys.Tracking.identifier] as? String
         else {
@@ -117,8 +117,7 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     private func initialize(params : Dictionary<String, AnyHashable>){
         guard let siteId = params[Keys.Environment.siteId] as? String,
               let apiKey = params[Keys.Environment.apiKey] as? String,
-              let region = params[Keys.Environment.region] as? String,
-              let organizationId = params[Keys.Environment.organizationId] as? String
+              let region = params[Keys.Environment.region] as? String
         else {
             return
         }
@@ -136,9 +135,14 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
             }
         }
         
-        if organizationId != "" {
-            initializeInApp(organizationId: organizationId)
+        
+        if let organizationId = params[Keys.Environment.organizationId] as? String, let enableInApp =  params[Keys.Environment.enableInApp] as? Bool {
+            if organizationId != "" && enableInApp{
+                // remove organizationId when native sdks are updated
+                initializeInApp(organizationId: organizationId)
+            }
         }
+        
     }
     
     private func getUserAgent(params : Dictionary<String, Any>) -> SdkWrapperConfig{
@@ -173,5 +177,5 @@ private extension FlutterMethodCall {
         }
         
     }
-
+    
 }
