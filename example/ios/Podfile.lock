@@ -1,0 +1,63 @@
+PODS:
+  - customer_io (0.0.1):
+    - CustomerIO/MessagingInApp (~> 2.0.0)
+    - CustomerIO/MessagingPushFCM (~> 2.0.0)
+    - CustomerIO/Tracking (~> 2.0.0)
+    - Flutter
+  - CustomerIO/MessagingInApp (2.0.4):
+    - CustomerIOMessagingInApp (= 2.0.4)
+  - CustomerIO/MessagingPushFCM (2.0.4):
+    - CustomerIOMessagingPushFCM (= 2.0.4)
+  - CustomerIO/Tracking (2.0.4):
+    - CustomerIOTracking (= 2.0.4)
+  - CustomerIOCommon (2.0.4)
+  - CustomerIOMessagingInApp (2.0.4):
+    - CustomerIOTracking (= 2.0.4)
+    - Gist (~> 2.2.1)
+  - CustomerIOMessagingPush (2.0.4):
+    - CustomerIOTracking (= 2.0.4)
+  - CustomerIOMessagingPushFCM (2.0.4):
+    - CustomerIOMessagingPush (= 2.0.4)
+  - CustomerIOTracking (2.0.4):
+    - CustomerIOCommon (= 2.0.4)
+  - Flutter (1.0.0)
+  - Gist (2.2.4)
+
+DEPENDENCIES:
+  - customer_io (from `.symlinks/plugins/customer_io/ios`)
+  - CustomerIO/MessagingInApp (from `/Users/levibostian/code/customerio-ios/`)
+  - CustomerIO/MessagingPushFCM (from `/Users/levibostian/code/customerio-ios/`)
+  - CustomerIO/Tracking (from `/Users/levibostian/code/customerio-ios/`)
+  - Flutter (from `Flutter`)
+
+SPEC REPOS:
+  trunk:
+    - CustomerIOCommon
+    - CustomerIOMessagingInApp
+    - CustomerIOMessagingPush
+    - CustomerIOMessagingPushFCM
+    - CustomerIOTracking
+    - Gist
+
+EXTERNAL SOURCES:
+  customer_io:
+    :path: ".symlinks/plugins/customer_io/ios"
+  CustomerIO:
+    :path: "/Users/levibostian/code/customerio-ios/"
+  Flutter:
+    :path: Flutter
+
+SPEC CHECKSUMS:
+  customer_io: eeb13d88e2b0dfb98647e2eb4f706eba9ffd42b9
+  CustomerIO: 5b04253f9077afe3399c3e400e75e6819b0f1471
+  CustomerIOCommon: 1dfb940151c44dfb91a7e38096b1c21a533c1655
+  CustomerIOMessagingInApp: 1261512937431f760e2b02e7306c85413fff40be
+  CustomerIOMessagingPush: bb8600e7b265f75cacaead25cee17f6832965ada
+  CustomerIOMessagingPushFCM: e99772e354d0529fb795844ae63fda1540618c71
+  CustomerIOTracking: 09b081c9c562a39ef6841e54668ca9a6fe94f4f5
+  Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
+  Gist: df62edf9ce6ff2a4b6dbcf2b4f7c020d3ec260a4
+
+PODFILE CHECKSUM: a459d5913dd0f405f3fe173a32d8cf7739158e66
+
+COCOAPODS: 1.11.3
