@@ -25,27 +25,55 @@ PODS:
 
 DEPENDENCIES:
   - customer_io (from `.symlinks/plugins/customer_io/ios`)
-  - CustomerIO/MessagingInApp (from `/Users/levibostian/code/customerio-ios/`)
-  - CustomerIO/MessagingPushFCM (from `/Users/levibostian/code/customerio-ios/`)
-  - CustomerIO/Tracking (from `/Users/levibostian/code/customerio-ios/`)
+  - CustomerIOCommon (from `https://github.com/customerio/customerio-ios.git`, branch `levi/gist-event-listeners`)
+  - CustomerIOMessagingInApp (from `https://github.com/customerio/customerio-ios.git`, branch `levi/gist-event-listeners`)
+  - CustomerIOMessagingPush (from `https://github.com/customerio/customerio-ios.git`, branch `levi/gist-event-listeners`)
+  - CustomerIOMessagingPushFCM (from `https://github.com/customerio/customerio-ios.git`, branch `levi/gist-event-listeners`)
+  - CustomerIOTracking (from `https://github.com/customerio/customerio-ios.git`, branch `levi/gist-event-listeners`)
   - Flutter (from `Flutter`)
 
 SPEC REPOS:
   trunk:
-    - CustomerIOCommon
-    - CustomerIOMessagingInApp
-    - CustomerIOMessagingPush
-    - CustomerIOMessagingPushFCM
-    - CustomerIOTracking
+    - CustomerIO
     - Gist
 
 EXTERNAL SOURCES:
   customer_io:
     :path: ".symlinks/plugins/customer_io/ios"
-  CustomerIO:
-    :path: "/Users/levibostian/code/customerio-ios/"
+  CustomerIOCommon:
+    :branch: levi/gist-event-listeners
+    :git: https://github.com/customerio/customerio-ios.git
+  CustomerIOMessagingInApp:
+    :branch: levi/gist-event-listeners
+    :git: https://github.com/customerio/customerio-ios.git
+  CustomerIOMessagingPush:
+    :branch: levi/gist-event-listeners
+    :git: https://github.com/customerio/customerio-ios.git
+  CustomerIOMessagingPushFCM:
+    :branch: levi/gist-event-listeners
+    :git: https://github.com/customerio/customerio-ios.git
+  CustomerIOTracking:
+    :branch: levi/gist-event-listeners
+    :git: https://github.com/customerio/customerio-ios.git
   Flutter:
     :path: Flutter
+
+CHECKOUT OPTIONS:
+  CustomerIOCommon:
+    :commit: 6b9554b1f7cf28f2d0d5d88551a061bc8fa47c19
+    :git: https://github.com/customerio/customerio-ios.git
+  CustomerIOMessagingInApp:
+    :commit: 6b9554b1f7cf28f2d0d5d88551a061bc8fa47c19
+    :git: https://github.com/customerio/customerio-ios.git
+  CustomerIOMessagingPush:
+    :commit: 6b9554b1f7cf28f2d0d5d88551a061bc8fa47c19
+    :git: https://github.com/customerio/customerio-ios.git
+  CustomerIOMessagingPushFCM:
+    :commit: 6b9554b1f7cf28f2d0d5d88551a061bc8fa47c19
+    :git: https://github.com/customerio/customerio-ios.git
+  CustomerIOTracking:
+    :commit: 6b9554b1f7cf28f2d0d5d88551a061bc8fa47c19
+    :git: https://github.com/customerio/customerio-ios.git
 
 SPEC CHECKSUMS:
   customer_io: eeb13d88e2b0dfb98647e2eb4f706eba9ffd42b9
@@ -58,6 +86,6 @@ SPEC CHECKSUMS:
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   Gist: df62edf9ce6ff2a4b6dbcf2b4f7c020d3ec260a4
 
-PODFILE CHECKSUM: a459d5913dd0f405f3fe173a32d8cf7739158e66
+PODFILE CHECKSUM: df423b95a545e37e5e91d8ac6a035d2507a514b2
 
 COCOAPODS: 1.11.3

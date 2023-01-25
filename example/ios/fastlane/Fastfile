@@ -1,0 +1,38 @@
+
+platform :ios do  
+
+  before_all do |lane, options|    
+    if ENV['CI'] 
+      # increase timeout for xcodebuild settings. We have seen this command take a bit longer to do on CI server.
+      ENV['FASTLANE_XCODEBUILD_SETTINGS_RETRIES'] = "6"
+      
+      setup_ci 
+
+      # authenticate with apple account so all lanes are able to authenticate correctly
+      # https://docs.fastlane.tools/app-store-connect-api/
+      app_store_connect_api_key(
+        key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+        issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
+        key_content: ENV["APP_STORE_CONNECT_API_KEY_CONTENT_B64"],
+        is_key_content_base64: true,
+        in_house: is_enterprise_app
+      )
+    end
+  end
+
+  lane :create_code_signing_development do 
+    match(
+      type: "development",
+      api_key_path: './app_store_connect_creds.json',
+      readonly: false
+    )
+  end 
+
+  lane :create_code_signing_release do 
+    match(
+      type: "adhoc",
+      api_key_path: './app_store_connect_creds.json',
+      readonly: false
+    )
+  end 
+end 

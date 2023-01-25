@@ -15,9 +15,11 @@ install_ios_sdk_branch_name = ENV['INSTALL_IOS_SDK_BRANCH'] || nil
 
 # All of the CIO pods that are listed as dependencies in `/ios/customer_io.podspec` need to be listed here in this array:
 all_ios_pods_flutter_plugin_needs = [
-  'CustomerIO/Tracking',
-  'CustomerIO/MessagingInApp',
-  'CustomerIO/MessagingPushFCM'
+  'CustomerIOCommon',
+  'CustomerIOTracking',
+  'CustomerIOMessagingInApp',
+  'CustomerIOMessagingPush',
+  'CustomerIOMessagingPushFCM'
 ]
 
 # Uncomment this line to define a global platform for your project
@@ -67,7 +69,7 @@ target 'Runner' do
     puts ""
 
     all_ios_pods_flutter_plugin_needs.each { |podname| 
-      pod podname, :podspec => "https://raw.githubusercontent.com/customerio/customerio-ios/#{install_ios_sdk_branch_name}/CustomerIO.podspec"
+      pod podname, :git => "https://github.com/customerio/customerio-ios.git", :branch => install_ios_sdk_branch_name
     }
   end
   
