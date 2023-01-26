@@ -20,6 +20,18 @@ platform :ios do
     end
   end
 
+  # download the latest code signing 
+  lane :dev_setup do |values| 
+    sync_code_signing(
+      type: "development",
+      readonly: true      
+    )
+    match(
+      type: "adhoc",
+      readonly: true 
+    )
+  end 
+
   lane :create_code_signing_development do 
     match(
       type: "development",
