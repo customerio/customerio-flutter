@@ -148,9 +148,6 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
         val region = configData.getProperty<String>(
             Keys.Environment.REGION
         )?.takeIfNotBlank().toRegion()
-        val organizationId = configData.getProperty<String>(
-            Keys.Environment.ORGANIZATION_ID
-        )?.takeIfNotBlank()
         val enableInApp = configData.getProperty<Boolean>(
             Keys.Environment.ENABLE_IN_APP
         )
@@ -164,14 +161,13 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
             setClient(client = getUserAgentClient(packageConfig = configData))
             setupConfig(configData)
             addCustomerIOModule(module = configureModuleMessagingPushFCM(configData))
-            if (!organizationId.isNullOrBlank() || enableInApp == true) {
-                organizationId?.let {
-                    addCustomerIOModule(
-                        module = ModuleMessagingInApp(
-                            organizationId = it,
-                        )
+            if (enableInApp == true) {
+                addCustomerIOModule(
+                    module = ModuleMessagingInApp(
+                        // remove organizationId when native removes it
+                        organizationId = "",
                     )
-                }
+                )
             }
         }.build()
         logger.info("Customer.io instance initialized successfully")
