@@ -6,10 +6,16 @@ import CioMessagingInApp
 
 public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     
+    private var methodChannel: FlutterMethodChannel!
+    
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: "customer_io", binaryMessenger: registrar.messenger())
         let instance = SwiftCustomerIoPlugin()
-        registrar.addMethodCallDelegate(instance, channel: channel)
+        instance.methodChannel = FlutterMethodChannel(name: "customer_io", binaryMessenger: registrar.messenger())
+        registrar.addMethodCallDelegate(instance, channel: instance.methodChannel)
+    }
+    
+    deinit {
+        self.methodChannel.setMethodCallHandler(nil)
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -122,19 +128,15 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
             return
         }
         
-        CustomerIO.initialize(siteId: siteId, apiKey: apiKey, region: Region.from(regionStr: region)){
-            config in
-            config._sdkWrapperConfig = self.getUserAgent(params: params)
-            config.autoTrackDeviceAttributes = params[Keys.Config.autoTrackDeviceAttributes] as! Bool
-            config.logLevel = CioLogLevel.from(for: params[Keys.Config.logLevel] as! String)
-            config.autoTrackPushEvents = params[Keys.Config.autoTrackPushEvents] as! Bool
-            config.backgroundQueueMinNumberOfTasks = params[Keys.Config.backgroundQueueMinNumberOfTasks] as! Int
-            config.backgroundQueueSecondsDelay = params[Keys.Config.backgroundQueueSecondsDelay] as! Seconds
-            if let trackingApiUrl = params[Keys.Config.trackingApiUrl] as? String, !trackingApiUrl.isEmpty {
-                config.trackingApiUrl = trackingApiUrl
-            }
+        guard let region = Region(rawValue: region)
+        else {
+            return
         }
         
+        CustomerIO.initialize(siteId: siteId, apiKey: apiKey, region: region){
+            config in
+            config.modify(params: params)
+        }
         
         if let enableInApp =  params[Keys.Environment.enableInApp] as? Bool {
             if enableInApp{
@@ -145,18 +147,14 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
         
     }
     
-    private func getUserAgent(params : Dictionary<String, Any>) -> SdkWrapperConfig{
-        let version = params[Keys.PackageConfig.version] as? String ?? "n/a"
-        let sdkSource = SdkWrapperConfig.Source.flutter
-        return SdkWrapperConfig(source: sdkSource, version: version )
-    }
-    
     /**
      Initialize in-app using customerio plugin
      */
     private func initializeInApp(){
         DispatchQueue.main.async {
-            MessagingInApp.shared.initialize(organizationId: "")
+            MessagingInApp.shared.initialize(organizationId: "8a2c3369-ffbb-421a-a7a9-d098df43c8ec", eventListener: CustomerIOInAppEventListener(invokeMethod: {
+                self.methodChannel.invokeMethod($0, arguments: $1)
+            }))
         }
     }
 }
@@ -177,5 +175,35 @@ private extension FlutterMethodCall {
         }
         
     }
+}
+
+class CustomerIOInAppEventListener {
+    private let invokeMethod: (String, Any?) -> Void
     
+    init(invokeMethod: @escaping (String, Any?) -> Void) {
+        self.invokeMethod = invokeMethod
+    }
+}
+
+extension CustomerIOInAppEventListener: InAppEventListener {
+    func errorWithMessage(message: InAppMessage) {
+        invokeMethod("errorWithMessage", ["messageId": message.messageId, "deliveryId": message.deliveryId])
+    }
+    
+    func messageActionTaken(message: InAppMessage, action actionValue: String, name actionName: String) {
+        invokeMethod("messageActionTaken", [
+            "messageId": message.messageId,
+            "deliveryId": message.deliveryId,
+            "actionValue": actionValue,
+            "actionName": actionName
+        ])
+    }
+    
+    func messageDismissed(message: InAppMessage) {
+        invokeMethod("messageDismissed", ["messageId": message.messageId, "deliveryId": message.deliveryId])
+    }
+    
+    func messageShown(message: InAppMessage) {
+        invokeMethod("messageShown", ["messageId": message.messageId, "deliveryId": message.deliveryId])
+    }
 }

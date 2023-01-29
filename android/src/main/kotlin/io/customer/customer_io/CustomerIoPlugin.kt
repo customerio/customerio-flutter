@@ -280,5 +280,4 @@ class CustomerIOInAppEventListener(private val invokeMethod: (String, Any?) -> U
             )
         )
     }
-
 }

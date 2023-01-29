@@ -1,16 +1,16 @@
+import 'dart:async';
+
 import 'package:customer_io/customer_io.dart';
 import 'package:customer_io/customer_io_config.dart';
+import 'package:customer_io/customer_io_inapp.dart';
 import 'package:flutter/material.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await CustomerIO.initialize(
-    config: CustomerIOConfig(
-      siteId: "YOUR_SITE_ID",
-      apiKey: "YOUR_API_KEY",
-    ),
-  );
+      config: CustomerIOConfig(
+          siteId: "YOUR_SITE_ID", apiKey: "YOUR_API_KEY", enableInApp: true));
 
   runApp(const MyApp());
 }
@@ -23,12 +23,21 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  late StreamSubscription inAppMessageStreamSubscription;
+
+  @override
+  void dispose() {
+    /// Stop listening to streams
+    inAppMessageStreamSubscription.cancel();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
     CustomerIO.identify(
-        identifier: "flutter-example",
-        attributes: {"name": "Flutter CIO", "email": "example@flutter.io"});
+        identifier: "flutter-event-listen-ios",
+        attributes: {"email": "event-list-ios@flutter.io"});
   }
 
   @override
@@ -81,6 +90,18 @@ class _MyAppState extends State<MyApp> {
                   onPressed: () {
                     CustomerIO.setProfileAttributes(
                         attributes: {"age": 31, "height": 5.9, "gender": "M"});
+                  },
+                ),
+              ),
+              const Spacer(),
+              Center(
+                child: ElevatedButton(
+                  child: const Text('SUBSCRIBE IN-APP MESSAGE EVENTS'),
+                  onPressed: () {
+                    inAppMessageStreamSubscription =
+                        CustomerIO.subscribeToInAppMessages((InAppEvent event) {
+                      print("Received event: ${event.toString()}");
+                    });
                   },
                 ),
               ),
