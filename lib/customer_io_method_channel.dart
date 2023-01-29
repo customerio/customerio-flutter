@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
 import 'customer_io_config.dart';
 import 'customer_io_const.dart';
 import 'customer_io_platform_interface.dart';
@@ -18,6 +19,9 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   }) async {
     try {
       config.version = version;
+      if (!config.enableInApp && config.organizationId.isNotEmpty) {
+        config.enableInApp = true;
+      }
       await methodChannel.invokeMethod(MethodConsts.initialize, config.toMap());
     } on PlatformException catch (exception) {
       if (kDebugMode) {
