@@ -65,6 +65,9 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   }) async {
     try {
       config.version = version;
+      if (!config.enableInApp && config.organizationId.isNotEmpty) {
+        config.enableInApp = true;
+      }
       await methodChannel.invokeMethod(MethodConsts.initialize, config.toMap());
     } on PlatformException catch (exception) {
       if (kDebugMode) {
