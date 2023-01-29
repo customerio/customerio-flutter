@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:customer_io/customer_io_config.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'customer_io_method_channel.dart';
+import 'customer_io_inapp.dart';
 
 /// The default instance of [CustomerIOPlatform] to use
 ///
@@ -57,5 +60,11 @@ abstract class CustomerIOPlatform extends PlatformInterface {
   void setProfileAttributes({required Map<String, dynamic> attributes}) {
     throw UnimplementedError(
         'setProfileAttributes() has not been implemented.');
+  }
+
+  StreamSubscription subscribeToInAppMessages(
+      void Function(InAppEvent) onEvent) {
+    throw UnimplementedError(
+        'subscribeToInAppMessages() has not been implemented.');
   }
 }

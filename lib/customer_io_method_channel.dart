@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
 import 'customer_io_config.dart';
 import 'customer_io_const.dart';
-import 'customer_io_models.dart';
+import 'customer_io_inapp.dart';
 import 'customer_io_platform_interface.dart';
 import 'customer_io_plugin_version.dart';
 
@@ -11,9 +14,49 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   /// The method channel used to interact with the native platform.
   @visibleForTesting
   final methodChannel = const MethodChannel('customer_io');
-  static const EventChannel _eventChannel = EventChannel('gist_flutter_events');
 
-  Function(InAppMessage)? _inAppMessageListener;
+  final _eventStreamController = StreamController<InAppEvent>.broadcast();
+
+  Stream<InAppEvent> get eventStream => _eventStreamController.stream;
+
+  CustomerIOMethodChannel() {
+    methodChannel.setMethodCallHandler(_onMethodCall);
+  }
+
+  Future<void> setupEventListener() async {}
+
+  /// Subscribes to the stream of in-app messages and calls [onEvent] when it
+  /// receives an in-app message.
+  @override
+  StreamSubscription subscribeToInAppMessages(
+      void Function(InAppEvent) onEvent) {
+    StreamSubscription subscription =
+        _eventStreamController.stream.listen(onEvent);
+    return subscription;
+  }
+
+  Future<dynamic> _onMethodCall(MethodCall call) async {
+    final arguments =
+        (call.arguments as Map<Object?, Object?>).cast<String, dynamic>();
+    switch (call.method) {
+      case "messageShown":
+        _eventStreamController
+            .add(InAppEvent.fromMap(EventType.messageShown, arguments));
+        break;
+      case "messageDismissed":
+        _eventStreamController
+            .add(InAppEvent.fromMap(EventType.messageDismissed, arguments));
+        break;
+      case "errorWithMessage":
+        _eventStreamController
+            .add(InAppEvent.fromMap(EventType.errorWithMessage, arguments));
+        break;
+      case "messageActionTaken":
+        _eventStreamController
+            .add(InAppEvent.fromMap(EventType.messageActionTaken, arguments));
+        break;
+    }
+  }
 
   /// To initialize the plugin
   @override
@@ -23,7 +66,6 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     try {
       config.version = version;
       await methodChannel.invokeMethod(MethodConsts.initialize, config.toMap());
-      _eventChannel.receiveBroadcastStream().listen(_onEvent, onError: _onError);
     } on PlatformException catch (exception) {
       if (kDebugMode) {
         print(exception);
@@ -127,13 +169,5 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
         print(exception);
       }
     }
-  }
-
-  // Event Listener
-  static void _onEvent(dynamic event) {
-  }
-
-  static void _onError(Object error) {
-
   }
 }

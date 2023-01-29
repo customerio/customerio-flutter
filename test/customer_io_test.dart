@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:customer_io/customer_io_config.dart';
+import 'package:customer_io/customer_io_inapp.dart';
 import 'package:customer_io/customer_io_method_channel.dart';
 import 'package:customer_io/customer_io_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -45,6 +48,13 @@ class MockCustomerIoPlatform
   void track(
       {required String name, Map<String, dynamic> attributes = const {}}) {
     // TODO: implement track
+  }
+
+  @override
+  StreamSubscription subscribeToInAppMessages(
+      void Function(InAppEvent p1) onEvent) {
+    // TODO: implement subscribeToInAppMessages
+    throw UnimplementedError();
   }
 }
 
