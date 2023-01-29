@@ -7,6 +7,8 @@ import io.customer.customer_io.constant.Keys
 import io.customer.customer_io.extension.*
 import io.customer.messaginginapp.MessagingInAppModuleConfig
 import io.customer.messaginginapp.ModuleMessagingInApp
+import io.customer.messaginginapp.type.InAppEventListener
+import io.customer.messaginginapp.type.InAppMessage
 import io.customer.messagingpush.MessagingPushModuleConfig
 import io.customer.messagingpush.ModuleMessagingPushFCM
 import io.customer.sdk.CustomerIO
@@ -42,15 +44,14 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
     }
 
     private fun MethodCall.toNativeMethodCall(
-        result: Result,
-        performAction: (params: Map<String, Any>) -> Unit
+        result: Result, performAction: (params: Map<String, Any>) -> Unit
     ) {
         try {
             val params = this.arguments as? Map<String, Any> ?: emptyMap()
             performAction(params)
             result.success(true)
         } catch (e: Exception) {
-            result.error(this.method, e.localizedMessage, null);
+            result.error(this.method, e.localizedMessage, null)
         }
     }
 
@@ -126,8 +127,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
     }
 
     fun setProfileAttributes(params: Map<String, Any>) {
-        val attributes =
-            params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: return
+        val attributes = params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: return
 
         CustomerIO.instance().profileAttributes = attributes
     }
@@ -151,9 +151,9 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
         val region = configData.getProperty<String>(
             Keys.Environment.REGION
         )?.takeIfNotBlank().toRegion()
-        val organizationId = configData.getProperty<String>(
-            Keys.Environment.ORGANIZATION_ID
-        )?.takeIfNotBlank()
+        val enableInApp = configData.getProperty<Boolean>(
+            Keys.Environment.ENABLE_IN_APP
+        )
 
         CustomerIO.Builder(
             siteId = siteId,
@@ -164,12 +164,14 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
             setClient(client = getUserAgentClient(packageConfig = configData))
             setupConfig(configData)
             addCustomerIOModule(module = configureModuleMessagingPushFCM(configData))
-            if (!organizationId.isNullOrBlank()) {
+            if (enableInApp == true) {
                 addCustomerIOModule(
                     module = ModuleMessagingInApp(
-                        organizationId = organizationId,
+                        organizationId = "",
                         config = MessagingInAppModuleConfig.Builder()
-                            .setEventListener(eventListenerMock).build(),
+                            .setEventListener(CustomerIOInAppEventListener { method, args ->
+                                flutterCommunicationChannel.invokeMethod(method, args)
+                            }).build(),
                     )
                 )
             }
@@ -217,4 +219,45 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         flutterCommunicationChannel.setMethodCallHandler(null)
     }
+}
+
+class CustomerIOInAppEventListener(private val invokeMethod: (String, Any?) -> Unit) :
+    InAppEventListener {
+    override fun errorWithMessage(message: InAppMessage) {
+        invokeMethod(
+            "errorWithMessage", mapOf(
+                "messageId" to message.messageId, "deliveryId" to message.deliveryId
+            )
+        )
+    }
+
+    override fun messageActionTaken(
+        message: InAppMessage, currentRoute: String, action: String, name: String
+    ) {
+        invokeMethod(
+            "messageActionTaken", mapOf(
+                "messageId" to message.messageId,
+                "deliveryId" to message.deliveryId,
+                "actionValue" to action,
+                "actionName" to name
+            )
+        )
+    }
+
+    override fun messageDismissed(message: InAppMessage) {
+        invokeMethod(
+            "messageDismissed", mapOf(
+                "messageId" to message.messageId, "deliveryId" to message.deliveryId
+            )
+        )
+    }
+
+    override fun messageShown(message: InAppMessage) {
+        invokeMethod(
+            "messageShown", mapOf(
+                "messageId" to message.messageId, "deliveryId" to message.deliveryId
+            )
+        )
+    }
+
 }

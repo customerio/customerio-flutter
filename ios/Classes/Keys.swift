@@ -31,6 +31,7 @@ struct Keys {
         static let apiKey = "apiKey"
         static let region = "region"
         static let organizationId = "organizationId"
+        static let enableInApp = "enableInApp"
     }
     
     struct Config{
