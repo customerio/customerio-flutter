@@ -5,7 +5,6 @@ import android.app.Application
 import android.content.Context
 import androidx.annotation.NonNull
 import io.customer.customer_io.constant.Keys
-import io.customer.customer_io.extension.*
 import io.customer.messaginginapp.MessagingInAppModuleConfig
 import io.customer.messaginginapp.ModuleMessagingInApp
 import io.customer.messaginginapp.type.InAppEventListener
@@ -13,8 +12,12 @@ import io.customer.messaginginapp.type.InAppMessage
 import io.customer.messagingpush.MessagingPushModuleConfig
 import io.customer.messagingpush.ModuleMessagingPushFCM
 import io.customer.sdk.CustomerIO
+import io.customer.sdk.CustomerIOConfig
 import io.customer.sdk.CustomerIOShared
-import io.customer.sdk.data.store.Client
+import io.customer.sdk.data.model.Region
+import io.customer.sdk.extensions.getProperty
+import io.customer.sdk.extensions.getString
+import io.customer.sdk.extensions.takeIfNotBlank
 import io.customer.sdk.util.Logger
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -127,7 +130,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         CustomerIO.instance().identify(identifier, attributes)
     }
 
-    fun track(params: Map<String, Any>) {
+    private fun track(params: Map<String, Any>) {
         val name = params.getString(Keys.Tracking.EVENT_NAME)
         val attributes =
             params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: emptyMap()
@@ -139,20 +142,20 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
     }
 
-    fun setDeviceAttributes(params: Map<String, Any>) {
+    private fun setDeviceAttributes(params: Map<String, Any>) {
         val attributes =
             params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: emptyMap()
 
         CustomerIO.instance().deviceAttributes = attributes
     }
 
-    fun setProfileAttributes(params: Map<String, Any>) {
+    private fun setProfileAttributes(params: Map<String, Any>) {
         val attributes = params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: return
 
         CustomerIO.instance().profileAttributes = attributes
     }
 
-    fun screen(params: Map<String, Any>) {
+    private fun screen(params: Map<String, Any>) {
         val name = params.getString(Keys.Tracking.EVENT_NAME)
         val attributes =
             params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: emptyMap()
@@ -170,7 +173,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         val apiKey = configData.getString(Keys.Environment.API_KEY)
         val region = configData.getProperty<String>(
             Keys.Environment.REGION
-        )?.takeIfNotBlank().toRegion()
+        )?.takeIfNotBlank()
         val enableInApp = configData.getProperty<Boolean>(
             Keys.Environment.ENABLE_IN_APP
         )
@@ -178,11 +181,10 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         CustomerIO.Builder(
             siteId = siteId,
             apiKey = apiKey,
-            region = region,
+            region = Region.getRegion(region),
             appContext = application,
+            config = configData
         ).apply {
-            setClient(client = getUserAgentClient(packageConfig = configData))
-            setupConfig(configData)
             addCustomerIOModule(module = configureModuleMessagingPushFCM(configData))
             if (enableInApp == true) {
                 addCustomerIOModule(
@@ -203,38 +205,12 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private fun configureModuleMessagingPushFCM(config: Map<String, Any?>?): ModuleMessagingPushFCM {
         return ModuleMessagingPushFCM(
             config = MessagingPushModuleConfig.Builder().apply {
-                config?.getProperty<Boolean>(Keys.Config.AUTO_TRACK_PUSH_EVENTS)?.let { value ->
-                    setAutoTrackPushEvents(autoTrackPushEvents = value)
-                }
+                config?.getProperty<Boolean>(CustomerIOConfig.Companion.Keys.AUTO_TRACK_PUSH_EVENTS)
+                    ?.let { value ->
+                        setAutoTrackPushEvents(autoTrackPushEvents = value)
+                    }
             }.build(),
         )
-    }
-
-    private fun getUserAgentClient(packageConfig: Map<String, Any?>?): Client {
-        val sourceSDKVersion = packageConfig?.getProperty<String>(
-            Keys.PackageConfig.SOURCE_SDK_VERSION
-        )?.takeIfNotBlank() ?: "n/a"
-        return Client.Android(sourceSDKVersion)
-    }
-
-    private fun CustomerIO.Builder.setupConfig(config: Map<String, Any?>?): CustomerIO.Builder {
-        if (config == null) return this
-
-        val logLevel = config.getProperty<String>(Keys.Config.LOG_LEVEL).toCIOLogLevel()
-        setLogLevel(level = logLevel)
-        config.getProperty<String>(Keys.Config.TRACKING_API_URL)?.takeIfNotBlank()?.let { value ->
-            setTrackingApiURL(value)
-        }
-        config.getProperty<Boolean>(Keys.Config.AUTO_TRACK_DEVICE_ATTRIBUTES)?.let { value ->
-            autoTrackDeviceAttributes(shouldTrackDeviceAttributes = value)
-        }
-        config.getProperty<Int>(Keys.Config.BACKGROUND_QUEUE_MIN_NUMBER_OF_TASKS)?.let { value ->
-            setBackgroundQueueMinNumberOfTasks(backgroundQueueMinNumberOfTasks = value)
-        }
-        config.getProperty<Double>(Keys.Config.BACKGROUND_QUEUE_SECONDS_DELAY)?.let { value ->
-            setBackgroundQueueSecondsDelay(backgroundQueueSecondsDelay = value)
-        }
-        return this
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
