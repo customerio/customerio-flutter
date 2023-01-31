@@ -152,7 +152,7 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
      */
     private func initializeInApp(){
         DispatchQueue.main.async {
-            MessagingInApp.shared.initialize(organizationId: "8a2c3369-ffbb-421a-a7a9-d098df43c8ec", eventListener: CustomerIOInAppEventListener(invokeMethod: {
+            MessagingInApp.shared.initialize(eventListener: CustomerIOInAppEventListener(invokeMethod: {
                 self.methodChannel.invokeMethod($0, arguments: $1)
             }))
         }
@@ -190,7 +190,7 @@ extension CustomerIOInAppEventListener: InAppEventListener {
         invokeMethod("errorWithMessage", ["messageId": message.messageId, "deliveryId": message.deliveryId])
     }
     
-    func messageActionTaken(message: InAppMessage, action actionValue: String, name actionName: String) {
+    func messageActionTaken(message: InAppMessage, actionValue: String, actionName: String) {
         invokeMethod("messageActionTaken", [
             "messageId": message.messageId,
             "deliveryId": message.deliveryId,
