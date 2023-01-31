@@ -3,14 +3,19 @@ import 'dart:async';
 import 'package:customer_io/customer_io.dart';
 import 'package:customer_io/customer_io_config.dart';
 import 'package:customer_io/customer_io_inapp.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await dotenv.load(fileName: "credentials.env");
   await CustomerIO.initialize(
       config: CustomerIOConfig(
-          siteId: "YOUR_SITE_ID", apiKey: "YOUR_API_KEY", enableInApp: true));
+          siteId: dotenv.get('siteId', fallback: 'YOUR_SITE_ID'),
+          apiKey: dotenv.get('apiKey', fallback: 'YOUR_API_KEY'),
+          enableInApp: true));
 
   runApp(const MyApp());
 }
@@ -36,8 +41,8 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     CustomerIO.identify(
-        identifier: "flutter-event-listen-ios",
-        attributes: {"email": "event-list-ios@flutter.io"});
+        identifier: "fel-ios",
+        attributes: {"email": "fel-ios@flutter.io"});
   }
 
   @override
@@ -100,7 +105,9 @@ class _MyAppState extends State<MyApp> {
                   onPressed: () {
                     inAppMessageStreamSubscription =
                         CustomerIO.subscribeToInAppMessages((InAppEvent event) {
-                      print("Received event: ${event.toString()}");
+                      if (kDebugMode) {
+                        print("Received event: ${event.eventType.name}");
+                      }
                     });
                   },
                 ),

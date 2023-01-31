@@ -76,6 +76,6 @@ class CustomerIO {
 
   static StreamSubscription subscribeToInAppMessages(
       void Function(InAppEvent) onEvent) {
-    return _customerIO.subscribeToInAppMessages(onEvent);
+    return _customerIO.subscribeToInAppEventListener(onEvent);
   }
 }

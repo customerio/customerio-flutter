@@ -15,44 +15,45 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   @visibleForTesting
   final methodChannel = const MethodChannel('customer_io');
 
-  final _eventStreamController = StreamController<InAppEvent>.broadcast();
-
-  Stream<InAppEvent> get eventStream => _eventStreamController.stream;
+  final _inAppEventStreamController = StreamController<InAppEvent>.broadcast();
 
   CustomerIOMethodChannel() {
     methodChannel.setMethodCallHandler(_onMethodCall);
   }
 
-  Future<void> setupEventListener() async {}
-
-  /// Subscribes to the stream of in-app messages and calls [onEvent] when it
-  /// receives an in-app message.
+  /// Method to subscribe to the In-App event listener.
+  ///
+  /// The `onEvent` function will be called whenever an In-App event occurs.
+  /// Returns a [StreamSubscription] object that can be used to unsubscribe from the stream.
   @override
-  StreamSubscription subscribeToInAppMessages(
+  StreamSubscription subscribeToInAppEventListener(
       void Function(InAppEvent) onEvent) {
     StreamSubscription subscription =
-        _eventStreamController.stream.listen(onEvent);
+        _inAppEventStreamController.stream.listen(onEvent);
     return subscription;
   }
 
+  /// Method call handler to handle events from native bindings
   Future<dynamic> _onMethodCall(MethodCall call) async {
+    /// Cast the arguments to a map of strings to dynamic values.
     final arguments =
         (call.arguments as Map<Object?, Object?>).cast<String, dynamic>();
+
     switch (call.method) {
       case "messageShown":
-        _eventStreamController
+        _inAppEventStreamController
             .add(InAppEvent.fromMap(EventType.messageShown, arguments));
         break;
       case "messageDismissed":
-        _eventStreamController
+        _inAppEventStreamController
             .add(InAppEvent.fromMap(EventType.messageDismissed, arguments));
         break;
       case "errorWithMessage":
-        _eventStreamController
+        _inAppEventStreamController
             .add(InAppEvent.fromMap(EventType.errorWithMessage, arguments));
         break;
       case "messageActionTaken":
-        _eventStreamController
+        _inAppEventStreamController
             .add(InAppEvent.fromMap(EventType.messageActionTaken, arguments));
         break;
     }
