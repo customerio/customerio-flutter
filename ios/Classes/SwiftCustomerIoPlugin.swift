@@ -123,15 +123,12 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     private func initialize(params : Dictionary<String, AnyHashable>){
         guard let siteId = params[Keys.Environment.siteId] as? String,
               let apiKey = params[Keys.Environment.apiKey] as? String,
-              let region = params[Keys.Environment.region] as? String
+              let regionStr = params[Keys.Environment.region] as? String
         else {
             return
         }
         
-        guard let region = Region(rawValue: region)
-        else {
-            return
-        }
+        let region = Region.getRegion(from: regionStr)
         
         CustomerIO.initialize(siteId: siteId, apiKey: apiKey, region: region){
             config in
@@ -152,11 +149,20 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
      */
     private func initializeInApp(){
         DispatchQueue.main.async {
-            MessagingInApp.shared.initialize(eventListener: CustomerIOInAppEventListener(invokeMethod: {
-                self.methodChannel.invokeMethod($0, arguments: $1)
-            }))
+            MessagingInApp.shared.initialize(eventListener: CustomerIOInAppEventListener(
+                invokeMethod: {method,args in
+                    self.invokeMethodInBackground(method, args)
+                })
+            )
         }
     }
+    
+    func invokeMethodInBackground(_ method: String, _ args: Any?) {
+        DispatchQueue.global(qos: .background).async {
+            self.methodChannel.invokeMethod(method, arguments: args)
+        }
+    }
+    
 }
 
 private extension FlutterMethodCall {
