@@ -104,7 +104,7 @@ class _MyAppState extends State<MyApp> {
                   child: const Text('SUBSCRIBE IN-APP MESSAGE EVENTS'),
                   onPressed: () {
                     inAppMessageStreamSubscription =
-                        CustomerIO.subscribeToInAppMessages((InAppEvent event) {
+                        CustomerIO.subscribeToInAppEventListener((InAppEvent event) {
                       if (kDebugMode) {
                         print("Received event: ${event.eventType.name}");
                       }

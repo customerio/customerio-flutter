@@ -74,7 +74,13 @@ class CustomerIO {
     return _customerIO.setProfileAttributes(attributes: attributes);
   }
 
-  static StreamSubscription subscribeToInAppMessages(
+  /// Subscribes to an in-app event listener.
+  ///
+  /// [onEvent] - A callback function that will be called every time an in-app event occurs.
+  /// The callback returns [InAppEvent].
+  ///
+  /// Returns a [StreamSubscription] that can be used to subscribe/unsubscribe from the event listener.
+  static StreamSubscription subscribeToInAppEventListener(
       void Function(InAppEvent) onEvent) {
     return _customerIO.subscribeToInAppEventListener(onEvent);
   }
