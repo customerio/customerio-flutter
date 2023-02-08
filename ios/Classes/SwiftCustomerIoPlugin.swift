@@ -135,9 +135,9 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
             config.modify(params: params)
         }
         
-        if let enableInApp =  params[Keys.Environment.enableInApp] as? Bool {
+
+        if let enableInApp = params[Keys.Environment.enableInApp] as? Bool {
             if enableInApp{
-                // remove organizationId when native sdks are updated
                 initializeInApp()
             }
         }
