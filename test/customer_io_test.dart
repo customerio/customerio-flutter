@@ -59,6 +59,8 @@ class MockCustomerIoPlatform
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   final CustomerIOPlatform initialPlatform = CustomerIOPlatform.instance;
 
   test('$CustomerIOMethodChannel is the default instance', () {
