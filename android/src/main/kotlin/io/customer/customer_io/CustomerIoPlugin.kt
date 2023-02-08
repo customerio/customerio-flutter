@@ -163,10 +163,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
             addCustomerIOModule(module = configureModuleMessagingPushFCM(configData))
             if (enableInApp == true) {
                 addCustomerIOModule(
-                    module = ModuleMessagingInApp(
-                        // remove organizationId when native removes it
-                        organizationId = "",
-                    )
+                    module = ModuleMessagingInApp()
                 )
             }
         }.build()
