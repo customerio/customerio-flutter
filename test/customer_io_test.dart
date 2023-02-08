@@ -53,7 +53,7 @@ class MockCustomerIoPlatform
   @override
   StreamSubscription subscribeToInAppEventListener(
       void Function(InAppEvent p1) onEvent) {
-    // TODO: implement subscribeToInAppMessages
+    // TODO: implement subscribeToInAppEventListener
     throw UnimplementedError();
   }
 }
