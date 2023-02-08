@@ -597,6 +597,6 @@ healthchecksdb
 MigrationBackup/
 
 # Remove env files
-*.env
+#*.env
 
 # End of https://www.gitignore.io/api/git,dart,flutter,intellij,webstorm,visualstudio
