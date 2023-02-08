@@ -135,10 +135,8 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
             }
         }
         
-        
         if let enableInApp =  params[Keys.Environment.enableInApp] as? Bool {
             if enableInApp{
-                // remove organizationId when native sdks are updated
                 initializeInApp()
             }
         }
@@ -156,7 +154,7 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
      */
     private func initializeInApp(){
         DispatchQueue.main.async {
-            MessagingInApp.shared.initialize(organizationId: "")
+            MessagingInApp.shared.initialize()
         }
     }
 }
