@@ -65,6 +65,6 @@ abstract class CustomerIOPlatform extends PlatformInterface {
   StreamSubscription subscribeToInAppEventListener(
       void Function(InAppEvent) onEvent) {
     throw UnimplementedError(
-        'subscribeToInAppMessages() has not been implemented.');
+        'subscribeToInAppEventListener() has not been implemented.');
   }
 }

@@ -11,29 +11,6 @@ class InAppMessage {
   });
 }
 
-/// Class that holds information about the InAppMessageActionEvent.
-class InAppMessageActionEvent {
-  /// The InAppMessage object.
-  final InAppMessage message;
-
-  /// The value of the action taken on the InAppMessage.
-  final String actionValue;
-
-  /// The name of the action taken on the InAppMessage.
-  final String actionName;
-
-  /// Constructor for the InAppMessageActionEvent.
-  ///
-  /// [message] - The InAppMessage object. Required.
-  /// [actionValue] - The value of the action taken on the InAppMessage. Required.
-  /// [actionName] - The name of the action taken on the InAppMessage. Required.
-  InAppMessageActionEvent({
-    required this.message,
-    required this.actionValue,
-    required this.actionName,
-  });
-}
-
 /// Abstract class that defines callbacks for In-App events.
 abstract class InAppEventListener {
   /// Callback for when an In-App message is shown.
