@@ -135,7 +135,7 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
             }
         }
         
-        if let enableInApp =  params[Keys.Environment.enableInApp] as? Bool {
+        if let enableInApp = params[Keys.Environment.enableInApp] as? Bool {
             if enableInApp{
                 initializeInApp()
             }
