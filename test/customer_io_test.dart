@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:customer_io/customer_io_config.dart';
+import 'package:customer_io/customer_io_enums.dart';
 import 'package:customer_io/customer_io_inapp.dart';
 import 'package:customer_io/customer_io_method_channel.dart';
 import 'package:customer_io/customer_io_platform_interface.dart';
@@ -55,6 +56,16 @@ class MockCustomerIoPlatform
       void Function(InAppEvent p1) onEvent) {
     // TODO: implement subscribeToInAppEventListener
     throw UnimplementedError();
+  }
+
+  @override
+  void registerDeviceToken({required String deviceToken}) {
+    // TODO: implement registerDeviceToken
+  }
+
+  @override
+  void trackMetric({required String deliveryID, required String deviceToken, required MetricEvent event}) {
+    // TODO: implement trackMetric
   }
 }
 
