@@ -27,6 +27,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+import java.lang.ref.WeakReference
 
 /**
  * Android implementation of plugin that will let Flutter developers to
@@ -39,13 +40,13 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     /// when the Flutter Engine is detached from the Activity
     private lateinit var flutterCommunicationChannel: MethodChannel
     private lateinit var context: Context
-    private var activity: Activity? = null
+    private var activity: WeakReference<Activity>? = null
 
     private val logger: Logger
         get() = CustomerIOShared.instance().diStaticGraph.logger
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        this.activity = binding.activity
+        this.activity = WeakReference(binding.activity)
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
@@ -221,7 +222,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     module = ModuleMessagingInApp(
                         config = MessagingInAppModuleConfig.Builder()
                             .setEventListener(CustomerIOInAppEventListener { method, args ->
-                                this@CustomerIoPlugin.activity?.runOnUiThread {
+                                this@CustomerIoPlugin.activity?.get()?.runOnUiThread {
                                     flutterCommunicationChannel.invokeMethod(method, args)
                                 }
                             }).build(),
