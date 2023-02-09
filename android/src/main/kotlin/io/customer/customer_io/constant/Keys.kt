@@ -24,4 +24,10 @@ internal object Keys {
         const val METRIC_EVENT = "metricEvent"
     }
 
+    object Environment {
+        const val SITE_ID = "siteId"
+        const val API_KEY = "apiKey"
+        const val REGION = "region"
+        const val ENABLE_IN_APP = "enableInApp"
+    }
 }

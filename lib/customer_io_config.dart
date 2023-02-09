@@ -6,7 +6,6 @@ class CustomerIOConfig {
   final String apiKey;
   Region region;
   String organizationId;
-
   CioLogLevel logLevel;
   bool autoTrackDeviceAttributes;
   String trackingApiUrl;
@@ -14,19 +13,23 @@ class CustomerIOConfig {
   int backgroundQueueMinNumberOfTasks;
   double backgroundQueueSecondsDelay;
 
+  bool enableInApp;
+
   String version;
 
   CustomerIOConfig(
       {required this.siteId,
       required this.apiKey,
       this.region = Region.us,
-      this.organizationId = "",
+      @Deprecated("organizationId is deprecated and isn't required anymore, use enableInApp instead. This field will be removed in the next release.")
+          this.organizationId = "",
       this.logLevel = CioLogLevel.debug,
       this.autoTrackDeviceAttributes = true,
       this.trackingApiUrl = "",
       this.autoTrackPushEvents = true,
       this.backgroundQueueMinNumberOfTasks = 10,
       this.backgroundQueueSecondsDelay = 30.0,
+      this.enableInApp = false,
       this.version = ""});
 
   Map<String, dynamic> toMap() {
@@ -41,7 +44,9 @@ class CustomerIOConfig {
       'autoTrackPushEvents': autoTrackPushEvents,
       'backgroundQueueMinNumberOfTasks': backgroundQueueMinNumberOfTasks,
       'backgroundQueueSecondsDelay': backgroundQueueSecondsDelay,
+      'enableInApp': enableInApp,
       'version': version,
+      'source': "Flutter"
     };
   }
 }

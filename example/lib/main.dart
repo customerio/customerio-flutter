@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:customer_io/customer_io.dart';
 import 'package:customer_io/customer_io_config.dart';
 import 'package:customer_io/customer_io_enums.dart';
+import 'package:customer_io/customer_io_inapp.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -26,10 +30,20 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  late StreamSubscription inAppMessageStreamSubscription;
+
+  @override
+  void dispose() {
+    /// Stop listening to streams
+    inAppMessageStreamSubscription.cancel();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
-    CustomerIO.identify(identifier: "flutter_missing_feat_1");
+    CustomerIO.identify(
+        identifier: "fel-ios", attributes: {"email": "fel-ios@flutter.io"});
   }
 
   @override
@@ -103,6 +117,21 @@ class _MyAppState extends State<MyApp> {
                         deliveryID: "deliveryID101",
                         deviceToken: "deviceToken2011",
                         event: MetricEvent.clicked);
+                  },
+                ),
+              ),
+              const Spacer(),
+              Center(
+                child: ElevatedButton(
+                  child: const Text('SUBSCRIBE IN-APP MESSAGE EVENTS'),
+                  onPressed: () {
+                    inAppMessageStreamSubscription =
+                        CustomerIO.subscribeToInAppEventListener(
+                            (InAppEvent event) {
+                      if (kDebugMode) {
+                        print("Received event: ${event.eventType.name}");
+                      }
+                    });
                   },
                 ),
               ),

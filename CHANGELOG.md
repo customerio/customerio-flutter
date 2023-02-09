@@ -1,3 +1,10 @@
+## [1.0.0-alpha.7](https://github.com/customerio/customerio-flutter/compare/1.0.0-alpha.6...1.0.0-alpha.7) (2023-02-09)
+
+
+### Bug Fixes
+
+* in-app remove gist org id ([#19](https://github.com/customerio/customerio-flutter/issues/19)) ([ce4cc9e](https://github.com/customerio/customerio-flutter/commit/ce4cc9e4dd596ba2ff47e02199096154eac8ec06))
+
 ## [1.0.0-alpha.6](https://github.com/customerio/customerio-flutter/compare/1.0.0-alpha.5...1.0.0-alpha.6) (2023-01-01)
 
 
