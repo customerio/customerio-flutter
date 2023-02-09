@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'customer_io_config.dart';
+import 'customer_io_inapp.dart';
 import 'customer_io_platform_interface.dart';
 
 class CustomerIO {
@@ -69,5 +72,16 @@ class CustomerIO {
   /// @param attributes additional attributes for a user profile
   static void setProfileAttributes({required Map<String, dynamic> attributes}) {
     return _customerIO.setProfileAttributes(attributes: attributes);
+  }
+
+  /// Subscribes to an in-app event listener.
+  ///
+  /// [onEvent] - A callback function that will be called every time an in-app event occurs.
+  /// The callback returns [InAppEvent].
+  ///
+  /// Returns a [StreamSubscription] that can be used to subscribe/unsubscribe from the event listener.
+  static StreamSubscription subscribeToInAppEventListener(
+      void Function(InAppEvent) onEvent) {
+    return _customerIO.subscribeToInAppEventListener(onEvent);
   }
 }

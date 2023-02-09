@@ -44,12 +44,21 @@ android {
     defaultConfig {
         minSdkVersion 21
     }
+
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+        kotlinOptions {
+            freeCompilerArgs += [
+                    '-Xopt-in=kotlin.RequiresOptIn',
+                    '-Xopt-in=io.customer.base.internal.InternalCustomerIOApi',
+            ]
+        }
+    }
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     // Customer.io SDK
-    def cioVersion = "3.2.0-alpha.1"
+    def cioVersion = "3.3.0-beta.1"
     implementation "io.customer.android:tracking:$cioVersion"
     implementation "io.customer.android:messaging-push-fcm:$cioVersion"
     implementation "io.customer.android:messaging-in-app:$cioVersion"
