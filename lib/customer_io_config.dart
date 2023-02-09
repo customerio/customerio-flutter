@@ -46,6 +46,7 @@ class CustomerIOConfig {
       'backgroundQueueSecondsDelay': backgroundQueueSecondsDelay,
       'enableInApp': enableInApp,
       'version': version,
+      'source': "Flutter"
     };
   }
 }
