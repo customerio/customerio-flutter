@@ -16,6 +16,8 @@ void main() async {
     config: CustomerIOConfig(
         siteId: dotenv.get('siteId', fallback: 'YOUR_SITE_ID'),
         apiKey: dotenv.get('apiKey', fallback: 'YOUR_API_KEY'),
+        logLevel: CioLogLevel.debug,
+        enableInApp: true,
         autoTrackDeviceAttributes: true,
         autoTrackPushEvents: true),
   );
@@ -43,7 +45,8 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     CustomerIO.identify(
-        identifier: "fel-ios", attributes: {"email": "fel-ios@flutter.io"});
+        identifier: "identifier",
+        attributes: {"email": "email"});
   }
 
   @override
