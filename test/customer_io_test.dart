@@ -8,6 +8,10 @@ import 'package:customer_io/customer_io_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+///The MockCustomerIoPlatform class is a mock implementation of the CustomerIOPlatform interface.
+/// It provides stubbed implementations of all the methods defined in the CustomerIOPlatform interface,
+/// which are intended to be overridden in tests. The purpose of this class is to simulate the behavior
+/// of the actual platform implementation, so that tests can run without making actual calls to the platform,
 class MockCustomerIoPlatform
     with MockPlatformInterfaceMixin
     implements CustomerIOPlatform {
@@ -64,7 +68,10 @@ class MockCustomerIoPlatform
   }
 
   @override
-  void trackMetric({required String deliveryID, required String deviceToken, required MetricEvent event}) {
+  void trackMetric(
+      {required String deliveryID,
+      required String deviceToken,
+      required MetricEvent event}) {
     // TODO: implement trackMetric
   }
 }

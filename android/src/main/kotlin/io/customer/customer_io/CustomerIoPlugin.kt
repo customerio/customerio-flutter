@@ -162,10 +162,11 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private fun trackMetric(params: Map<String, Any>) {
         val deliveryId = params.getString(Keys.Tracking.DELIVERY_ID)
         val deliveryToken = params.getString(Keys.Tracking.DELIVERY_TOKEN)
-        val event = MetricEvent.getEvent(params.getProperty<String>(Keys.Tracking.METRIC_EVENT))
+        val eventName = params.getProperty<String>(Keys.Tracking.METRIC_EVENT)
+        val event = MetricEvent.getEvent(eventName)
 
         if (event == null) {
-            logger.info("metric event type isn't correct")
+            logger.info("metric event type null. Possible issue with SDK? Given: $eventName")
             return
         }
 

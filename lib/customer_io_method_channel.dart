@@ -1,6 +1,6 @@
-import 'package:customer_io/customer_io_enums.dart';
 import 'dart:async';
 
+import 'package:customer_io/customer_io_enums.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -72,9 +72,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       }
       await methodChannel.invokeMethod(MethodConsts.initialize, config.toMap());
     } on PlatformException catch (exception) {
-      if (kDebugMode) {
-        print(exception);
-      }
+      handleException(exception);
     }
   }
 
@@ -91,11 +89,10 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
         TrackingConsts.identifier: identifier,
         TrackingConsts.attributes: attributes
       };
+      methodChannel.invokeMethod("method", "");
       methodChannel.invokeMethod(MethodConsts.identify, payload);
     } on PlatformException catch (exception) {
-      if (kDebugMode) {
-        print(exception);
-      }
+      handleException(exception);
     }
   }
 
@@ -112,9 +109,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       };
       methodChannel.invokeMethod(MethodConsts.track, payload);
     } on PlatformException catch (exception) {
-      if (kDebugMode) {
-        print(exception);
-      }
+      handleException(exception);
     }
   }
 
@@ -132,9 +127,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       };
       methodChannel.invokeMethod(MethodConsts.trackMetric, payload);
     } on PlatformException catch (exception) {
-      if (kDebugMode) {
-        print(exception);
-      }
+      handleException(exception);
     }
   }
 
@@ -150,9 +143,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       };
       methodChannel.invokeMethod(MethodConsts.screen, payload);
     } on PlatformException catch (exception) {
-      if (kDebugMode) {
-        print(exception);
-      }
+      handleException(exception);
     }
   }
 
@@ -166,9 +157,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       };
       methodChannel.invokeMethod(MethodConsts.registerDeviceToken, payload);
     } on PlatformException catch (exception) {
-      if (kDebugMode) {
-        print(exception);
-      }
+      handleException(exception);
     }
   }
 
@@ -178,9 +167,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     try {
       methodChannel.invokeMethod(MethodConsts.clearIdentify);
     } on PlatformException catch (exception) {
-      if (kDebugMode) {
-        print(exception);
-      }
+      handleException(exception);
     }
   }
 
@@ -192,9 +179,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       final payload = {TrackingConsts.attributes: attributes};
       methodChannel.invokeMethod(MethodConsts.setProfileAttributes, payload);
     } on PlatformException catch (exception) {
-      if (kDebugMode) {
-        print(exception);
-      }
+      handleException(exception);
     }
   }
 
@@ -206,9 +191,13 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       final payload = {TrackingConsts.attributes: attributes};
       methodChannel.invokeMethod(MethodConsts.setDeviceAttributes, payload);
     } on PlatformException catch (exception) {
-      if (kDebugMode) {
-        print(exception);
-      }
+      handleException(exception);
+    }
+  }
+
+  void handleException(PlatformException exception) {
+    if (kDebugMode) {
+      print(exception);
     }
   }
 }
