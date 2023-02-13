@@ -1,3 +1,10 @@
+## [1.0.0-alpha.8](https://github.com/customerio/customerio-flutter/compare/1.0.0-alpha.7...1.0.0-alpha.8) (2023-02-13)
+
+
+### Features
+
+* added missing methods ([#17](https://github.com/customerio/customerio-flutter/issues/17)) ([73f29e6](https://github.com/customerio/customerio-flutter/commit/73f29e64cb58c24f97f3654c5519e22e5255c507))
+
 ## [1.0.0-alpha.7](https://github.com/customerio/customerio-flutter/compare/1.0.0-alpha.6...1.0.0-alpha.7) (2023-02-09)
 
 
