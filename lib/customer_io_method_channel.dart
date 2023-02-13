@@ -89,7 +89,6 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
         TrackingConsts.identifier: identifier,
         TrackingConsts.attributes: attributes
       };
-      methodChannel.invokeMethod("method", "");
       methodChannel.invokeMethod(MethodConsts.identify, payload);
     } on PlatformException catch (exception) {
       handleException(exception);
