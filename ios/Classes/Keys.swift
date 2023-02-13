@@ -10,6 +10,8 @@ struct Keys {
         static let screen = "screen"
         static let setDeviceAttributes = "setDeviceAttributes"
         static let setProfileAttributes = "setProfileAttributes"
+        static let registerDeviceToken = "registerDeviceToken"
+        static let trackMetric = "trackMetric"
         
     }
     
@@ -17,6 +19,10 @@ struct Keys {
         static let identifier = "identifier"
         static let attributes = "attributes"
         static let eventName = "eventName"
+        static let token = "token"
+        static let deliveryId = "deliveryId"
+        static let deliveryToken = "deliveryToken"
+        static let metricEvent = "metricEvent"
     }
     
     struct Environment{

@@ -45,12 +45,12 @@ android {
         minSdkVersion 21
     }
 
+    // instruct kotlin compiler to opt in to the APIs annotated with the kotlin.RequiresOptIn
+    // and io.customer.base.internal.InternalCustomerIOApi annotations
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
         kotlinOptions {
-            freeCompilerArgs += [
-                    '-Xopt-in=kotlin.RequiresOptIn',
-                    '-Xopt-in=io.customer.base.internal.InternalCustomerIOApi',
-            ]
+            freeCompilerArgs += ['-Xopt-in=kotlin.RequiresOptIn',
+                                 '-Xopt-in=io.customer.base.internal.InternalCustomerIOApi',]
         }
     }
 }

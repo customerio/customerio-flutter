@@ -15,6 +15,7 @@ import io.customer.sdk.CustomerIO
 import io.customer.sdk.CustomerIOConfig
 import io.customer.sdk.CustomerIOShared
 import io.customer.sdk.data.model.Region
+import io.customer.sdk.data.request.MetricEvent
 import io.customer.sdk.extensions.getProperty
 import io.customer.sdk.extensions.getString
 import io.customer.sdk.extensions.takeIfNotBlank
@@ -26,6 +27,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+import java.lang.ref.WeakReference
 
 /**
  * Android implementation of plugin that will let Flutter developers to
@@ -38,13 +40,13 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     /// when the Flutter Engine is detached from the Activity
     private lateinit var flutterCommunicationChannel: MethodChannel
     private lateinit var context: Context
-    private var activity: Activity? = null
+    private var activity: WeakReference<Activity>? = null
 
     private val logger: Logger
         get() = CustomerIOShared.instance().diStaticGraph.logger
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        this.activity = binding.activity
+        this.activity = WeakReference(binding.activity)
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
@@ -100,6 +102,16 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     track(it)
                 }
             }
+            Keys.Methods.TRACK_METRIC -> {
+                call.toNativeMethodCall(result) {
+                    trackMetric(it)
+                }
+            }
+            Keys.Methods.REGISTER_DEVICE_TOKEN -> {
+                call.toNativeMethodCall(result) {
+                    registerDeviceToken(it)
+                }
+            }
             Keys.Methods.SET_DEVICE_ATTRIBUTES -> {
                 call.toNativeMethodCall(result) {
                     setDeviceAttributes(it)
@@ -142,9 +154,29 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
     }
 
+    private fun registerDeviceToken(params: Map<String, Any>) {
+        val token = params.getString(Keys.Tracking.TOKEN)
+        CustomerIO.instance().registerDeviceToken(token)
+    }
+
+    private fun trackMetric(params: Map<String, Any>) {
+        val deliveryId = params.getString(Keys.Tracking.DELIVERY_ID)
+        val deliveryToken = params.getString(Keys.Tracking.DELIVERY_TOKEN)
+        val eventName = params.getProperty<String>(Keys.Tracking.METRIC_EVENT)
+        val event = MetricEvent.getEvent(eventName)
+
+        if (event == null) {
+            logger.info("metric event type null. Possible issue with SDK? Given: $eventName")
+            return
+        }
+
+        CustomerIO.instance().trackMetric(
+            deliveryID = deliveryId, deviceToken = deliveryToken, event = event
+        )
+    }
+
     private fun setDeviceAttributes(params: Map<String, Any>) {
-        val attributes =
-            params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: emptyMap()
+        val attributes = params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: return
 
         CustomerIO.instance().deviceAttributes = attributes
     }
@@ -191,7 +223,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     module = ModuleMessagingInApp(
                         config = MessagingInAppModuleConfig.Builder()
                             .setEventListener(CustomerIOInAppEventListener { method, args ->
-                                this@CustomerIoPlugin.activity?.runOnUiThread {
+                                this@CustomerIoPlugin.activity?.get()?.runOnUiThread {
                                     flutterCommunicationChannel.invokeMethod(method, args)
                                 }
                             }).build(),

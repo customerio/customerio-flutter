@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:customer_io/customer_io_enums.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -71,9 +72,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       }
       await methodChannel.invokeMethod(MethodConsts.initialize, config.toMap());
     } on PlatformException catch (exception) {
-      if (kDebugMode) {
-        print(exception);
-      }
+      handleException(exception);
     }
   }
 
@@ -92,9 +91,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       };
       methodChannel.invokeMethod(MethodConsts.identify, payload);
     } on PlatformException catch (exception) {
-      if (kDebugMode) {
-        print(exception);
-      }
+      handleException(exception);
     }
   }
 
@@ -111,9 +108,25 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       };
       methodChannel.invokeMethod(MethodConsts.track, payload);
     } on PlatformException catch (exception) {
-      if (kDebugMode) {
-        print(exception);
-      }
+      handleException(exception);
+    }
+  }
+
+  /// Track a push metric
+  @override
+  void trackMetric(
+      {required String deliveryID,
+      required String deviceToken,
+      required MetricEvent event}) async {
+    try {
+      final payload = {
+        TrackingConsts.deliveryId: deliveryID,
+        TrackingConsts.deliveryToken: deviceToken,
+        TrackingConsts.metricEvent: event.name,
+      };
+      methodChannel.invokeMethod(MethodConsts.trackMetric, payload);
+    } on PlatformException catch (exception) {
+      handleException(exception);
     }
   }
 
@@ -129,9 +142,21 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       };
       methodChannel.invokeMethod(MethodConsts.screen, payload);
     } on PlatformException catch (exception) {
-      if (kDebugMode) {
-        print(exception);
-      }
+      handleException(exception);
+    }
+  }
+
+  /// Register a new device token with Customer.io, associated with the current active customer. If there
+  /// is no active customer, this will fail to register the device
+  @override
+  void registerDeviceToken({required String deviceToken}) async {
+    try {
+      final payload = {
+        TrackingConsts.token: deviceToken,
+      };
+      methodChannel.invokeMethod(MethodConsts.registerDeviceToken, payload);
+    } on PlatformException catch (exception) {
+      handleException(exception);
     }
   }
 
@@ -141,9 +166,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     try {
       methodChannel.invokeMethod(MethodConsts.clearIdentify);
     } on PlatformException catch (exception) {
-      if (kDebugMode) {
-        print(exception);
-      }
+      handleException(exception);
     }
   }
 
@@ -155,9 +178,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       final payload = {TrackingConsts.attributes: attributes};
       methodChannel.invokeMethod(MethodConsts.setProfileAttributes, payload);
     } on PlatformException catch (exception) {
-      if (kDebugMode) {
-        print(exception);
-      }
+      handleException(exception);
     }
   }
 
@@ -169,9 +190,13 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       final payload = {TrackingConsts.attributes: attributes};
       methodChannel.invokeMethod(MethodConsts.setDeviceAttributes, payload);
     } on PlatformException catch (exception) {
-      if (kDebugMode) {
-        print(exception);
-      }
+      handleException(exception);
+    }
+  }
+
+  void handleException(PlatformException exception) {
+    if (kDebugMode) {
+      print(exception);
     }
   }
 }

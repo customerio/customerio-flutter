@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'customer_io_config.dart';
+import 'customer_io_enums.dart';
 import 'customer_io_inapp.dart';
 import 'customer_io_platform_interface.dart';
 
@@ -47,6 +48,21 @@ class CustomerIO {
   static void track(
       {required String name, Map<String, dynamic> attributes = const {}}) {
     return _customerIO.track(name: name, attributes: attributes);
+  }
+
+  /// Track a push metric
+  static void trackMetric(
+      {required String deliveryID,
+      required String deviceToken,
+      required MetricEvent event}) {
+    return _customerIO.trackMetric(
+        deliveryID: deliveryID, deviceToken: deviceToken, event: event);
+  }
+
+  /// Register a new device token with Customer.io, associated with the current active customer. If there
+  /// is no active customer, this will fail to register the device
+  static void registerDeviceToken({required String deviceToken}) {
+    return _customerIO.registerDeviceToken(deviceToken: deviceToken);
   }
 
   /// Track screen events to record the screens a user visits

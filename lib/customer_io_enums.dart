@@ -6,3 +6,6 @@ enum CioLogLevel { none, error, info, debug }
 /// US - for data center in United States
 /// EU - for data center in European Union
 enum Region { us, eu }
+
+/// Enum to specify the type of metric for tracking
+enum MetricEvent { delivered, opened, converted, clicked }

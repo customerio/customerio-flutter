@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name        = 'customer_io'
-  s.version     = '1.0.0-alpha.5'
+  s.version     = '1.0.0-alpha.8'
   s.summary     = 'Customer.io plugin for Flutter'
   s.homepage    = 'https://customer.io/'
   s.license     = { :file => '../LICENSE' }
@@ -13,8 +13,8 @@ Pod::Spec.new do |s|
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
   s.platform = :ios, '13.0'
-  s.dependency "CustomerIOTracking", '~> 2.1.0-beta.1'
-  s.dependency "CustomerIOMessagingInApp", '~> 2.1.0-beta.1'
+  s.dependency "CustomerIOTracking", '~> 2.1.0-beta.2'
+  s.dependency "CustomerIOMessagingInApp", '~> 2.1.0-beta.2'
 
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }

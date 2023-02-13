@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:customer_io/customer_io.dart';
 import 'package:customer_io/customer_io_config.dart';
+import 'package:customer_io/customer_io_enums.dart';
 import 'package:customer_io/customer_io_inapp.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -12,11 +13,14 @@ void main() async {
 
   await dotenv.load(fileName: "credentials.env");
   await CustomerIO.initialize(
-      config: CustomerIOConfig(
-          siteId: dotenv.get('siteId', fallback: 'YOUR_SITE_ID'),
-          apiKey: dotenv.get('apiKey', fallback: 'YOUR_API_KEY'),
-          enableInApp: true));
-
+    config: CustomerIOConfig(
+        siteId: dotenv.get('siteId', fallback: 'YOUR_SITE_ID'),
+        apiKey: dotenv.get('apiKey', fallback: 'YOUR_API_KEY'),
+        logLevel: CioLogLevel.debug,
+        enableInApp: true,
+        autoTrackDeviceAttributes: true,
+        autoTrackPushEvents: true),
+  );
   runApp(const MyApp());
 }
 
@@ -41,8 +45,8 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     CustomerIO.identify(
-        identifier: "fel-ios",
-        attributes: {"email": "fel-ios@flutter.io"});
+        identifier: "identifier",
+        attributes: {"email": "email"});
   }
 
   @override
@@ -101,10 +105,32 @@ class _MyAppState extends State<MyApp> {
               const Spacer(),
               Center(
                 child: ElevatedButton(
+                  child: const Text('REGISTER DEVICE'),
+                  onPressed: () {
+                    CustomerIO.registerDeviceToken(deviceToken: "device-token");
+                  },
+                ),
+              ),
+              const Spacer(),
+              Center(
+                child: ElevatedButton(
+                  child: const Text('TRACK METRIC'),
+                  onPressed: () {
+                    CustomerIO.trackMetric(
+                        deliveryID: "deliveryID101",
+                        deviceToken: "deviceToken2011",
+                        event: MetricEvent.clicked);
+                  },
+                ),
+              ),
+              const Spacer(),
+              Center(
+                child: ElevatedButton(
                   child: const Text('SUBSCRIBE IN-APP MESSAGE EVENTS'),
                   onPressed: () {
                     inAppMessageStreamSubscription =
-                        CustomerIO.subscribeToInAppEventListener((InAppEvent event) {
+                        CustomerIO.subscribeToInAppEventListener(
+                            (InAppEvent event) {
                       if (kDebugMode) {
                         print("Received event: ${event.eventType.name}");
                       }

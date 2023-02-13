@@ -50,6 +50,14 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
             call.toNativeMethodCall(result: result) {
                 setDeviceAttributes(params: $0)
             }
+        case Keys.Methods.registerDeviceToken:
+            call.toNativeMethodCall(result: result) {
+                registerDeviceToken(params: $0)
+            }
+        case Keys.Methods.trackMetric:
+            call.toNativeMethodCall(result: result) {
+                trackMetric(params: $0)
+            }
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -119,6 +127,28 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
         CustomerIO.shared.profileAttributes = attributes
     }
     
+    private func registerDeviceToken(params : Dictionary<String, AnyHashable>){
+        guard let token = params[Keys.Tracking.token] as? String
+        else {
+            return
+        }
+        
+        CustomerIO.shared.registerDeviceToken(token)
+    }
+    
+    private func trackMetric(params : Dictionary<String, AnyHashable>){
+        guard let deliveryId = params[Keys.Tracking.deliveryId] as? String,
+              let deviceToken = params[Keys.Tracking.deliveryToken] as? String,
+              let metricEvent = params[Keys.Tracking.metricEvent] as? String,
+              let event = Metric.getEvent(from: metricEvent)
+        else {
+            return
+        }
+        
+        CustomerIO.shared.trackMetric(deliveryID: deliveryId,
+                                      event: event,
+                                      deviceToken: deviceToken)
+    }
     
     private func initialize(params : Dictionary<String, AnyHashable>){
         guard let siteId = params[Keys.Environment.siteId] as? String,
