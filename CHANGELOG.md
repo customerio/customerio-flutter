@@ -1,3 +1,10 @@
+## [1.0.0-alpha.9](https://github.com/customerio/customerio-flutter/compare/1.0.0-alpha.8...1.0.0-alpha.9) (2023-02-16)
+
+
+### Bug Fixes
+
+* updated android dependency to auto update ([#24](https://github.com/customerio/customerio-flutter/issues/24)) ([040cef2](https://github.com/customerio/customerio-flutter/commit/040cef205821c9bb1913a378dfffa356a3b25650))
+
 ## [1.0.0-alpha.8](https://github.com/customerio/customerio-flutter/compare/1.0.0-alpha.7...1.0.0-alpha.8) (2023-02-13)
 
 
