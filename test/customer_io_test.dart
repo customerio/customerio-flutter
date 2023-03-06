@@ -22,8 +22,8 @@ class TestCustomerIoPlatform extends Mock
   }
 }
 
-// The following test suite make sures when any CustomerIO class method is called,
-// the corresponding platform method are called and with the correct arguments.
+// The following test suite makes sure when any CustomerIO class method is called,
+// the correct corresponding platform methods are called and with the correct arguments.
 @GenerateMocks([TestCustomerIoPlatform])
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -150,7 +150,8 @@ void main() {
       expect(
           verify(mockPlatform.registerDeviceToken(
                   deviceToken: captureAnyNamed("deviceToken")))
-              .captured,
+              .captured
+              .first,
           deviceToken);
     });
 
@@ -189,7 +190,8 @@ void main() {
       expect(
           verify(mockPlatform.setDeviceAttributes(
                   attributes: captureAnyNamed("attributes")))
-              .captured,
+              .captured
+              .first,
           givenAttributes);
     });
 
@@ -205,9 +207,10 @@ void main() {
       final givenAttributes = {'age': 10};
       CustomerIO.setProfileAttributes(attributes: givenAttributes);
       expect(
-          verify(mockPlatform.setDeviceAttributes(
+          verify(mockPlatform.setProfileAttributes(
                   attributes: captureAnyNamed("attributes")))
-              .captured,
+              .captured
+              .first,
           givenAttributes);
     });
   });
