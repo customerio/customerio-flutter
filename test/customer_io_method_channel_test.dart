@@ -1,20 +1,33 @@
 import 'package:customer_io/customer_io_config.dart';
+import 'package:customer_io/customer_io_enums.dart';
 import 'package:customer_io/customer_io_method_channel.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
 
 /// This is more of test of what our Native platform is expecting.
 void main() {
   const MethodChannel channel = MethodChannel('customer_io');
+  final Map<String, dynamic> channelInvocations = {};
 
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
+      channelInvocations[methodCall.method] = methodCall.arguments;
       switch (methodCall.method) {
         case 'initialize':
           return Future
               .value(); // Simulate a successful response from the platform.
+        case 'identify':
+        case 'track':
+        case 'trackMetric':
+        case 'screen':
+        case 'registerDeviceToken':
+        case 'clearIdentify':
+        case 'setProfileAttributes':
+        case 'setDeviceAttributes':
+          return;
         default:
           throw MissingPluginException();
       }
@@ -25,9 +38,96 @@ void main() {
     channel.setMockMethodCallHandler(null);
   });
 
-  test('initialize should call platform method', () async {
+  void expectChannelInvocationArguments(String methodKey, Map<String, dynamic> arguments) {
+    expect(channelInvocations.containsKey(methodKey), true, reason: 'method `$methodKey` was called');
+    arguments.forEach((key, value) {
+      expect(channelInvocations[methodKey][key], value, reason: 'method arg $key matches');
+    });
+  }
+
+  test('initialize() should call platform method with correct arguments', () async {
     final customerIO = CustomerIOMethodChannel();
     final config = CustomerIOConfig(siteId: 'site_id', apiKey: 'api_key');
     await customerIO.initialize(config: config);
+
+    expectChannelInvocationArguments('initialize', { 'siteId': config.siteId, 'apiKey': config.apiKey });
+  });
+
+  test('identify() should call platform method with correct arguments', () async {
+    final Map<String, dynamic> args = { 'identifier': 'Customer 1', 'attributes': { 'email': 'customer@email.com' } };
+    
+    final customerIO = CustomerIOMethodChannel();
+    customerIO.identify(identifier: args['identifier'] as String, attributes: args['attributes']);
+
+    expectChannelInvocationArguments('identify', args);
+  });
+
+  test('track() should call platform method with correct arguments', () async {
+    final Map<String, dynamic> args = { 'eventName': 'test_event', 'attributes': { 'eventData': 2 }};
+    
+    final customerIO = CustomerIOMethodChannel();
+    customerIO.track(name: args['eventName'], attributes: args['attributes']);
+
+    expectChannelInvocationArguments('track', args);
+  });
+
+  test('trackMetric() should call platform method with correct arguments', () async {
+    final Map<String, dynamic> args = { 
+      'deliveryId': '123', 
+      'deliveryToken': 'asdf',
+      'metricEvent': 'clicked'};
+
+    final customerIO = CustomerIOMethodChannel();
+    customerIO.trackMetric(
+      deliveryID: args['deliveryId'], 
+      deviceToken: args['deliveryToken'],
+      event: MetricEvent.values.byName(args['metricEvent']));
+
+    expectChannelInvocationArguments('trackMetric', args);
+  });
+
+  test('screen() should call platform method with correct arguments', () async {
+    final Map<String, dynamic> args = { 'eventName': 'screen_event', 'attributes': { 'screenName': '你好' }};
+    
+    final customerIO = CustomerIOMethodChannel();
+    customerIO.screen(name: args['eventName'], attributes: args['attributes']);
+
+    expectChannelInvocationArguments('screen', args);
+  });
+
+  test('registerDeviceToken() should call platform method with correct arguments', () async {
+    final Map<String, String> args = { 'token': 'asdf' };
+    
+    final customerIO = CustomerIOMethodChannel();
+    customerIO.registerDeviceToken(deviceToken: args['token'] as String);
+
+    expectChannelInvocationArguments('registerDeviceToken', args);
+  });
+
+  test('clearIdentify() should call platform method with correct arguments', () async {
+    final Map<String, String> args = {};
+    
+    final customerIO = CustomerIOMethodChannel();
+    customerIO.clearIdentify();
+
+    expectChannelInvocationArguments('clearIdentify', args);
+  });
+
+  test('setProfileAttributes() should call platform method with correct arguments', () async {
+    final Map<String, dynamic> args = { 'attributes': { 'age': 1 }};
+    
+    final customerIO = CustomerIOMethodChannel();
+    customerIO.setProfileAttributes(attributes: args['attributes']);
+
+    expectChannelInvocationArguments('setProfileAttributes', args);
+  });
+
+  test('setDeviceAttributes() should call platform method with correct arguments', () async {
+    final Map<String, dynamic> args = { 'attributes': { 'os': 'Android' }};
+    
+    final customerIO = CustomerIOMethodChannel();
+    customerIO.setDeviceAttributes(attributes: args['attributes']);
+
+    expectChannelInvocationArguments('setDeviceAttributes', args);
   });
 }
