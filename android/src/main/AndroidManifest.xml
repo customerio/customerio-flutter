@@ -1,1 +1,17 @@
-<manifest package="io.customer.customer_io"></manifest>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="io.customer.customer_io">
+
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application>
+        <!-- Broadcast receiver for push interactions -->
+        <receiver
+            android:name="io.customer.messagingpush.CustomerIOFirebaseMessagingReceiver"
+            android:exported="true"
+            android:permission="com.google.android.c2dm.permission.SEND">
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>
