@@ -599,4 +599,7 @@ MigrationBackup/
 # Remove env files
 *.env
 
+# Remove test coverage
+.coverage/
+
 # End of https://www.gitignore.io/api/git,dart,flutter,intellij,webstorm,visualstudio
