@@ -1,3 +1,10 @@
+## [1.0.0-beta.2](https://github.com/customerio/customerio-flutter/compare/1.0.0-beta.1...1.0.0-beta.2) (2023-03-31)
+
+
+### Bug Fixes
+
+* add test coverage and refactored scripts ([#34](https://github.com/customerio/customerio-flutter/issues/34)) ([f7f2387](https://github.com/customerio/customerio-flutter/commit/f7f2387941a6416411b26061420ccfb98ed0db72))
+
 ## 1.0.0-beta.1 (2023-03-07)
 
 
