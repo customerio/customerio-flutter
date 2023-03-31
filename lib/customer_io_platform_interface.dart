@@ -31,7 +31,7 @@ abstract class CustomerIOPlatform extends PlatformInterface {
   Future<void> initialize({
     required CustomerIOConfig config,
   }) {
-    throw UnimplementedError('config() has not been implemented.');
+    throw UnimplementedError('initialize() has not been implemented.');
   }
 
   void identify(

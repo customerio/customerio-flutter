@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name        = 'customer_io'
-  s.version     = '1.0.0-alpha.8'
+  s.version     = '1.0.0-beta.1'
   s.summary     = 'Customer.io plugin for Flutter'
   s.homepage    = 'https://customer.io/'
   s.license     = { :file => '../LICENSE' }
