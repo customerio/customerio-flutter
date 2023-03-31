@@ -33,7 +33,7 @@
     [
       "@semantic-release/exec",
       {
-        "verifyReleaseCmd": "./scripts/update-version.sh ${nextRelease.version}, ./scripts/update-podspec.sh ${nextRelease.version}, ./scripts/update-plugin.sh ${nextRelease.version}"
+        "verifyReleaseCmd": "./scripts/update-version.sh ${nextRelease.version} && ./scripts/update-podspec.sh ${nextRelease.version} && ./scripts/update-plugin.sh ${nextRelease.version}"
       }
     ],
     [
