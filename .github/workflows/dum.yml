@@ -1,0 +1,19 @@
+name: Debug verifyReleaseCmd
+
+on:
+  push:
+
+jobs:
+  debug-verifyReleaseCmd:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Debug verifyReleaseCmd
+        run: |
+          NEW_VERSION="1.2.3" # Replace with a dummy version
+          ./scripts/update-version.sh "$NEW_VERSION" && \
+          ./scripts/update-podspec.sh "$NEW_VERSION" && \
+          ./scripts/update-plugin.sh "$NEW_VERSION"
