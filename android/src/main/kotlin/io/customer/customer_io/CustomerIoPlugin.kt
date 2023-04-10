@@ -5,6 +5,7 @@ import android.app.Application
 import android.content.Context
 import androidx.annotation.NonNull
 import io.customer.customer_io.constant.Keys
+import io.customer.customer_io.messagingpush.CustomerIOPushMessaging
 import io.customer.messaginginapp.MessagingInAppModuleConfig
 import io.customer.messaginginapp.ModuleMessagingInApp
 import io.customer.messaginginapp.type.InAppEventListener
@@ -41,6 +42,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var flutterCommunicationChannel: MethodChannel
     private lateinit var context: Context
     private var activity: WeakReference<Activity>? = null
+    private lateinit var pushMessagingModule: CustomerIOPushMessaging
 
     private val logger: Logger
         get() = CustomerIOShared.instance().diStaticGraph.logger
@@ -66,15 +68,17 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         flutterCommunicationChannel =
             MethodChannel(flutterPluginBinding.binaryMessenger, "customer_io")
         flutterCommunicationChannel.setMethodCallHandler(this)
+        pushMessagingModule = CustomerIOPushMessaging(context)
     }
 
     private fun MethodCall.toNativeMethodCall(
-        result: Result, performAction: (params: Map<String, Any>) -> Unit
+        result: Result, performAction: (params: Map<String, Any>, setResult: (Any) -> Unit) -> Unit,
     ) {
         try {
             val params = this.arguments as? Map<String, Any> ?: emptyMap()
-            performAction(params)
-            result.success(true)
+            var response: Any = true
+            performAction(params) { response = it }
+            result.success(response)
         } catch (e: Exception) {
             result.error(this.method, e.localizedMessage, null)
         }
@@ -83,50 +87,57 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         when (call.method) {
             Keys.Methods.INITIALIZE -> {
-                call.toNativeMethodCall(result) {
-                    initialize(it)
+                call.toNativeMethodCall(result) { args, _ ->
+                    initialize(args)
                 }
             }
             Keys.Methods.IDENTIFY -> {
-                call.toNativeMethodCall(result) {
-                    identify(it)
+                call.toNativeMethodCall(result) { args, _ ->
+                    identify(args)
                 }
             }
             Keys.Methods.SCREEN -> {
-                call.toNativeMethodCall(result) {
-                    screen(it)
+                call.toNativeMethodCall(result) { args, _ ->
+                    screen(args)
                 }
             }
             Keys.Methods.TRACK -> {
-                call.toNativeMethodCall(result) {
-                    track(it)
+                call.toNativeMethodCall(result) { args, _ ->
+                    track(args)
                 }
             }
             Keys.Methods.TRACK_METRIC -> {
-                call.toNativeMethodCall(result) {
-                    trackMetric(it)
+                call.toNativeMethodCall(result) { args, _ ->
+                    trackMetric(args)
                 }
             }
             Keys.Methods.REGISTER_DEVICE_TOKEN -> {
-                call.toNativeMethodCall(result) {
-                    registerDeviceToken(it)
+                call.toNativeMethodCall(result) { args, _ ->
+                    registerDeviceToken(args)
                 }
             }
             Keys.Methods.SET_DEVICE_ATTRIBUTES -> {
-                call.toNativeMethodCall(result) {
-                    setDeviceAttributes(it)
+                call.toNativeMethodCall(result) { args, _ ->
+                    setDeviceAttributes(args)
                 }
             }
             Keys.Methods.SET_PROFILE_ATTRIBUTES -> {
-                call.toNativeMethodCall(result) {
-                    setProfileAttributes(it)
+                call.toNativeMethodCall(result) { args, _ ->
+                    setProfileAttributes(args)
                 }
             }
             Keys.Methods.CLEAR_IDENTIFY -> {
                 clearIdentity()
             }
             else -> {
-                result.notImplemented()
+                kotlin.runCatching {
+                    val moduleMethodHandler = pushMessagingModule.onMethodCallInvoked(call.method)
+                    call.toNativeMethodCall(result) { arguments, setResult ->
+                        setResult(moduleMethodHandler(arguments))
+                    }
+                }.onFailure {
+                    result.notImplemented()
+                }
             }
         }
     }
