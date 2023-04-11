@@ -40,7 +40,7 @@ abstract class CustomerIOMessagingPushPlatform extends PlatformInterface {
   /// was handled by the SDK or not.
   Future<bool> onMessageReceived(Map<String, dynamic> message,
       {bool handleNotificationTrigger = true}) {
-    throw UnimplementedError('initialize() has not been implemented.');
+    throw UnimplementedError('onMessageReceived() has not been implemented.');
   }
 
   /// Handles push notification received when app is background. Since FCM
@@ -50,5 +50,5 @@ abstract class CustomerIOMessagingPushPlatform extends PlatformInterface {
   /// @see [onMessageReceived] for more details
   Future<bool> onBackgroundMessageReceived(Map<String, dynamic> message) =>
       onMessageReceived(message,
-          handleNotificationTrigger: message.containsKey('notification') == null);
+          handleNotificationTrigger: message.containsKey('notification'));
 }
