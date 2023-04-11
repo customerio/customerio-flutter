@@ -1,18 +1,7 @@
 package io.customer.customer_io.messagingpush
 
 import com.google.firebase.messaging.RemoteMessage
-
-/**
- * Returns the value corresponding to the given key after casting to the
- * generic type provided, or null if such a key is not present in the map
- * or cannot be casted to the given type.
- */
-internal inline fun <reified T> Map<String, Any>.getAsTypeOrNull(key: String): T? {
-    if (containsKey(key)) {
-        return get(key) as? T
-    }
-    return null
-}
+import io.customer.customer_io.getAsTypeOrNull
 
 /**
  * Safely transforms any value to string

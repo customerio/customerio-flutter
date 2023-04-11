@@ -3,8 +3,9 @@ package io.customer.customer_io
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 
 /**
- * Base interface that should be implemented by each Customer.io module that can communicate with
- * code in Flutter/Dart files.
+ * Module class corresponds to modules concept in native SDKs. Any module added to native SDKs
+ * should be treated as module in Flutter SDK as well and should hold all relevant methods at
+ * single place.
  */
 internal interface CustomerIOPluginModule {
     /**

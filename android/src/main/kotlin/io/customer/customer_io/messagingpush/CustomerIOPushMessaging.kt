@@ -3,6 +3,7 @@ package io.customer.customer_io.messagingpush
 import android.content.Context
 import io.customer.customer_io.CustomerIOPluginModule
 import io.customer.customer_io.constant.Keys
+import io.customer.customer_io.getAsTypeOrNull
 import io.customer.customer_io.invokeNative
 import io.customer.messagingpush.CustomerIOFirebaseMessagingService
 import io.customer.sdk.CustomerIOShared
