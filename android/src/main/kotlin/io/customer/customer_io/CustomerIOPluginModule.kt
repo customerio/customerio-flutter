@@ -1,10 +1,10 @@
 package io.customer.customer_io
 
-import androidx.annotation.CallSuper
+import io.flutter.embedding.engine.plugins.FlutterPlugin
 
 /**
- * Base interface that should be implemented by each Customer.io module that provides an option
- * to bridge native code with Flutter.
+ * Base interface that should be implemented by each Customer.io module that can communicate with
+ * code in Flutter/Dart files.
  */
 internal interface CustomerIOPluginModule {
     /**
@@ -13,16 +13,16 @@ internal interface CustomerIOPluginModule {
     val moduleName: String
 
     /**
-     * Called whenever a request from dart/flutter file is received. If the module implements the
-     * method, it should return a lambda to process the request, else it should pass the request
-     * to super class for rejecting the request gracefully.
+     * Called whenever root FlutterPlugin has been associated with a FlutterEngine instance.
      *
-     * @param methodName name of method invoked from dart/flutter file.
+     * @see [FlutterPlugin.onAttachedToEngine] for more details
      */
-    @CallSuper
-    fun onMethodCallInvoked(
-        methodName: String,
-    ): (arguments: Map<String, Any>) -> Any {
-        throw NotImplementedError("Method $methodName not implemented in $moduleName module")
-    }
+    fun onAttachedToEngine()
+
+    /**
+     * Called whenever root FlutterPlugin has been removed from a FlutterEngine instance.
+     *
+     * @see [FlutterPlugin.onDetachedFromEngine] for more details
+     */
+    fun onDetachedFromEngine()
 }

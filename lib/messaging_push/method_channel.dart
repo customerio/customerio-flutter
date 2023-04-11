@@ -11,7 +11,7 @@ class CustomerIOMessagingPushMethodChannel
     extends CustomerIOMessagingPushPlatform {
   /// The method channel used to interact with the native platform.
   @visibleForTesting
-  final methodChannel = const MethodChannel('customer_io');
+  final methodChannel = const MethodChannel('customer_io_messaging_push');
 
   @override
   Future<bool> onMessageReceived(Map<String, dynamic> message,

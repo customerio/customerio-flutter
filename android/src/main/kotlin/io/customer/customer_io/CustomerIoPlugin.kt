@@ -68,17 +68,17 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         flutterCommunicationChannel =
             MethodChannel(flutterPluginBinding.binaryMessenger, "customer_io")
         flutterCommunicationChannel.setMethodCallHandler(this)
-        pushMessagingModule = CustomerIOPushMessaging(context)
+        pushMessagingModule = CustomerIOPushMessaging(context, flutterPluginBinding.binaryMessenger)
+        pushMessagingModule.onAttachedToEngine()
     }
 
     private fun MethodCall.toNativeMethodCall(
-        result: Result, performAction: (params: Map<String, Any>, setResult: (Any) -> Unit) -> Unit,
+        result: Result, performAction: (params: Map<String, Any>) -> Unit
     ) {
         try {
             val params = this.arguments as? Map<String, Any> ?: emptyMap()
-            var response: Any = true
-            performAction(params) { response = it }
-            result.success(response)
+            performAction(params)
+            result.success(true)
         } catch (e: Exception) {
             result.error(this.method, e.localizedMessage, null)
         }
@@ -87,57 +87,50 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         when (call.method) {
             Keys.Methods.INITIALIZE -> {
-                call.toNativeMethodCall(result) { args, _ ->
-                    initialize(args)
+                call.toNativeMethodCall(result) {
+                    initialize(it)
                 }
             }
             Keys.Methods.IDENTIFY -> {
-                call.toNativeMethodCall(result) { args, _ ->
-                    identify(args)
+                call.toNativeMethodCall(result) {
+                    identify(it)
                 }
             }
             Keys.Methods.SCREEN -> {
-                call.toNativeMethodCall(result) { args, _ ->
-                    screen(args)
+                call.toNativeMethodCall(result) {
+                    screen(it)
                 }
             }
             Keys.Methods.TRACK -> {
-                call.toNativeMethodCall(result) { args, _ ->
-                    track(args)
+                call.toNativeMethodCall(result) {
+                    track(it)
                 }
             }
             Keys.Methods.TRACK_METRIC -> {
-                call.toNativeMethodCall(result) { args, _ ->
-                    trackMetric(args)
+                call.toNativeMethodCall(result) {
+                    trackMetric(it)
                 }
             }
             Keys.Methods.REGISTER_DEVICE_TOKEN -> {
-                call.toNativeMethodCall(result) { args, _ ->
-                    registerDeviceToken(args)
+                call.toNativeMethodCall(result) {
+                    registerDeviceToken(it)
                 }
             }
             Keys.Methods.SET_DEVICE_ATTRIBUTES -> {
-                call.toNativeMethodCall(result) { args, _ ->
-                    setDeviceAttributes(args)
+                call.toNativeMethodCall(result) {
+                    setDeviceAttributes(it)
                 }
             }
             Keys.Methods.SET_PROFILE_ATTRIBUTES -> {
-                call.toNativeMethodCall(result) { args, _ ->
-                    setProfileAttributes(args)
+                call.toNativeMethodCall(result) {
+                    setProfileAttributes(it)
                 }
             }
             Keys.Methods.CLEAR_IDENTIFY -> {
                 clearIdentity()
             }
             else -> {
-                kotlin.runCatching {
-                    val moduleMethodHandler = pushMessagingModule.onMethodCallInvoked(call.method)
-                    call.toNativeMethodCall(result) { arguments, setResult ->
-                        setResult(moduleMethodHandler(arguments))
-                    }
-                }.onFailure {
-                    result.notImplemented()
-                }
+                result.notImplemented()
             }
         }
     }
@@ -258,6 +251,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         flutterCommunicationChannel.setMethodCallHandler(null)
+        pushMessagingModule.onDetachedFromEngine()
     }
 }
 

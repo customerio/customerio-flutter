@@ -3,31 +3,47 @@ package io.customer.customer_io.messagingpush
 import android.content.Context
 import io.customer.customer_io.CustomerIOPluginModule
 import io.customer.customer_io.constant.Keys
+import io.customer.customer_io.invokeNative
 import io.customer.messagingpush.CustomerIOFirebaseMessagingService
 import io.customer.sdk.CustomerIOShared
 import io.customer.sdk.extensions.takeIfNotBlank
 import io.customer.sdk.util.Logger
+import io.flutter.plugin.common.BinaryMessenger
+import io.flutter.plugin.common.MethodCall
+import io.flutter.plugin.common.MethodChannel
 import java.util.*
 
 class CustomerIOPushMessaging(
     private val applicationContext: Context,
-) : CustomerIOPluginModule {
+    messenger: BinaryMessenger,
+) : CustomerIOPluginModule, MethodChannel.MethodCallHandler {
     override val moduleName: String = "PushMessaging"
+    private val flutterCommunicationChannel = MethodChannel(messenger, "customer_io_messaging_push")
 
     private val logger: Logger
         get() = CustomerIOShared.instance().diStaticGraph.logger
 
-    override fun onMethodCallInvoked(methodName: String): (params: Map<String, Any>) -> Any {
-        when (methodName) {
+    override fun onAttachedToEngine() {
+        flutterCommunicationChannel.setMethodCallHandler(this)
+    }
+
+    override fun onDetachedFromEngine() {
+        flutterCommunicationChannel.setMethodCallHandler(null)
+    }
+
+    override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
+        when (call.method) {
             Keys.Methods.ON_MESSAGE_RECEIVED -> {
-                return { arguments ->
-                    onMessageReceived(
-                        message = arguments.getAsTypeOrNull<Map<String, Any>>("message"),
-                        handleNotificationTrigger = arguments.getAsTypeOrNull<Boolean>("handleNotificationTrigger")
+                call.invokeNative(result) { args ->
+                    return@invokeNative onMessageReceived(
+                        message = args.getAsTypeOrNull<Map<String, Any>>("message"),
+                        handleNotificationTrigger = args.getAsTypeOrNull<Boolean>("handleNotificationTrigger")
                     )
                 }
             }
-            else -> return super.onMethodCallInvoked(methodName)
+            else -> {
+                result.notImplemented()
+            }
         }
     }
 

@@ -50,5 +50,5 @@ abstract class CustomerIOMessagingPushPlatform extends PlatformInterface {
   /// @see [onMessageReceived] for more details
   Future<bool> onBackgroundMessageReceived(Map<String, dynamic> message) =>
       onMessageReceived(message,
-          handleNotificationTrigger: message.containsKey('notification'));
+          handleNotificationTrigger: message['notification'] == null);
 }
