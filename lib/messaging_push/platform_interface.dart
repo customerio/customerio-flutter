@@ -5,10 +5,10 @@ import 'method_channel.dart';
 /// The default instance of [CustomerIOMessagingPushPlatform] to use
 ///
 /// Platform-specific plugins should override this with their own
-/// platform-specific class that extends [CustomerIOPlatform] when they
-/// register themselves.
+/// platform-specific class that extends [CustomerIOMessagingPushPlatform]
+/// when they register themselves.
 ///
-/// Defaults to [CustomerIOMethodChannel]
+/// Defaults to [CustomerIOMessagingPushMethodChannel]
 abstract class CustomerIOMessagingPushPlatform extends PlatformInterface {
   CustomerIOMessagingPushPlatform() : super(token: _token);
 

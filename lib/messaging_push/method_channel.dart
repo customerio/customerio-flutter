@@ -6,7 +6,8 @@ import 'package:flutter/services.dart';
 import '../customer_io_const.dart';
 import 'platform_interface.dart';
 
-/// An implementation of [CustomerIOPlatform] that uses method channels.
+/// An implementation of [CustomerIOMessagingPushPlatform] that uses method
+/// channels.
 class CustomerIOMessagingPushMethodChannel
     extends CustomerIOMessagingPushPlatform {
   /// The method channel used to interact with the native platform.

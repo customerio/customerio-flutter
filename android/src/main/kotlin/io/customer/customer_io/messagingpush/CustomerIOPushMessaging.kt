@@ -9,18 +9,22 @@ import io.customer.messagingpush.CustomerIOFirebaseMessagingService
 import io.customer.sdk.CustomerIOShared
 import io.customer.sdk.extensions.takeIfNotBlank
 import io.customer.sdk.util.Logger
-import io.flutter.plugin.common.BinaryMessenger
+import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.util.*
 
-class CustomerIOPushMessaging(
-    private val applicationContext: Context,
-    messenger: BinaryMessenger,
+/**
+ * Flutter module implementation for messaging push module in native SDKs. All functionality
+ * linked with the module should be placed here.
+ */
+internal class CustomerIOPushMessaging(
+    pluginBinding: FlutterPlugin.FlutterPluginBinding,
 ) : CustomerIOPluginModule, MethodChannel.MethodCallHandler {
     override val moduleName: String = "PushMessaging"
-    private val flutterCommunicationChannel = MethodChannel(messenger, "customer_io_messaging_push")
-
+    private val applicationContext: Context = pluginBinding.applicationContext
+    private val flutterCommunicationChannel: MethodChannel =
+        MethodChannel(pluginBinding.binaryMessenger, "customer_io_messaging_push")
     private val logger: Logger
         get() = CustomerIOShared.instance().diStaticGraph.logger
 
@@ -48,6 +52,13 @@ class CustomerIOPushMessaging(
         }
     }
 
+    /**
+     * Handles push notification received. This is helpful in processing push notifications
+     * received outside the CIO SDK.
+     *
+     * @param message push payload received from FCM.
+     * @param handleNotificationTrigger indicating if the local notification should be triggered.
+     */
     private fun onMessageReceived(
         message: Map<String, Any>?,
         handleNotificationTrigger: Boolean?,

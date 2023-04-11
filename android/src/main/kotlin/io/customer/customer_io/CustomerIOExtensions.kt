@@ -4,9 +4,8 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
 /**
- * Returns the value corresponding to the given key after casting to the
- * generic type provided, or null if such a key is not present in the map
- * or cannot be casted to the given type.
+ * Returns the value corresponding to the given key after casting to the generic type provided, or
+ * null if such key is not present in the map or value cannot be casted to the given type.
  */
 internal inline fun <reified T> Map<String, Any>.getAsTypeOrNull(key: String): T? {
     if (containsKey(key)) {
@@ -16,9 +15,9 @@ internal inline fun <reified T> Map<String, Any>.getAsTypeOrNull(key: String): T
 }
 
 /**
- * Invokes matching native method in lambda. The lambda parameter receives parameter as arguments
- * and should return the desired result to be passed on to the caller. Any exception in the lambda
- * will result in passing failure in result.
+ * Invokes lambda method that can be used to call matching native method conveniently. The lambda
+ * expression receives function parameters as arguments and should return the desired result. Any
+ * exception in the lambda will cause the invoked method to fail with error.
  */
 internal fun <R> MethodCall.invokeNative(
     result: MethodChannel.Result,
