@@ -23,20 +23,20 @@ class CustomerIOMessagingPushMethodChannel
       /// Resolving future to true makes it easier for callers to avoid adding
       /// unnecessary platform specific checks.
       return Future.value(true);
-    } else {
-      try {
-        final arguments = {
-          TrackingConsts.message: message,
-          TrackingConsts.handleNotificationTrigger: handleNotificationTrigger,
-        };
-        return methodChannel
-            .invokeMethod(MethodConsts.onMessageReceived, arguments)
-            .then((handled) => handled == true);
-      } on PlatformException catch (exception) {
-        handleException(exception);
-        return Future.error(
-            exception.message ?? "Error handling push notification");
-      }
+    }
+
+    try {
+      final arguments = {
+        TrackingConsts.message: message,
+        TrackingConsts.handleNotificationTrigger: handleNotificationTrigger,
+      };
+      return methodChannel
+          .invokeMethod(MethodConsts.onMessageReceived, arguments)
+          .then((handled) => handled == true);
+    } on PlatformException catch (exception) {
+      handleException(exception);
+      return Future.error(
+          exception.message ?? "Error handling push notification");
     }
   }
 
