@@ -8,6 +8,7 @@ class MethodConsts {
   static const String setDeviceAttributes = "setDeviceAttributes";
   static const String setProfileAttributes = "setProfileAttributes";
   static const String registerDeviceToken = "registerDeviceToken";
+  static const String onMessageReceived = "onMessageReceived";
 }
 
 class TrackingConsts {
@@ -18,4 +19,6 @@ class TrackingConsts {
   static const String deliveryId = "deliveryId";
   static const String deliveryToken = "deliveryToken";
   static const String metricEvent = "metricEvent";
+  static const String message = "message";
+  static const String handleNotificationTrigger = "handleNotificationTrigger";
 }

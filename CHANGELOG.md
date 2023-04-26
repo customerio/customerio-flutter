@@ -1,3 +1,10 @@
+## [1.1.0](https://github.com/customerio/customerio-flutter/compare/1.0.0...1.1.0) (2023-04-26)
+
+
+### Features
+
+* process push notifications received outside CIO SDK ([#38](https://github.com/customerio/customerio-flutter/issues/38)) ([7b5cb7e](https://github.com/customerio/customerio-flutter/commit/7b5cb7e2aab1f7d3d9a521d5a58b9d0f3eab5177))
+
 ## 1.0.0 (2023-04-03)
 
 

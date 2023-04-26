@@ -4,11 +4,15 @@ import 'customer_io_config.dart';
 import 'customer_io_enums.dart';
 import 'customer_io_inapp.dart';
 import 'customer_io_platform_interface.dart';
+import 'messaging_push/platform_interface.dart';
 
 class CustomerIO {
   const CustomerIO._();
 
   static CustomerIOPlatform get _customerIO => CustomerIOPlatform.instance;
+
+  static CustomerIOMessagingPushPlatform get _customerIOMessagingPush =>
+      CustomerIOMessagingPushPlatform.instance;
 
   /// To initialize the plugin
   ///
@@ -99,5 +103,9 @@ class CustomerIO {
   static StreamSubscription subscribeToInAppEventListener(
       void Function(InAppEvent) onEvent) {
     return _customerIO.subscribeToInAppEventListener(onEvent);
+  }
+
+  static CustomerIOMessagingPushPlatform messagingPush() {
+    return _customerIOMessagingPush;
   }
 }

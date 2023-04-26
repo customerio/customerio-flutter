@@ -12,6 +12,7 @@ internal object Keys {
         const val SET_PROFILE_ATTRIBUTES = "setProfileAttributes"
         const val REGISTER_DEVICE_TOKEN = "registerDeviceToken"
         const val TRACK_METRIC = "trackMetric"
+        const val ON_MESSAGE_RECEIVED = "onMessageReceived"
     }
 
     object Tracking {
