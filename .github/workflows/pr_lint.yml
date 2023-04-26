@@ -4,7 +4,8 @@ on:
   pull_request:
     types: [opened, reopened, edited, synchronize, labeled]
 
-permissions: read-all # default permission for security is reading, only
+permissions:
+  pull-requests: write
 
 jobs:
   pr-help:
