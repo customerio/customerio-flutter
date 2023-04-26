@@ -91,44 +91,53 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     initialize(it)
                 }
             }
+
             Keys.Methods.IDENTIFY -> {
                 call.toNativeMethodCall(result) {
                     identify(it)
                 }
             }
+
             Keys.Methods.SCREEN -> {
                 call.toNativeMethodCall(result) {
                     screen(it)
                 }
             }
+
             Keys.Methods.TRACK -> {
                 call.toNativeMethodCall(result) {
                     track(it)
                 }
             }
+
             Keys.Methods.TRACK_METRIC -> {
                 call.toNativeMethodCall(result) {
                     trackMetric(it)
                 }
             }
+
             Keys.Methods.REGISTER_DEVICE_TOKEN -> {
                 call.toNativeMethodCall(result) {
                     registerDeviceToken(it)
                 }
             }
+
             Keys.Methods.SET_DEVICE_ATTRIBUTES -> {
                 call.toNativeMethodCall(result) {
                     setDeviceAttributes(it)
                 }
             }
+
             Keys.Methods.SET_PROFILE_ATTRIBUTES -> {
                 call.toNativeMethodCall(result) {
                     setProfileAttributes(it)
                 }
             }
+
             Keys.Methods.CLEAR_IDENTIFY -> {
                 clearIdentity()
             }
+
             else -> {
                 result.notImplemented()
             }
@@ -214,7 +223,11 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             Keys.Environment.ENABLE_IN_APP
         )
 
-        CustomerIO.Builder(
+        // Checks if SDK was initialized before, which means lifecycle callbacks are already
+        // registered as well
+        val isLifecycleCallbacksRegistered = kotlin.runCatching { CustomerIO.instance() }.isSuccess
+
+        val customerIO = CustomerIO.Builder(
             siteId = siteId,
             apiKey = apiKey,
             region = Region.getRegion(region),
@@ -236,6 +249,17 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             }
         }.build()
         logger.info("Customer.io instance initialized successfully")
+
+        // Request lifecycle events for first initialization only as relaunching app
+        // in wrapper SDKs may result in reinitialization of SDK and lifecycle listener
+        // will already be attached in this case as they are registered to application object.
+        if (!isLifecycleCallbacksRegistered) {
+            activity?.get()?.let { activity ->
+                logger.info("Requesting delayed activity lifecycle events")
+                val lifecycleCallbacks = customerIO.diGraph.activityLifecycleCallbacks
+                lifecycleCallbacks.postDelayedEventsForNonNativeActivity(activity)
+            }
+        }
     }
 
     private fun configureModuleMessagingPushFCM(config: Map<String, Any?>?): ModuleMessagingPushFCM {
