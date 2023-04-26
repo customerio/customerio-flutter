@@ -223,6 +223,8 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             Keys.Environment.ENABLE_IN_APP
         )
 
+        // Checks if SDK was initialized before, which means lifecycle callbacks are already
+        // registered as well
         val isLifecycleCallbacksRegistered = kotlin.runCatching { CustomerIO.instance() }.isSuccess
 
         val customerIO = CustomerIO.Builder(
