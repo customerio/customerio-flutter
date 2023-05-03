@@ -1,3 +1,17 @@
+### [1.1.1](https://github.com/customerio/customerio-flutter/compare/1.1.0...1.1.1) (2023-04-26)
+
+
+### Bug Fixes
+
+* missing opened metric on android 12 and above ([#43](https://github.com/customerio/customerio-flutter/issues/43)) ([1a61e0e](https://github.com/customerio/customerio-flutter/commit/1a61e0e587bd0315122db2783b76930fa372c589))
+
+## [1.1.0](https://github.com/customerio/customerio-flutter/compare/1.0.0...1.1.0) (2023-04-26)
+
+
+### Features
+
+* process push notifications received outside CIO SDK ([#38](https://github.com/customerio/customerio-flutter/issues/38)) ([7b5cb7e](https://github.com/customerio/customerio-flutter/commit/7b5cb7e2aab1f7d3d9a521d5a58b9d0f3eab5177))
+
 ## 1.0.0 (2023-04-03)
 
 
