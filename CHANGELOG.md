@@ -1,3 +1,10 @@
+### [1.1.2](https://github.com/customerio/customerio-flutter/compare/1.1.1...1.1.2) (2023-05-03)
+
+
+### Bug Fixes
+
+* autoupdate to latest major version of iOS SDK ([#40](https://github.com/customerio/customerio-flutter/issues/40)) ([974a342](https://github.com/customerio/customerio-flutter/commit/974a3422544e712ae52fc7ca1a8318601d0859c2))
+
 ### [1.1.1](https://github.com/customerio/customerio-flutter/compare/1.1.0...1.1.1) (2023-04-26)
 
 
