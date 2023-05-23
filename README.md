@@ -1,17 +1,26 @@
-# customer_io
+<p align="center">
+  <a href="https://customer.io">
+    <img src="https://user-images.githubusercontent.com/6409227/144680509-907ee093-d7ad-4a9c-b0a5-f640eeb060cd.png" height="60">
+  </a>
+  <p align="center">Power automated communication that people like to receive.</p>
+</p>
 
-This is the official Customer.io plugin for Flutter.
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
-## Getting Started
+# Customer.io Flutter Plugin
 
-See our complete SDK documentation at [https://www.customer.io/docs/sdk/flutter/](https://www.customer.io/docs/sdk/flutter/getting-started/)
+This is the official Customer.io Flutter plugin. 
 
-For help getting started with Flutter development, view the
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# Getting started 
+
+You'll find our [complete SDK documentation at https://customer.io/docs/sdk/flutter/](https://customer.io/docs/sdk/flutter/). 
 
 # Contributing
 
-Thanks for taking an interest in our project! We welcome your contributions. Check out [our development instructions](docs/dev-notes/DEVELOPMENT.md) to get your environment set up and start contributing.
+Thanks for taking an interest in our project! We welcome your contributions. 
 
-> **Note**: We value an open, welcoming, diverse, inclusive, and healthy community for this project. We expect all  contributors to follow our [code of conduct](CODE_OF_CONDUCT.md).  
+We value an open, welcoming, diverse, inclusive, and healthy community for this project. We expect all  contributors to follow our [code of conduct](CODE_OF_CONDUCT.md).
+
+# License
+
+[MIT](LICENSE)
