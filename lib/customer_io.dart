@@ -4,6 +4,7 @@ import 'customer_io_config.dart';
 import 'customer_io_enums.dart';
 import 'customer_io_inapp.dart';
 import 'customer_io_platform_interface.dart';
+import 'messaging_in_app/platform_interface.dart';
 import 'messaging_push/platform_interface.dart';
 
 class CustomerIO {
@@ -13,6 +14,9 @@ class CustomerIO {
 
   static CustomerIOMessagingPushPlatform get _customerIOMessagingPush =>
       CustomerIOMessagingPushPlatform.instance;
+
+  static CustomerIOMessagingInAppPlatform get _customerIOMessagingInApp =>
+      CustomerIOMessagingInAppPlatform.instance;
 
   /// To initialize the plugin
   ///
@@ -100,9 +104,14 @@ class CustomerIO {
   /// The callback returns [InAppEvent].
   ///
   /// Returns a [StreamSubscription] that can be used to subscribe/unsubscribe from the event listener.
+  @Deprecated('Use messagingInApp().subscribeToInAppEventListener instead')
   static StreamSubscription subscribeToInAppEventListener(
       void Function(InAppEvent) onEvent) {
-    return _customerIO.subscribeToInAppEventListener(onEvent);
+    return _customerIOMessagingInApp.subscribeToInAppEventListener(onEvent);
+  }
+
+  static CustomerIOMessagingInAppPlatform messagingInApp() {
+    return _customerIOMessagingInApp;
   }
 
   static CustomerIOMessagingPushPlatform messagingPush() {

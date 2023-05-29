@@ -7,7 +7,6 @@ import 'dart:async' as _i2;
 
 import 'package:customer_io/customer_io_config.dart' as _i4;
 import 'package:customer_io/customer_io_enums.dart' as _i5;
-import 'package:customer_io/customer_io_inapp.dart' as _i6;
 import 'package:mockito/mockito.dart' as _i1;
 
 import 'customer_io_test.dart' as _i3;
@@ -54,6 +53,7 @@ class MockTestCustomerIoPlatform extends _i1.Mock
         returnValue: _i2.Future<void>.value(),
         returnValueForMissingStub: _i2.Future<void>.value(),
       ) as _i2.Future<void>);
+
   @override
   void identify({
     required String? identifier,
@@ -70,6 +70,7 @@ class MockTestCustomerIoPlatform extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void clearIdentify() => super.noSuchMethod(
         Invocation.method(
@@ -78,6 +79,7 @@ class MockTestCustomerIoPlatform extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void track({
     required String? name,
@@ -94,6 +96,7 @@ class MockTestCustomerIoPlatform extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void trackMetric({
     required String? deliveryID,
@@ -112,6 +115,7 @@ class MockTestCustomerIoPlatform extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void registerDeviceToken({required String? deviceToken}) =>
       super.noSuchMethod(
@@ -122,6 +126,7 @@ class MockTestCustomerIoPlatform extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void screen({
     required String? name,
@@ -138,6 +143,7 @@ class MockTestCustomerIoPlatform extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void setDeviceAttributes({required Map<String, dynamic>? attributes}) =>
       super.noSuchMethod(
@@ -148,6 +154,7 @@ class MockTestCustomerIoPlatform extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void setProfileAttributes({required Map<String, dynamic>? attributes}) =>
       super.noSuchMethod(
@@ -158,20 +165,4 @@ class MockTestCustomerIoPlatform extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
-  @override
-  _i2.StreamSubscription<dynamic> subscribeToInAppEventListener(
-          void Function(_i6.InAppEvent)? onEvent) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #subscribeToInAppEventListener,
-          [onEvent],
-        ),
-        returnValue: _FakeStreamSubscription_0<dynamic>(
-          this,
-          Invocation.method(
-            #subscribeToInAppEventListener,
-            [onEvent],
-          ),
-        ),
-      ) as _i2.StreamSubscription<dynamic>);
 }
