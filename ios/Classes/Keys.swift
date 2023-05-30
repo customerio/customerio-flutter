@@ -12,7 +12,7 @@ struct Keys {
         static let setProfileAttributes = "setProfileAttributes"
         static let registerDeviceToken = "registerDeviceToken"
         static let trackMetric = "trackMetric"
-        
+        static let dismissMessage = "dismissMessage"
     }
     
     struct Tracking {

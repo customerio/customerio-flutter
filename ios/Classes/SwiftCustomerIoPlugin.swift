@@ -7,59 +7,63 @@ import CioMessagingInApp
 public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     
     private var methodChannel: FlutterMethodChannel!
+    private var inAppMessagingChannelHandler: CusomterIOInAppMessaging!
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         let instance = SwiftCustomerIoPlugin()
         instance.methodChannel = FlutterMethodChannel(name: "customer_io", binaryMessenger: registrar.messenger())
         registrar.addMethodCallDelegate(instance, channel: instance.methodChannel)
+        
+        instance.inAppMessagingChannelHandler = CusomterIOInAppMessaging(with: registrar)
     }
     
     deinit {
         self.methodChannel.setMethodCallHandler(nil)
+        self.inAppMessagingChannelHandler.detachFromEngine()
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch(call.method) {
-        case Keys.Methods.initialize:
-            call.toNativeMethodCall(
-                result: result) {
-                    initialize(params: $0)
+            case Keys.Methods.initialize:
+                call.toNativeMethodCall(
+                    result: result) {
+                        initialize(params: $0)
+                    }
+            case Keys.Methods.clearIdentify:
+                clearIdentify()
+            case Keys.Methods.track:
+                call.toNativeMethodCall(
+                    result: result) {
+                        track(params: $0)
+                    }
+            case Keys.Methods.screen:
+                call.toNativeMethodCall(
+                    result: result) {
+                        screen(params: $0)
+                    }
+            case Keys.Methods.identify:
+                call.toNativeMethodCall(
+                    result: result) {
+                        identify(params: $0)
+                    }
+            case Keys.Methods.setProfileAttributes:
+                call.toNativeMethodCall(result: result) {
+                    setProfileAttributes(params: $0)
                 }
-        case Keys.Methods.clearIdentify:
-            clearIdentify()
-        case Keys.Methods.track:
-            call.toNativeMethodCall(
-                result: result) {
-                    track(params: $0)
+            case Keys.Methods.setDeviceAttributes:
+                call.toNativeMethodCall(result: result) {
+                    setDeviceAttributes(params: $0)
                 }
-        case Keys.Methods.screen:
-            call.toNativeMethodCall(
-                result: result) {
-                    screen(params: $0)
+            case Keys.Methods.registerDeviceToken:
+                call.toNativeMethodCall(result: result) {
+                    registerDeviceToken(params: $0)
                 }
-        case Keys.Methods.identify:
-            call.toNativeMethodCall(
-                result: result) {
-                    identify(params: $0)
+            case Keys.Methods.trackMetric:
+                call.toNativeMethodCall(result: result) {
+                    trackMetric(params: $0)
                 }
-        case Keys.Methods.setProfileAttributes:
-            call.toNativeMethodCall(result: result) {
-                setProfileAttributes(params: $0)
-            }
-        case Keys.Methods.setDeviceAttributes:
-            call.toNativeMethodCall(result: result) {
-                setDeviceAttributes(params: $0)
-            }
-        case Keys.Methods.registerDeviceToken:
-            call.toNativeMethodCall(result: result) {
-                registerDeviceToken(params: $0)
-            }
-        case Keys.Methods.trackMetric:
-            call.toNativeMethodCall(result: result) {
-                trackMetric(params: $0)
-            }
-        default:
-            result(FlutterMethodNotImplemented)
+            default:
+                result(FlutterMethodNotImplemented)
         }
     }
     
@@ -165,7 +169,7 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
             config.modify(params: params)
         }
         
-
+        
         if let enableInApp = params[Keys.Environment.enableInApp] as? Bool {
             if enableInApp{
                 initializeInApp()
