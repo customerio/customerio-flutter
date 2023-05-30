@@ -1,10 +1,14 @@
-import 'dart:async';
-
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-import '../customer_io_inapp.dart';
 import 'method_channel.dart';
 
+/// The default instance of [CustomerIOMessagingInAppPlatform] to use
+///
+/// Platform-specific plugins should override this with their own
+/// platform-specific class that extends [CustomerIOMessagingInAppPlatform]
+/// when they register themselves.
+///
+/// Defaults to [CustomerIOMessagingInAppMethodChannel]
 abstract class CustomerIOMessagingInAppPlatform extends PlatformInterface {
   CustomerIOMessagingInAppPlatform() : super(token: _token);
 
@@ -20,9 +24,7 @@ abstract class CustomerIOMessagingInAppPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  StreamSubscription subscribeToInAppEventListener(
-      void Function(InAppEvent) onEvent) {
-    throw UnimplementedError(
-        'subscribeToInAppEventListener() has not been implemented.');
+  void dismissMessage() {
+    throw UnimplementedError('dismissMessage() has not been implemented.');
   }
 }
