@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import '../customer_io_const.dart';
 import 'platform_interface.dart';
 
 /// An implementation of [CustomerIOMessagingInAppPlatform] that uses method
@@ -14,7 +15,7 @@ class CustomerIOMessagingInAppMethodChannel
   @override
   void dismissMessage() async {
     try {
-      methodChannel.invokeMethod('dismissMessage');
+      methodChannel.invokeMethod(MethodConsts.dismissMessage);
     } on PlatformException catch (e) {
       handleException(e);
     }

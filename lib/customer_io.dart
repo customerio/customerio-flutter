@@ -1,11 +1,10 @@
 import 'dart:async';
 
-import 'package:customer_io/messaging_in_app/platform_interface.dart';
-
 import 'customer_io_config.dart';
 import 'customer_io_enums.dart';
 import 'customer_io_inapp.dart';
 import 'customer_io_platform_interface.dart';
+import 'messaging_in_app/platform_interface.dart';
 import 'messaging_push/platform_interface.dart';
 
 class CustomerIO {
