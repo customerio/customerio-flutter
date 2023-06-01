@@ -5,6 +5,7 @@ import android.app.Application
 import android.content.Context
 import androidx.annotation.NonNull
 import io.customer.customer_io.constant.Keys
+import io.customer.customer_io.messaginginapp.CustomerIOInAppMessaging
 import io.customer.customer_io.messagingpush.CustomerIOPushMessaging
 import io.customer.messaginginapp.MessagingInAppModuleConfig
 import io.customer.messaginginapp.ModuleMessagingInApp
@@ -42,7 +43,8 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var flutterCommunicationChannel: MethodChannel
     private lateinit var context: Context
     private var activity: WeakReference<Activity>? = null
-    private lateinit var pushMessagingModule: CustomerIOPushMessaging
+
+    private lateinit var modules: List<CustomerIOPluginModule>
 
     private val logger: Logger
         get() = CustomerIOShared.instance().diStaticGraph.logger
@@ -68,8 +70,17 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         flutterCommunicationChannel =
             MethodChannel(flutterPluginBinding.binaryMessenger, "customer_io")
         flutterCommunicationChannel.setMethodCallHandler(this)
-        pushMessagingModule = CustomerIOPushMessaging(flutterPluginBinding)
-        pushMessagingModule.onAttachedToEngine()
+
+        // Initialize modules
+        modules = listOf(
+            CustomerIOPushMessaging(flutterPluginBinding),
+            CustomerIOInAppMessaging(flutterPluginBinding)
+        )
+
+        // Attach modules to engine
+        modules.forEach {
+            it.onAttachedToEngine()
+        }
     }
 
     private fun MethodCall.toNativeMethodCall(
@@ -275,7 +286,10 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         flutterCommunicationChannel.setMethodCallHandler(null)
-        pushMessagingModule.onDetachedFromEngine()
+
+        modules.forEach {
+            it.onDetachedFromEngine()
+        }
     }
 }
 

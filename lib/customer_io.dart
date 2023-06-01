@@ -4,6 +4,7 @@ import 'customer_io_config.dart';
 import 'customer_io_enums.dart';
 import 'customer_io_inapp.dart';
 import 'customer_io_platform_interface.dart';
+import 'messaging_in_app/platform_interface.dart';
 import 'messaging_push/platform_interface.dart';
 
 class CustomerIO {
@@ -13,6 +14,9 @@ class CustomerIO {
 
   static CustomerIOMessagingPushPlatform get _customerIOMessagingPush =>
       CustomerIOMessagingPushPlatform.instance;
+
+  static CustomerIOMessagingInAppPlatform get _customerIOMessagingInApp =>
+      CustomerIOMessagingInAppPlatform.instance;
 
   /// To initialize the plugin
   ///
@@ -107,5 +111,9 @@ class CustomerIO {
 
   static CustomerIOMessagingPushPlatform messagingPush() {
     return _customerIOMessagingPush;
+  }
+
+  static CustomerIOMessagingInAppPlatform messagingInApp() {
+    return _customerIOMessagingInApp;
   }
 }

@@ -9,6 +9,7 @@ class MethodConsts {
   static const String setProfileAttributes = "setProfileAttributes";
   static const String registerDeviceToken = "registerDeviceToken";
   static const String onMessageReceived = "onMessageReceived";
+  static const String dismissMessage = "dismissMessage";
 }
 
 class TrackingConsts {
