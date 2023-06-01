@@ -1,3 +1,10 @@
+## [1.2.0](https://github.com/customerio/customerio-flutter/compare/1.1.2...1.2.0) (2023-06-01)
+
+
+### Features
+
+* in-app dismiss support ([#51](https://github.com/customerio/customerio-flutter/issues/51)) ([c4d21f2](https://github.com/customerio/customerio-flutter/commit/c4d21f2c294ee37ebfc8f644bc6580cd44556544))
+
 ### [1.1.2](https://github.com/customerio/customerio-flutter/compare/1.1.1...1.1.2) (2023-05-03)
 
 
