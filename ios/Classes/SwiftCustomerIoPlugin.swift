@@ -1,7 +1,7 @@
 import Flutter
 import UIKit
 import CioTracking
-import Common
+import CioInternalCommon
 import CioMessagingInApp
 
 public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
