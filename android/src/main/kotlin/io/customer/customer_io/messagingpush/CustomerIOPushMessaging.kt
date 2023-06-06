@@ -23,18 +23,10 @@ internal class CustomerIOPushMessaging(
 ) : CustomerIOPluginModule, MethodChannel.MethodCallHandler {
     override val moduleName: String = "PushMessaging"
     private val applicationContext: Context = pluginBinding.applicationContext
-    private val flutterCommunicationChannel: MethodChannel =
+    override val flutterCommunicationChannel: MethodChannel =
         MethodChannel(pluginBinding.binaryMessenger, "customer_io_messaging_push")
     private val logger: Logger
         get() = CustomerIOShared.instance().diStaticGraph.logger
-
-    override fun onAttachedToEngine() {
-        flutterCommunicationChannel.setMethodCallHandler(this)
-    }
-
-    override fun onDetachedFromEngine() {
-        flutterCommunicationChannel.setMethodCallHandler(null)
-    }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
