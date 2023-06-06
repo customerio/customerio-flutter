@@ -1,3 +1,10 @@
+### [1.2.1](https://github.com/customerio/customerio-flutter/compare/1.2.0...1.2.1) (2023-06-06)
+
+
+### Bug Fixes
+
+* updated module name from common to CioInternalCommon ([#55](https://github.com/customerio/customerio-flutter/issues/55)) ([d81f8df](https://github.com/customerio/customerio-flutter/commit/d81f8df2f3c686f197625c77900af0862211b8e1))
+
 ## [1.2.0](https://github.com/customerio/customerio-flutter/compare/1.1.2...1.2.0) (2023-06-01)
 
 
