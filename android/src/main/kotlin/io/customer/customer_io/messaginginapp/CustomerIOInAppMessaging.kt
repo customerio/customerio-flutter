@@ -17,16 +17,8 @@ internal class CustomerIOInAppMessaging(
     pluginBinding: FlutterPlugin.FlutterPluginBinding,
 ) : CustomerIOPluginModule, MethodChannel.MethodCallHandler {
     override val moduleName: String = "InAppMessaging"
-    private val flutterCommunicationChannel: MethodChannel =
+    override val flutterCommunicationChannel: MethodChannel =
         MethodChannel(pluginBinding.binaryMessenger, "customer_io_messaging_in_app")
-
-    override fun onAttachedToEngine() {
-        flutterCommunicationChannel.setMethodCallHandler(this)
-    }
-
-    override fun onDetachedFromEngine() {
-        flutterCommunicationChannel.setMethodCallHandler(null)
-    }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
