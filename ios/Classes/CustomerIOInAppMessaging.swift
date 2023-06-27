@@ -4,7 +4,7 @@ import CioMessagingInApp
 
 public class CusomterIOInAppMessaging: NSObject, FlutterPlugin {
     
-    private var methodChannel: FlutterMethodChannel!
+    private var methodChannel: FlutterMethodChannel?
     
     public static func register(with registrar: FlutterPluginRegistrar) {
     }
@@ -13,12 +13,18 @@ public class CusomterIOInAppMessaging: NSObject, FlutterPlugin {
         super.init()
         
         methodChannel = FlutterMethodChannel(name: "customer_io_messaging_in_app", binaryMessenger: registrar.messenger())
+        
+        guard let methodChannel = methodChannel else {
+            print("customer_io_messaging_in_app methodChannel is nil")
+            return
+        }
+        
         registrar.addMethodCallDelegate(self, channel: methodChannel)
     }
     
     
     deinit {
-        methodChannel.setMethodCallHandler(nil)
+        methodChannel?.setMethodCallHandler(nil)
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -32,7 +38,7 @@ public class CusomterIOInAppMessaging: NSObject, FlutterPlugin {
     }
     
     func detachFromEngine() {
-        methodChannel.setMethodCallHandler(nil)
+        methodChannel?.setMethodCallHandler(nil)
         methodChannel = nil
     }
 }
