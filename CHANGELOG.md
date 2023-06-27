@@ -1,3 +1,10 @@
+### [1.2.2](https://github.com/customerio/customerio-flutter/compare/1.2.1...1.2.2) (2023-06-27)
+
+
+### Bug Fixes
+
+* iOS crash on forced unwrapping  ([#59](https://github.com/customerio/customerio-flutter/issues/59)) ([f514174](https://github.com/customerio/customerio-flutter/commit/f5141742c49e876f40034d366c7122d519ee897e))
+
 ### [1.2.1](https://github.com/customerio/customerio-flutter/compare/1.2.0...1.2.1) (2023-06-06)
 
 
