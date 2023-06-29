@@ -1,0 +1,15 @@
+name: Setup 
+description: Setup runner to be able to build an app with Flutter. Not specific for Android or iOS.
+
+runs:
+  using: "composite"
+  steps:
+  - uses: subosito/flutter-action@v2
+    with:
+      flutter-version: '3.0.5'
+      channel: 'stable'
+      cache: true
+
+  - name: Install Flutter dependencies
+    run: flutter pub get
+    shell: bash 
