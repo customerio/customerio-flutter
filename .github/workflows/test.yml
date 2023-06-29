@@ -21,5 +21,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: ./.github/actions/setup-flutter
+    # If we do not update version, dry-run publishing will skip publishing because version is the same as last production version. 
+    - name: Modify version to a newer version to trigger publishing 
+      run: ./scripts/update-version.sh "999.999.999"
     - name: dry-run publishing to feel confident deployment will work after merging PR
-      run: flutter pub publish --dry-run
+      uses: k-paxian/dart-package-publisher@v1.5.1
+      with:
+        credentialJson: "{ \"accessToken\": \"foo\" }"
+        dryRunOnly: true 
+        flutter: true

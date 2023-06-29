@@ -15,3 +15,5 @@ jobs:
     - uses: ./.github/actions/setup-flutter
     - name: Run flutter analyze
       run: flutter analyze
+    - name: Run dart analyze as deployment process also runs it
+      run: dart analyze
