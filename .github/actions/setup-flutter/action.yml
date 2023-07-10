@@ -13,9 +13,3 @@ runs:
   - name: Install Flutter dependencies
     run: flutter pub get
     shell: bash 
-
-  # flutter analyze throws error with this file missing. 
-  # In future CI work for compiling sample apps, we can move this logic into another github workflow file with populating real credentials.
-  - name: Create credentials.env file for sample app 
-    run: cp example/credentials.env.example example/credentials.env
-    shell: bash
