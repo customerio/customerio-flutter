@@ -21,9 +21,18 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: ./.github/actions/setup-flutter
-    # If we do not update version, dry-run publishing will skip publishing because version is the same as last production version. 
-    - name: Modify version to a newer version to trigger publishing 
-      run: ./scripts/update-version.sh "999.999.999"
+
+    - name: Get semantic version from pubspec.yaml, increment the patch version, and then update pubspec.yaml with the new version
+      run: |
+        snap install yq # Install yq to parse yaml files
+        npm install semver # Install semver to increment the version
+        CURRENT_VERSION=$(yq '.version' pubspec.yaml) # Get the current version from pubspec.yaml
+        echo "Current version is $CURRENT_VERSION"
+        NEW_VERSION=$(npx semver $CURRENT_VERSION -i patch) # Increment the patch version
+        echo "New version is $NEW_VERSION"
+        ./scripts/update-version.sh $NEW_VERSION # Update the version 
+        echo "# $NEW_VERSION ($(date +'%Y-%m-%d'))" >> CHANGELOG.md # Add a new section to CHANGELOG.md for the new version    
+
     - name: dry-run publishing to feel confident deployment will work after merging PR
       uses: k-paxian/dart-package-publisher@v1.5.1
       with:

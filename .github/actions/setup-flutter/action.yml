@@ -4,11 +4,14 @@ description: Setup runner to be able to build an app with Flutter. Not specific 
 runs:
   using: "composite"
   steps:
+  # Install latest stable version of Flutter. Mostly because k-paxian/dart-package-publisher always uses the latest stable version of Flutter and we want the rest of the CI to match that. 
   - uses: subosito/flutter-action@v2
     with:
-      flutter-version: '3.0.5'
       channel: 'stable'
       cache: true
+
+  - run: flutter --version
+    shell: bash 
 
   - name: Install Flutter dependencies
     run: flutter pub get
