@@ -1,3 +1,10 @@
+### [1.2.3](https://github.com/customerio/customerio-flutter/compare/1.2.2...1.2.3) (2023-07-14)
+
+
+### Bug Fixes
+
+* hardcode android native SDK version ([#61](https://github.com/customerio/customerio-flutter/issues/61)) ([587f559](https://github.com/customerio/customerio-flutter/commit/587f559fbba4864d17f0506875474ff705866189))
+
 ### [1.2.2](https://github.com/customerio/customerio-flutter/compare/1.2.1...1.2.2) (2023-06-27)
 
 
