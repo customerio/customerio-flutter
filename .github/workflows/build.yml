@@ -50,4 +50,4 @@ jobs:
           cache-path: ${{ runner.tool_cache }}/flutter # optional, change this to specify the cache path
 
       - run: flutter pub get
-      - run: flutter build appbundle
+      - run: flutter build apk --release

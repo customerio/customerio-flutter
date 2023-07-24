@@ -1,10 +1,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="io.customer.customer_io_example">
 
+    <!-- network security config set to allow proxy tools to view HTTP communication for app debugging.
+    tools:replace is needed because SDK declares a network security config as well for automated tests.
+     -->
     <application
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:label="customer_io_example">
+        android:label="customer_io_example"
+        android:networkSecurityConfig="@xml/network_security_config"
+        tools:replace="android:networkSecurityConfig">
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
