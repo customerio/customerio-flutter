@@ -1,3 +1,10 @@
+### [1.2.4](https://github.com/customerio/customerio-flutter/compare/1.2.3...1.2.4) (2023-07-25)
+
+
+### Bug Fixes
+
+* in-app messages not displaying for release builds on Android ([#65](https://github.com/customerio/customerio-flutter/issues/65)) ([1d742c2](https://github.com/customerio/customerio-flutter/commit/1d742c2975fd200df45a7e6c81c54eead0302a9c))
+
 ### [1.2.3](https://github.com/customerio/customerio-flutter/compare/1.2.2...1.2.3) (2023-07-14)
 
 
