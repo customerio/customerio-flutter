@@ -2,7 +2,7 @@ name: Flutter Build
 
 on:
   push:
-    branches: [main, beta, alpha]
+    branches: [main]
 
 # Cancel jobs and just run the last one
 concurrency:

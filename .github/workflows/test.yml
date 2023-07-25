@@ -1,6 +1,6 @@
 name: Test
 
-on: [pull_request]
+on: [push, pull_request]
 
 # Cancel jobs and just run the last one
 concurrency:
@@ -22,20 +22,9 @@ jobs:
     - uses: actions/checkout@v3
     - uses: ./.github/actions/setup-flutter
 
-    - name: Get semantic version from pubspec.yaml, increment the patch version, and then update pubspec.yaml with the new version
-      run: |
-        snap install yq # Install yq to parse yaml files
-        npm install semver # Install semver to increment the version
-        CURRENT_VERSION=$(yq '.version' pubspec.yaml) # Get the current version from pubspec.yaml
-        echo "Current version is $CURRENT_VERSION"
-        NEW_VERSION=$(npx semver $CURRENT_VERSION -i patch) # Increment the patch version
-        echo "New version is $NEW_VERSION"
-        ./scripts/update-version.sh $NEW_VERSION # Update the version 
-        echo "# $NEW_VERSION ($(date +'%Y-%m-%d'))" >> CHANGELOG.md # Add a new section to CHANGELOG.md for the new version    
-
     - name: dry-run publishing to feel confident deployment will work after merging PR
-      uses: k-paxian/dart-package-publisher@v1.5.1
+      uses: k-paxian/dart-package-publisher@v1.6.0
       with:
-        credentialJson: "{ \"accessToken\": \"foo\" }"
+        credentialJson: ${{ secrets.CREDENTIAL_JSON }}
         dryRunOnly: true 
         flutter: true
