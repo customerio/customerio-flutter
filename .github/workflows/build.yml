@@ -34,4 +34,4 @@ jobs:
       with:
         java-version: '12.x'
     - uses: ./.github/actions/setup-flutter
-    - run: flutter build appbundle
+    - run: flutter build apk --release
