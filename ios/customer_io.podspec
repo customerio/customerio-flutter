@@ -2,11 +2,15 @@
 # To learn more about a Podspec see http://guides.cocoapods.org/syntax/podspec.html.
 # Run `pod lib lint customer_io.podspec` to validate before publishing.
 #
+require 'yaml'
+
+podspec_config = YAML.load_file('../pubspec.yaml')
+
 Pod::Spec.new do |s|
-  s.name        = 'customer_io'
-  s.version     = '1.2.3'
-  s.summary     = 'Customer.io plugin for Flutter'
-  s.homepage    = 'https://customer.io/'
+  s.name        = podspec_config['name']
+  s.version     = podspec_config['version']
+  s.summary     = podspec_config['description']
+  s.homepage    = package['homepage']
   s.license     = { :file => '../LICENSE' }
   s.author      = { "CustomerIO Team" => "win@customer.io" }
   s.source      = { :path => '.' }
