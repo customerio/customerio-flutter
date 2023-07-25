@@ -41,7 +41,8 @@
       {
         "assets": [
           "CHANGELOG.md",
-          "pubspec.yaml"
+          "pubspec.yaml",
+          "lib/customer_io_plugin_version.dart"
         ],
         "message": "chore: prepare for ${nextRelease.version}\n\n${nextRelease.notes}"
       }
