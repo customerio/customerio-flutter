@@ -43,8 +43,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     CustomerIO.identify(
-        identifier: "identifier",
-        attributes: {"email": "email"});
+        identifier: "identifier", attributes: {"email": "email"});
   }
 
   @override

@@ -2,11 +2,11 @@ name: Flutter Build
 
 on:
   push:
-    branches: [main, beta, alpha]
+    branches: [main]
 
 # Cancel jobs and just run the last one
 concurrency:
-  group: ${{ github.head_ref }}-build
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 defaults:
@@ -16,38 +16,22 @@ defaults:
 jobs:
   build_ios:
     name: Build iOS
-    runs-on: macOS-latest
+    runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-java@v1
-        with:
-          java-version: '12.x'
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.0.5'
-          channel: 'stable'
-          cache: true
-          cache-key: flutter-3 # optional, change this to force refresh cache
-          cache-path: ${{ runner.tool_cache }}/flutter # optional, change this to specify the cache path
-
-      - run: flutter pub get
-      - run: flutter build ios --release --no-codesign
+    - uses: actions/checkout@v3
+    - uses: actions/setup-java@v1
+      with:
+        java-version: '12.x'
+    - uses: ./.github/actions/setup-flutter
+    - run: flutter build ios --release --no-codesign
 
   build_android:
     name: Build Android
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-java@v1
-        with:
-          java-version: '12.x'
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.0.5'
-          channel: 'stable'
-          cache: true
-          cache-key: flutter-3 # optional, change this to force refresh cache
-          cache-path: ${{ runner.tool_cache }}/flutter # optional, change this to specify the cache path
-
-      - run: flutter pub get
-      - run: flutter build appbundle
+    - uses: actions/checkout@v3
+    - uses: actions/setup-java@v1
+      with:
+        java-version: '12.x'
+    - uses: ./.github/actions/setup-flutter
+    - run: flutter build appbundle

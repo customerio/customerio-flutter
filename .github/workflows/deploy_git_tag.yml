@@ -22,6 +22,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      # CLI to replace strings in files. The CLI recommends using `cargo install` which is slow. This Action is fast because it downloads pre-built binaries.
+      # If using sd on macos, "brew install" works great. for Linux, this is the recommended way.
+      - name: Install sd CLI to use later in the workflow
+        uses: kenji-miyake/setup-sd@v1
+
       - name: Deploy git tag via semantic release
         uses: cycjimmy/semantic-release-action@v3
         id: semantic-release

@@ -13,12 +13,9 @@ NEW_VERSION="$1"
 echo "Updating files to new version: $NEW_VERSION"
 
 echo "Updating pubspec.yaml"
-sed -i 's/^\(version: \).*$/\1'"$NEW_VERSION"'/' pubspec.yaml
+sd 'version: (.*)' "version: $NEW_VERSION" pubspec.yaml
 
 echo "Check file, you should see version inside has been updated!"
-
-echo "Now, updating cocoapods file...."
-./scripts/update-podspec.sh "$NEW_VERSION"
 
 echo "Now, updating plugin...."
 ./scripts/update-plugin.sh "$NEW_VERSION"
