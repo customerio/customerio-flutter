@@ -1,27 +1,41 @@
 name: Test
 
-on: [push, pull_request]
+on: [pull_request]
 
 # Cancel jobs and just run the last one
 concurrency:
-  group: ${{ github.head_ref }}-unit-test
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   unit_test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.0.5'
-          channel: 'stable'
-          cache: true
-          cache-key: flutter-3 # optional, change this to force refresh cache
-          cache-path: ${{ runner.tool_cache }}/flutter # optional, change this to specify the cache path
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/setup-flutter
+    - name: Run tests
+      run: flutter test
+  
+  test_publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/setup-flutter
 
-      - name: Install dependencies
-        run: flutter pub get
+    - name: Get semantic version from pubspec.yaml, increment the patch version, and then update pubspec.yaml with the new version
+      run: |
+        snap install yq # Install yq to parse yaml files
+        npm install semver # Install semver to increment the version
+        CURRENT_VERSION=$(yq '.version' pubspec.yaml) # Get the current version from pubspec.yaml
+        echo "Current version is $CURRENT_VERSION"
+        NEW_VERSION=$(npx semver $CURRENT_VERSION -i patch) # Increment the patch version
+        echo "New version is $NEW_VERSION"
+        ./scripts/update-version.sh $NEW_VERSION # Update the version 
+        echo "# $NEW_VERSION ($(date +'%Y-%m-%d'))" >> CHANGELOG.md # Add a new section to CHANGELOG.md for the new version    
 
-      - name: Run tests
-        run: flutter test
+    - name: dry-run publishing to feel confident deployment will work after merging PR
+      uses: k-paxian/dart-package-publisher@v1.5.1
+      with:
+        credentialJson: "{ \"accessToken\": \"foo\" }"
+        dryRunOnly: true 
+        flutter: true
