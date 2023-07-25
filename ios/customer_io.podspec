@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   s.name        = podspec_config['name']
   s.version     = podspec_config['version']
   s.summary     = podspec_config['description']
-  s.homepage    = package['homepage']
+  s.homepage    = podspec_config['homepage']
   s.license     = { :file => '../LICENSE' }
   s.author      = { "CustomerIO Team" => "win@customer.io" }
   s.source      = { :path => '.' }

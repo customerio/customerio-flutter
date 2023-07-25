@@ -1,0 +1,16 @@
+name: Test script
+
+on: [push]
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/setup-flutter
+    - name: Install sd CLI to use later in the workflow
+      uses: kenji-miyake/setup-sd@v1
+    - name: Run scripts
+      run: ./scripts/update-version.sh "6.7.8"
+    - name: Show changes
+      run: git diff
