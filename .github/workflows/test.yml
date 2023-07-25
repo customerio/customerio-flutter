@@ -23,7 +23,7 @@ jobs:
     - uses: ./.github/actions/setup-flutter
 
     - name: dry-run publishing to feel confident deployment will work after merging PR
-      uses: k-paxian/dart-package-publisher@v1.6.0
+      uses: k-paxian/dart-package-publisher@v1.6
       with:
         credentialJson: ${{ secrets.CREDENTIAL_JSON }}
         dryRunOnly: true 
