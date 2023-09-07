@@ -1,3 +1,10 @@
+### [1.2.5](https://github.com/customerio/customerio-flutter/compare/1.2.4...1.2.5) (2023-09-07)
+
+
+### Bug Fixes
+
+* in-app concurrency issue android ([#73](https://github.com/customerio/customerio-flutter/issues/73)) ([93332a4](https://github.com/customerio/customerio-flutter/commit/93332a44f0865534b414626a9f177efbb979f311))
+
 ### [1.2.4](https://github.com/customerio/customerio-flutter/compare/1.2.3...1.2.4) (2023-07-25)
 
 
