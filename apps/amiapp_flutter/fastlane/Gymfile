@@ -1,0 +1,4 @@
+configuration 'Release'
+export_method 'ad-hoc'
+scheme "Runner" # scheme in XCode workspace of Flutter generated iOS app
+workspace "ios/Runner.xcworkspace"

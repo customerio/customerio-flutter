@@ -1,0 +1,8 @@
+team_id "2YC97BQN3N"
+
+app_identifier([
+  "io.customer.amiapp.flutter", 
+  "io.customer.amiapp.flutter.NotificationServiceExtension",  
+])
+
+package_name("io.customer.amiapp_flutter")
