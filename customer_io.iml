@@ -17,6 +17,9 @@
       <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/customer_io/build" />
       <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/customer_io/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/customer_io/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/apps/amiapp_flutter/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/apps/amiapp_flutter/build" />
+      <excludeFolder url="file://$MODULE_DIR$/apps/amiapp_flutter/.dart_tool" />
     </content>
     <orderEntry type="jdk" jdkName="Android API 29 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
