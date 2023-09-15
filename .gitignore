@@ -603,3 +603,4 @@ MigrationBackup/
 .coverage/
 
 # End of https://www.gitignore.io/api/git,dart,flutter,intellij,webstorm,visualstudio
+apps/amiapp_flutter/app_store_connect_creds.json
