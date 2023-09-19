@@ -1,4 +1,9 @@
 include: package:flutter_lints/flutter.yaml
 
+// suppressing warning for .env file until we setup CD
+linter:
+  rules:
+    asset_does_not_exist: false
+
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
