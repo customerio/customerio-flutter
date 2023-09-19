@@ -18,4 +18,10 @@ runs:
 
   - name: Install Flutter dependencies
     run: flutter pub get
-    shell: bash 
+    shell: bash
+
+  - name: Install Flutter dependencies for example app
+    run: |
+      cd apps/amiapp_flutter
+      flutter pub get
+    shell: bash
