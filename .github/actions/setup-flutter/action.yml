@@ -11,7 +11,10 @@ runs:
       cache: true
 
   - run: flutter --version
-    shell: bash 
+    shell: bash
+
+  - run: flutter clean
+    shell: bash
 
   - name: Install Flutter dependencies
     run: flutter pub get
