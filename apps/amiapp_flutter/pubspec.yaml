@@ -69,9 +69,8 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # ignore: asset_does_not_exist
   assets:
-    - .env # ignore: asset_does_not_exist
+    - .env
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
