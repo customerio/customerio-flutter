@@ -11,8 +11,20 @@ runs:
       cache: true
 
   - run: flutter --version
-    shell: bash 
+    shell: bash
+
+  - run: flutter clean
+    shell: bash
 
   - name: Install Flutter dependencies
     run: flutter pub get
-    shell: bash 
+    shell: bash
+
+  - name: Install Flutter dependencies for example app
+    run: |
+      cd apps/amiapp_flutter
+      # Create a dummy .env file to prevent analysis warnings.
+      # This will be replaced by the real .env file in the prepare-for-app-build action.
+      touch .env
+      flutter pub get
+    shell: bash
