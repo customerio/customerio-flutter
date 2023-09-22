@@ -110,7 +110,7 @@ class _CustomEventScreenState extends State<CustomEventScreen> {
                       attributes = propertyName.isEmpty
                           ? {}
                           : {propertyName: _propertyValueController.text};
-                      CustomerIO.track(
+                      CustomerIO.instance.track(
                           name: _eventNameController.text,
                           attributes: attributes);
                       _onEventTracked();

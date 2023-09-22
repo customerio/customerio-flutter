@@ -39,7 +39,7 @@ void main() {
     // initialize
     test('initialize() calls platform', () async {
       final config = CustomerIOConfig(siteId: '123', apiKey: '456');
-      await CustomerIO.initialize(config: config);
+      await CustomerIO.instance.initialize(config: config);
 
       verify(mockPlatform.initialize(config: config)).called(1);
     });
@@ -50,7 +50,7 @@ void main() {
           apiKey: '456',
           region: Region.eu,
           autoTrackPushEvents: false);
-      await CustomerIO.initialize(config: givenConfig);
+      await CustomerIO.instance.initialize(config: givenConfig);
       expect(
           verify(mockPlatform.initialize(config: captureAnyNamed("config")))
               .captured
@@ -62,8 +62,8 @@ void main() {
     test('identify() calls platform', () {
       const givenIdentifier = 'user@example.com';
       final givenAttributes = {'name': 'John Doe'};
-      CustomerIO.identify(
-          identifier: givenIdentifier, attributes: givenAttributes);
+      CustomerIO.instance
+          .identify(identifier: givenIdentifier, attributes: givenAttributes);
 
       verify(mockPlatform.identify(
               identifier: givenIdentifier, attributes: givenAttributes))
@@ -73,8 +73,8 @@ void main() {
     test('identify() correct arguments are passed', () {
       const givenIdentifier = 'user@example.com';
       final givenAttributes = {'name': 'John Doe'};
-      CustomerIO.identify(
-          identifier: givenIdentifier, attributes: givenAttributes);
+      CustomerIO.instance
+          .identify(identifier: givenIdentifier, attributes: givenAttributes);
       expect(
           verify(mockPlatform.identify(
                   identifier: captureAnyNamed("identifier"),
@@ -85,7 +85,7 @@ void main() {
 
     // clearIdentify
     test('clearIdentify() calls platform', () {
-      CustomerIO.clearIdentify();
+      CustomerIO.instance.clearIdentify();
       verify(mockPlatform.clearIdentify()).called(1);
     });
 
@@ -93,14 +93,14 @@ void main() {
     test('track() calls platform', () {
       const name = 'itemAddedToCart';
       final attributes = {'item': 'shoes'};
-      CustomerIO.track(name: name, attributes: attributes);
+      CustomerIO.instance.track(name: name, attributes: attributes);
       verify(mockPlatform.track(name: name, attributes: attributes)).called(1);
     });
 
     test('track() correct arguments are passed', () {
       const name = 'itemAddedToCart';
       final givenAttributes = {'name': 'John Doe'};
-      CustomerIO.track(name: name, attributes: givenAttributes);
+      CustomerIO.instance.track(name: name, attributes: givenAttributes);
       expect(
           verify(mockPlatform.track(
                   name: captureAnyNamed("name"),
@@ -114,7 +114,7 @@ void main() {
       const deliveryID = '123';
       const deviceToken = 'abc';
       const event = MetricEvent.opened;
-      CustomerIO.trackMetric(
+      CustomerIO.instance.trackMetric(
           deliveryID: deliveryID, deviceToken: deviceToken, event: event);
       verify(mockPlatform.trackMetric(
               deliveryID: deliveryID, deviceToken: deviceToken, event: event))
@@ -125,7 +125,7 @@ void main() {
       const deliveryID = '123';
       const deviceToken = 'abc';
       const event = MetricEvent.opened;
-      CustomerIO.trackMetric(
+      CustomerIO.instance.trackMetric(
           deliveryID: deliveryID, deviceToken: deviceToken, event: event);
       expect(
           verify(mockPlatform.trackMetric(
@@ -139,14 +139,14 @@ void main() {
     // registerDeviceToken
     test('registerDeviceToken() calls platform', () {
       const deviceToken = 'token';
-      CustomerIO.registerDeviceToken(deviceToken: deviceToken);
+      CustomerIO.instance.registerDeviceToken(deviceToken: deviceToken);
       verify(mockPlatform.registerDeviceToken(deviceToken: deviceToken))
           .called(1);
     });
 
     test('registerDeviceToken() correct arguments are passed', () {
       const deviceToken = 'token';
-      CustomerIO.registerDeviceToken(deviceToken: deviceToken);
+      CustomerIO.instance.registerDeviceToken(deviceToken: deviceToken);
       expect(
           verify(mockPlatform.registerDeviceToken(
                   deviceToken: captureAnyNamed("deviceToken")))
@@ -159,7 +159,7 @@ void main() {
     test('screen() calls platform', () {
       const name = 'home';
       final givenAttributes = {'user': 'John Doe'};
-      CustomerIO.screen(name: name, attributes: givenAttributes);
+      CustomerIO.instance.screen(name: name, attributes: givenAttributes);
       verify(mockPlatform.screen(name: name, attributes: givenAttributes))
           .called(1);
     });
@@ -167,7 +167,7 @@ void main() {
     test('screen() correct arguments are passed', () {
       const name = 'itemAddedToCart';
       final givenAttributes = {'name': 'John Doe'};
-      CustomerIO.screen(name: name, attributes: givenAttributes);
+      CustomerIO.instance.screen(name: name, attributes: givenAttributes);
       expect(
           verify(mockPlatform.screen(
                   name: captureAnyNamed("name"),
@@ -179,14 +179,14 @@ void main() {
     // setDeviceAttributes
     test('setDeviceAttributes() calls platform', () {
       final givenAttributes = {'area': 'US'};
-      CustomerIO.setDeviceAttributes(attributes: givenAttributes);
+      CustomerIO.instance.setDeviceAttributes(attributes: givenAttributes);
       verify(mockPlatform.setDeviceAttributes(attributes: givenAttributes))
           .called(1);
     });
 
     test('setDeviceAttributes() correct arguments are passed', () {
       final givenAttributes = {'area': 'US'};
-      CustomerIO.setDeviceAttributes(attributes: givenAttributes);
+      CustomerIO.instance.setDeviceAttributes(attributes: givenAttributes);
       expect(
           verify(mockPlatform.setDeviceAttributes(
                   attributes: captureAnyNamed("attributes")))
@@ -198,14 +198,14 @@ void main() {
     // setProfileAttributes
     test('setProfileAttributes() calls platform', () {
       final givenAttributes = {'age': 10};
-      CustomerIO.setProfileAttributes(attributes: givenAttributes);
+      CustomerIO.instance.setProfileAttributes(attributes: givenAttributes);
       verify(mockPlatform.setProfileAttributes(attributes: givenAttributes))
           .called(1);
     });
 
     test('setProfileAttributes() correct arguments are passed', () {
       final givenAttributes = {'age': 10};
-      CustomerIO.setProfileAttributes(attributes: givenAttributes);
+      CustomerIO.instance.setProfileAttributes(attributes: givenAttributes);
       expect(
           verify(mockPlatform.setProfileAttributes(
                   attributes: captureAnyNamed("attributes")))
@@ -213,5 +213,11 @@ void main() {
               .first,
           givenAttributes);
     });
+  });
+
+  test('Singleton instance should be initialized once', () {
+    var firstInstance = CustomerIO.instance;
+    var secondInstance = CustomerIO.instance;
+    expect(firstInstance, secondInstance);
   });
 }

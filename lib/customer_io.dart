@@ -10,6 +10,9 @@ import 'messaging_push/platform_interface.dart';
 class CustomerIO {
   const CustomerIO._();
 
+  // Singleton instance
+  static const CustomerIO instance = CustomerIO._();
+
   static CustomerIOPlatform get _customerIO => CustomerIOPlatform.instance;
 
   static CustomerIOMessagingPushPlatform get _customerIOMessagingPush =>
@@ -21,7 +24,7 @@ class CustomerIO {
   /// To initialize the plugin
   ///
   /// @param config includes required and optional configs etc
-  static Future<void> initialize({
+  Future<void> initialize({
     required CustomerIOConfig config,
   }) {
     return _customerIO.initialize(config: config);
@@ -34,7 +37,7 @@ class CustomerIO {
   ///
   /// @param identifier unique identifier for a profile
   /// @param attributes (Optional) params to set profile attributes
-  static void identify(
+  void identify(
       {required String identifier,
       Map<String, dynamic> attributes = const {}}) {
     return _customerIO.identify(identifier: identifier, attributes: attributes);
@@ -44,7 +47,7 @@ class CustomerIO {
   ///
   /// If a profile exists, clearIdentify will stop identifying the profile.
   /// If no profile exists, request to clearIdentify will be ignored.
-  static void clearIdentify() {
+  void clearIdentify() {
     _customerIO.clearIdentify();
   }
 
@@ -53,13 +56,13 @@ class CustomerIO {
   ///
   /// @param name event name to be tracked
   /// @param attributes (Optional) params to be sent with event
-  static void track(
+  void track(
       {required String name, Map<String, dynamic> attributes = const {}}) {
     return _customerIO.track(name: name, attributes: attributes);
   }
 
   /// Track a push metric
-  static void trackMetric(
+  void trackMetric(
       {required String deliveryID,
       required String deviceToken,
       required MetricEvent event}) {
@@ -69,7 +72,7 @@ class CustomerIO {
 
   /// Register a new device token with Customer.io, associated with the current active customer. If there
   /// is no active customer, this will fail to register the device
-  static void registerDeviceToken({required String deviceToken}) {
+  void registerDeviceToken({required String deviceToken}) {
     return _customerIO.registerDeviceToken(deviceToken: deviceToken);
   }
 
@@ -77,7 +80,7 @@ class CustomerIO {
   ///
   /// @param name name of the screen user visited
   /// @param attributes (Optional) params to be sent with event
-  static void screen(
+  void screen(
       {required String name, Map<String, dynamic> attributes = const {}}) {
     return _customerIO.screen(name: name, attributes: attributes);
   }
@@ -86,7 +89,7 @@ class CustomerIO {
   /// such as app preferences, timezone etc
   ///
   /// @param attributes device attributes
-  static void setDeviceAttributes({required Map<String, dynamic> attributes}) {
+  void setDeviceAttributes({required Map<String, dynamic> attributes}) {
     return _customerIO.setDeviceAttributes(attributes: attributes);
   }
 
@@ -94,7 +97,7 @@ class CustomerIO {
   /// user actions etc
   ///
   /// @param attributes additional attributes for a user profile
-  static void setProfileAttributes({required Map<String, dynamic> attributes}) {
+  void setProfileAttributes({required Map<String, dynamic> attributes}) {
     return _customerIO.setProfileAttributes(attributes: attributes);
   }
 
@@ -104,16 +107,16 @@ class CustomerIO {
   /// The callback returns [InAppEvent].
   ///
   /// Returns a [StreamSubscription] that can be used to subscribe/unsubscribe from the event listener.
-  static StreamSubscription subscribeToInAppEventListener(
+  StreamSubscription subscribeToInAppEventListener(
       void Function(InAppEvent) onEvent) {
     return _customerIO.subscribeToInAppEventListener(onEvent);
   }
 
-  static CustomerIOMessagingPushPlatform messagingPush() {
+  CustomerIOMessagingPushPlatform messagingPush() {
     return _customerIOMessagingPush;
   }
 
-  static CustomerIOMessagingInAppPlatform messagingInApp() {
+  CustomerIOMessagingInAppPlatform messagingInApp() {
     return _customerIOMessagingInApp;
   }
 }
