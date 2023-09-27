@@ -16,12 +16,6 @@ enum AndroidPushClickBehavior {
   activityPreventRestart(rawValue: 'ACTIVITY_PREVENT_RESTART'),
   activityNoFlags(rawValue: 'ACTIVITY_NO_FLAGS');
 
-  const AndroidPushClickBehavior({
-    required this.rawValue,
-  });
-
-  final String rawValue;
-
   factory AndroidPushClickBehavior.fromValue(String value) {
     switch (value) {
       case 'RESET_TASK_STACK':
@@ -34,4 +28,10 @@ enum AndroidPushClickBehavior {
         throw ArgumentError('Invalid value provided');
     }
   }
+
+  const AndroidPushClickBehavior({
+    required this.rawValue,
+  });
+
+  final String rawValue;
 }
