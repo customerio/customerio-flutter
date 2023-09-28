@@ -13,7 +13,7 @@ import io.customer.messaginginapp.type.InAppEventListener
 import io.customer.messaginginapp.type.InAppMessage
 import io.customer.messagingpush.MessagingPushModuleConfig
 import io.customer.messagingpush.ModuleMessagingPushFCM
-import io.customer.messagingpush.config.NotificationClickBehavior
+import io.customer.messagingpush.config.PushClickBehavior
 import io.customer.sdk.CustomerIO
 import io.customer.sdk.CustomerIOConfig
 import io.customer.sdk.CustomerIOShared
@@ -281,12 +281,11 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     ?.let { value ->
                         setAutoTrackPushEvents(autoTrackPushEvents = value)
                     }
-                // TODO: Add constant in native and replace here
-                config?.getProperty<String>("androidPushClickBehavior")
+                config?.getProperty<String>(CustomerIOConfig.Companion.Keys.PUSH_CLICK_BEHAVIOR_ANDROID)
                     ?.takeIfNotBlank()
                     ?.let { value ->
                         val behavior = kotlin.runCatching {
-                            enumValueOf<NotificationClickBehavior>(value)
+                            enumValueOf<PushClickBehavior>(value)
                         }.getOrNull()
                         if (behavior != null) {
                             setNotificationClickBehavior(notificationOnClickBehavior = behavior)
