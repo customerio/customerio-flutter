@@ -288,7 +288,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                             enumValueOf<PushClickBehavior>(value)
                         }.getOrNull()
                         if (behavior != null) {
-                            setNotificationClickBehavior(notificationOnClickBehavior = behavior)
+                            setPushClickBehavior(pushClickBehavior = behavior)
                         }
                     }
             }.build(),
