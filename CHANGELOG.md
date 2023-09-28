@@ -1,3 +1,10 @@
+## [1.2.6](https://github.com/customerio/customerio-flutter/compare/1.2.5...1.2.6) (2023-09-28)
+
+
+### Bug Fixes
+
+* stack-overflow caused by BQ recursion ([#90](https://github.com/customerio/customerio-flutter/issues/90)) ([ebc7511](https://github.com/customerio/customerio-flutter/commit/ebc7511d19409d7524f5aa8dd5446d85dc14ecfb))
+
 ### [1.2.5](https://github.com/customerio/customerio-flutter/compare/1.2.4...1.2.5) (2023-09-07)
 
 
