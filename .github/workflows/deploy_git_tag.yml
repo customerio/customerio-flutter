@@ -32,6 +32,7 @@ jobs:
         id: semantic-release
         with:
           # version numbers below can be in many forms: M, M.m, M.m.p
+          semantic_version: 22.0.5
           extra_plugins: |
             conventional-changelog-conventionalcommits
             @semantic-release/changelog
