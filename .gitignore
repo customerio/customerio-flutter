@@ -1,6 +1,7 @@
 ### Customs ###
 ios/Flutter/flutter_export_environment.sh
 .idea/**
+**/flutter_export_environment.sh
 
 # MacOS generated file
 .DS_Store
