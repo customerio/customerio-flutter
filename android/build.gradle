@@ -58,8 +58,7 @@ android {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     // Customer.io SDK
-    def cioVersion = "3.6.6"
-    implementation "io.customer.android:tracking:$cioVersion"
+    def cioVersion = "local"
     implementation "io.customer.android:messaging-push-fcm:$cioVersion"
     implementation "io.customer.android:messaging-in-app:$cioVersion"
 }
