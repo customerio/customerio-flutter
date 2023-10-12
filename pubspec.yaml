@@ -12,6 +12,8 @@ dependencies:
   flutter:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
+  analytics:
+    path: ../../sdk/analytics_flutter/packages/core
 
 dev_dependencies:
   flutter_test:
