@@ -1,6 +1,12 @@
 import 'dart:async';
 
+import 'package:analytics/analytics.dart';
+import 'package:analytics/client.dart';
+import 'package:analytics/event.dart';
+import 'package:analytics/state.dart';
+
 import 'customer_io_config.dart';
+import 'customer_io_const.dart';
 import 'customer_io_enums.dart';
 import 'customer_io_inapp.dart';
 import 'customer_io_platform_interface.dart';
@@ -18,12 +24,21 @@ class CustomerIO {
   static CustomerIOMessagingInAppPlatform get _customerIOMessagingInApp =>
       CustomerIOMessagingInAppPlatform.instance;
 
+  static late Analytics analytics;
+
   /// To initialize the plugin
   ///
   /// @param config includes required and optional configs etc
   static Future<void> initialize({
     required CustomerIOConfig config,
   }) {
+    String writeKey = "${config.siteId}:${config.apiKey}";
+    Configuration analyticsConfig = Configuration(
+      writeKey,
+      debug: true,
+      trackApplicationLifecycleEvents: false,
+    );
+    analytics = createClient(analyticsConfig);
     return _customerIO.initialize(config: config);
   }
 
@@ -37,7 +52,8 @@ class CustomerIO {
   static void identify(
       {required String identifier,
       Map<String, dynamic> attributes = const {}}) {
-    return _customerIO.identify(identifier: identifier, attributes: attributes);
+    analytics.identify(
+        userId: identifier, userTraits: UserTraits.fromJson(attributes));
   }
 
   /// Call this function to stop identifying a person.
@@ -45,7 +61,7 @@ class CustomerIO {
   /// If a profile exists, clearIdentify will stop identifying the profile.
   /// If no profile exists, request to clearIdentify will be ignored.
   static void clearIdentify() {
-    _customerIO.clearIdentify();
+    analytics.identify(userId: null);
   }
 
   /// To track user events like loggedIn, addedItemToCart etc.
@@ -55,7 +71,7 @@ class CustomerIO {
   /// @param attributes (Optional) params to be sent with event
   static void track(
       {required String name, Map<String, dynamic> attributes = const {}}) {
-    return _customerIO.track(name: name, attributes: attributes);
+    analytics.track(name, properties: attributes);
   }
 
   /// Track a push metric
@@ -63,14 +79,18 @@ class CustomerIO {
       {required String deliveryID,
       required String deviceToken,
       required MetricEvent event}) {
-    return _customerIO.trackMetric(
-        deliveryID: deliveryID, deviceToken: deviceToken, event: event);
+    final payload = {
+      TrackingConsts.deliveryId: deliveryID,
+      TrackingConsts.deliveryToken: deviceToken,
+      TrackingConsts.metricEvent: event.name,
+    };
+    analytics.track("metric", properties: payload);
   }
 
   /// Register a new device token with Customer.io, associated with the current active customer. If there
   /// is no active customer, this will fail to register the device
   static void registerDeviceToken({required String deviceToken}) {
-    return _customerIO.registerDeviceToken(deviceToken: deviceToken);
+    // TODO: implement registerDeviceToken
   }
 
   /// Track screen events to record the screens a user visits
@@ -79,7 +99,7 @@ class CustomerIO {
   /// @param attributes (Optional) params to be sent with event
   static void screen(
       {required String name, Map<String, dynamic> attributes = const {}}) {
-    return _customerIO.screen(name: name, attributes: attributes);
+    analytics.screen(name, properties: attributes);
   }
 
   /// Use this function to send custom device attributes
@@ -87,7 +107,7 @@ class CustomerIO {
   ///
   /// @param attributes device attributes
   static void setDeviceAttributes({required Map<String, dynamic> attributes}) {
-    return _customerIO.setDeviceAttributes(attributes: attributes);
+    // TODO: implement setDeviceAttributes
   }
 
   /// Set custom user profile information such as user preference, specific
@@ -95,7 +115,7 @@ class CustomerIO {
   ///
   /// @param attributes additional attributes for a user profile
   static void setProfileAttributes({required Map<String, dynamic> attributes}) {
-    return _customerIO.setProfileAttributes(attributes: attributes);
+    analytics.identify(userTraits: UserTraits.fromJson(attributes));
   }
 
   /// Subscribes to an in-app event listener.
