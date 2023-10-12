@@ -17,6 +17,7 @@ allprojects {
         google()
         mavenCentral()
         maven { url 'https://maven.gist.build' }
+        mavenLocal()
     }
 }
 
