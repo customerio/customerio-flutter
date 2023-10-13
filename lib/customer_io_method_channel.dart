@@ -48,13 +48,14 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     final arguments =
         (call.arguments as Map<Object?, Object?>).cast<String, dynamic>();
 
-    debugLog("[CIO] [DEV]-[CustomerIOMethodChannel-onMethodCall]-[${call.method}] $arguments");
+    debugLog(
+        "[CIO] [DEV]-[CustomerIOMethodChannel-onMethodCall]-[${call.method}] $arguments");
     switch (call.method) {
       case "trackMetric":
         final payload = {
           TrackingConsts.deliveryId: arguments["deliveryID"],
           TrackingConsts.deliveryToken: arguments["deviceToken"],
-          TrackingConsts.metricEvent: arguments["event"].name,
+          TrackingConsts.metricEvent: arguments["event"],
         };
         analytics.track("metric", properties: payload);
         break;
@@ -110,7 +111,8 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       {required String identifier,
       Map<String, dynamic> attributes = const {}}) async {
     try {
-      analytics.identify(userId: identifier, userTraits: UserTraits.fromJson(attributes));
+      analytics.identify(
+          userId: identifier, userTraits: UserTraits.fromJson(attributes));
     } on PlatformException catch (exception) {
       handleException(exception);
     }

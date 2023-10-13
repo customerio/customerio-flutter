@@ -5,24 +5,12 @@ import android.util.Log
 import io.customer.sdk.data.model.CustomAttributes
 import io.customer.sdk.data.request.MetricEvent
 import io.customer.sdk.module.AnalyticsModule
-import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodChannel
 
 class AnalyticsImplementation(
+    private val flutterCommunicationChannel: MethodChannel,
     override val moduleConfig: AnalyticsConfig = AnalyticsConfig()
-) : AnalyticsModule<AnalyticsConfig>, FlutterPlugin {
-
-    private lateinit var flutterCommunicationChannel: MethodChannel
-
-    override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        log("onAttachedToEngine")
-        flutterCommunicationChannel =
-            MethodChannel(binding.binaryMessenger, "customer_io_analytics_implementation")
-    }
-
-    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        log("onDetachedFromEngine")
-    }
+) : AnalyticsModule<AnalyticsConfig> {
 
     override var deviceAttributes: CustomAttributes
         get() = emptyMap()
@@ -124,7 +112,7 @@ class AnalyticsImplementation(
             "trackMetric", mapOf(
                 "deliveryID" to deliveryID,
                 "deviceToken" to deviceToken,
-                "event" to event,
+                "event" to event.name,
                 "cio_type" to "metric",
             )
         )

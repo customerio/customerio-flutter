@@ -246,7 +246,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             appContext = application,
             config = configData
         ).apply {
-            setAnalyticsTracking(AnalyticsImplementation())
+            setAnalyticsTracking(AnalyticsImplementation(flutterCommunicationChannel))
             addCustomerIOModule(module = configureModuleMessagingPushFCM(configData))
             if (enableInApp == true) {
                 addCustomerIOModule(
