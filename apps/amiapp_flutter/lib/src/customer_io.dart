@@ -57,7 +57,7 @@ class CustomerIOSDK extends ChangeNotifier {
         config: CustomerIOConfig(
           siteId: _sdkConfig?.siteId ?? '',
           apiKey: _sdkConfig?.apiKey ?? '',
-          enableInApp: true,
+          enableInApp: false,
           region: Region.us,
           //config options go here
           trackingApiUrl: _sdkConfig?.trackingUrl ?? '',
