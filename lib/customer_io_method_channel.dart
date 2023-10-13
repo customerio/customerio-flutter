@@ -179,7 +179,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   @override
   void clearIdentify() {
     try {
-      analytics.identify(userId: null);
+      analytics.reset(resetAnonymousId: true);
     } on PlatformException catch (exception) {
       handleException(exception);
     }
