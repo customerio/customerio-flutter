@@ -110,11 +110,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       {required String identifier,
       Map<String, dynamic> attributes = const {}}) async {
     try {
-      final payload = {
-        TrackingConsts.identifier: identifier,
-        TrackingConsts.attributes: attributes
-      };
-      methodChannel.invokeMethod(MethodConsts.identify, payload);
+      analytics.identify(userId: identifier, userTraits: UserTraits.fromJson(attributes));
     } on PlatformException catch (exception) {
       handleException(exception);
     }
@@ -127,11 +123,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       {required String name,
       Map<String, dynamic> attributes = const {}}) async {
     try {
-      final payload = {
-        TrackingConsts.eventName: name,
-        TrackingConsts.attributes: attributes
-      };
-      methodChannel.invokeMethod(MethodConsts.track, payload);
+      analytics.track(name, properties: attributes);
     } on PlatformException catch (exception) {
       handleException(exception);
     }
@@ -161,11 +153,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       {required String name,
       Map<String, dynamic> attributes = const {}}) async {
     try {
-      final payload = {
-        TrackingConsts.eventName: name,
-        TrackingConsts.attributes: attributes
-      };
-      methodChannel.invokeMethod(MethodConsts.screen, payload);
+      analytics.screen(name, properties: attributes);
     } on PlatformException catch (exception) {
       handleException(exception);
     }
@@ -189,7 +177,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   @override
   void clearIdentify() {
     try {
-      methodChannel.invokeMethod(MethodConsts.clearIdentify);
+      analytics.identify(userId: null);
     } on PlatformException catch (exception) {
       handleException(exception);
     }
@@ -200,8 +188,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   @override
   void setProfileAttributes({required Map<String, dynamic> attributes}) {
     try {
-      final payload = {TrackingConsts.attributes: attributes};
-      methodChannel.invokeMethod(MethodConsts.setProfileAttributes, payload);
+      analytics.identify(userTraits: UserTraits.fromJson(attributes));
     } on PlatformException catch (exception) {
       handleException(exception);
     }
