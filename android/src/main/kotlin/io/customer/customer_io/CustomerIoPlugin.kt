@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import androidx.annotation.NonNull
+import io.customer.customer_io.analytics.AnalyticsImplementation
 import io.customer.customer_io.constant.Keys
 import io.customer.customer_io.messaginginapp.CustomerIOInAppMessaging
 import io.customer.customer_io.messagingpush.CustomerIOPushMessaging
@@ -245,6 +246,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             appContext = application,
             config = configData
         ).apply {
+            setAnalyticsTracking(AnalyticsImplementation())
             addCustomerIOModule(module = configureModuleMessagingPushFCM(configData))
             if (enableInApp == true) {
                 addCustomerIOModule(
