@@ -1,12 +1,17 @@
 import 'dart:async';
 
+import 'package:analytics/analytics.dart';
+import 'package:analytics/client.dart';
+import 'package:analytics/event.dart';
+import 'package:analytics/state.dart';
 import 'package:customer_io/customer_io_enums.dart';
+import 'package:customer_io/utils/logs.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'customer_io_config.dart';
 import 'customer_io_const.dart';
-import 'customer_io_inapp.dart';
+import 'customer_io_inapp.dart' as customer_io_inapp;
 import 'customer_io_platform_interface.dart';
 import 'customer_io_plugin_version.dart';
 
@@ -16,7 +21,10 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   @visibleForTesting
   final methodChannel = const MethodChannel('customer_io');
 
-  final _inAppEventStreamController = StreamController<InAppEvent>.broadcast();
+  final _inAppEventStreamController =
+      StreamController<customer_io_inapp.InAppEvent>.broadcast();
+
+  late final Analytics analytics;
 
   CustomerIOMethodChannel() {
     methodChannel.setMethodCallHandler(_onMethodCall);
@@ -28,7 +36,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   /// Returns a [StreamSubscription] object that can be used to unsubscribe from the stream.
   @override
   StreamSubscription subscribeToInAppEventListener(
-      void Function(InAppEvent) onEvent) {
+      void Function(customer_io_inapp.InAppEvent) onEvent) {
     StreamSubscription subscription =
         _inAppEventStreamController.stream.listen(onEvent);
     return subscription;
@@ -40,22 +48,31 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     final arguments =
         (call.arguments as Map<Object?, Object?>).cast<String, dynamic>();
 
+    debugLog("[CIO] [DEV]-[CustomerIOMethodChannel-onMethodCall]-[${call.method}] $arguments");
     switch (call.method) {
+      case "trackMetric":
+        final payload = {
+          TrackingConsts.deliveryId: arguments["deliveryID"],
+          TrackingConsts.deliveryToken: arguments["deviceToken"],
+          TrackingConsts.metricEvent: arguments["event"].name,
+        };
+        analytics.track("metric", properties: payload);
+        break;
       case "messageShown":
-        _inAppEventStreamController
-            .add(InAppEvent.fromMap(EventType.messageShown, arguments));
+        _inAppEventStreamController.add(customer_io_inapp.InAppEvent.fromMap(
+            customer_io_inapp.EventType.messageShown, arguments));
         break;
       case "messageDismissed":
-        _inAppEventStreamController
-            .add(InAppEvent.fromMap(EventType.messageDismissed, arguments));
+        _inAppEventStreamController.add(customer_io_inapp.InAppEvent.fromMap(
+            customer_io_inapp.EventType.messageDismissed, arguments));
         break;
       case "errorWithMessage":
-        _inAppEventStreamController
-            .add(InAppEvent.fromMap(EventType.errorWithMessage, arguments));
+        _inAppEventStreamController.add(customer_io_inapp.InAppEvent.fromMap(
+            customer_io_inapp.EventType.errorWithMessage, arguments));
         break;
       case "messageActionTaken":
-        _inAppEventStreamController
-            .add(InAppEvent.fromMap(EventType.messageActionTaken, arguments));
+        _inAppEventStreamController.add(customer_io_inapp.InAppEvent.fromMap(
+            customer_io_inapp.EventType.messageActionTaken, arguments));
         break;
     }
   }
@@ -66,6 +83,14 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     required CustomerIOConfig config,
   }) async {
     try {
+      String writeKey = "${config.siteId}:${config.apiKey}";
+      Configuration analyticsConfig = Configuration(
+        writeKey,
+        debug: true,
+        trackApplicationLifecycleEvents: false,
+      );
+      analytics = createClient(analyticsConfig);
+
       config.version = version;
       if (!config.enableInApp && config.organizationId.isNotEmpty) {
         config.enableInApp = true;
