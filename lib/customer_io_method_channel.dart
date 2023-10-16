@@ -89,6 +89,8 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
         writeKey,
         debug: true,
         trackApplicationLifecycleEvents: false,
+        apiHost: "cdp.customer.io/v1",
+        cdnHost: "cdp.customer.io/v1",
       );
       analytics = createClient(analyticsConfig);
 
