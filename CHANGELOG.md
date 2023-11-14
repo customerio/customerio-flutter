@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/customerio/customerio-flutter/compare/1.3.0...1.3.1) (2023-11-14)
+
+
+### Bug Fixes
+
+* improve android push click behavior ([#89](https://github.com/customerio/customerio-flutter/issues/89)) ([62b9e61](https://github.com/customerio/customerio-flutter/commit/62b9e615cbe0c145319d4a5ceb8ab44823b6adb6))
+
 ## [1.3.0](https://github.com/customerio/customerio-flutter/compare/1.2.7...1.3.0) (2023-10-25)
 
 
