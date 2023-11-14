@@ -13,6 +13,7 @@ import io.customer.messaginginapp.type.InAppEventListener
 import io.customer.messaginginapp.type.InAppMessage
 import io.customer.messagingpush.MessagingPushModuleConfig
 import io.customer.messagingpush.ModuleMessagingPushFCM
+import io.customer.messagingpush.config.PushClickBehavior
 import io.customer.sdk.CustomerIO
 import io.customer.sdk.CustomerIOConfig
 import io.customer.sdk.CustomerIOShared
@@ -279,6 +280,16 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 config?.getProperty<Boolean>(CustomerIOConfig.Companion.Keys.AUTO_TRACK_PUSH_EVENTS)
                     ?.let { value ->
                         setAutoTrackPushEvents(autoTrackPushEvents = value)
+                    }
+                config?.getProperty<String>(CustomerIOConfig.Companion.Keys.PUSH_CLICK_BEHAVIOR_ANDROID)
+                    ?.takeIfNotBlank()
+                    ?.let { value ->
+                        val behavior = kotlin.runCatching {
+                            enumValueOf<PushClickBehavior>(value)
+                        }.getOrNull()
+                        if (behavior != null) {
+                            setPushClickBehavior(pushClickBehavior = behavior)
+                        }
                     }
             }.build(),
         )

@@ -12,6 +12,7 @@ class CustomerIOConfig {
   bool autoTrackPushEvents;
   int backgroundQueueMinNumberOfTasks;
   double backgroundQueueSecondsDelay;
+  PushClickBehaviorAndroid pushClickBehaviorAndroid;
 
   bool enableInApp;
 
@@ -29,6 +30,7 @@ class CustomerIOConfig {
       this.autoTrackPushEvents = true,
       this.backgroundQueueMinNumberOfTasks = 10,
       this.backgroundQueueSecondsDelay = 30.0,
+      this.pushClickBehaviorAndroid = PushClickBehaviorAndroid.activityPreventRestart,
       this.enableInApp = false,
       this.version = ""});
 
@@ -44,6 +46,7 @@ class CustomerIOConfig {
       'autoTrackPushEvents': autoTrackPushEvents,
       'backgroundQueueMinNumberOfTasks': backgroundQueueMinNumberOfTasks,
       'backgroundQueueSecondsDelay': backgroundQueueSecondsDelay,
+      'pushClickBehaviorAndroid': pushClickBehaviorAndroid.rawValue,
       'enableInApp': enableInApp,
       'version': version,
       'source': "Flutter"

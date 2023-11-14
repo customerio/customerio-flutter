@@ -9,3 +9,29 @@ enum Region { us, eu }
 
 /// Enum to specify the type of metric for tracking
 enum MetricEvent { delivered, opened, converted, clicked }
+
+/// Enum to specify the click behavior of push notification for Android
+enum PushClickBehaviorAndroid {
+  resetTaskStack(rawValue: 'RESET_TASK_STACK'),
+  activityPreventRestart(rawValue: 'ACTIVITY_PREVENT_RESTART'),
+  activityNoFlags(rawValue: 'ACTIVITY_NO_FLAGS');
+
+  factory PushClickBehaviorAndroid.fromValue(String value) {
+    switch (value) {
+      case 'RESET_TASK_STACK':
+        return PushClickBehaviorAndroid.resetTaskStack;
+      case 'ACTIVITY_PREVENT_RESTART':
+        return PushClickBehaviorAndroid.activityPreventRestart;
+      case 'ACTIVITY_NO_FLAGS':
+        return PushClickBehaviorAndroid.activityNoFlags;
+      default:
+        throw ArgumentError('Invalid value provided');
+    }
+  }
+
+  const PushClickBehaviorAndroid({
+    required this.rawValue,
+  });
+
+  final String rawValue;
+}
