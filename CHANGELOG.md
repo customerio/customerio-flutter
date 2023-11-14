@@ -1,3 +1,17 @@
+## [1.3.0](https://github.com/customerio/customerio-flutter/compare/1.2.7...1.3.0) (2023-10-25)
+
+
+### Features
+
+* in-app message persistence ([#97](https://github.com/customerio/customerio-flutter/issues/97)) ([71d85cc](https://github.com/customerio/customerio-flutter/commit/71d85cc4ce25a37399a68afda975abea19bfccc1))
+
+## [1.2.7](https://github.com/customerio/customerio-flutter/compare/1.2.6...1.2.7) (2023-10-18)
+
+
+### Bug Fixes
+
+* in-app crash for no browser ([#94](https://github.com/customerio/customerio-flutter/issues/94)) ([8b859ed](https://github.com/customerio/customerio-flutter/commit/8b859eddf383c1a195767eb87cf6513bb81ac44c))
+
 ## [1.2.6](https://github.com/customerio/customerio-flutter/compare/1.2.5...1.2.6) (2023-09-28)
 
 
