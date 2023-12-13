@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:customer_io/customer_io.dart';
 import 'package:customer_io/customer_io_inapp.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -53,7 +55,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     inAppMessageStreamSubscription =
         CustomerIO.subscribeToInAppEventListener(handleInAppEvent);
+
+    setupFCMListeners();
+
     super.initState();
+  }
+
+
+  // Setup 3rd party SDK, flutter-fire.
+  // We install this SDK into sample app to make sure the CIO SDK behaves as expected when there is another SDK installed that handles push notifications.
+  Future<void> setupFCMListeners() async {
+    // Important that a 3rd party SDK can receive callbacks when a push is clicked on.
+    // ...while app was killed.
+    RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      log("Got a message while app was terminated. ${initialMessage.data}");
+    }
+
+    // ...while app was in the background (but not killed).
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      log("Got a message while app was in the background. ${message.data}");
+    });
+
+    // Important that a 3rd party SDK can receive callbacks when a push is received while app in background.
+    //
+    // Note: A push will not be shown on the device while app is in foreground. This is a FCM behavior, not a CIO SDK behavior.
+    // If you send a push using Customer.io with the FCM service setup in Customer.io, the push will be shown on the device.
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      log("Got a message while app was in the foreground. ${message.data}");
+    });
   }
 
   void handleInAppEvent(InAppEvent event) {
