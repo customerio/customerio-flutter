@@ -26,7 +26,7 @@ jobs:
       # If using sd on macos, "brew install" works great. for Linux, this is the recommended way.
       - name: Install sd CLI to use later in the workflow
         # uses: kenji-miyake/setup-sd@v1
-        uses: levibostian/setup-sd@add-file-extension # Using fork until upstream Action has bug fixed in it. 
+        uses: levibostian/setup-sd@add-file-extension # Using fork until upstream Action has bug fixed in it.
 
       - name: Deploy git tag via semantic release
         uses: cycjimmy/semantic-release-action@v4
@@ -75,6 +75,14 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: Send Velocity Deployment
+        uses: codeclimate/velocity-deploy-action@v1.0.0
+        if: steps.semantic-release.outputs.new_release_published == 'true' # only run if a git tag was made.
+        with:
+          token: ${{ secrets.VELOCITY_DEPLOYMENT_TOKEN }}
+          version: ${{ steps.semantic-release.outputs.new_release_version }}
+          environment: production
 
       - name: Notify team of failure
         uses: slackapi/slack-github-action@v1.24.0
