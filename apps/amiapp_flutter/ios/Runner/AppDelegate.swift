@@ -13,6 +13,12 @@ import FirebaseCore
     ) -> Bool {
         GeneratedPluginRegistrant.register(with: self)
         
+        // Depending on the method you choose to install Firebase in your app, 
+        // you may need to add functions to this file, such as the following:
+        // FirebaseApp.configure()
+        // 
+        // Be sure to read the official Firebase docs to correctly install Firebase in your app. 
+
         Messaging.messaging().delegate = self
         
         CustomerIO.initialize(siteId: Env.siteId, apiKey: Env.apiKey, region: .US) { config in
