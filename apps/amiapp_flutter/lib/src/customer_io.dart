@@ -53,7 +53,7 @@ class CustomerIOSDK extends ChangeNotifier {
       } else {
         logLevel = CioLogLevel.debug;
       }
-      return CustomerIO.initialize(
+      return CustomerIO.instance.initialize(
         config: CustomerIOConfig(
           siteId: _sdkConfig?.siteId ?? '',
           apiKey: _sdkConfig?.apiKey ?? '',

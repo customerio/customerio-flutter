@@ -52,7 +52,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         .then((value) => setState(() => _buildInfo = value));
 
     inAppMessageStreamSubscription =
-        CustomerIO.subscribeToInAppEventListener(handleInAppEvent);
+        CustomerIO.instance.subscribeToInAppEventListener(handleInAppEvent);
     super.initState();
   }
 
@@ -89,7 +89,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     };
     attributes.addAll(arguments);
 
-    CustomerIO.track(
+    CustomerIO.instance.track(
       name: 'In-App Event',
       attributes: attributes,
     );
@@ -152,9 +152,9 @@ class _ActionList extends StatelessWidget {
     final eventName = event.key;
     final attributes = event.value;
     if (attributes == null) {
-      CustomerIO.track(name: eventName);
+      CustomerIO.instance.track(name: eventName);
     } else {
-      CustomerIO.track(name: eventName, attributes: attributes);
+      CustomerIO.instance.track(name: eventName, attributes: attributes);
     }
     context.showSnackBar('Event sent successfully');
   }
