@@ -40,7 +40,7 @@ target 'Runner' do
   use_modular_headers!
   
   # Uncomment only 1 of the lines below to install a version of the iOS SDK
-  pod 'CustomerIO/MessagingPushFCM', '~> 2' # install production build
+  pod 'CustomerIO/MessagingPushFCM', '~> 2.11' # install production build
   # install_non_production_ios_sdk_local_path(local_path: '~/code/customerio-ios/', is_app_extension: false, push_service: "fcm")
   # install_non_production_ios_sdk_git_branch(branch_name: 'name-of-ios-sdk-branch', is_app_extension: false, push_service: "fcm")
 
@@ -50,7 +50,7 @@ end
 target 'NotificationServiceExtension' do
   use_frameworks!
   # Uncomment only 1 of the lines below to install a version of the iOS SDK
-  pod 'CustomerIO/MessagingPushFCM', '~> 2' # install production build
+  pod 'CustomerIO/MessagingPushFCM', '~> 2.11' # install production build
   # install_non_production_ios_sdk_local_path(local_path: '~/code/customerio-ios/', is_app_extension: true, push_service: "fcm")
   # install_non_production_ios_sdk_git_branch(branch_name: 'name-of-ios-sdk-branch', is_app_extension: true, push_service: "fcm")
 end

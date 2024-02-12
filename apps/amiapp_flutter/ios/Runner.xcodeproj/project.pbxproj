@@ -7,11 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0888D1012BEC428D66F8D1ED /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 6615E32455EADFC1FBDD78CC /* GoogleService-Info.plist */; };
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		28EF97E17CEA8AA8F34B77F4 /* Pods_NotificationServiceExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F682EA52D3CECA56F5B31766 /* Pods_NotificationServiceExtension.framework */; };
 		3006373429A1011F00D63963 /* Env.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3006373329A1011F00D63963 /* Env.swift */; };
 		3006373529A1011F00D63963 /* Env.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3006373329A1011F00D63963 /* Env.swift */; };
-		302D7E2C295BEC44005CBB29 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 302D7E2B295BEC44005CBB29 /* GoogleService-Info.plist */; };
 		302D7E34295BEE78005CBB29 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 302D7E33295BEE78005CBB29 /* NotificationService.swift */; };
 		302D7E38295BEE78005CBB29 /* NotificationServiceExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 302D7E31295BEE78005CBB29 /* NotificationServiceExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
@@ -61,11 +61,11 @@
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
 		3006373329A1011F00D63963 /* Env.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Env.swift; sourceTree = "<group>"; };
 		30095F29295BC58F00D3389F /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
-		302D7E2B295BEC44005CBB29 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		302D7E31295BEE78005CBB29 /* NotificationServiceExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		302D7E33295BEE78005CBB29 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		302D7E35295BEE78005CBB29 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
+		6615E32455EADFC1FBDD78CC /* GoogleService-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Runner/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		78A3A48B351662F042A03F84 /* Pods-NotificationServiceExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationServiceExtension.release.xcconfig"; path = "Target Support Files/Pods-NotificationServiceExtension/Pods-NotificationServiceExtension.release.xcconfig"; sourceTree = "<group>"; };
@@ -149,6 +149,7 @@
 				97C146EF1CF9000F007C117D /* Products */,
 				3E9C772F68D2059B32B4A97E /* Pods */,
 				B5A766D2ED4D4067A36F2D1D /* Frameworks */,
+				6615E32455EADFC1FBDD78CC /* GoogleService-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -164,7 +165,6 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
-				302D7E2B295BEC44005CBB29 /* GoogleService-Info.plist */,
 				30095F29295BC58F00D3389F /* Runner.entitlements */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
@@ -285,9 +285,9 @@
 			files = (
 				97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */,
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
-				302D7E2C295BEC44005CBB29 /* GoogleService-Info.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
+				0888D1012BEC428D66F8D1ED /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

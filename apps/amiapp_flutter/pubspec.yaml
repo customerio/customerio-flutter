@@ -44,6 +44,8 @@ dependencies:
   permission_handler: ^10.2.0
   flutter_dotenv: ^5.0.2
   package_info_plus: ^4.0.2
+  firebase_core: ^2.24.2
+  firebase_messaging: ^14.7.9
 
 dev_dependencies:
   flutter_test:
