@@ -13,7 +13,7 @@ This is the official Customer.io Flutter plugin.
 
 # Getting started 
 
-You'll find our [complete SDK documentation at https://customer.io/docs/sdk/flutter/](https://customer.io/docs/sdk/flutter/). 
+You'll find our [complete SDK documentation](https://customer.io/docs/sdk/flutter/). 
 
 # Contributing
 
