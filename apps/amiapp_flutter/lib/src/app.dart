@@ -1,4 +1,5 @@
 import 'package:customer_io/customer_io.dart';
+import 'package:customer_io/customer_io_observer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -60,6 +61,7 @@ class _AmiAppState extends State<AmiApp> {
       debugLogDiagnostics: true,
       initialLocation: Screen.dashboard.path,
       refreshListenable: _auth,
+      observers: [CustomerIORouteObserver()],
       routes: [
         GoRoute(
           name: Screen.login.name,
@@ -155,9 +157,6 @@ class _AmiAppState extends State<AmiApp> {
       return value;
     });
     _customerIOSDK.addListener(_handleSDKConfigurationsChanged);
-
-    // Listen to screen changes for observing screens
-    _router.addListener(() => _onRouteChanged());
 
     super.initState();
   }
