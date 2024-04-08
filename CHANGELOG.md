@@ -1,3 +1,10 @@
+## [1.3.2](https://github.com/customerio/customerio-flutter/compare/1.3.1...1.3.2) (2024-04-08)
+
+
+### Bug Fixes
+
+* added proguard rules for R8 strict mode ([#116](https://github.com/customerio/customerio-flutter/issues/116)) ([9946fe7](https://github.com/customerio/customerio-flutter/commit/9946fe73938ae25caf4beac710855feeaa2e4dba))
+
 ## [1.3.1](https://github.com/customerio/customerio-flutter/compare/1.3.0...1.3.1) (2023-11-14)
 
 
