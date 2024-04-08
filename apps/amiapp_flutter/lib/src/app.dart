@@ -193,7 +193,6 @@ class _AmiAppState extends State<AmiApp> {
     }
 
     return theme.copyWith(
-      useMaterial3: true,
       colorScheme: colorScheme,
       appBarTheme: theme.appBarTheme.copyWith(
         systemOverlayStyle: systemOverlayStyle,
