@@ -126,14 +126,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final Sizes sizes = Theme.of(context).extension<Sizes>()!;
 
-    return WillPopScope(
-      onWillPop: () {
+    return PopScope(
+      onPopInvoked: (bool didPop) {
         if (widget.auth.signedIn == false) {
           context.go(Screen.login.location);
-          return Future.value(false);
         }
-
-        return Future.value(true);
       },
       child: AppContainer(
         resizeToAvoidBottomInset: true,
