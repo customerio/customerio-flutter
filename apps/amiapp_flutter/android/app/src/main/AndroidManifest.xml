@@ -58,6 +58,15 @@
                 <data android:pathPrefix="/dashboard" />
             </intent-filter>
         </activity>
+        <!-- Register Customer.io Firebase Messaging Service as we want our SDK to handle all push
+             notifications -->
+       <service
+           android:name="io.customer.messagingpush.CustomerIOFirebaseMessagingService"
+           android:exported="false">
+           <intent-filter>
+               <action android:name="com.google.firebase.MESSAGING_EVENT" />
+           </intent-filter>
+       </service>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
