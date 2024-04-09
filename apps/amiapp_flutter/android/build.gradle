@@ -1,5 +1,3 @@
-package apps.amiapp_flutter.android
-
 allprojects {
     repositories {
         google()
