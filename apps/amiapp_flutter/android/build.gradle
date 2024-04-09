@@ -2,7 +2,10 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://maven.gist.build' }
+        // For locally deployed builds
+        mavenLocal()
+        // For snapshot builds
+        maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
     }
 }
 
