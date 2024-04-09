@@ -1,10 +1,12 @@
+package apps.amiapp_flutter.android
+
 allprojects {
     repositories {
         google()
         mavenCentral()
-        // For locally deployed builds
+        // Only required for using locally deployed versions of the SDK
         mavenLocal()
-        // For snapshot builds
+        // Only required for using SNAPSHOT versions of the SDK
         maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
     }
 }
