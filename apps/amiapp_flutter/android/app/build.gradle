@@ -6,6 +6,7 @@ plugins {
 }
 
 android {
+    namespace 'io.customer.amiapp_flutter'
     compileSdkVersion 33
     ndkVersion flutter.ndkVersion
 
