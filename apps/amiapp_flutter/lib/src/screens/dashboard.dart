@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../auth.dart';
 import '../components/container.dart';
@@ -238,7 +239,7 @@ class _ActionList extends StatelessWidget {
                     style: FilledButton.styleFrom(
                       minimumSize: sizes.buttonDefault(),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       switch (item) {
                         case _ActionItem.randomEvent:
                           _sendRandomEvent(context);
@@ -248,6 +249,13 @@ class _ActionList extends StatelessWidget {
                           break;
                         case _ActionItem.signOut:
                           authState.signOut();
+                          break;
+                        case _ActionItem.showLocalPush:
+                          const NotificationDetails notificationDetails =
+                          NotificationDetails();
+                          FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+                          FlutterLocalNotificationsPlugin();
+                          await flutterLocalNotificationsPlugin.show(0, 'Show Local Push', 'Show Local Push Button', notificationDetails, payload: 'item x');
                           break;
                         default:
                           final Screen? screen = item.targetScreen();
@@ -276,6 +284,7 @@ enum _ActionItem {
   deviceAttributes,
   profileAttributes,
   showPushPrompt,
+  showLocalPush,
   signOut,
 }
 
@@ -292,6 +301,8 @@ extension _ActionNames on _ActionItem {
         return 'Set Profile Attribute';
       case _ActionItem.showPushPrompt:
         return 'Show Push Prompt';
+      case _ActionItem.showLocalPush:
+        return 'Show local push';
       case _ActionItem.signOut:
         return 'Log Out';
     }
@@ -309,6 +320,8 @@ extension _ActionNames on _ActionItem {
         return 'Profile Attribute Button';
       case _ActionItem.showPushPrompt:
         return 'Show Push Prompt Button';
+      case _ActionItem.showLocalPush:
+        return 'Show Local Push Button';
       case _ActionItem.signOut:
         return 'Log Out Button';
     }
@@ -325,6 +338,8 @@ extension _ActionNames on _ActionItem {
       case _ActionItem.profileAttributes:
         return Screen.profileAttributes;
       case _ActionItem.showPushPrompt:
+        return null;
+      case _ActionItem.showLocalPush:
         return null;
       case _ActionItem.signOut:
         return null;
