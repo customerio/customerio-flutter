@@ -21,13 +21,15 @@ import FirebaseCore
 
         Messaging.messaging().delegate = self
         
-        CustomerIO.initialize(siteId: Env.siteId, apiKey: Env.apiKey, region: .US) { config in
-            config.autoTrackDeviceAttributes = true
-            config.logLevel = .debug
-        }
-        MessagingPushFCM.initialize(configOptions: nil)
+//        CustomerIO.initialize(siteId: Env.siteId, apiKey: Env.apiKey, region: .US) { config in
+//            config.autoTrackDeviceAttributes = true
+//            config.logLevel = .debug
+//        }
+//        MessagingPushFCM.initialize(configOptions: nil)
         
-        UNUserNotificationCenter.current().delegate = self
+        if #available(iOS 10.0, *) {
+          UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
+        }
 
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
