@@ -27,7 +27,9 @@ import FirebaseCore
         }
         MessagingPushFCM.initialize(configOptions: nil)
         
-        UNUserNotificationCenter.current().delegate = self
+        // Sets a 3rd party push event handler for the app besides the Customer.io SDK and FlutterFire.
+        // Setting the AppDelegate to be the handler will internally use `flutter_local_notifications` to handle the push event.
+        UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
 
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
@@ -39,39 +41,6 @@ import FirebaseCore
     
     override func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
         MessagingPush.shared.application(application, didFailToRegisterForRemoteNotificationsWithError: error)
-    }
-    
-    // Function called when a push notification is clicked or swiped away.
-    override func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        // Track a Customer.io event for testing purposes to more easily track when this function is called.
-        CustomerIO.shared.track(
-            name: "push clicked",
-            data: ["push": [
-                "title": response.notification.request.content.title,
-                "body": response.notification.request.content.body,
-                "userInfo": response.notification.request.content.userInfo
-            ]]
-        )
-
-        completionHandler()
-    }
-    
-    override func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        // Track a Customer.io event for testing purposes to more easily track when this function is called.
-        CustomerIO.shared.track(
-            name: "push should show app in foreground",
-            data: ["push": [
-                    "title": notification.request.content.title,
-                    "body": notification.request.content.body,
-                    "userInfo": notification.request.content.userInfo
-            ]]
-        )
-
-        if #available(iOS 14.0, *) {
-            completionHandler([.banner, .badge, .sound])
-        } else {
-            completionHandler([.alert, .badge, .sound])
-        }
     }
 }
 
