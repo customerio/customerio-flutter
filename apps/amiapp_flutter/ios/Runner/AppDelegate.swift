@@ -26,6 +26,10 @@ import FirebaseCore
             config.logLevel = .debug
         }
         MessagingPushFCM.initialize(configOptions: nil)
+        
+        // Sets a 3rd party push event handler for the app besides the Customer.io SDK and FlutterFire.
+        // Setting the AppDelegate to be the handler will internally use `flutter_local_notifications` to handle the push event.
+        UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
 
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
