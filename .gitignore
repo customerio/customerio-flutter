@@ -16,8 +16,11 @@ ios/Flutter/flutter_export_environment.sh
 .dart_tool/
 .packages
 build/
+
 # If you're building an application, you may want to check-in your pubspec.lock
 pubspec.lock
+## Commit sample app pubspec.lock files since we are not generating them in the CI
+!apps/amiapp_flutter/pubspec.lock
 
 # Directory created by dartdoc
 # If you don't generate documentation locally you can remove this line.
