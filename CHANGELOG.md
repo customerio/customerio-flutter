@@ -1,3 +1,9 @@
+## [1.5.0](https://github.com/customerio/customerio-flutter/compare/1.4.0...1.5.0) (2024-07-02)
+
+### Features
+
+* do not show modal message if screen changes and page rule mismatches ([#131](https://github.com/customerio/customerio-flutter/issues/131)) ([a563055](https://github.com/customerio/customerio-flutter/commit/a5630555e34668a10c299a1b22f59afcc46217e9))
+
 ## [1.4.0](https://github.com/customerio/customerio-flutter/compare/1.3.2...1.4.0) (2024-04-18)
 
 
