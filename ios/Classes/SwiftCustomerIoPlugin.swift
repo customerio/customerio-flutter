@@ -185,14 +185,18 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
         DispatchQueue.main.async {
             MessagingInApp.shared.initialize(eventListener: CustomerIOInAppEventListener(
                 invokeMethod: {method,args in
-                    self.invokeMethodInBackground(method, args)
+                    self.invokeMethod(method, args)
                 })
             )
         }
     }
     
-    func invokeMethodInBackground(_ method: String, _ args: Any?) {
-        DispatchQueue.global(qos: .background).async {
+    func invokeMethod(_ method: String, _ args: Any?) {
+        // When sending messages from native code to Flutter, it's required to do it on main thread.
+        // Learn more:
+        // * https://docs.flutter.dev/platform-integration/platform-channels#channels-and-platform-threading
+        // * https://linear.app/customerio/issue/MBL-358/
+        DispatchQueue.main.async {
             self.methodChannel.invokeMethod(method, arguments: args)
         }
     }
