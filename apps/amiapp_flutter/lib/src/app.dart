@@ -201,7 +201,7 @@ class _AmiAppState extends State<AmiApp> {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: ButtonStyle(
-          shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
           ),
         ),
