@@ -1,3 +1,9 @@
+## [1.5.1](https://github.com/customerio/customerio-flutter/compare/1.5.0...1.5.1) (2024-08-01)
+
+### Bug Fixes
+
+* send native to flutter messages on main thread ([#134](https://github.com/customerio/customerio-flutter/issues/134)) ([bc8704b](https://github.com/customerio/customerio-flutter/commit/bc8704b03891372566f3450ed02a082ecb0ae4a9))
+
 ## [1.5.0](https://github.com/customerio/customerio-flutter/compare/1.4.0...1.5.0) (2024-07-02)
 
 ### Features
