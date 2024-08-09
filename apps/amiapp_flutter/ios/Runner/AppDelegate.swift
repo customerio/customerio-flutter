@@ -5,7 +5,7 @@ import CioTracking
 import FirebaseMessaging
 import FirebaseCore
 
-@UIApplicationMain
+@main
 @objc class AppDelegate: FlutterAppDelegate {
     override func application(
         _ application: UIApplication,
