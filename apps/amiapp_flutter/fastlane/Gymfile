@@ -1,4 +1,8 @@
-configuration 'Release'
-export_method 'ad-hoc'
-scheme "Runner" # scheme in XCode workspace of Flutter generated iOS app
-workspace "ios/Runner.xcworkspace"
+# For more information about this configuration run `fastlane gym --help` or check
+# out the documentation at https://docs.fastlane.tools/actions/gym/#gymfile
+
+configuration("Release")
+export_method("ad-hoc")
+# scheme in XCode workspace of Flutter generated iOS app
+scheme("Runner")
+workspace("ios/Runner.xcworkspace")
