@@ -1,0 +1,48 @@
+# import Fastfile from the apple-code-signing repo to reuse signing lanes
+import_from_git(
+  url: "https://github.com/customerio/apple-code-signing.git",
+  branch: "main",
+  path: "fastlane/Fastfile"
+)
+# Use expand_path to import code so it automatically resolves the path based on the current file
+import File.expand_path('helpers/build_helper.rb', __dir__)
+import File.expand_path('helpers/version_helper.rb', __dir__)
+
+# Helper method to update pubspec version
+def update_pubspec_version(project_path, new_version)
+  pubspec_path = File.join(project_path, 'pubspec.yaml')
+
+  unless File.exist?(pubspec_path)
+    UI.user_error!("pubspec.yaml not found at #{pubspec_path}")
+  end
+
+  pubspec_content = File.read(pubspec_path)
+  new_pubspec_content = pubspec_content.gsub(/^version: .*/, "version: #{new_version}")
+
+  File.write(pubspec_path, new_pubspec_content)
+  UI.message("Updated version to #{new_version} in #{pubspec_path}")
+end
+
+# Lane to update Flutter app version
+lane :update_flutter_sdk_version do |options|
+  project_path = options[:project_path] || File.join(Dir.pwd, '../../..')
+  version_name = options[:version_name] || ENV['SDK_VERSION_NAME']
+
+  UI.message("Updating sdk version to #{version_name} in #{project_path}")
+  update_pubspec_version(project_path, version_name)
+end
+
+# Lane to update Flutter app version
+lane :update_flutter_app_version do |options|
+  project_path = options[:project_path] || File.join(Dir.pwd, '..')
+  version_name = options[:version_name] || ENV['APP_VERSION_NAME']
+  version_code = options[:version_code] || ENV['APP_VERSION_CODE']
+
+  # To match version format with flutter apps e.g. 1.0.0+1
+  new_version = "#{version_name}+#{version_code}"
+
+  UI.message("Updating app versions to #{new_version} in #{project_path}")
+  update_pubspec_version(project_path, new_version)
+  update_android_version(project_path, version_name, version_code)
+  update_ios_version(project_path, version_name, version_code)
+end

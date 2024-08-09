@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 extension AmiAppExtensions on BuildContext {
   void showSnackBar(String text) {
@@ -97,5 +98,18 @@ extension AmiAppDoubleExtensions on double {
       return toString();
     }
     return toStringAsFixed(0);
+  }
+}
+
+extension LocationExtensions on GoRouter {
+  // Get location of current route
+  // This is a workaround to get the current location as location property
+  // was removed from GoRouter in v9.0.0
+  // See migration guide:
+  // https://flutter.dev/go/go-router-v9-breaking-changes
+  String currentLocation() {
+    final RouteMatch lastMatch = routerDelegate.currentConfiguration.last;
+    final RouteMatchList matchList = lastMatch is ImperativeRouteMatch ? lastMatch.matches : routerDelegate.currentConfiguration;
+    return matchList.uri.toString();
   }
 }
