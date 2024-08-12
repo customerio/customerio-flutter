@@ -34,18 +34,25 @@ import FirebaseCore
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
     
-    func application(application: UIApplication,
-                     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        Messaging.messaging().setAPNSToken(deviceToken, type: .unknown);
-    }
-    
-    override func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        MessagingPush.shared.application(application, didFailToRegisterForRemoteNotificationsWithError: error)
+    // Called when app receives a APN device token.
+    // The Customer.io SDK automatically gets called when the token is received, no need to pass it to the SDK from this function.
+    // To test that the Customer.io SDK is compatible with 3rd party SDKs, we expect that this function is called in case the customer needs the APN token for other purposes.
+    override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
+        
+        CustomerIO.shared.track(name: "APN token received from AppDelegate", data: [
+            "token": deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+        ])
     }
 }
 
 extension AppDelegate: MessagingDelegate {
+    // Called when app receives a FCM device token.
+    // The Customer.io SDK automatically gets called when the token is received, no need to pass it to the SDK from this function.
+    // To test that the Customer.io SDK is compatible with 3rd party SDKs, we expect that this function is called in case the customer needs the FCM token for other purposes.
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        MessagingPush.shared.messaging(messaging, didReceiveRegistrationToken: fcmToken)
+        CustomerIO.shared.track(name: "FCM token received from AppDelegate", data: [
+            "token": fcmToken ?? "nil"
+        ])
     }
 }

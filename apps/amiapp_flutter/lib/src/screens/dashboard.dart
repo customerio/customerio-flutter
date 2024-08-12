@@ -74,6 +74,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       CustomerIO.track(name: "push received", attributes: {"push": message.notification?.title, "app-state": "foreground"});
     });
+    
+    // To test if the Customer.io SDK is compatible with 3rd party SDKs registering device tokens, we expect that flutterfire SDK is able to return back a FCM device token. We expect that once the Customer.io SDK receives the token, it passes the token onto other listeners in the app such as flutterfire.
+    FirebaseMessaging.instance.getToken(vapidKey: null).then((fcmToken) {
+      CustomerIO.track(name: "3rd party SDK can access device token", attributes: {"token": fcmToken});
+    });
 
     super.initState();
   }
