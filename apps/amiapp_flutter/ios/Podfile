@@ -45,7 +45,7 @@ target 'Runner' do
   # Uncomment only 1 of the lines below to install a version of the iOS SDK
   pod 'CustomerIO/MessagingPushFCM', '~> 2.13' # install production build
   # install_non_production_ios_sdk_local_path(local_path: '~/code/customerio-ios/', is_app_extension: false, push_service: "fcm")
-  # install_non_production_ios_sdk_git_branch(branch_name: 'levi/v2-multiple-push-handlers', is_app_extension: false, push_service: "fcm")
+  install_non_production_ios_sdk_git_branch(branch_name: 'levi/push/swizzle-device-token-v2', is_app_extension: false, push_service: "fcm")
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
@@ -55,7 +55,7 @@ target 'NotificationServiceExtension' do
   # Uncomment only 1 of the lines below to install a version of the iOS SDK
   pod 'CustomerIO/MessagingPushFCM', '~> 2.13' # install production build
   # install_non_production_ios_sdk_local_path(local_path: '~/code/customerio-ios/', is_app_extension: true, push_service: "fcm")
-  # install_non_production_ios_sdk_git_branch(branch_name: 'levi/v2-multiple-push-handlers', is_app_extension: true, push_service: "fcm")
+  install_non_production_ios_sdk_git_branch(branch_name: 'levi/push/swizzle-device-token-v2', is_app_extension: true, push_service: "fcm")
 end
 
 post_install do |installer|
