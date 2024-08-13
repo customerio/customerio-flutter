@@ -4,8 +4,6 @@ on:
   pull_request: # build sample apps for every commit pushed to an open pull request (including drafts)
   push:
     branches: [ main, feature/* ]
-  release: # build sample apps for every git tag created. These are known as "stable" builds that are suitable for people outside the mobile team.
-    types: [ published ]
 
 concurrency: # cancel previous workflow run if one exists.
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -147,6 +145,7 @@ jobs:
           lane: 'android build'
         env:
           FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64: ${{ secrets.FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64 }}
+        continue-on-error: true # continue to build iOS app even if Android build fails
 
       - name: Setup iOS environment for sample app
         uses: customerio/customerio-ios/.github/actions/setup-ios@main
