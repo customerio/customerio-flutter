@@ -1,0 +1,187 @@
+name: Build sample apps
+
+on:
+  pull_request: # build sample apps for every commit pushed to an open pull request (including drafts)
+  push:
+    branches: [ main, feature/* ]
+
+concurrency: # cancel previous workflow run if one exists.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  XCODE_VERSION: "15.3"
+
+jobs:
+  update-pr-comment:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # to be able to comment on PR
+    outputs:
+      comment-id: ${{ steps.create-comment.outputs.comment-id }}
+    steps:
+      - name: Find Comment
+        uses: peter-evans/find-comment@v3
+        id: existing-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: <!-- sample app builds -->
+
+      - name: Create or update comment
+        uses: peter-evans/create-or-update-comment@v4
+        id: create-comment
+        with:
+          comment-id: ${{ steps.existing-comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            <!-- sample app builds --> 
+            # Sample app builds 📱
+            
+            Below you will find the list of the latest versions of the sample apps. It's recommended to always download the latest builds of the sample apps to accurately test the pull request. 
+            
+            ---
+            ${{ steps.build.outputs.build-log }}
+          edit-mode: replace # replace the existing comment with new content since we are creating new builds
+
+  build-ios-sample-apps:
+    if: ${{ always() }} # do not skip running this step if update-pr-comment does not run
+    needs: [ update-pr-comment ] # wait for PR comment to be created saying new builds are being made.
+    permissions:
+      pull-requests: write # comment on pull request with build information
+    strategy:
+      fail-fast: false # if one sample app fails to build, let the other sample apps continue to build and not cancel them.
+      matrix: # Use a matrix allowing us to build multiple apps in parallel. Just add an entry to the matrix and it will build!
+        sample-app:
+          # List all sample apps you want to have compiled.
+          # List item is name of directory inside of "apps" directory for the corresponding app to compile.
+          - "amiapp_flutter"
+    defaults:
+      run:
+        working-directory: apps/${{ matrix.sample-app }}
+    runs-on: macos-14
+    name: Building sample app ${{ matrix.sample-app }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Install CLI tools, Ruby, and Ruby dependencies for Fastlane
+
+      - name: Install CLI tools used in CI script
+        shell: bash
+        run: |
+          brew install sd # used in CI script as an easier to use sed CLI. Replaces text in files. 
+          brew install xcbeautify # used by fastlane for output
+
+      - name: Install Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true # cache tools to make builds faster in future
+          working-directory: apps/${{ matrix.sample-app }}
+
+      # Update version numbers and workspace credentials before building the app
+
+      - name: Generate New Version
+        uses: maierj/fastlane-action@v3.1.0
+        with:
+          subdirectory: apps/${{ matrix.sample-app }}
+          lane: "generate_new_version"
+          options: '{"branch_name":"${{ github.ref_name }}", "pull_request_number":"${{ github.event.pull_request.number }}"}'
+
+      - name: Update Flutter SDK Version
+        uses: maierj/fastlane-action@v3.1.0
+        with:
+          subdirectory: apps/${{ matrix.sample-app }}
+          lane: "update_flutter_sdk_version"
+        env:
+          SDK_VERSION_NAME: ${{ env.SDK_VERSION_NAME }}
+          APP_VERSION_NAME: ${{ env.APP_VERSION_NAME }}
+          APP_VERSION_CODE: ${{ env.APP_VERSION_CODE }}
+
+      - name: Update Sample App Version
+        uses: maierj/fastlane-action@v3.1.0
+        with:
+          subdirectory: apps/${{ matrix.sample-app }}
+          lane: "update_flutter_app_version"
+        env:
+          SDK_VERSION_NAME: ${{ env.SDK_VERSION_NAME }}
+          APP_VERSION_NAME: ${{ env.APP_VERSION_NAME }}
+          APP_VERSION_CODE: ${{ env.APP_VERSION_CODE }}
+
+      - name: Setup workspace credentials in flutter environment files
+        run: |
+          cp ".env.example" ".env"
+          sd 'SITE_ID=.*' "SITE_ID=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_SITE_ID', matrix.sample-app)] }}" ".env"
+          sd 'API_KEY=.*' "API_KEY=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_API_KEY', matrix.sample-app)] }}" ".env"
+
+      - name: Setup workspace credentials in iOS environment files
+        run: |
+          cp "ios/Env.swift.example" "ios/Env.swift"
+          sd 'siteId: String = ".*"' "siteId: String = \"${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_SITE_ID', matrix.sample-app)] }}\"" "ios/Env.swift"
+          sd 'apiKey: String = ".*"' "apiKey: String = \"${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_API_KEY', matrix.sample-app)] }}\"" "ios/Env.swift"
+
+      # Make sure to fetch dependencies only after updating the version numbers and workspace credentials
+
+      - name: Setup flutter environment and install dependencies
+        uses: ./.github/actions/setup-flutter
+
+      - name: Install flutter dependencies for sample app
+        run: flutter pub get
+
+      - name: Setup Android environment for sample app
+        uses: customerio/customerio-android/.github/actions/setup-android@main
+
+      - name: Build and upload Android app via Fastlane
+        uses: maierj/fastlane-action@v3.1.0
+        with:
+          subdirectory: apps/${{ matrix.sample-app }}
+          lane: 'android build'
+        env:
+          FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64: ${{ secrets.FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64 }}
+        continue-on-error: true # continue to build iOS app even if Android build fails
+
+      - name: Setup iOS environment for sample app
+        uses: customerio/customerio-ios/.github/actions/setup-ios@main
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Cache CocoaPods downloaded dependencies for faster builds in the future
+        uses: actions/cache@v4
+        with:
+          path: Pods
+          key: ${{ runner.os }}-${{ matrix.sample-app }}-Pods-${{ github.ref }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.sample-app }}-Pods
+
+      - name: pod install
+        run: pod install --project-directory=ios
+
+      - name: Build and upload iOS app via Fastlane
+        uses: maierj/fastlane-action@v3.1.0
+        with:
+          subdirectory: apps/${{ matrix.sample-app }}
+          lane: "ios build"
+        env:
+          GOOGLE_CLOUD_MATCH_READONLY_SERVICE_ACCOUNT_B64: ${{ secrets.GOOGLE_CLOUD_MATCH_READONLY_SERVICE_ACCOUNT_B64 }}
+          FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64: ${{ secrets.FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64 }}
+
+      - name: Update sample builds PR comment with build information
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ needs.update-pr-comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          # the variables APP_VERSION_NAME, APP_VERSION_CODE are created when fastlane runs "build".
+          body: |
+            * ${{ matrix.sample-app }}: `${{ env.APP_VERSION_NAME }} (${{ env.APP_VERSION_CODE }})`
+          edit-mode: append # append new line to the existing PR comment to build a list of all sample app builds.
+
+      - name: Update sample builds PR comment with build failure message
+        if: ${{ github.event_name == 'pull_request' && failure() }}
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ needs.update-pr-comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            * ${{ matrix.sample-app }}: Build failed. See [CI job logs](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to determine the issue and try re-building.
+          edit-mode: append # append new line to the existing PR comment to build a list of all sample app builds.
