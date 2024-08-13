@@ -85,6 +85,9 @@ jobs:
           ruby-version: ${{ env.RUBY_VERSION }}
           bundler-cache: true # cache tools to make builds faster in future
 
+      - name: Install Ruby dependencies
+        run: bundle install
+
       # Update version numbers and workspace credentials before building the app
 
       - name: Generate New Version
@@ -182,7 +185,7 @@ jobs:
           edit-mode: append # append new line to the existing PR comment to build a list of all sample app builds.
 
       - name: Update sample builds PR comment with build failure message
-        if: ${{ failure() }}
+        if: ${{ github.event_name == 'pull_request' && failure() }}
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ needs.update-pr-comment.outputs.comment-id }}
