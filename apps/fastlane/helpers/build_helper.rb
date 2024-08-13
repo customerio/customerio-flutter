@@ -8,7 +8,8 @@ platform :android do
     test_groups = get_build_test_groups()
     app_package_name = CredentialsManager::AppfileConfig.try_fetch_value(:package_name) # get package_name from Appfile
 
-    UI.important(find_firebase_app_id(app_identifier: app_package_name))
+    # Firebase app id is required. Fetch it from google-services.json file using app_package_name
+    UI.important("Firebase app id: #{find_firebase_app_id(app_identifier: app_package_name)} for app package name: #{app_package_name}")
 
     # Build release APK using Flutter CLI
     sh("flutter build apk --release")
