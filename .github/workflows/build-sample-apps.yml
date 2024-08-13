@@ -73,18 +73,11 @@ jobs:
           brew install sd # used in CI script as an easier to use sed CLI. Replaces text in files. 
           brew install xcbeautify # used by fastlane for output
 
-      - name: Read Ruby Version
-        id: read_ruby_version
-        run: echo "RUBY_VERSION=$(cat .ruby-version)" >> $GITHUB_ENV
-
       - name: Install Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: ${{ env.RUBY_VERSION }}
           bundler-cache: true # cache tools to make builds faster in future
-
-      - name: Install Ruby dependencies
-        run: bundle install
+          working-directory: apps/${{ matrix.sample-app }}
 
       # Update version numbers and workspace credentials before building the app
 
