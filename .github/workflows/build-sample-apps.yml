@@ -85,9 +85,6 @@ jobs:
           ruby-version: ${{ env.RUBY_VERSION }}
           bundler-cache: true # cache tools to make builds faster in future
 
-      - name: Install Ruby dependencies
-        run: bundle install
-
       # Update version numbers and workspace credentials before building the app
 
       - name: Generate New Version
@@ -138,7 +135,7 @@ jobs:
         run: flutter pub get
 
       - name: Setup Android environment for sample app
-        uses: ./.github/actions/setup-android
+        uses: customerio/customerio-android/.github/actions/setup-android@main
 
       - name: Build and upload Android app via Fastlane
         uses: maierj/fastlane-action@v3.1.0
@@ -149,7 +146,7 @@ jobs:
           FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64: ${{ secrets.FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64 }}
 
       - name: Setup iOS environment for sample app
-        uses: ./.github/actions/setup-ios
+        uses: customerio/customerio-ios/.github/actions/setup-ios@main
         with:
           xcode-version: ${{ env.XCODE_VERSION }}
 
