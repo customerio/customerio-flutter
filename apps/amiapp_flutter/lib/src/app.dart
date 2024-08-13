@@ -13,13 +13,14 @@ import 'screens/events.dart';
 import 'screens/login.dart';
 import 'screens/settings.dart';
 import 'theme/sizes.dart';
+import 'utils/extensions.dart';
 import 'utils/logs.dart';
 
 /// Main entry point of AmiApp
 class AmiApp extends StatefulWidget {
   final AmiAppAuth auth;
 
-  const AmiApp({required this.auth, Key? key}) : super(key: key);
+  const AmiApp({required this.auth, super.key});
 
   @override
   State<AmiApp> createState() => _AmiAppState();
@@ -98,7 +99,7 @@ class _AmiAppState extends State<AmiApp> {
             // If user is not signed in and public view is not allowed, redirect
             // to login screen
             final isPublicViewAllowed =
-                state.location.toAppScreen()?.isPublicViewAllowed == true;
+                state.uri.toString().toAppScreen()?.isPublicViewAllowed == true;
             if (!signedIn && !isPublicViewAllowed) {
               return Screen.login.location;
             }
@@ -118,8 +119,8 @@ class _AmiAppState extends State<AmiApp> {
               path: Screen.settings.path,
               builder: (context, state) => SettingsScreen(
                 auth: _auth,
-                siteIdInitialValue: state.queryParameters['site_id'],
-                apiKeyInitialValue: state.queryParameters['api_key'],
+                siteIdInitialValue: state.uri.queryParameters['site_id'],
+                apiKeyInitialValue: state.uri.queryParameters['api_key'],
               ),
             ),
             GoRoute(
@@ -149,7 +150,7 @@ class _AmiAppState extends State<AmiApp> {
       // Initial route will not be tracked if user is logged in as there is no
       // route change, tracking initial screen manually for this case.
       // Events/screens can only be tracked after SDK has been initialized.
-      if (_router.location.toAppScreen() != Screen.dashboard) {
+      if (_router.currentLocation().toAppScreen() != Screen.dashboard) {
         _onRouteChanged();
       }
       return value;
@@ -157,7 +158,7 @@ class _AmiAppState extends State<AmiApp> {
     _customerIOSDK.addListener(_handleSDKConfigurationsChanged);
 
     // Listen to screen changes for observing screens
-    _router.addListener(() => _onRouteChanged());
+    _router.routerDelegate.addListener(() => _onRouteChanged());
 
     super.initState();
   }
@@ -213,7 +214,7 @@ class _AmiAppState extends State<AmiApp> {
 
   void _onRouteChanged() {
     if (_customerIOSDK.sdkConfig?.screenTrackingEnabled == true) {
-      final Screen? screen = _router.location.toAppScreen();
+      final Screen? screen = _router.currentLocation().toAppScreen();
       if (screen != null) {
         CustomerIO.screen(name: screen.name);
       }
