@@ -70,7 +70,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.initState();
   }
 
-  void _saveSettings() {
+  void _saveSettings(BuildContext context) {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -88,7 +88,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       debugModeEnabled: _featureDebugMode,
     );
     widget._customerIOSDK.saveConfigToPreferences(newConfig).then((success) {
-      if (success) {
+      if (!context.mounted) {
+        return;
+      } else if (success) {
         context.showSnackBar('Settings saved successfully');
         Navigator.of(context).pop();
         // Restart app here
@@ -118,7 +120,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _featureTrackDeviceAttributes =
           defaultConfig.deviceAttributesTrackingEnabled;
       _featureDebugMode = defaultConfig.debugModeEnabled;
-      _saveSettings();
+      _saveSettings(context);
     });
   }
 
@@ -127,7 +129,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final Sizes sizes = Theme.of(context).extension<Sizes>()!;
 
     return PopScope(
-      onPopInvoked: (bool didPop) {
+      onPopInvokedWithResult: (bool didPop, result) {
         if (widget.auth.signedIn == false) {
           context.go(Screen.login.location);
         }
@@ -166,9 +168,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               onPressed: () {
                                 final clipboardData = ClipboardData(
                                     text: _deviceTokenValueController.text);
-                                Clipboard.setData(clipboardData).then((_) =>
+                                Clipboard.setData(clipboardData).then((_) {
+                                  if (context.mounted) {
                                     context.showSnackBar(
-                                        'Device Token copied to clipboard'));
+                                      'Device Token copied to clipboard',
+                                    );
+                                  }
+                                });
                               },
                             ),
                           ),
@@ -284,7 +290,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: FilledButton.styleFrom(
                   minimumSize: sizes.buttonDefault(),
                 ),
-                onPressed: () => _saveSettings(),
+                onPressed: () => _saveSettings(context),
                 child: Text(
                   'Save'.toUpperCase(),
                   semanticsLabel: 'Save Settings Button',

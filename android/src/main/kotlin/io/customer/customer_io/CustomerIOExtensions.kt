@@ -26,7 +26,12 @@ internal fun <R> MethodCall.invokeNative(
     try {
         @Suppress("UNCHECKED_CAST")
         val params = this.arguments as? Map<String, Any> ?: emptyMap()
-        result.success(performAction(params))
+        val actionResult = performAction(params)
+        if (actionResult is Unit) {
+            result.success(true)
+        } else {
+            result.success(actionResult)
+        }
     } catch (ex: Exception) {
         result.error(this.method, ex.localizedMessage, ex)
     }
