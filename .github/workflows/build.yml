@@ -11,7 +11,7 @@ concurrency:
 
 defaults:
   run:
-    working-directory: example/
+    working-directory: apps/amiapp_flutter
 
 jobs:
   build_ios:
