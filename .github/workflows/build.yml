@@ -2,6 +2,7 @@ name: Flutter Build
 
 on:
   push:
+    branches: [main]
 # Cancel jobs and just run the last one
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
