@@ -1,3 +1,9 @@
+## [1.5.2](https://github.com/customerio/customerio-flutter/compare/1.5.1...1.5.2) (2024-09-06)
+
+### Bug Fixes
+
+* improve in-app logs ([#139](https://github.com/customerio/customerio-flutter/issues/139)) ([b10cc75](https://github.com/customerio/customerio-flutter/commit/b10cc751d6f220e7c7ade1c189bba28ee16b68ff))
+
 ## [1.5.1](https://github.com/customerio/customerio-flutter/compare/1.5.0...1.5.1) (2024-08-01)
 
 ### Bug Fixes
