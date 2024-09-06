@@ -22,8 +22,8 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
     - name: Install CLI tools used in CI script
-        run: |
-            brew install sd # used in CI script as an easier to use sed CLI. Replaces text in files.
+      run: |
+        brew install sd # used in CI script as an easier to use sed CLI. Replaces text in files.
     - name: Setup workspace credentials in iOS environment files
       run: |
         cp "ios/Env.swift.example" "ios/Env.swift"
