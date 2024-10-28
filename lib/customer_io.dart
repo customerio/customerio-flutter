@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
+
 import 'customer_io_config.dart';
 import 'customer_io_enums.dart';
 import 'customer_io_inapp.dart';
@@ -8,23 +10,70 @@ import 'messaging_in_app/platform_interface.dart';
 import 'messaging_push/platform_interface.dart';
 
 class CustomerIO {
-  const CustomerIO._();
+  static CustomerIO? _instance;
 
-  static CustomerIOPlatform get _customerIO => CustomerIOPlatform.instance;
+  final CustomerIOPlatform _platform;
+  final CustomerIOMessagingPushPlatform _pushMessaging;
+  final CustomerIOMessagingInAppPlatform _inAppMessaging;
 
-  static CustomerIOMessagingPushPlatform get _customerIOMessagingPush =>
-      CustomerIOMessagingPushPlatform.instance;
+  /// Private constructor to enforce singleton pattern
+  CustomerIO._({
+    CustomerIOPlatform? platform,
+    CustomerIOMessagingPushPlatform? pushMessaging,
+    CustomerIOMessagingInAppPlatform? inAppMessaging,
+  })  : _platform = platform ?? CustomerIOPlatform.instance,
+        _pushMessaging =
+            pushMessaging ?? CustomerIOMessagingPushPlatform.instance,
+        _inAppMessaging =
+            inAppMessaging ?? CustomerIOMessagingInAppPlatform.instance;
 
-  static CustomerIOMessagingInAppPlatform get _customerIOMessagingInApp =>
-      CustomerIOMessagingInAppPlatform.instance;
+  /// Get the singleton instance of CustomerIO
+  static CustomerIO get instance {
+    if (_instance == null) {
+      throw StateError(
+        'CustomerIO SDK must be initialized before accessing instance.\n'
+        'Call CustomerIO.initialize() first.',
+      );
+    }
+    return _instance!;
+  }
+
+  /// For testing: create a new instance with mock implementations
+  @visibleForTesting
+  static CustomerIO createInstance({
+    CustomerIOPlatform? platform,
+    CustomerIOMessagingPushPlatform? pushMessaging,
+    CustomerIOMessagingInAppPlatform? inAppMessaging,
+  }) {
+    _instance = CustomerIO._(
+      platform: platform,
+      pushMessaging: pushMessaging,
+      inAppMessaging: inAppMessaging,
+    );
+    return _instance!;
+  }
+
+  @visibleForTesting
+  static void reset() {
+    _instance = null;
+  }
+
+  /// Access push messaging functionality
+  CustomerIOMessagingPushPlatform get pushMessaging => _pushMessaging;
+
+  /// Access in-app messaging functionality
+  CustomerIOMessagingInAppPlatform get inAppMessaging => _inAppMessaging;
 
   /// To initialize the plugin
   ///
   /// @param config includes required and optional configs etc
-  static Future<void> initialize({
-    required CustomerIOConfig config,
-  }) {
-    return _customerIO.initialize(config: config);
+  static Future<void> initialize({required CustomerIOConfig config}) async {
+    if (_instance != null) {
+      throw StateError('CustomerIO SDK has already been initialized');
+    }
+
+    _instance = CustomerIO._();
+    await _instance!._platform.initialize(config: config);
   }
 
   /// Identify a person using a unique identifier, eg. email id.
@@ -34,18 +83,18 @@ class CustomerIO {
   ///
   /// @param identifier unique identifier for a profile
   /// @param attributes (Optional) params to set profile attributes
-  static void identify(
+  void identify(
       {required String identifier,
       Map<String, dynamic> attributes = const {}}) {
-    return _customerIO.identify(identifier: identifier, attributes: attributes);
+    return _platform.identify(identifier: identifier, attributes: attributes);
   }
 
   /// Call this function to stop identifying a person.
   ///
   /// If a profile exists, clearIdentify will stop identifying the profile.
   /// If no profile exists, request to clearIdentify will be ignored.
-  static void clearIdentify() {
-    _customerIO.clearIdentify();
+  void clearIdentify() {
+    _platform.clearIdentify();
   }
 
   /// To track user events like loggedIn, addedItemToCart etc.
@@ -53,49 +102,49 @@ class CustomerIO {
   ///
   /// @param name event name to be tracked
   /// @param attributes (Optional) params to be sent with event
-  static void track(
+  void track(
       {required String name, Map<String, dynamic> attributes = const {}}) {
-    return _customerIO.track(name: name, attributes: attributes);
+    return _platform.track(name: name, attributes: attributes);
   }
 
   /// Track a push metric
-  static void trackMetric(
+  void trackMetric(
       {required String deliveryID,
       required String deviceToken,
       required MetricEvent event}) {
-    return _customerIO.trackMetric(
+    return _platform.trackMetric(
         deliveryID: deliveryID, deviceToken: deviceToken, event: event);
   }
 
   /// Register a new device token with Customer.io, associated with the current active customer. If there
   /// is no active customer, this will fail to register the device
-  static void registerDeviceToken({required String deviceToken}) {
-    return _customerIO.registerDeviceToken(deviceToken: deviceToken);
+  void registerDeviceToken({required String deviceToken}) {
+    return _platform.registerDeviceToken(deviceToken: deviceToken);
   }
 
   /// Track screen events to record the screens a user visits
   ///
   /// @param name name of the screen user visited
   /// @param attributes (Optional) params to be sent with event
-  static void screen(
+  void screen(
       {required String name, Map<String, dynamic> attributes = const {}}) {
-    return _customerIO.screen(name: name, attributes: attributes);
+    return _platform.screen(name: name, attributes: attributes);
   }
 
   /// Use this function to send custom device attributes
   /// such as app preferences, timezone etc
   ///
   /// @param attributes device attributes
-  static void setDeviceAttributes({required Map<String, dynamic> attributes}) {
-    return _customerIO.setDeviceAttributes(attributes: attributes);
+  void setDeviceAttributes({required Map<String, dynamic> attributes}) {
+    return _platform.setDeviceAttributes(attributes: attributes);
   }
 
   /// Set custom user profile information such as user preference, specific
   /// user actions etc
   ///
   /// @param attributes additional attributes for a user profile
-  static void setProfileAttributes({required Map<String, dynamic> attributes}) {
-    return _customerIO.setProfileAttributes(attributes: attributes);
+  void setProfileAttributes({required Map<String, dynamic> attributes}) {
+    return _platform.setProfileAttributes(attributes: attributes);
   }
 
   /// Subscribes to an in-app event listener.
@@ -104,16 +153,8 @@ class CustomerIO {
   /// The callback returns [InAppEvent].
   ///
   /// Returns a [StreamSubscription] that can be used to subscribe/unsubscribe from the event listener.
-  static StreamSubscription subscribeToInAppEventListener(
+  StreamSubscription subscribeToInAppEventListener(
       void Function(InAppEvent) onEvent) {
-    return _customerIO.subscribeToInAppEventListener(onEvent);
-  }
-
-  static CustomerIOMessagingPushPlatform messagingPush() {
-    return _customerIOMessagingPush;
-  }
-
-  static CustomerIOMessagingInAppPlatform messagingInApp() {
-    return _customerIOMessagingInApp;
+    return _platform.subscribeToInAppEventListener(onEvent);
   }
 }
