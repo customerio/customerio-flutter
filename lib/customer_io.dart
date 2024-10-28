@@ -68,12 +68,15 @@ class CustomerIO {
   ///
   /// @param config includes required and optional configs etc
   static Future<void> initialize({required CustomerIOConfig config}) async {
-    if (_instance != null) {
-      throw StateError('CustomerIO SDK has already been initialized');
+    // Check if already initialized
+    if (_instance == null) {
+      // Create new instance if not initialized
+      _instance = CustomerIO._();
+      // Initialize the platform
+      await _instance!._platform.initialize(config: config);
+    } else {
+      print('CustomerIO SDK has already been initialized');
     }
-
-    _instance = CustomerIO._();
-    await _instance!._platform.initialize(config: config);
   }
 
   /// Identify a person using a unique identifier, eg. email id.
