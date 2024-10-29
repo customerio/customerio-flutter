@@ -20,13 +20,6 @@ import FirebaseCore
 
         Messaging.messaging().delegate = self
         
-        // TODO: Fix SDK initialization
-        /*
-        CustomerIO.initialize(siteId: Env.siteId, apiKey: Env.apiKey, region: .US) { config in
-            config.autoTrackDeviceAttributes = true
-            config.logLevel = .debug
-        }
-         */
         // TODO: Fix MessagingPush initialization
         /*
         MessagingPushFCM.initialize(configOptions: nil)
