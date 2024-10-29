@@ -15,14 +15,9 @@ import io.customer.messagingpush.MessagingPushModuleConfig
 import io.customer.messagingpush.ModuleMessagingPushFCM
 import io.customer.messagingpush.config.PushClickBehavior
 import io.customer.sdk.CustomerIO
-import io.customer.sdk.CustomerIOConfig
-import io.customer.sdk.CustomerIOShared
+import io.customer.sdk.core.di.SDKComponent
+import io.customer.sdk.core.util.Logger
 import io.customer.sdk.data.model.Region
-import io.customer.sdk.data.request.MetricEvent
-import io.customer.sdk.extensions.getProperty
-import io.customer.sdk.extensions.getString
-import io.customer.sdk.extensions.takeIfNotBlank
-import io.customer.sdk.util.Logger
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -47,8 +42,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     private lateinit var modules: List<CustomerIOPluginModule>
 
-    private val logger: Logger
-        get() = CustomerIOShared.instance().diStaticGraph.logger
+    private val logger: Logger = SDKComponent.logger
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         this.activity = WeakReference(binding.activity)
@@ -161,13 +155,18 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun identify(params: Map<String, Any>) {
+        // TODO: Fix identify implementation
+        /*
         val identifier = params.getString(Keys.Tracking.IDENTIFIER)
         val attributes =
             params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: emptyMap()
         CustomerIO.instance().identify(identifier, attributes)
+         */
     }
 
     private fun track(params: Map<String, Any>) {
+        // TODO: Fix track implementation
+        /*
         val name = params.getString(Keys.Tracking.EVENT_NAME)
         val attributes =
             params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: emptyMap()
@@ -177,14 +176,20 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         } else {
             CustomerIO.instance().track(name, attributes)
         }
+         */
     }
 
     private fun registerDeviceToken(params: Map<String, Any>) {
+        // TODO: Fix registerDeviceToken implementation
+        /*
         val token = params.getString(Keys.Tracking.TOKEN)
         CustomerIO.instance().registerDeviceToken(token)
+         */
     }
 
     private fun trackMetric(params: Map<String, Any>) {
+        // TODO: Fix trackMetric implementation
+        /*
         val deliveryId = params.getString(Keys.Tracking.DELIVERY_ID)
         val deliveryToken = params.getString(Keys.Tracking.DELIVERY_TOKEN)
         val eventName = params.getProperty<String>(Keys.Tracking.METRIC_EVENT)
@@ -198,21 +203,30 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         CustomerIO.instance().trackMetric(
             deliveryID = deliveryId, deviceToken = deliveryToken, event = event
         )
+         */
     }
 
     private fun setDeviceAttributes(params: Map<String, Any>) {
+        // TODO: Fix setDeviceAttributes implementation
+        /*
         val attributes = params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: return
 
         CustomerIO.instance().deviceAttributes = attributes
+         */
     }
 
     private fun setProfileAttributes(params: Map<String, Any>) {
+        // TODO: Fix setProfileAttributes implementation
+        /*
         val attributes = params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: return
 
         CustomerIO.instance().profileAttributes = attributes
+         */
     }
 
     private fun screen(params: Map<String, Any>) {
+        // TODO: Fix screen implementation
+        /*
         val name = params.getString(Keys.Tracking.EVENT_NAME)
         val attributes =
             params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: emptyMap()
@@ -222,9 +236,12 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         } else {
             CustomerIO.instance().screen(name, attributes)
         }
+         */
     }
 
     private fun initialize(configData: Map<String, Any>) {
+        // TODO: Fix initialize implementation
+        /*
         val application: Application = context.applicationContext as Application
         val siteId = configData.getString(Keys.Environment.SITE_ID)
         val apiKey = configData.getString(Keys.Environment.API_KEY)
@@ -272,10 +289,13 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 lifecycleCallbacks.postDelayedEventsForNonNativeActivity(activity)
             }
         }
+         */
     }
 
     private fun configureModuleMessagingPushFCM(config: Map<String, Any?>?): ModuleMessagingPushFCM {
         return ModuleMessagingPushFCM(
+            // TODO: Fix push module configuration
+            /*
             config = MessagingPushModuleConfig.Builder().apply {
                 config?.getProperty<Boolean>(CustomerIOConfig.Companion.Keys.AUTO_TRACK_PUSH_EVENTS)
                     ?.let { value ->
@@ -292,6 +312,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                         }
                     }
             }.build(),
+             */
         )
     }
 

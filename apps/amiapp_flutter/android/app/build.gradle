@@ -79,7 +79,7 @@ dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.2'
     // Adding customer.io android sdk dependencies so we can use them in native code
     // These are not generally needed and should be avoided
-    implementation "io.customer.android:tracking"
+    implementation "io.customer.android:datapipelines"
     implementation "io.customer.android:messaging-push-fcm"
     implementation "io.customer.android:messaging-in-app"
 }

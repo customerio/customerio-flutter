@@ -6,9 +6,8 @@ import io.customer.customer_io.constant.Keys
 import io.customer.customer_io.getAsTypeOrNull
 import io.customer.customer_io.invokeNative
 import io.customer.messagingpush.CustomerIOFirebaseMessagingService
-import io.customer.sdk.CustomerIOShared
-import io.customer.sdk.extensions.takeIfNotBlank
-import io.customer.sdk.util.Logger
+import io.customer.sdk.core.di.SDKComponent
+import io.customer.sdk.core.util.Logger
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -25,8 +24,7 @@ internal class CustomerIOPushMessaging(
     private val applicationContext: Context = pluginBinding.applicationContext
     override val flutterCommunicationChannel: MethodChannel =
         MethodChannel(pluginBinding.binaryMessenger, "customer_io_messaging_push")
-    private val logger: Logger
-        get() = CustomerIOShared.instance().diStaticGraph.logger
+    private val logger: Logger = SDKComponent.logger
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
@@ -62,7 +60,7 @@ internal class CustomerIOPushMessaging(
             }
 
             // Generate destination string, see docs on receiver method for more details
-            val destination = (message["to"] as? String)?.takeIfNotBlank()
+            val destination = (message["to"] as? String)?.takeIf { it.isNotBlank() }
                 ?: UUID.randomUUID().toString()
             return CustomerIOFirebaseMessagingService.onMessageReceived(
                 context = applicationContext,
