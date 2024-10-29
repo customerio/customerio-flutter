@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter/cupertino.dart';
 
@@ -75,7 +76,7 @@ class CustomerIO {
       // Initialize the platform
       await _instance!._platform.initialize(config: config);
     } else {
-      print('CustomerIO SDK has already been initialized');
+      log('CustomerIO SDK has already been initialized');
     }
   }
 
