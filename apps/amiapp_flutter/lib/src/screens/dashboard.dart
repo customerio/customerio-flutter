@@ -54,17 +54,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         .then((value) => setState(() => _buildInfo = value));
 
     inAppMessageStreamSubscription =
-        CustomerIO.subscribeToInAppEventListener(handleInAppEvent);
+    CustomerIO.instance.subscribeToInAppEventListener(handleInAppEvent);
 
     // Setup 3rd party SDK, flutter-fire.
     // We install this SDK into sample app to make sure the CIO SDK behaves as expected when there is another SDK installed that handles push notifications.
     FirebaseMessaging.instance.getInitialMessage().then((initialMessage) {
-      CustomerIO.track(name: "push clicked", attributes: {"push": initialMessage?.notification?.title, "app-state": "killed"});
+      CustomerIO.instance.track(name: "push clicked", attributes: {"push": initialMessage?.notification?.title, "app-state": "killed"});
     });
 
     // ...while app was in the background (but not killed).
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      CustomerIO.track(name: "push clicked", attributes: {"push": message.notification?.title, "app-state": "background"});
+      CustomerIO.instance.track(name: "push clicked", attributes: {"push": message.notification?.title, "app-state": "background"});
     });
 
     // Important that a 3rd party SDK can receive callbacks when a push is received while app in background.
@@ -72,7 +72,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Note: A push will not be shown on the device while app is in foreground. This is a FCM behavior, not a CIO SDK behavior.
     // If you send a push using Customer.io with the FCM service setup in Customer.io, the push will be shown on the device.
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      CustomerIO.track(name: "push received", attributes: {"push": message.notification?.title, "app-state": "foreground"});
+      CustomerIO.instance.track(name: "push received", attributes: {"push": message.notification?.title, "app-state": "foreground"});
     });
 
     super.initState();
@@ -111,7 +111,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     };
     attributes.addAll(arguments);
 
-    CustomerIO.track(
+    CustomerIO.instance.track(
       name: 'In-App Event',
       attributes: attributes,
     );
@@ -174,9 +174,9 @@ class _ActionList extends StatelessWidget {
     final eventName = event.key;
     final attributes = event.value;
     if (attributes == null) {
-      CustomerIO.track(name: eventName);
+      CustomerIO.instance.track(name: eventName);
     } else {
-      CustomerIO.track(name: eventName, attributes: attributes);
+      CustomerIO.instance.track(name: eventName, attributes: attributes);
     }
     context.showSnackBar('Event sent successfully');
   }

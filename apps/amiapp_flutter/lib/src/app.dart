@@ -79,7 +79,7 @@ class _AmiAppState extends State<AmiApp> {
             onLogin: (user) {
               _auth.login(user).then((signedIn) {
                 if (signedIn) {
-                  CustomerIO.identify(identifier: user.email, attributes: {
+                  CustomerIO.instance.identify(identifier: user.email, attributes: {
                     "first_name": user.displayName,
                     "email": user.email,
                     "is_guest": user.isGuest,
@@ -216,14 +216,14 @@ class _AmiAppState extends State<AmiApp> {
     if (_customerIOSDK.sdkConfig?.screenTrackingEnabled == true) {
       final Screen? screen = _router.currentLocation().toAppScreen();
       if (screen != null) {
-        CustomerIO.screen(name: screen.name);
+        CustomerIO.instance.screen(name: screen.name);
       }
     }
   }
 
   void _handleAuthStateChanged() {
     if (_auth.signedIn == false) {
-      CustomerIO.clearIdentify();
+      CustomerIO.instance.clearIdentify();
       _auth.clearUserState();
     }
   }
