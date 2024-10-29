@@ -1,6 +1,5 @@
 import Flutter
 import UIKit
-import CioTracking
 import CioInternalCommon
 import CioMessagingInApp
 
@@ -68,6 +67,8 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     }
     
     private func identify(params : Dictionary<String, AnyHashable>){
+        // TODO: Fix identify implementation
+        /*
         guard let identifier = params[Keys.Tracking.identifier] as? String
         else {
             return
@@ -79,6 +80,7 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
         }
         
         CustomerIO.shared.identify(identifier: identifier, body: attributes)
+         */
     }
     
     private func clearIdentify() {
@@ -86,6 +88,8 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     }
     
     private func track(params : Dictionary<String, AnyHashable>)  {
+        // TODO: Fix track implementation
+        /*
         guard let name = params[Keys.Tracking.eventName] as? String
         else {
             return
@@ -97,10 +101,13 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
         }
         
         CustomerIO.shared.track(name: name, data: attributes)
+         */
         
     }
     
     func screen(params : Dictionary<String, AnyHashable>) {
+        // TODO: Fix screen implementation
+        /*
         guard let name = params[Keys.Tracking.eventName] as? String
         else {
             return
@@ -112,35 +119,47 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
         }
         
         CustomerIO.shared.screen(name: name, data: attributes)
+         */
     }
     
     
     private func setDeviceAttributes(params : Dictionary<String, AnyHashable>){
+        // TODO: Fix setDeviceAttributes implementation
+        /*
         guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable>
         else {
             return
         }
         CustomerIO.shared.deviceAttributes = attributes
+         */
     }
     
     private func setProfileAttributes(params : Dictionary<String, AnyHashable>){
+        // TODO: Fix setProfileAttributes implementation
+        /*
         guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable>
         else {
             return
         }
         CustomerIO.shared.profileAttributes = attributes
+         */
     }
     
     private func registerDeviceToken(params : Dictionary<String, AnyHashable>){
+        // TODO: Fix registerDeviceToken implementation
+        /*
         guard let token = params[Keys.Tracking.token] as? String
         else {
             return
         }
         
         CustomerIO.shared.registerDeviceToken(token)
+         */
     }
     
     private func trackMetric(params : Dictionary<String, AnyHashable>){
+        // TODO: Fix trackMetric implementation
+        /*
         guard let deliveryId = params[Keys.Tracking.deliveryId] as? String,
               let deviceToken = params[Keys.Tracking.deliveryToken] as? String,
               let metricEvent = params[Keys.Tracking.metricEvent] as? String,
@@ -152,9 +171,12 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
         CustomerIO.shared.trackMetric(deliveryID: deliveryId,
                                       event: event,
                                       deviceToken: deviceToken)
+         */
     }
     
     private func initialize(params : Dictionary<String, AnyHashable>){
+        // TODO: Fix initialize implementation
+        /*
         guard let siteId = params[Keys.Environment.siteId] as? String,
               let apiKey = params[Keys.Environment.apiKey] as? String,
               let regionStr = params[Keys.Environment.region] as? String
@@ -175,13 +197,15 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
                 initializeInApp()
             }
         }
-        
+        */
     }
     
     /**
      Initialize in-app using customerio plugin
      */
     private func initializeInApp(){
+        // TODO: Fix initializeInApp implementation
+        /*
         DispatchQueue.main.async {
             MessagingInApp.shared.initialize(eventListener: CustomerIOInAppEventListener(
                 invokeMethod: {method,args in
@@ -189,6 +213,7 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
                 })
             )
         }
+         */
     }
     
     func invokeMethod(_ method: String, _ args: Any?) {

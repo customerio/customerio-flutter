@@ -1,7 +1,6 @@
 import UIKit
 import Flutter
 import CioMessagingPushFCM
-import CioTracking
 import FirebaseMessaging
 import FirebaseCore
 
@@ -21,11 +20,10 @@ import FirebaseCore
 
         Messaging.messaging().delegate = self
         
-        CustomerIO.initialize(siteId: Env.siteId, apiKey: Env.apiKey, region: .US) { config in
-            config.autoTrackDeviceAttributes = true
-            config.logLevel = .debug
-        }
+        // TODO: Fix MessagingPush initialization
+        /*
         MessagingPushFCM.initialize(configOptions: nil)
+         */
         
         // Sets a 3rd party push event handler for the app besides the Customer.io SDK and FlutterFire.
         // Setting the AppDelegate to be the handler will internally use `flutter_local_notifications` to handle the push event.
