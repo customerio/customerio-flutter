@@ -112,7 +112,7 @@ jobs:
         run: |
           cp ".env.example" ".env"
           sd 'SITE_ID=.*' "SITE_ID=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_SITE_ID', matrix.sample-app)] }}" ".env"
-          sd 'API_KEY=.*' "API_KEY=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_API_KEY', matrix.sample-app)] }}" ".env"
+          sd 'CDP_API_KEY=.*' "CDP_API_KEY=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', matrix.sample-app)] }}" ".env"
 
       - name: Setup workspace credentials in iOS environment files
         run: |
