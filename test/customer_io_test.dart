@@ -43,13 +43,13 @@ void main() {
       });
 
       test('initialize() succeeds first time', () async {
-        final config = CustomerIOConfig(siteId: '123', apiKey: '456');
+        final config = CustomerIOConfig(cdpApiKey: '123');
         await CustomerIO.initialize(config: config);
         expect(() => CustomerIO.instance, isNot(throwsStateError));
       });
 
       test('subsequent initialize() calls are ignored', () async {
-        final config = CustomerIOConfig(siteId: '123', apiKey: '456');
+        final config = CustomerIOConfig(cdpApiKey: '123');
 
         // First initialization
         await CustomerIO.initialize(config: config);
@@ -63,17 +63,17 @@ void main() {
       });
 
       test('initialize() calls platform', () async {
-        final config = CustomerIOConfig(siteId: '123', apiKey: '456');
+        final config = CustomerIOConfig(cdpApiKey: '123');
         await CustomerIO.initialize(config: config);
         verify(mockPlatform.initialize(config: config)).called(1);
       });
 
       test('initialize() correct arguments are passed', () async {
         final givenConfig = CustomerIOConfig(
-          siteId: '123',
-          apiKey: '456',
+          cdpApiKey: '123',
+          migrationSiteId: '456',
           region: Region.eu,
-          autoTrackPushEvents: false,
+          autoTrackDeviceAttributes: false,
         );
         await CustomerIO.initialize(config: givenConfig);
         expect(
@@ -89,7 +89,7 @@ void main() {
       late CustomerIOConfig config;
 
       setUp(() async {
-        config = CustomerIOConfig(siteId: '123', apiKey: '456');
+        config = CustomerIOConfig(cdpApiKey: '123');
         await CustomerIO.initialize(config: config);
       });
 

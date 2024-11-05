@@ -52,11 +52,11 @@ void main() {
   test('initialize() should call platform method with correct arguments',
       () async {
     final customerIO = CustomerIOMethodChannel();
-    final config = CustomerIOConfig(siteId: 'site_id', apiKey: 'api_key');
+    final config = CustomerIOConfig(cdpApiKey: 'cdp_api_key');
     await customerIO.initialize(config: config);
 
     expectMethodInvocationArguments(
-        'initialize', {'siteId': config.siteId, 'apiKey': config.apiKey});
+        'initialize', {'cdpApiKey': config.cdpApiKey});
   });
 
   test('identify() should call platform method with correct arguments',
