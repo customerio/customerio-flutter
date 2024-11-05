@@ -8,7 +8,6 @@ import 'customer_io_config.dart';
 import 'customer_io_const.dart';
 import 'customer_io_inapp.dart';
 import 'customer_io_platform_interface.dart';
-import 'customer_io_plugin_version.dart';
 
 /// An implementation of [CustomerIOPlatform] that uses method channels.
 class CustomerIOMethodChannel extends CustomerIOPlatform {
@@ -66,10 +65,6 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     required CustomerIOConfig config,
   }) async {
     try {
-      config.version = version;
-      if (!config.enableInApp && config.organizationId.isNotEmpty) {
-        config.enableInApp = true;
-      }
       await methodChannel.invokeMethod(MethodConsts.initialize, config.toMap());
     } on PlatformException catch (exception) {
       handleException(exception);

@@ -53,22 +53,26 @@ class CustomerIOSDK extends ChangeNotifier {
       } else {
         logLevel = CioLogLevel.debug;
       }
+
+      final InAppConfig? inAppConfig;
+      if (_sdkConfig?.siteId != null) {
+        inAppConfig = InAppConfig(siteId: _sdkConfig!.siteId);
+      } else {
+        inAppConfig = null;
+      }
       return CustomerIO.initialize(
         config: CustomerIOConfig(
-          siteId: _sdkConfig?.siteId ?? '',
-          apiKey: _sdkConfig?.apiKey ?? '',
-          enableInApp: true,
+          cdpApiKey: '${_sdkConfig?.siteId}:${_sdkConfig?.apiKey}',
+          migrationSiteId: _sdkConfig?.siteId,
           region: Region.us,
-          //config options go here
-          trackingApiUrl: _sdkConfig?.trackingUrl ?? '',
-          autoTrackDeviceAttributes:
-              _sdkConfig?.deviceAttributesTrackingEnabled ?? true,
-          autoTrackPushEvents: true,
-          backgroundQueueMinNumberOfTasks:
-              _sdkConfig?.backgroundQueueMinNumOfTasks ?? 10,
-          backgroundQueueSecondsDelay:
-              _sdkConfig?.backgroundQueueSecondsDelay ?? 30.0,
           logLevel: logLevel,
+          autoTrackDeviceAttributes:
+              _sdkConfig?.deviceAttributesTrackingEnabled,
+          apiHost: _sdkConfig?.trackingUrl,
+          cdnHost: _sdkConfig?.trackingUrl,
+          flushAt: _sdkConfig?.backgroundQueueMinNumOfTasks,
+          flushInterval: _sdkConfig?.backgroundQueueSecondsDelay?.toInt(),
+          inAppConfig: inAppConfig,
         ),
       );
     } catch (ex) {
