@@ -254,16 +254,20 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             logLevelRawValue?.let { logLevel(CioLogLevel.getLogLevel(it)) }
             regionRawValue?.let { region(givenRegion) }
 
+            args.getAsTypeOrNull<String>("migrationSiteId")?.let(::migrationSiteId)
             args.getAsTypeOrNull<Boolean>("autoTrackDeviceAttributes")
                 ?.let(::autoTrackDeviceAttributes)
-            args.getAsTypeOrNull<String>("migrationSiteId")?.let(::migrationSiteId)
-            args.getAsTypeOrNull<Int>("flushAt")?.let(::flushAt)
-            args.getAsTypeOrNull<Int>("flushInterval")?.let(::flushInterval)
             args.getAsTypeOrNull<Boolean>("trackApplicationLifecycleEvents")
                 ?.let(::trackApplicationLifecycleEvents)
 
-            // TODO: Initialize push module with given config
+            args.getAsTypeOrNull<Int>("flushAt")?.let(::flushAt)
+            args.getAsTypeOrNull<Int>("flushInterval")?.let(::flushInterval)
+
+            args.getAsTypeOrNull<String>("apiHost")?.let(::apiHost)
+            args.getAsTypeOrNull<String>("cdnHost")?.let(::cdnHost)
+
             // TODO: Initialize in-app module with given config
+            // TODO: Initialize push module with given config
         }.build()
 
         logger.info("Customer.io instance initialized successfully from app")
