@@ -237,40 +237,38 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
          */
     }
 
-    private fun initialize(args: Map<String, Any>) {
+    private fun initialize(args: Map<String, Any>): kotlin.Result<Unit> = runCatching {
         val application: Application = context.applicationContext as Application
-        try {
-            val cdpApiKey = requireNotNull(args.getAsTypeOrNull<String>("cdpApiKey")) {
-                "CDP API Key is required to initialize Customer.io"
-            }
-
-            val logLevelRawValue = args.getAsTypeOrNull<String>("logLevel")
-            val regionRawValue = args.getAsTypeOrNull<String>("region")
-            val givenRegion = regionRawValue.let { Region.getRegion(it) }
-
-            CustomerIOBuilder(
-                applicationContext = application,
-                cdpApiKey = cdpApiKey
-            ).apply {
-                logLevelRawValue?.let { logLevel(CioLogLevel.getLogLevel(it)) }
-                regionRawValue?.let { region(givenRegion) }
-
-                args.getAsTypeOrNull<Boolean>("autoTrackDeviceAttributes")
-                    ?.let(::autoTrackDeviceAttributes)
-                args.getAsTypeOrNull<String>("migrationSiteId")?.let(::migrationSiteId)
-                args.getAsTypeOrNull<Int>("flushAt")?.let(::flushAt)
-                args.getAsTypeOrNull<Int>("flushInterval")?.let(::flushInterval)
-                args.getAsTypeOrNull<Boolean>("trackApplicationLifecycleEvents")
-                    ?.let(::trackApplicationLifecycleEvents)
-
-                // TODO: Initialize push module with given config
-                // TODO: Initialize in-app module with given config
-            }.build()
-
-            logger.info("Customer.io instance initialized successfully from app")
-        } catch (ex: Exception) {
-            logger.error("Failed to initialize Customer.io instance from app, ${ex.message}")
+        val cdpApiKey = requireNotNull(args.getAsTypeOrNull<String>("cdpApiKey")) {
+            "CDP API Key is required to initialize Customer.io"
         }
+
+        val logLevelRawValue = args.getAsTypeOrNull<String>("logLevel")
+        val regionRawValue = args.getAsTypeOrNull<String>("region")
+        val givenRegion = regionRawValue.let { Region.getRegion(it) }
+
+        CustomerIOBuilder(
+            applicationContext = application,
+            cdpApiKey = cdpApiKey
+        ).apply {
+            logLevelRawValue?.let { logLevel(CioLogLevel.getLogLevel(it)) }
+            regionRawValue?.let { region(givenRegion) }
+
+            args.getAsTypeOrNull<Boolean>("autoTrackDeviceAttributes")
+                ?.let(::autoTrackDeviceAttributes)
+            args.getAsTypeOrNull<String>("migrationSiteId")?.let(::migrationSiteId)
+            args.getAsTypeOrNull<Int>("flushAt")?.let(::flushAt)
+            args.getAsTypeOrNull<Int>("flushInterval")?.let(::flushInterval)
+            args.getAsTypeOrNull<Boolean>("trackApplicationLifecycleEvents")
+                ?.let(::trackApplicationLifecycleEvents)
+
+            // TODO: Initialize push module with given config
+            // TODO: Initialize in-app module with given config
+        }.build()
+
+        logger.info("Customer.io instance initialized successfully from app")
+    }.onFailure { ex ->
+        logger.error("Failed to initialize Customer.io instance from app, ${ex.message}")
     }
 
     private fun configureModuleMessagingPushFCM(config: Map<String, Any?>?): ModuleMessagingPushFCM {
