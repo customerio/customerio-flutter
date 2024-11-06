@@ -7,15 +7,13 @@ import androidx.annotation.NonNull
 import io.customer.customer_io.constant.Keys
 import io.customer.customer_io.messaginginapp.CustomerIOInAppMessaging
 import io.customer.customer_io.messagingpush.CustomerIOPushMessaging
-import io.customer.messaginginapp.MessagingInAppModuleConfig
-import io.customer.messaginginapp.ModuleMessagingInApp
 import io.customer.messaginginapp.type.InAppEventListener
 import io.customer.messaginginapp.type.InAppMessage
-import io.customer.messagingpush.MessagingPushModuleConfig
 import io.customer.messagingpush.ModuleMessagingPushFCM
-import io.customer.messagingpush.config.PushClickBehavior
 import io.customer.sdk.CustomerIO
+import io.customer.sdk.CustomerIOBuilder
 import io.customer.sdk.core.di.SDKComponent
+import io.customer.sdk.core.util.CioLogLevel
 import io.customer.sdk.core.util.Logger
 import io.customer.sdk.data.model.Region
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -239,57 +237,40 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
          */
     }
 
-    private fun initialize(configData: Map<String, Any>) {
-        // TODO: Fix initialize implementation
-        /*
+    private fun initialize(args: Map<String, Any>) {
         val application: Application = context.applicationContext as Application
-        val siteId = configData.getString(Keys.Environment.SITE_ID)
-        val apiKey = configData.getString(Keys.Environment.API_KEY)
-        val region = configData.getProperty<String>(
-            Keys.Environment.REGION
-        )?.takeIfNotBlank()
-        val enableInApp = configData.getProperty<Boolean>(
-            Keys.Environment.ENABLE_IN_APP
-        )
-
-        // Checks if SDK was initialized before, which means lifecycle callbacks are already
-        // registered as well
-        val isLifecycleCallbacksRegistered = kotlin.runCatching { CustomerIO.instance() }.isSuccess
-
-        val customerIO = CustomerIO.Builder(
-            siteId = siteId,
-            apiKey = apiKey,
-            region = Region.getRegion(region),
-            appContext = application,
-            config = configData
-        ).apply {
-            addCustomerIOModule(module = configureModuleMessagingPushFCM(configData))
-            if (enableInApp == true) {
-                addCustomerIOModule(
-                    module = ModuleMessagingInApp(
-                        config = MessagingInAppModuleConfig.Builder()
-                            .setEventListener(CustomerIOInAppEventListener { method, args ->
-                                this@CustomerIoPlugin.activity?.get()?.runOnUiThread {
-                                    flutterCommunicationChannel.invokeMethod(method, args)
-                                }
-                            }).build(),
-                    )
-                )
+        try {
+            val cdpApiKey = requireNotNull(args.getAsTypeOrNull<String>("cdpApiKey")) {
+                "CDP API Key is required to initialize Customer.io"
             }
-        }.build()
-        logger.info("Customer.io instance initialized successfully")
 
-        // Request lifecycle events for first initialization only as relaunching app
-        // in wrapper SDKs may result in reinitialization of SDK and lifecycle listener
-        // will already be attached in this case as they are registered to application object.
-        if (!isLifecycleCallbacksRegistered) {
-            activity?.get()?.let { activity ->
-                logger.info("Requesting delayed activity lifecycle events")
-                val lifecycleCallbacks = customerIO.diGraph.activityLifecycleCallbacks
-                lifecycleCallbacks.postDelayedEventsForNonNativeActivity(activity)
-            }
+            val logLevelRawValue = args.getAsTypeOrNull<String>("logLevel")
+            val regionRawValue = args.getAsTypeOrNull<String>("region")
+            val givenRegion = regionRawValue.let { Region.getRegion(it) }
+
+            CustomerIOBuilder(
+                applicationContext = application,
+                cdpApiKey = cdpApiKey
+            ).apply {
+                logLevelRawValue?.let { logLevel(CioLogLevel.getLogLevel(it)) }
+                regionRawValue?.let { region(givenRegion) }
+
+                args.getAsTypeOrNull<Boolean>("autoTrackDeviceAttributes")
+                    ?.let(::autoTrackDeviceAttributes)
+                args.getAsTypeOrNull<String>("migrationSiteId")?.let(::migrationSiteId)
+                args.getAsTypeOrNull<Int>("flushAt")?.let(::flushAt)
+                args.getAsTypeOrNull<Int>("flushInterval")?.let(::flushInterval)
+                args.getAsTypeOrNull<Boolean>("trackApplicationLifecycleEvents")
+                    ?.let(::trackApplicationLifecycleEvents)
+
+                // TODO: Initialize push module with given config
+                // TODO: Initialize in-app module with given config
+            }.build()
+
+            logger.info("Customer.io instance initialized successfully from app")
+        } catch (ex: Exception) {
+            logger.error("Failed to initialize Customer.io instance from app, ${ex.message}")
         }
-         */
     }
 
     private fun configureModuleMessagingPushFCM(config: Map<String, Any?>?): ModuleMessagingPushFCM {
