@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import CioDataPipelines
 import CioInternalCommon
 import CioMessagingInApp
 
@@ -7,6 +8,8 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     
     private var methodChannel: FlutterMethodChannel!
     private var inAppMessagingChannelHandler: CusomterIOInAppMessaging!
+
+    private let logger: CioInternalCommon.Logger = DIGraphShared.shared.logger
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         let instance = SwiftCustomerIoPlugin()
@@ -175,29 +178,14 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     }
     
     private func initialize(params : Dictionary<String, AnyHashable>){
-        // TODO: Fix initialize implementation
-        /*
-        guard let siteId = params[Keys.Environment.siteId] as? String,
-              let apiKey = params[Keys.Environment.apiKey] as? String,
-              let regionStr = params[Keys.Environment.region] as? String
-        else {
-            return
+        do {
+            let sdkConfigBuilder = try SDKConfigBuilder.create(from: params)
+            CustomerIO.initialize(withConfig: sdkConfigBuilder.build())
+            
+            logger.debug("Customer.io SDK initialized with config: \(params)")
+        } catch {
+            logger.error("Initializing Customer.io SDK failed with error: \(error)")
         }
-        
-        let region = Region.getRegion(from: regionStr)
-        
-        CustomerIO.initialize(siteId: siteId, apiKey: apiKey, region: region){
-            config in
-            config.modify(params: params)
-        }
-        
-        
-        if let enableInApp = params[Keys.Environment.enableInApp] as? Bool {
-            if enableInApp{
-                initializeInApp()
-            }
-        }
-        */
     }
     
     /**
