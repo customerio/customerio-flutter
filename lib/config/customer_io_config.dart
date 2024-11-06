@@ -11,6 +11,7 @@ class CustomerIOConfig {
   final String? migrationSiteId;
   final Region? region;
   final CioLogLevel? logLevel;
+  final bool? trackApplicationLifecycleEvents;
   final bool? autoTrackDeviceAttributes;
   final String? apiHost;
   final String? cdnHost;
@@ -25,6 +26,7 @@ class CustomerIOConfig {
     this.region,
     this.logLevel,
     this.autoTrackDeviceAttributes,
+    this.trackApplicationLifecycleEvents,
     this.apiHost,
     this.cdnHost,
     this.flushAt,
@@ -40,6 +42,7 @@ class CustomerIOConfig {
       'region': region?.name,
       'logLevel': logLevel?.name,
       'autoTrackDeviceAttributes': autoTrackDeviceAttributes,
+      'trackApplicationLifecycleEvents': trackApplicationLifecycleEvents,
       'apiHost': apiHost,
       'cdnHost': cdnHost,
       'flushAt': flushAt,
