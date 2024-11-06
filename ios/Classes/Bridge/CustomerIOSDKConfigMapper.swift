@@ -1,6 +1,5 @@
 import CioDataPipelines
 import CioInternalCommon
-import CioMessagingInApp
 
 enum SDKConfigBuilderError: Error {
     case missingCdpApiKey
