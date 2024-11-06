@@ -52,19 +52,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final cioConfig = widget._customerIOSDK.sdkConfig;
     _deviceTokenValueController = TextEditingController();
-    _trackingURLValueController =
-        TextEditingController(text: cioConfig?.trackingUrl);
+    // _trackingURLValueController =
+    //     TextEditingController(text: cioConfig?.trackingUrl);
     _siteIDValueController = TextEditingController(
-        text: widget.siteIdInitialValue ?? cioConfig?.siteId);
+        text: widget.siteIdInitialValue ?? cioConfig?.migrationSiteId);
     _apiKeyValueController = TextEditingController(
-        text: widget.apiKeyInitialValue ?? cioConfig?.apiKey);
-    _bqSecondsDelayValueController = TextEditingController(
-        text: cioConfig?.backgroundQueueSecondsDelay?.toTrimmedString());
-    _bqMinNumberOfTasksValueController = TextEditingController(
-        text: cioConfig?.backgroundQueueMinNumOfTasks?.toString());
-    _featureTrackScreens = cioConfig?.screenTrackingEnabled ?? true;
-    _featureTrackDeviceAttributes =
-        cioConfig?.deviceAttributesTrackingEnabled ?? true;
+        text: widget.apiKeyInitialValue ?? cioConfig?.cdpApiKey);
+    // _bqSecondsDelayValueController = TextEditingController(
+    //     text: cioConfig?.backgroundQueueSecondsDelay?.toTrimmedString());
+    // _bqMinNumberOfTasksValueController = TextEditingController(
+    //     text: cioConfig?.backgroundQueueMinNumOfTasks?.toString());
+    // _featureTrackScreens = cioConfig?.screenTrackingEnabled ?? true;
+    // _featureTrackDeviceAttributes =
+    //     cioConfig?.deviceAttributesTrackingEnabled ?? true;
     _featureDebugMode = cioConfig?.debugModeEnabled ?? true;
 
     super.initState();
@@ -76,15 +76,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     final newConfig = CustomerIOSDKConfig(
-      siteId: _siteIDValueController.text.trim(),
-      apiKey: _apiKeyValueController.text.trim(),
-      trackingUrl: _trackingURLValueController.text.trim(),
-      backgroundQueueSecondsDelay:
-          _bqSecondsDelayValueController.text.trim().toDoubleOrNull(),
-      backgroundQueueMinNumOfTasks:
-          _bqMinNumberOfTasksValueController.text.trim().toIntOrNull(),
+      migrationSiteId: _siteIDValueController.text.trim(),
+      cdpApiKey: _apiKeyValueController.text.trim(),
+      // trackingUrl: _trackingURLValueController.text.trim(),
+      // backgroundQueueSecondsDelay:
+      //     _bqSecondsDelayValueController.text.trim().toDoubleOrNull(),
+      // backgroundQueueMinNumOfTasks:
+      //     _bqMinNumberOfTasksValueController.text.trim().toIntOrNull(),
       screenTrackingEnabled: _featureTrackScreens,
-      deviceAttributesTrackingEnabled: _featureTrackDeviceAttributes,
+      // deviceAttributesTrackingEnabled: _featureTrackDeviceAttributes,
       debugModeEnabled: _featureDebugMode,
     );
     widget._customerIOSDK.saveConfigToPreferences(newConfig).then((success) {
@@ -109,17 +109,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     setState(() {
-      _siteIDValueController.text = defaultConfig.siteId;
-      _apiKeyValueController.text = defaultConfig.apiKey;
-      _trackingURLValueController.text = defaultConfig.trackingUrl ?? '';
-      _bqSecondsDelayValueController.text =
-          defaultConfig.backgroundQueueSecondsDelay?.toTrimmedString() ?? '';
-      _bqMinNumberOfTasksValueController.text =
-          defaultConfig.backgroundQueueMinNumOfTasks?.toString() ?? '';
-      _featureTrackScreens = defaultConfig.screenTrackingEnabled;
-      _featureTrackDeviceAttributes =
-          defaultConfig.deviceAttributesTrackingEnabled;
-      _featureDebugMode = defaultConfig.debugModeEnabled;
+      _siteIDValueController.text = defaultConfig.migrationSiteId ?? '';
+      _apiKeyValueController.text = defaultConfig.cdpApiKey;
+      // _trackingURLValueController.text = defaultConfig.trackingUrl ?? '';
+      // _bqSecondsDelayValueController.text =
+      //     defaultConfig.backgroundQueueSecondsDelay?.toTrimmedString() ?? '';
+      // _bqMinNumberOfTasksValueController.text =
+      //     defaultConfig.backgroundQueueMinNumOfTasks?.toString() ?? '';
+      // _featureTrackScreens = defaultConfig.screenTrackingEnabled;
+      // _featureTrackDeviceAttributes =
+      //     defaultConfig.deviceAttributesTrackingEnabled;
+      _featureDebugMode = defaultConfig.debugModeEnabled ?? true;
       _saveSettings(context);
     });
   }

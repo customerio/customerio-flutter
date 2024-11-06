@@ -55,23 +55,23 @@ class CustomerIOSDK extends ChangeNotifier {
       }
 
       final InAppConfig? inAppConfig;
-      if (_sdkConfig?.siteId != null) {
-        inAppConfig = InAppConfig(siteId: _sdkConfig!.siteId);
+      if (_sdkConfig?.migrationSiteId != null) {
+        inAppConfig = InAppConfig(siteId:  _sdkConfig!.migrationSiteId ?? '');
       } else {
         inAppConfig = null;
       }
       return CustomerIO.initialize(
         config: CustomerIOConfig(
-          cdpApiKey: '${_sdkConfig?.siteId}:${_sdkConfig?.apiKey}',
-          migrationSiteId: _sdkConfig?.siteId,
+          cdpApiKey: '${_sdkConfig?.cdnHost}:${_sdkConfig?.cdpApiKey}',
+          migrationSiteId: _sdkConfig?.migrationSiteId,
           region: Region.us,
           logLevel: logLevel,
           autoTrackDeviceAttributes:
-              _sdkConfig?.deviceAttributesTrackingEnabled,
-          apiHost: _sdkConfig?.trackingUrl,
-          cdnHost: _sdkConfig?.trackingUrl,
-          flushAt: _sdkConfig?.backgroundQueueMinNumOfTasks,
-          flushInterval: _sdkConfig?.backgroundQueueSecondsDelay?.toInt(),
+              _sdkConfig?.autoTrackDeviceAttributes,
+          apiHost: _sdkConfig?.apiHost,
+          cdnHost: _sdkConfig?.cdnHost,
+          flushAt: _sdkConfig?.flushAt,
+          flushInterval: _sdkConfig?.flushInterval?.toInt(),
           inAppConfig: inAppConfig,
         ),
       );

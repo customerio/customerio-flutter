@@ -1,57 +1,86 @@
+import 'package:customer_io/config/in_app_config.dart';
+import 'package:customer_io/config/push_config.dart';
+import 'package:customer_io/customer_io_enums.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CustomerIOSDKConfig {
-  String siteId;
-  String apiKey;
-  String? trackingUrl;
-  double? backgroundQueueSecondsDelay;
-  int? backgroundQueueMinNumOfTasks;
-  bool screenTrackingEnabled;
-  bool deviceAttributesTrackingEnabled;
-  bool debugModeEnabled;
+  final String cdpApiKey;
+  final String? migrationSiteId;
+  final Region? region;
+  final bool? debugModeEnabled;
+  final bool? screenTrackingEnabled;
+  final bool? autoTrackDeviceAttributes;
+  final String? apiHost;
+  final String? cdnHost;
+  final int? flushAt;
+  final int? flushInterval;
+  final InAppConfig? inAppConfig;
+  final PushConfig pushConfig;
 
   CustomerIOSDKConfig({
-    required this.siteId,
-    required this.apiKey,
-    this.trackingUrl = "https://track-sdk.customer.io/",
-    this.backgroundQueueSecondsDelay = 30.0,
-    this.backgroundQueueMinNumOfTasks = 10,
-    this.screenTrackingEnabled = true,
-    this.deviceAttributesTrackingEnabled = true,
-    this.debugModeEnabled = true,
-  });
+    required this.cdpApiKey,
+    this.migrationSiteId,
+    this.region,
+    this.debugModeEnabled,
+    this.screenTrackingEnabled,
+    this.autoTrackDeviceAttributes,
+    this.apiHost,
+    this.cdnHost,
+    this.flushAt,
+    this.flushInterval,
+    this.inAppConfig,
+    PushConfig? pushConfig,
+  }) : pushConfig = pushConfig ?? PushConfig();
 
-  factory CustomerIOSDKConfig.fromEnv() => CustomerIOSDKConfig(
-      siteId: dotenv.env[_PreferencesKey.siteId]!,
-      apiKey: dotenv.env[_PreferencesKey.apiKey]!);
+  factory CustomerIOSDKConfig.fromEnv() =>
+      CustomerIOSDKConfig(
+        cdpApiKey: dotenv.env[_PreferencesKey.cdpApiKey]!,
+        migrationSiteId: dotenv.env[_PreferencesKey.migrationSiteId],
+      );
 
   factory CustomerIOSDKConfig.fromPrefs(SharedPreferences prefs) {
-    final siteId = prefs.getString(_PreferencesKey.siteId);
-    final apiKey = prefs.getString(_PreferencesKey.apiKey);
+    final cdpApiKey = prefs.getString(_PreferencesKey.cdpApiKey);
 
-    if (siteId == null) {
-      throw ArgumentError('siteId cannot be null');
-    } else if (apiKey == null) {
-      throw ArgumentError('apiKey cannot be null');
+    if (cdpApiKey == null) {
+      throw ArgumentError('cdpApiKey cannot be null');
     }
 
     return CustomerIOSDKConfig(
-      siteId: siteId,
-      apiKey: apiKey,
-      trackingUrl: prefs.getString(_PreferencesKey.trackingUrl),
-      backgroundQueueSecondsDelay:
-          prefs.getDouble(_PreferencesKey.backgroundQueueSecondsDelay),
-      backgroundQueueMinNumOfTasks:
-          prefs.getInt(_PreferencesKey.backgroundQueueMinNumOfTasks),
-      screenTrackingEnabled:
-          prefs.getBool(_PreferencesKey.screenTrackingEnabled) != false,
-      deviceAttributesTrackingEnabled:
-          prefs.getBool(_PreferencesKey.deviceAttributesTrackingEnabled) !=
-              false,
-      debugModeEnabled:
-          prefs.getBool(_PreferencesKey.debugModeEnabled) != false,
+      cdpApiKey: cdpApiKey,
+      migrationSiteId: prefs.getString(_PreferencesKey.migrationSiteId),
+      region: prefs.getString(_PreferencesKey.region) != null
+          ? Region.values.firstWhere(
+              (e) => e.name == prefs.getString(_PreferencesKey.region))
+          : null,
+      debugModeEnabled: prefs.getBool(_PreferencesKey.debugModeEnabled) !=
+          false,
+      screenTrackingEnabled: prefs.getBool(
+          _PreferencesKey.screenTrackingEnabled) != false,
+      autoTrackDeviceAttributes:
+      prefs.getBool(_PreferencesKey.autoTrackDeviceAttributes),
+      apiHost: prefs.getString(_PreferencesKey.apiHost),
+      cdnHost: prefs.getString(_PreferencesKey.cdnHost),
+      flushAt: prefs.getInt(_PreferencesKey.flushAt),
+      flushInterval: prefs.getInt(_PreferencesKey.flushInterval),
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'cdpApiKey': cdpApiKey,
+      'migrationSiteId': migrationSiteId,
+      'region': region?.name,
+      'logLevel': debugModeEnabled,
+      'screenTrackingEnabled': screenTrackingEnabled,
+      'autoTrackDeviceAttributes': autoTrackDeviceAttributes,
+      'apiHost': apiHost,
+      'cdnHost': cdnHost,
+      'flushAt': flushAt,
+      'flushInterval': flushInterval,
+      'inAppConfig': inAppConfig?.toMap(),
+      'pushConfig': pushConfig.toMap(),
+    };
   }
 }
 
@@ -66,10 +95,6 @@ extension ConfigurationPreferencesExtensions on SharedPreferences {
     return value != null ? setInt(key, value) : remove(key);
   }
 
-  Future<bool> setOrRemoveDouble(String key, double? value) {
-    return value != null ? setDouble(key, value) : remove(key);
-  }
-
   Future<bool> setOrRemoveBool(String key, bool? value) {
     return value != null ? setBool(key, value) : remove(key);
   }
@@ -77,39 +102,43 @@ extension ConfigurationPreferencesExtensions on SharedPreferences {
   Future<bool> saveSDKConfigState(CustomerIOSDKConfig config) async {
     bool result = true;
     result = result &&
-        await setOrRemoveString(_PreferencesKey.siteId, config.siteId);
-    result = result &&
-        await setOrRemoveString(_PreferencesKey.apiKey, config.apiKey);
+        await setOrRemoveString(_PreferencesKey.cdpApiKey, config.cdpApiKey);
     result = result &&
         await setOrRemoveString(
-            _PreferencesKey.trackingUrl, config.trackingUrl);
+            _PreferencesKey.migrationSiteId, config.migrationSiteId);
     result = result &&
-        await setOrRemoveDouble(_PreferencesKey.backgroundQueueSecondsDelay,
-            config.backgroundQueueSecondsDelay);
-    result = result &&
-        await setOrRemoveInt(_PreferencesKey.backgroundQueueMinNumOfTasks,
-            config.backgroundQueueMinNumOfTasks);
-    result = result &&
-        await setOrRemoveBool(_PreferencesKey.screenTrackingEnabled,
-            config.screenTrackingEnabled);
-    result = result &&
-        await setOrRemoveBool(_PreferencesKey.deviceAttributesTrackingEnabled,
-            config.deviceAttributesTrackingEnabled);
+        await setOrRemoveString(_PreferencesKey.region, config.region?.name);
     result = result &&
         await setOrRemoveBool(
             _PreferencesKey.debugModeEnabled, config.debugModeEnabled);
+    result = result &&
+        await setOrRemoveBool(_PreferencesKey.autoTrackDeviceAttributes,
+            config.autoTrackDeviceAttributes);
+    result = result &&
+        await setOrRemoveBool(
+            _PreferencesKey.screenTrackingEnabled, config.screenTrackingEnabled);
+    result = result &&
+        await setOrRemoveString(_PreferencesKey.apiHost, config.apiHost);
+    result = result &&
+        await setOrRemoveString(_PreferencesKey.cdnHost, config.cdnHost);
+    result =
+        result && await setOrRemoveInt(_PreferencesKey.flushAt, config.flushAt);
+    result = result &&
+        await setOrRemoveInt(
+            _PreferencesKey.flushInterval, config.flushInterval);
     return result;
   }
 }
 
 class _PreferencesKey {
-  static const siteId = 'SITE_ID';
-  static const apiKey = 'API_KEY';
-  static const trackingUrl = 'TRACKING_URL';
-  static const backgroundQueueSecondsDelay = 'BACKGROUND_QUEUE_SECONDS_DELAY';
-  static const backgroundQueueMinNumOfTasks =
-      'BACKGROUND_QUEUE_MIN_NUMBER_OF_TASKS';
-  static const screenTrackingEnabled = 'TRACK_SCREENS';
-  static const deviceAttributesTrackingEnabled = 'TRACK_DEVICE_ATTRIBUTES';
+  static const cdpApiKey = 'CDP_API_KEY';
+  static const migrationSiteId = 'SITE_ID';
+  static const region = 'REGION';
   static const debugModeEnabled = 'DEBUG_MODE';
+  static const screenTrackingEnabled = 'SCREEN_TRACKING';
+  static const autoTrackDeviceAttributes = 'AUTO_TRACK_DEVICE_ATTRIBUTES';
+  static const apiHost = 'API_HOST';
+  static const cdnHost = 'CDN_HOST';
+  static const flushAt = 'FLUSH_AT';
+  static const flushInterval = 'FLUSH_INTERVAL';
 }
