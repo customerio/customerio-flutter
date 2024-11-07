@@ -143,7 +143,7 @@ void main() {
         expect(
           verify(mockPlatform.track(
             name: captureAnyNamed("name"),
-            properties: captureAnyNamed("attributes"),
+            properties: captureAnyNamed("properties"),
           )).captured,
           [name, givenAttributes],
         );
