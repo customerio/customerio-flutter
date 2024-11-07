@@ -71,7 +71,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     }
   }
 
-  /// Identify a person using a unique identifier, eg. email id.
+  /// Identify a person using a unique userId, eg. email id.
   /// Note that you can identify only 1 profile at a time. In case, multiple
   /// identifiers are attempted to be identified, then the last identified profile
   /// will be removed automatically.
