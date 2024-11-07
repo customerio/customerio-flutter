@@ -139,14 +139,9 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     }
     
     private func setProfileAttributes(params : Dictionary<String, AnyHashable>){
-        // TODO: Fix setProfileAttributes implementation
-        /*
-         guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable>
-         else {
-         return
-         }
-         CustomerIO.shared.profileAttributes = attributes
-         */
+        guard let attributes = params[Keys.Tracking.traits] as? Dictionary<String, AnyHashable>
+        else { return }
+        CustomerIO.shared.profileAttributes = attributes
     }
     
     private func registerDeviceToken(params : Dictionary<String, AnyHashable>){

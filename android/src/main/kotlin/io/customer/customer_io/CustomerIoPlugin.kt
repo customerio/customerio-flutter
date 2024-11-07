@@ -221,12 +221,9 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun setProfileAttributes(params: Map<String, Any>) {
-        // TODO: Fix setProfileAttributes implementation
-        /*
-        val attributes = params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: return
+        val attributes = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.TRAITS) ?: return
 
         CustomerIO.instance().profileAttributes = attributes
-         */
     }
 
     private fun screen(params: Map<String, Any>) {

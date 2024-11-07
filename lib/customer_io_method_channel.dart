@@ -170,7 +170,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   @override
   void setProfileAttributes({required Map<String, dynamic> attributes}) {
     try {
-      final payload = {TrackingConsts.attributes: attributes};
+      final payload = {TrackingConsts.traits: attributes};
       methodChannel.invokeMethod(MethodConsts.setProfileAttributes, payload);
     } on PlatformException catch (exception) {
       handleException(exception);
