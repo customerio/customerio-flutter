@@ -71,18 +71,18 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     }
   }
 
-  /// Identify a person using a unique identifier, eg. email id.
+  /// Identify a person using a unique userId, eg. email id.
   /// Note that you can identify only 1 profile at a time. In case, multiple
   /// identifiers are attempted to be identified, then the last identified profile
   /// will be removed automatically.
   @override
   void identify(
-      {required String identifier,
-      Map<String, dynamic> attributes = const {}}) async {
+      {required String userId,
+      Map<String, dynamic> traits = const {}}) async {
     try {
       final payload = {
-        TrackingConsts.identifier: identifier,
-        TrackingConsts.attributes: attributes
+        TrackingConsts.userId: userId,
+        TrackingConsts.traits: traits
       };
       methodChannel.invokeMethod(MethodConsts.identify, payload);
     } on PlatformException catch (exception) {
@@ -168,9 +168,9 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   /// Set custom user profile information such as user preference, specific
   /// user actions etc
   @override
-  void setProfileAttributes({required Map<String, dynamic> attributes}) {
+  void setProfileAttributes({required Map<String, dynamic> traits}) {
     try {
-      final payload = {TrackingConsts.attributes: attributes};
+      final payload = {TrackingConsts.traits: traits};
       methodChannel.invokeMethod(MethodConsts.setProfileAttributes, payload);
     } on PlatformException catch (exception) {
       handleException(exception);

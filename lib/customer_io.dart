@@ -80,17 +80,17 @@ class CustomerIO {
     }
   }
 
-  /// Identify a person using a unique identifier, eg. email id.
+  /// Identify a person using a unique userId, eg. email id.
   /// Note that you can identify only 1 profile at a time. In case, multiple
   /// identifiers are attempted to be identified, then the last identified profile
   /// will be removed automatically.
   ///
-  /// @param identifier unique identifier for a profile
-  /// @param attributes (Optional) params to set profile attributes
+  /// @param userId unique identifier for a profile
+  /// @param traits (Optional) params to set profile attributes
   void identify(
-      {required String identifier,
-      Map<String, dynamic> attributes = const {}}) {
-    return _platform.identify(identifier: identifier, attributes: attributes);
+      {required String userId,
+      Map<String, dynamic> traits = const {}}) {
+    return _platform.identify(userId: userId, traits: traits);
   }
 
   /// Call this function to stop identifying a person.
@@ -148,7 +148,7 @@ class CustomerIO {
   ///
   /// @param attributes additional attributes for a user profile
   void setProfileAttributes({required Map<String, dynamic> attributes}) {
-    return _platform.setProfileAttributes(attributes: attributes);
+    return _platform.setProfileAttributes(traits: attributes);
   }
 
   /// Subscribes to an in-app event listener.

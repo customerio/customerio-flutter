@@ -17,8 +17,8 @@ internal object Keys {
     }
 
     object Tracking {
-        const val IDENTIFIER = "identifier"
-        const val ATTRIBUTES = "attributes"
+        const val USER_ID = "userId"
+        const val TRAITS = "traits"
         const val EVENT_NAME = "eventName"
         const val TOKEN = "token"
         const val DELIVERY_ID = "deliveryId"

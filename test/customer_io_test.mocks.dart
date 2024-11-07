@@ -56,16 +56,16 @@ class MockTestCustomerIoPlatform extends _i1.Mock
       ) as _i2.Future<void>);
   @override
   void identify({
-    required String? identifier,
-    Map<String, dynamic>? attributes = const {},
+    required String? userId,
+    Map<String, dynamic>? traits = const {},
   }) =>
       super.noSuchMethod(
         Invocation.method(
           #identify,
           [],
           {
-            #identifier: identifier,
-            #attributes: attributes,
+            #userId: userId,
+            #traits: traits,
           },
         ),
         returnValueForMissingStub: null,
@@ -149,12 +149,12 @@ class MockTestCustomerIoPlatform extends _i1.Mock
         returnValueForMissingStub: null,
       );
   @override
-  void setProfileAttributes({required Map<String, dynamic>? attributes}) =>
+  void setProfileAttributes({required Map<String, dynamic>? traits}) =>
       super.noSuchMethod(
         Invocation.method(
           #setProfileAttributes,
           [],
-          {#attributes: attributes},
+          {#traits: traits},
         ),
         returnValueForMissingStub: null,
       );

@@ -97,13 +97,13 @@ void main() {
         const givenIdentifier = 'user@example.com';
         final givenAttributes = {'name': 'John Doe'};
         CustomerIO.instance.identify(
-          identifier: givenIdentifier,
-          attributes: givenAttributes,
+          userId: givenIdentifier,
+          traits: givenAttributes,
         );
 
         verify(mockPlatform.identify(
-          identifier: givenIdentifier,
-          attributes: givenAttributes,
+          userId: givenIdentifier,
+          traits: givenAttributes,
         )).called(1);
       });
 
@@ -111,13 +111,13 @@ void main() {
         const givenIdentifier = 'user@example.com';
         final givenAttributes = {'name': 'John Doe'};
         CustomerIO.instance.identify(
-          identifier: givenIdentifier,
-          attributes: givenAttributes,
+          userId: givenIdentifier,
+          traits: givenAttributes,
         );
         expect(
           verify(mockPlatform.identify(
-            identifier: captureAnyNamed("identifier"),
-            attributes: captureAnyNamed("attributes"),
+            userId: captureAnyNamed("userId"),
+            traits: captureAnyNamed("traits"),
           )).captured,
           [givenIdentifier, givenAttributes],
         );
@@ -172,7 +172,7 @@ void main() {
         CustomerIO.instance.setProfileAttributes(attributes: givenAttributes);
         expect(
           verify(mockPlatform.setProfileAttributes(
-            attributes: captureAnyNamed("attributes"),
+            traits: captureAnyNamed("traits"),
           )).captured.first,
           givenAttributes,
         );
