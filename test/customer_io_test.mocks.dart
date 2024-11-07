@@ -64,8 +64,8 @@ class MockTestCustomerIoPlatform extends _i1.Mock
           #identify,
           [],
           {
-            #identifier: userId,
-            #attributes: traits,
+            #userId: userId,
+            #traits: traits,
           },
         ),
         returnValueForMissingStub: null,
