@@ -80,11 +80,14 @@ extension AmiAppStringExtensions on String {
       return false;
     }
 
+    // Check if the last character is alphanumeric
+    final isLastCharValid = RegExp(r'[a-zA-Z0-9]$').hasMatch(url);
+
     // Check validity conditions:
     // - URL should not end with a slash
     // - URL should contain a domain (e.g., cdp.customer.io)
     // - URL should not contain a query or fragment
-    return !url.endsWith('/') &&
+    return isLastCharValid &&
         uri.host.contains('.') &&
         uri.query.isEmpty &&
         uri.fragment.isEmpty;
