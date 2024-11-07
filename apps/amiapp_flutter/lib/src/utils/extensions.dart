@@ -108,7 +108,7 @@ extension AmiAppStringExtensions on String {
   }
 }
 
-extension AmiAppDoubleExtensions on int {
+extension AmiAppIntExtensions on int {
   String? toTrimmedString() {
     if (this % 1.0 != 0.0) {
       return toString();
