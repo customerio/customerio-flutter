@@ -32,6 +32,10 @@ extension AmiAppExtensions on BuildContext {
 extension AmiAppStringExtensions on String {
   bool equalsIgnoreCase(String? other) => toLowerCase() == other?.toLowerCase();
 
+  String? nullIfEmpty() {
+    return isEmpty ? null : this;
+  }
+
   int? toIntOrNull() {
     if (isNotEmpty) {
       return int.tryParse(this);
@@ -58,23 +62,32 @@ extension AmiAppStringExtensions on String {
     }
   }
 
-  bool isValidUrl() {
+  bool isEmptyOrValidUrl() {
     String url = trim();
-    // Empty text is not considered valid.
+    // Empty text is considered valid
     if (url.isEmpty) {
+      return true;
+    }
+    // If the URL contains a scheme, it is considered invalid
+    if (url.contains("://")) {
       return false;
     }
-
-    // Currently only Android fails on URLs with empty host, still adding
-    // validation for all platforms to keep it consistent for app users
-    final Uri? uri = Uri.tryParse(url);
+    // Ensure the URL is prefixed with "https://" so that it can be parsed
+    final prefixedUrl = "https://$url";
+    // If the URL is not parsable, it is considered invalid
+    final Uri? uri = Uri.tryParse(prefixedUrl);
     if (uri == null) {
       return false;
     }
-    // Valid URL with a host and http/https scheme
-    return uri.hasAuthority &&
-        (uri.scheme == 'http' || uri.scheme == 'https') &&
-        uri.path.endsWith("/");
+
+    // Check validity conditions:
+    // - URL should not end with a slash
+    // - URL should contain a domain (e.g., cdp.customer.io)
+    // - URL should not contain a query or fragment
+    return !url.endsWith('/') &&
+        uri.host.contains('.') &&
+        uri.query.isEmpty &&
+        uri.fragment.isEmpty;
   }
 
   bool isValidInt({int? min, int? max}) {
@@ -92,7 +105,7 @@ extension AmiAppStringExtensions on String {
   }
 }
 
-extension AmiAppDoubleExtensions on double {
+extension AmiAppDoubleExtensions on int {
   String? toTrimmedString() {
     if (this % 1.0 != 0.0) {
       return toString();
@@ -109,7 +122,9 @@ extension LocationExtensions on GoRouter {
   // https://flutter.dev/go/go-router-v9-breaking-changes
   String currentLocation() {
     final RouteMatch lastMatch = routerDelegate.currentConfiguration.last;
-    final RouteMatchList matchList = lastMatch is ImperativeRouteMatch ? lastMatch.matches : routerDelegate.currentConfiguration;
+    final RouteMatchList matchList = lastMatch is ImperativeRouteMatch
+        ? lastMatch.matches
+        : routerDelegate.currentConfiguration;
     return matchList.uri.toString();
   }
 }
