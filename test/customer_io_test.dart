@@ -172,7 +172,7 @@ void main() {
         CustomerIO.instance.setProfileAttributes(attributes: givenAttributes);
         expect(
           verify(mockPlatform.setProfileAttributes(
-            attributes: captureAnyNamed("attributes"),
+            traits: captureAnyNamed("traits"),
           )).captured.first,
           givenAttributes,
         );

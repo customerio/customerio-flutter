@@ -149,12 +149,12 @@ class MockTestCustomerIoPlatform extends _i1.Mock
         returnValueForMissingStub: null,
       );
   @override
-  void setProfileAttributes({required Map<String, dynamic>? attributes}) =>
+  void setProfileAttributes({required Map<String, dynamic>? traits}) =>
       super.noSuchMethod(
         Invocation.method(
           #setProfileAttributes,
           [],
-          {#attributes: attributes},
+          {#traits: traits},
         ),
         returnValueForMissingStub: null,
       );

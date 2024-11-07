@@ -168,9 +168,9 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   /// Set custom user profile information such as user preference, specific
   /// user actions etc
   @override
-  void setProfileAttributes({required Map<String, dynamic> attributes}) {
+  void setProfileAttributes({required Map<String, dynamic> traits}) {
     try {
-      final payload = {TrackingConsts.traits: attributes};
+      final payload = {TrackingConsts.traits: traits};
       methodChannel.invokeMethod(MethodConsts.setProfileAttributes, payload);
     } on PlatformException catch (exception) {
       handleException(exception);

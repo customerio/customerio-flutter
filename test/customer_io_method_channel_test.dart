@@ -140,11 +140,11 @@ void main() {
       'setProfileAttributes() should call platform method with correct arguments',
       () async {
     final Map<String, dynamic> args = {
-      'attributes': {'age': 1}
+      'traits': {'age': 1}
     };
 
     final customerIO = CustomerIOMethodChannel();
-    customerIO.setProfileAttributes(attributes: args['attributes']);
+    customerIO.setProfileAttributes(traits: args['traits']);
 
     expectMethodInvocationArguments('setProfileAttributes', args);
   });
