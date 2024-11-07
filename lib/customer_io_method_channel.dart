@@ -82,7 +82,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     try {
       final payload = {
         TrackingConsts.userId: userId,
-        TrackingConsts.attributes: traits
+        TrackingConsts.traits: traits
       };
       methodChannel.invokeMethod(MethodConsts.identify, payload);
     } on PlatformException catch (exception) {
