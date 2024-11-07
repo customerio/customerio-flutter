@@ -81,7 +81,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
       Map<String, dynamic> traits = const {}}) async {
     try {
       final payload = {
-        TrackingConsts.identifier: userId,
+        TrackingConsts.userId: userId,
         TrackingConsts.attributes: traits
       };
       methodChannel.invokeMethod(MethodConsts.identify, payload);
