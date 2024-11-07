@@ -131,19 +131,19 @@ void main() {
       test('track() calls platform', () {
         const name = 'itemAddedToCart';
         final attributes = {'item': 'shoes'};
-        CustomerIO.instance.track(name: name, attributes: attributes);
-        verify(mockPlatform.track(name: name, attributes: attributes))
+        CustomerIO.instance.track(name: name, properties: attributes);
+        verify(mockPlatform.track(name: name, properties: attributes))
             .called(1);
       });
 
       test('track() correct arguments are passed', () {
         const name = 'itemAddedToCart';
         final givenAttributes = {'name': 'John Doe'};
-        CustomerIO.instance.track(name: name, attributes: givenAttributes);
+        CustomerIO.instance.track(name: name, properties: givenAttributes);
         expect(
           verify(mockPlatform.track(
             name: captureAnyNamed("name"),
-            attributes: captureAnyNamed("attributes"),
+            properties: captureAnyNamed("attributes"),
           )).captured,
           [name, givenAttributes],
         );

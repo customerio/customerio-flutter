@@ -41,7 +41,7 @@ void main() async {
     onDidReceiveNotificationResponse: (NotificationResponse notificationResponse) async {
       // Callback from `flutter_local_notifications` plugin for when a local notification is clicked.
       // Unfortunately, we are only able to get the payload object for the local push, not anything else such as title or body.
-      CustomerIO.instance.track(name: "local push notification clicked", attributes: {"payload": notificationResponse.payload});
+      CustomerIO.instance.track(name: "local push notification clicked", properties: {"payload": notificationResponse.payload});
     }
   );
 

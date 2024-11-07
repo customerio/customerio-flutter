@@ -45,7 +45,7 @@ abstract class CustomerIOPlatform extends PlatformInterface {
   }
 
   void track(
-      {required String name, Map<String, dynamic> attributes = const {}}) {
+      {required String name, Map<String, dynamic> properties = const {}}) {
     throw UnimplementedError('track() has not been implemented.');
   }
 

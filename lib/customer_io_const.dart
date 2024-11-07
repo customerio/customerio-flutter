@@ -1,3 +1,5 @@
+// TODO: Cleanup this file later when all commented methods are implemented
+
 class MethodConsts {
   static const String initialize = "initialize";
   static const String identify = "identify";
@@ -22,4 +24,7 @@ class TrackingConsts {
   static const String metricEvent = "metricEvent";
   static const String message = "message";
   static const String handleNotificationTrigger = "handleNotificationTrigger";
+
+  static const String name = "name";
+  static const String properties = "properties";
 }

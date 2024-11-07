@@ -95,11 +95,11 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   @override
   void track(
       {required String name,
-      Map<String, dynamic> attributes = const {}}) async {
+      Map<String, dynamic> properties = const {}}) async {
     try {
       final payload = {
-        TrackingConsts.eventName: name,
-        TrackingConsts.attributes: attributes
+        TrackingConsts.name: name,
+        TrackingConsts.properties: properties
       };
       methodChannel.invokeMethod(MethodConsts.track, payload);
     } on PlatformException catch (exception) {

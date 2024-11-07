@@ -91,21 +91,17 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     }
     
     private func track(params : Dictionary<String, AnyHashable>)  {
-        // TODO: Fix track implementation
-        /*
-        guard let name = params[Keys.Tracking.eventName] as? String
-        else {
+        guard let name = params[Keys.Tracking.name] as? String else {
+            logger.error("Missing event name in: \(params) for key: \(Keys.Tracking.name)")
             return
         }
         
-        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable> else{
+        guard let properties = params[Keys.Tracking.properties] as? Dictionary<String, AnyHashable> else {
             CustomerIO.shared.track(name: name)
             return
         }
         
-        CustomerIO.shared.track(name: name, data: attributes)
-         */
-        
+        CustomerIO.shared.track(name: name, properties: properties)
     }
     
     func screen(params : Dictionary<String, AnyHashable>) {

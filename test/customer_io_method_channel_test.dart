@@ -81,7 +81,7 @@ void main() {
     };
 
     final customerIO = CustomerIOMethodChannel();
-    customerIO.track(name: args['eventName'], attributes: args['attributes']);
+    customerIO.track(name: args['eventName'], properties: args['attributes']);
 
     expectMethodInvocationArguments('track', args);
   });

@@ -1,5 +1,6 @@
 package io.customer.customer_io.constant
 
+// TODO: Cleanup this file later when all commented methods are implemented
 internal object Keys {
 
     object Methods {
@@ -24,5 +25,8 @@ internal object Keys {
         const val DELIVERY_ID = "deliveryId"
         const val DELIVERY_TOKEN = "deliveryToken"
         const val METRIC_EVENT = "metricEvent"
+
+        const val NAME = "name"
+        const val PROPERTIES = "properties"
     }
 }

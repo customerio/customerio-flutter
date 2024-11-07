@@ -1,5 +1,6 @@
 import Foundation
 
+// TODO: Cleanup this file later when all commented methods are implemented
 struct Keys {
     
     struct Methods{
@@ -23,6 +24,9 @@ struct Keys {
         static let deliveryId = "deliveryId"
         static let deliveryToken = "deliveryToken"
         static let metricEvent = "metricEvent"
+        
+        static let name = "name"
+        static let properties = "properties"
     }
     
     struct Environment{
