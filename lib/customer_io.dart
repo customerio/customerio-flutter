@@ -88,9 +88,9 @@ class CustomerIO {
   /// @param identifier unique identifier for a profile
   /// @param attributes (Optional) params to set profile attributes
   void identify(
-      {required String identifier,
-      Map<String, dynamic> attributes = const {}}) {
-    return _platform.identify(identifier: identifier, attributes: attributes);
+      {required String userId,
+      Map<String, dynamic> traits = const {}}) {
+    return _platform.identify(userId: userId, traits: traits);
   }
 
   /// Call this function to stop identifying a person.

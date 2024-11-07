@@ -35,8 +35,8 @@ abstract class CustomerIOPlatform extends PlatformInterface {
   }
 
   void identify(
-      {required String identifier,
-      Map<String, dynamic> attributes = const {}}) {
+      {required String userId,
+      Map<String, dynamic> traits = const {}}) {
     throw UnimplementedError('identify() has not been implemented.');
   }
 

@@ -77,12 +77,12 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   /// will be removed automatically.
   @override
   void identify(
-      {required String identifier,
-      Map<String, dynamic> attributes = const {}}) async {
+      {required String userId,
+      Map<String, dynamic> traits = const {}}) async {
     try {
       final payload = {
-        TrackingConsts.identifier: identifier,
-        TrackingConsts.attributes: attributes
+        TrackingConsts.identifier: userId,
+        TrackingConsts.attributes: traits
       };
       methodChannel.invokeMethod(MethodConsts.identify, payload);
     } on PlatformException catch (exception) {

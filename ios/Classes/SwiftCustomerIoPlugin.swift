@@ -8,7 +8,6 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     
     private var methodChannel: FlutterMethodChannel!
     private var inAppMessagingChannelHandler: CusomterIOInAppMessaging!
-
     private let logger: CioInternalCommon.Logger = DIGraphShared.shared.logger
     
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -70,20 +69,22 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     }
     
     private func identify(params : Dictionary<String, AnyHashable>){
-        // TODO: Fix identify implementation
-        /*
-        guard let identifier = params[Keys.Tracking.identifier] as? String
-        else {
+        
+        let userId = params[Keys.Tracking.userId] as? String
+        let traits = params[Keys.Tracking.traits] as? Dictionary<String, AnyHashable> ?? [:]
+        
+        if userId == nil && traits.isEmpty {
+            logger.error("Please provide either an ID or traits to identify.")
             return
         }
         
-        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable> else{
-            CustomerIO.shared.identify(identifier: identifier)
-            return
+        if let userId = userId, !traits.isEmpty {
+            CustomerIO.shared.identify(userId: userId, traits: traits)
+        } else if let userId = userId {
+            CustomerIO.shared.identify(userId: userId)
+        } else {
+            CustomerIO.shared.profileAttributes = traits
         }
-        
-        CustomerIO.shared.identify(identifier: identifier, body: attributes)
-         */
     }
     
     private func clearIdentify() {
@@ -93,17 +94,17 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     private func track(params : Dictionary<String, AnyHashable>)  {
         // TODO: Fix track implementation
         /*
-        guard let name = params[Keys.Tracking.eventName] as? String
-        else {
-            return
-        }
-        
-        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable> else{
-            CustomerIO.shared.track(name: name)
-            return
-        }
-        
-        CustomerIO.shared.track(name: name, data: attributes)
+         guard let name = params[Keys.Tracking.eventName] as? String
+         else {
+         return
+         }
+         
+         guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable> else{
+         CustomerIO.shared.track(name: name)
+         return
+         }
+         
+         CustomerIO.shared.track(name: name, data: attributes)
          */
         
     }
@@ -111,17 +112,17 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     func screen(params : Dictionary<String, AnyHashable>) {
         // TODO: Fix screen implementation
         /*
-        guard let name = params[Keys.Tracking.eventName] as? String
-        else {
-            return
-        }
-        
-        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable> else{
-            CustomerIO.shared.screen(name: name)
-            return
-        }
-        
-        CustomerIO.shared.screen(name: name, data: attributes)
+         guard let name = params[Keys.Tracking.eventName] as? String
+         else {
+         return
+         }
+         
+         guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable> else{
+         CustomerIO.shared.screen(name: name)
+         return
+         }
+         
+         CustomerIO.shared.screen(name: name, data: attributes)
          */
     }
     
@@ -129,51 +130,51 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     private func setDeviceAttributes(params : Dictionary<String, AnyHashable>){
         // TODO: Fix setDeviceAttributes implementation
         /*
-        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable>
-        else {
-            return
-        }
-        CustomerIO.shared.deviceAttributes = attributes
+         guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable>
+         else {
+         return
+         }
+         CustomerIO.shared.deviceAttributes = attributes
          */
     }
     
     private func setProfileAttributes(params : Dictionary<String, AnyHashable>){
         // TODO: Fix setProfileAttributes implementation
         /*
-        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable>
-        else {
-            return
-        }
-        CustomerIO.shared.profileAttributes = attributes
+         guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable>
+         else {
+         return
+         }
+         CustomerIO.shared.profileAttributes = attributes
          */
     }
     
     private func registerDeviceToken(params : Dictionary<String, AnyHashable>){
         // TODO: Fix registerDeviceToken implementation
         /*
-        guard let token = params[Keys.Tracking.token] as? String
-        else {
-            return
-        }
-        
-        CustomerIO.shared.registerDeviceToken(token)
+         guard let token = params[Keys.Tracking.token] as? String
+         else {
+         return
+         }
+         
+         CustomerIO.shared.registerDeviceToken(token)
          */
     }
     
     private func trackMetric(params : Dictionary<String, AnyHashable>){
         // TODO: Fix trackMetric implementation
         /*
-        guard let deliveryId = params[Keys.Tracking.deliveryId] as? String,
-              let deviceToken = params[Keys.Tracking.deliveryToken] as? String,
-              let metricEvent = params[Keys.Tracking.metricEvent] as? String,
-              let event = Metric.getEvent(from: metricEvent)
-        else {
-            return
-        }
-        
-        CustomerIO.shared.trackMetric(deliveryID: deliveryId,
-                                      event: event,
-                                      deviceToken: deviceToken)
+         guard let deliveryId = params[Keys.Tracking.deliveryId] as? String,
+         let deviceToken = params[Keys.Tracking.deliveryToken] as? String,
+         let metricEvent = params[Keys.Tracking.metricEvent] as? String,
+         let event = Metric.getEvent(from: metricEvent)
+         else {
+         return
+         }
+         
+         CustomerIO.shared.trackMetric(deliveryID: deliveryId,
+         event: event,
+         deviceToken: deviceToken)
          */
     }
     
@@ -195,13 +196,13 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     private func initializeInApp(){
         // TODO: Fix initializeInApp implementation
         /*
-        DispatchQueue.main.async {
-            MessagingInApp.shared.initialize(eventListener: CustomerIOInAppEventListener(
-                invokeMethod: {method,args in
-                    self.invokeMethod(method, args)
-                })
-            )
-        }
+         DispatchQueue.main.async {
+         MessagingInApp.shared.initialize(eventListener: CustomerIOInAppEventListener(
+         invokeMethod: {method,args in
+         self.invokeMethod(method, args)
+         })
+         )
+         }
          */
     }
     

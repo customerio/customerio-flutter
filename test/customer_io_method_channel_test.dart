@@ -62,14 +62,14 @@ void main() {
   test('identify() should call platform method with correct arguments',
       () async {
     final Map<String, dynamic> args = {
-      'identifier': 'Customer 1',
-      'attributes': {'email': 'customer@email.com'}
+      'userId': 'Customer 1',
+      'traits': {'email': 'customer@email.com'}
     };
 
     final customerIO = CustomerIOMethodChannel();
     customerIO.identify(
-        identifier: args['identifier'] as String,
-        attributes: args['attributes']);
+        userId: args['userId'] as String,
+        traits: args['traits']);
 
     expectMethodInvocationArguments('identify', args);
   });

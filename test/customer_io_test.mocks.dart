@@ -56,16 +56,16 @@ class MockTestCustomerIoPlatform extends _i1.Mock
       ) as _i2.Future<void>);
   @override
   void identify({
-    required String? identifier,
-    Map<String, dynamic>? attributes = const {},
+    required String? userId,
+    Map<String, dynamic>? traits = const {},
   }) =>
       super.noSuchMethod(
         Invocation.method(
           #identify,
           [],
           {
-            #identifier: identifier,
-            #attributes: attributes,
+            #identifier: userId,
+            #attributes: traits,
           },
         ),
         returnValueForMissingStub: null,
