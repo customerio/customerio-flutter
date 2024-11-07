@@ -15,13 +15,13 @@ import '../widgets/settings_form_field.dart';
 
 class SettingsScreen extends StatefulWidget {
   final AmiAppAuth auth;
+  final String? cdpApiKeyInitialValue;
   final String? siteIdInitialValue;
-  final String? apiKeyInitialValue;
 
   const SettingsScreen({
     required this.auth,
+    this.cdpApiKeyInitialValue,
     this.siteIdInitialValue,
-    this.apiKeyInitialValue,
     super.key,
   });
 
@@ -35,11 +35,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController _deviceTokenValueController;
-  late final TextEditingController _trackingURLValueController;
+  late final TextEditingController _cdpApiKeyValueController;
   late final TextEditingController _siteIDValueController;
-  late final TextEditingController _apiKeyValueController;
-  late final TextEditingController _bqSecondsDelayValueController;
-  late final TextEditingController _bqMinNumberOfTasksValueController;
+  late final TextEditingController _apiHostValueController;
+  late final TextEditingController _cdnHostValueController;
+  late final TextEditingController _flushAtValueController;
+  late final TextEditingController _flushIntervalValueController;
 
   late bool _featureTrackScreens;
   late bool _featureTrackDeviceAttributes;
@@ -52,19 +53,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final cioConfig = widget._customerIOSDK.sdkConfig;
     _deviceTokenValueController = TextEditingController();
-    // _trackingURLValueController =
-    //     TextEditingController(text: cioConfig?.trackingUrl);
+    _cdpApiKeyValueController = TextEditingController(
+        text: widget.cdpApiKeyInitialValue ?? cioConfig?.cdpApiKey);
     _siteIDValueController = TextEditingController(
         text: widget.siteIdInitialValue ?? cioConfig?.migrationSiteId);
-    _apiKeyValueController = TextEditingController(
-        text: widget.apiKeyInitialValue ?? cioConfig?.cdpApiKey);
-    // _bqSecondsDelayValueController = TextEditingController(
-    //     text: cioConfig?.backgroundQueueSecondsDelay?.toTrimmedString());
-    // _bqMinNumberOfTasksValueController = TextEditingController(
-    //     text: cioConfig?.backgroundQueueMinNumOfTasks?.toString());
-    // _featureTrackScreens = cioConfig?.screenTrackingEnabled ?? true;
-    // _featureTrackDeviceAttributes =
-    //     cioConfig?.deviceAttributesTrackingEnabled ?? true;
+    _apiHostValueController = TextEditingController(text: cioConfig?.apiHost);
+    _cdnHostValueController = TextEditingController(text: cioConfig?.cdnHost);
+    _flushAtValueController =
+        TextEditingController(text: cioConfig?.flushAt?.toString());
+    _flushIntervalValueController = TextEditingController(
+        text: cioConfig?.flushInterval?.toTrimmedString());
+    _featureTrackScreens = cioConfig?.screenTrackingEnabled ?? true;
+    _featureTrackDeviceAttributes =
+        cioConfig?.autoTrackDeviceAttributes ?? true;
     _featureDebugMode = cioConfig?.debugModeEnabled ?? true;
 
     super.initState();
@@ -76,15 +77,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     final newConfig = CustomerIOSDKConfig(
-      migrationSiteId: _siteIDValueController.text.trim(),
-      cdpApiKey: _apiKeyValueController.text.trim(),
-      // trackingUrl: _trackingURLValueController.text.trim(),
-      // backgroundQueueSecondsDelay:
-      //     _bqSecondsDelayValueController.text.trim().toDoubleOrNull(),
-      // backgroundQueueMinNumOfTasks:
-      //     _bqMinNumberOfTasksValueController.text.trim().toIntOrNull(),
+      cdpApiKey: _cdpApiKeyValueController.text.trim(),
+      migrationSiteId: _siteIDValueController.text.trim().nullIfEmpty(),
+      apiHost: _apiHostValueController.text.trim().nullIfEmpty(),
+      cdnHost: _cdnHostValueController.text.trim().nullIfEmpty(),
+      flushAt: _flushAtValueController.text.trim().toIntOrNull(),
+      flushInterval: _flushIntervalValueController.text.trim().toIntOrNull(),
       screenTrackingEnabled: _featureTrackScreens,
-      // deviceAttributesTrackingEnabled: _featureTrackDeviceAttributes,
+      autoTrackDeviceAttributes: _featureTrackDeviceAttributes,
       debugModeEnabled: _featureDebugMode,
     );
     widget._customerIOSDK.saveConfigToPreferences(newConfig).then((success) {
@@ -109,16 +109,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     setState(() {
+      _cdpApiKeyValueController.text = defaultConfig.cdpApiKey;
       _siteIDValueController.text = defaultConfig.migrationSiteId ?? '';
-      _apiKeyValueController.text = defaultConfig.cdpApiKey;
-      // _trackingURLValueController.text = defaultConfig.trackingUrl ?? '';
-      // _bqSecondsDelayValueController.text =
-      //     defaultConfig.backgroundQueueSecondsDelay?.toTrimmedString() ?? '';
-      // _bqMinNumberOfTasksValueController.text =
-      //     defaultConfig.backgroundQueueMinNumOfTasks?.toString() ?? '';
-      // _featureTrackScreens = defaultConfig.screenTrackingEnabled;
-      // _featureTrackDeviceAttributes =
-      //     defaultConfig.deviceAttributesTrackingEnabled;
+      _apiHostValueController.text = defaultConfig.apiHost ?? '';
+      _cdnHostValueController.text = defaultConfig.cdnHost ?? '';
+      _flushAtValueController.text = defaultConfig.flushAt?.toString() ?? '';
+      _flushIntervalValueController.text =
+          defaultConfig.flushInterval?.toTrimmedString() ?? '';
+      _featureTrackScreens = defaultConfig.screenTrackingEnabled ?? true;
+      _featureTrackDeviceAttributes =
+          defaultConfig.autoTrackDeviceAttributes ?? true;
       _featureDebugMode = defaultConfig.debugModeEnabled ?? true;
       _saveSettings(context);
     });
@@ -160,6 +160,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           TextSettingsFormField(
                             labelText: 'Device Token',
                             semanticsLabel: 'Device Token Input',
+                            hintText: 'Fetching...',
                             valueController: _deviceTokenValueController,
                             readOnly: true,
                             suffixIcon: IconButton(
@@ -178,53 +179,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               },
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          TextSettingsFormField(
-                            labelText: 'CIO Track URL',
-                            semanticsLabel: 'Track URL Input',
-                            valueController: _trackingURLValueController,
-                            validator: (value) => value?.isValidUrl() != false
-                                ? null
-                                : 'Please enter formatted url e.g. https://tracking.cio/',
-                          ),
                           const SizedBox(height: 32),
+                          TextSettingsFormField(
+                            labelText: 'CDP API Key',
+                            semanticsLabel: 'CDP API Key Input',
+                            valueController: _cdpApiKeyValueController,
+                            validator: (value) =>
+                                value?.trim().isNotEmpty == true
+                                    ? null
+                                    : 'This field cannot be blank',
+                          ),
+                          const SizedBox(height: 16),
                           TextSettingsFormField(
                             labelText: 'Site Id',
                             semanticsLabel: 'Site ID Input',
                             valueController: _siteIDValueController,
-                            validator: (value) =>
-                                value?.trim().isNotEmpty == true
-                                    ? null
-                                    : 'This field cannot be blank',
-                          ),
-                          const SizedBox(height: 16),
-                          TextSettingsFormField(
-                            labelText: 'API Key',
-                            semanticsLabel: 'API Key Input',
-                            valueController: _apiKeyValueController,
-                            validator: (value) =>
-                                value?.trim().isNotEmpty == true
-                                    ? null
-                                    : 'This field cannot be blank',
                           ),
                           const SizedBox(height: 32),
                           TextSettingsFormField(
-                            labelText: 'backgroundQueueSecondsDelay',
-                            semanticsLabel: 'BQ Seconds Delay Input',
-                            valueController: _bqSecondsDelayValueController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
+                            labelText: 'API Host',
+                            semanticsLabel: 'API Host Input',
+                            hintText: 'cdp.customer.io/v1',
+                            valueController: _apiHostValueController,
+                            validator: (value) => value?.isEmptyOrValidUrl() != false
+                                ? null
+                                : 'Please enter url e.g. cdp.customer.io/v1 (without https)',
+                          ),
+                          const SizedBox(height: 16),
+                          TextSettingsFormField(
+                            labelText: 'CDN Host',
+                            semanticsLabel: 'CDN Host Input',
+                            hintText: 'cdp.customer.io/v1',
+                            valueController: _cdnHostValueController,
+                            validator: (value) => value?.isEmptyOrValidUrl() != false
+                                ? null
+                                : 'Please enter url e.g. cdp.customer.io/v1 (without https)',
+                          ),
+                          const SizedBox(height: 32),
+                          TextSettingsFormField(
+                            labelText: 'Flush At',
+                            semanticsLabel: 'BQ Min Number of Tasks Input',
+                            hintText: '20',
+                            valueController: _flushAtValueController,
+                            keyboardType: TextInputType.number,
                             validator: (value) {
                               bool isBlank = value?.trim().isNotEmpty != true;
-                              if (isBlank) {
-                                return 'This field cannot be blank';
-                              }
-
-                              double minValue = 1.0;
-                              bool isInvalid =
-                                  value?.isValidDouble(min: minValue) != true;
-                              if (isInvalid) {
-                                return 'The value must be greater than or equal to $minValue';
+                              if (!isBlank) {
+                                int minValue = 1;
+                                bool isInvalid =
+                                    value?.isValidInt(min: minValue) != true;
+                                if (isInvalid) {
+                                  return 'The value must be greater than or equal to $minValue';
+                                }
                               }
 
                               return null;
@@ -232,21 +238,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           const SizedBox(height: 16),
                           TextSettingsFormField(
-                            labelText: 'backgroundQueueMinNumberOfTasks',
-                            semanticsLabel: 'BQ Min Number of Tasks Input',
-                            valueController: _bqMinNumberOfTasksValueController,
-                            keyboardType: TextInputType.number,
+                            labelText: 'Flush Interval',
+                            semanticsLabel: 'BQ Seconds Delay Input',
+                            hintText: '30',
+                            valueController: _flushIntervalValueController,
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
                             validator: (value) {
                               bool isBlank = value?.trim().isNotEmpty != true;
-                              if (isBlank) {
-                                return 'This field cannot be blank';
-                              }
-
-                              int minValue = 1;
-                              bool isInvalid =
-                                  value?.isValidInt(min: minValue) != true;
-                              if (isInvalid) {
-                                return 'The value must be greater than or equal to $minValue';
+                              if (!isBlank) {
+                                int minValue = 1;
+                                bool isInvalid =
+                                    value?.isValidInt(min: minValue) != true;
+                                if (isInvalid) {
+                                  return 'The value must be greater than or equal to $minValue';
+                                }
                               }
 
                               return null;
