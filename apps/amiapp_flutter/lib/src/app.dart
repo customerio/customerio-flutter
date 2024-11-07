@@ -79,7 +79,7 @@ class _AmiAppState extends State<AmiApp> {
             onLogin: (user) {
               _auth.login(user).then((signedIn) {
                 if (signedIn) {
-                  CustomerIO.instance.identify(identifier: user.email, attributes: {
+                  CustomerIO.instance.identify(userId: user.email, traits: {
                     "first_name": user.displayName,
                     "email": user.email,
                     "is_guest": user.isGuest,
@@ -119,8 +119,8 @@ class _AmiAppState extends State<AmiApp> {
               path: Screen.settings.path,
               builder: (context, state) => SettingsScreen(
                 auth: _auth,
+                cdpApiKeyInitialValue: state.uri.queryParameters['cdp_api_key'],
                 siteIdInitialValue: state.uri.queryParameters['site_id'],
-                apiKeyInitialValue: state.uri.queryParameters['api_key'],
               ),
             ),
             GoRoute(

@@ -22,7 +22,6 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.MethodChannel.Result
 import java.lang.ref.WeakReference
 
 /**
@@ -153,13 +152,21 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun identify(params: Map<String, Any>) {
-        // TODO: Fix identify implementation
-        /*
-        val identifier = params.getString(Keys.Tracking.IDENTIFIER)
-        val attributes =
-            params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: emptyMap()
-        CustomerIO.instance().identify(identifier, attributes)
-         */
+        val userId = params.getAsTypeOrNull<String>(Keys.Tracking.USER_ID)
+        val traits = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.TRAITS) ?: emptyMap()
+
+        if (userId == null && traits.isEmpty()) {
+            logger.error("Please provide either an ID or traits to identify.")
+            return
+        }
+
+        if (userId != null && traits.isNotEmpty()) {
+            CustomerIO.instance().identify(userId, traits)
+        } else if (userId != null) {
+            CustomerIO.instance().identify(userId)
+        } else {
+            CustomerIO.instance().profileAttributes = traits
+        }
     }
 
     private fun track(params: Map<String, Any>) {
@@ -212,12 +219,9 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun setProfileAttributes(params: Map<String, Any>) {
-        // TODO: Fix setProfileAttributes implementation
-        /*
-        val attributes = params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: return
+        val attributes = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.TRAITS) ?: return
 
         CustomerIO.instance().profileAttributes = attributes
-         */
     }
 
     private fun screen(params: Map<String, Any>) {

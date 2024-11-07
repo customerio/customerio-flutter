@@ -33,9 +33,8 @@ class CustomerIOSDKConfig {
     PushConfig? pushConfig,
   }) : pushConfig = pushConfig ?? PushConfig();
 
-  factory CustomerIOSDKConfig.fromEnv() =>
-      CustomerIOSDKConfig(
-        cdpApiKey: dotenv.env[_PreferencesKey.cdpApiKey]!,
+  factory CustomerIOSDKConfig.fromEnv() => CustomerIOSDKConfig(
+        cdpApiKey: dotenv.env[_PreferencesKey.cdpApiKey] ?? 'INVALID',
         migrationSiteId: dotenv.env[_PreferencesKey.migrationSiteId],
       );
 
@@ -46,19 +45,19 @@ class CustomerIOSDKConfig {
       throw ArgumentError('cdpApiKey cannot be null');
     }
 
+    final region = prefs.getString(_PreferencesKey.region) != null
+        ? Region.values.firstWhere(
+            (e) => e.name == prefs.getString(_PreferencesKey.region))
+        : null;
     return CustomerIOSDKConfig(
       cdpApiKey: cdpApiKey,
       migrationSiteId: prefs.getString(_PreferencesKey.migrationSiteId),
-      region: prefs.getString(_PreferencesKey.region) != null
-          ? Region.values.firstWhere(
-              (e) => e.name == prefs.getString(_PreferencesKey.region))
-          : null,
-      debugModeEnabled: prefs.getBool(_PreferencesKey.debugModeEnabled) !=
-          false,
-      screenTrackingEnabled: prefs.getBool(
-          _PreferencesKey.screenTrackingEnabled) != false,
+      region: region,
+      debugModeEnabled: prefs.getBool(_PreferencesKey.debugModeEnabled),
+      screenTrackingEnabled:
+          prefs.getBool(_PreferencesKey.screenTrackingEnabled),
       autoTrackDeviceAttributes:
-      prefs.getBool(_PreferencesKey.autoTrackDeviceAttributes),
+          prefs.getBool(_PreferencesKey.autoTrackDeviceAttributes),
       apiHost: prefs.getString(_PreferencesKey.apiHost),
       cdnHost: prefs.getString(_PreferencesKey.cdnHost),
       flushAt: prefs.getInt(_PreferencesKey.flushAt),
@@ -115,8 +114,8 @@ extension ConfigurationPreferencesExtensions on SharedPreferences {
         await setOrRemoveBool(_PreferencesKey.autoTrackDeviceAttributes,
             config.autoTrackDeviceAttributes);
     result = result &&
-        await setOrRemoveBool(
-            _PreferencesKey.screenTrackingEnabled, config.screenTrackingEnabled);
+        await setOrRemoveBool(_PreferencesKey.screenTrackingEnabled,
+            config.screenTrackingEnabled);
     result = result &&
         await setOrRemoveString(_PreferencesKey.apiHost, config.apiHost);
     result = result &&
