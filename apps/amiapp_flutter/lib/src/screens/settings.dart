@@ -242,8 +242,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             semanticsLabel: 'BQ Seconds Delay Input',
                             hintText: '30',
                             valueController: _flushIntervalValueController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
+                            keyboardType: TextInputType.number,
                             validator: (value) {
                               bool isBlank = value?.trim().isNotEmpty != true;
                               if (!isBlank) {
