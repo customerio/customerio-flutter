@@ -8,8 +8,8 @@ class CustomerIOSDKConfig {
   final String cdpApiKey;
   final String? migrationSiteId;
   final Region? region;
-  final bool? debugModeEnabled;
-  final bool? screenTrackingEnabled;
+  final bool debugModeEnabled;
+  final bool screenTrackingEnabled;
   final bool? autoTrackDeviceAttributes;
   final String? apiHost;
   final String? cdnHost;
@@ -22,8 +22,8 @@ class CustomerIOSDKConfig {
     required this.cdpApiKey,
     this.migrationSiteId,
     this.region,
-    this.debugModeEnabled,
-    this.screenTrackingEnabled,
+    this.debugModeEnabled = true,
+    this.screenTrackingEnabled = true,
     this.autoTrackDeviceAttributes,
     this.apiHost,
     this.cdnHost,
@@ -53,9 +53,10 @@ class CustomerIOSDKConfig {
       cdpApiKey: cdpApiKey,
       migrationSiteId: prefs.getString(_PreferencesKey.migrationSiteId),
       region: region,
-      debugModeEnabled: prefs.getBool(_PreferencesKey.debugModeEnabled),
+      debugModeEnabled:
+          prefs.getBool(_PreferencesKey.debugModeEnabled) != false,
       screenTrackingEnabled:
-          prefs.getBool(_PreferencesKey.screenTrackingEnabled),
+          prefs.getBool(_PreferencesKey.screenTrackingEnabled) != false,
       autoTrackDeviceAttributes:
           prefs.getBool(_PreferencesKey.autoTrackDeviceAttributes),
       apiHost: prefs.getString(_PreferencesKey.apiHost),

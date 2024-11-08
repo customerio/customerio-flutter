@@ -28,4 +28,5 @@ class TrackingConsts {
 
   static const String name = "name";
   static const String properties = "properties";
+  static const String title = "title";
 }

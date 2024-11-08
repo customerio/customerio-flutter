@@ -105,12 +105,12 @@ void main() {
 
   test('screen() should call platform method with correct arguments', () async {
     final Map<String, dynamic> args = {
-      'eventName': 'screen_event',
-      'attributes': {'screenName': '你好'}
+      'title': 'screen_event',
+      'properties': {'screenName': '你好'}
     };
 
     final customerIO = CustomerIOMethodChannel();
-    customerIO.screen(name: args['eventName'], attributes: args['attributes']);
+    customerIO.screen(title: args['title'], properties: args['properties']);
 
     expectMethodInvocationArguments('screen', args);
   });

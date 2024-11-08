@@ -61,7 +61,7 @@ abstract class CustomerIOPlatform extends PlatformInterface {
   }
 
   void screen(
-      {required String name, Map<String, dynamic> attributes = const {}}) {
+      {required String title, Map<String, dynamic> properties = const {}}) {
     throw UnimplementedError('screen() has not been implemented.');
   }
 

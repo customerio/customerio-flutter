@@ -128,12 +128,12 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   /// Track screen events to record the screens a user visits
   @override
   void screen(
-      {required String name,
-      Map<String, dynamic> attributes = const {}}) async {
+      {required String title,
+      Map<String, dynamic> properties = const {}}) async {
     try {
       final payload = {
-        TrackingConsts.eventName: name,
-        TrackingConsts.attributes: attributes
+        TrackingConsts.title: title,
+        TrackingConsts.properties: properties
       };
       methodChannel.invokeMethod(MethodConsts.screen, payload);
     } on PlatformException catch (exception) {

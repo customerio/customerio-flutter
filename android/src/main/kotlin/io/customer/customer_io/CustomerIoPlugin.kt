@@ -22,6 +22,7 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
+import io.flutter.plugin.common.MethodChannel.Result
 import java.lang.ref.WeakReference
 
 /**
@@ -171,7 +172,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     private fun track(params: Map<String, Any>) {
         val name = requireNotNull(params.getAsTypeOrNull<String>(Keys.Tracking.NAME)) {
-            "Event name is required to track event"
+            "Event name is missing in params: $params"
         }
         val properties = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.PROPERTIES)
 
@@ -225,18 +226,16 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun screen(params: Map<String, Any>) {
-        // TODO: Fix screen implementation
-        /*
-        val name = params.getString(Keys.Tracking.EVENT_NAME)
-        val attributes =
-            params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: emptyMap()
-
-        if (attributes.isEmpty()) {
-            CustomerIO.instance().screen(name)
-        } else {
-            CustomerIO.instance().screen(name, attributes)
+        val title = requireNotNull(params.getAsTypeOrNull<String>(Keys.Tracking.TITLE)) {
+            "Screen title is missing in params: $params"
         }
-         */
+        val properties = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.PROPERTIES)
+
+        if (properties.isNullOrEmpty()) {
+            CustomerIO.instance().screen(title)
+        } else {
+            CustomerIO.instance().screen(title, properties)
+        }
     }
 
     private fun initialize(args: Map<String, Any>): kotlin.Result<Unit> = runCatching {

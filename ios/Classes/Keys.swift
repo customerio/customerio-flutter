@@ -27,6 +27,7 @@ struct Keys {
         
         static let name = "name"
         static let properties = "properties"
+        static let title = "title"
     }
     
     struct Environment{

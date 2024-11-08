@@ -149,6 +149,19 @@ void main() {
         );
       });
 
+      test('screen() correct arguments are passed', () {
+        const title = 'checkout';
+        final givenProperties = {'source': 'push'};
+        CustomerIO.instance.screen(title: title, properties: givenProperties);
+        expect(
+          verify(mockPlatform.screen(
+            title: captureAnyNamed("title"),
+            properties: captureAnyNamed("properties"),
+          )).captured,
+          [title, givenProperties],
+        );
+      });
+
       test('trackMetric() calls platform', () {
         const deliveryID = '123';
         const deviceToken = 'abc';
