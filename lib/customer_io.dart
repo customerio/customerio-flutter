@@ -89,9 +89,9 @@ class CustomerIO {
   /// @param userId unique identifier for a profile
   /// @param traits (Optional) params to set profile attributes
   void identify(
-      {required String userId,
-      Map<String, dynamic> traits = const {}}) {
-    return _platform.identify(userId: userId, traits: traits);
+      {required String userId, Map<String, dynamic> traits = const {}}) {
+    return _platform.identify(
+        userId: userId, traits: traits.excludeNullValues());
   }
 
   /// Call this function to stop identifying a person.
@@ -151,7 +151,8 @@ class CustomerIO {
   ///
   /// @param attributes additional attributes for a user profile
   void setProfileAttributes({required Map<String, dynamic> attributes}) {
-    return _platform.setProfileAttributes(traits: attributes);
+    return _platform.setProfileAttributes(
+        traits: attributes.excludeNullValues());
   }
 
   /// Subscribes to an in-app event listener.
