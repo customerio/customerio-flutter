@@ -132,6 +132,7 @@ jobs:
         uses: customerio/customerio-android/.github/actions/setup-android@main
 
       - name: Build and upload Android app via Fastlane
+        id: android_build
         uses: maierj/fastlane-action@v3.1.0
         with:
           subdirectory: apps/${{ matrix.sample-app }}
@@ -157,6 +158,7 @@ jobs:
         run: pod install --project-directory=ios
 
       - name: Build and upload iOS app via Fastlane
+        id: ios_build
         uses: maierj/fastlane-action@v3.1.0
         with:
           subdirectory: apps/${{ matrix.sample-app }}
@@ -164,6 +166,13 @@ jobs:
         env:
           GOOGLE_CLOUD_MATCH_READONLY_SERVICE_ACCOUNT_B64: ${{ secrets.GOOGLE_CLOUD_MATCH_READONLY_SERVICE_ACCOUNT_B64 }}
           FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64: ${{ secrets.FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64 }}
+
+      - name: Check build statuses and mark failure
+        run: |
+          if [ "${{ steps.android_build.outcome }}" != "success" ] || [ "${{ steps.ios_build.outcome }}" != "success" ]; then
+            echo "One or more builds failed."
+            exit 1
+          fi
 
       - name: Update sample builds PR comment with build information
         if: ${{ github.event_name == 'pull_request' }}
