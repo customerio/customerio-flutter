@@ -7,6 +7,7 @@ import 'customer_io_config.dart';
 import 'customer_io_enums.dart';
 import 'customer_io_inapp.dart';
 import 'customer_io_platform_interface.dart';
+import 'extensions/map_extensions.dart';
 import 'messaging_in_app/platform_interface.dart';
 import 'messaging_push/platform_interface.dart';
 
@@ -108,7 +109,8 @@ class CustomerIO {
   /// @param properties (Optional) params to be sent with event
   void track(
       {required String name, Map<String, dynamic> properties = const {}}) {
-    return _platform.track(name: name, properties: properties);
+    return _platform.track(
+        name: name, properties: properties.excludeNullValues());
   }
 
   /// Track a push metric
@@ -132,7 +134,8 @@ class CustomerIO {
   /// @param attributes (Optional) params to be sent with event
   void screen(
       {required String title, Map<String, dynamic> properties = const {}}) {
-    return _platform.screen(title: title, properties: properties);
+    return _platform.screen(
+        title: title, properties: properties.excludeNullValues());
   }
 
   /// Use this function to send custom device attributes

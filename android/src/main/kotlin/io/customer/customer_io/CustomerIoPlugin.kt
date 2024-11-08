@@ -174,9 +174,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         val name = requireNotNull(params.getAsTypeOrNull<String>(Keys.Tracking.NAME)) {
             "Event name is missing in params: $params"
         }
-        val properties = params
-            .getAsTypeOrNull<Map<String, Any?>>(Keys.Tracking.PROPERTIES)
-            ?.filterValues { it != null }
+        val properties = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.PROPERTIES)
 
         if (properties.isNullOrEmpty()) {
             CustomerIO.instance().track(name)
@@ -231,9 +229,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         val title = requireNotNull(params.getAsTypeOrNull<String>(Keys.Tracking.TITLE)) {
             "Screen title is missing in params: $params"
         }
-        val properties = params
-            .getAsTypeOrNull<Map<String, Any?>>(Keys.Tracking.PROPERTIES)
-            ?.filterValues { it != null }
+        val properties = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.PROPERTIES)
 
         if (properties.isNullOrEmpty()) {
             CustomerIO.instance().screen(title)
