@@ -13,14 +13,30 @@ lane :generate_new_version do |options|
 
   # Replace '/' with '-' to avoid issues with unsupported characters in version name
   branch_name = branch_name.gsub('/', '-')
-  timestamp = current_time.strftime("%Y%m%d.%H%M%S")
+  # Extract ticket number from branch name
+  ticket_number_in_branch_name = branch_name.scan(/\d+/).join
+  # If no ticket number found, set it to 0
+  ticket_number_in_branch_name = ticket_number_in_branch_name.empty? ? "0" : ticket_number_in_branch_name
 
-  sdk_version_name = "#{timestamp}.0-#{branch_name}"
+  # Format the components individually and remove leading zeros
+  year = current_time.year.to_s
+  month = current_time.month.to_s
+  day = current_time.day.to_s
+  hour = current_time.hour.to_s
+  minute = current_time.min.to_s
+  second = current_time.sec.to_s
+
+  # Combine them into the desired format
+  major = "#{year}#{month}#{day}"
+  minor = "#{hour}#{minute}#{second}"
+  patch = ticket_number_in_branch_name.to_s
+
+  sdk_version_name = "#{major}.#{minor}.#{patch}"
 
   if github.is_pull_request
     app_version_name = "#{github.pr_number}.#{github.pr_commits}.0"
   else
-    app_version_name = sdk_version_name
+    app_version_name = "#{sdk_version_name}-#{branch_name}"
   end
   app_version_code = (current_time.to_f / 60).to_i
 
