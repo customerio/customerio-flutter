@@ -76,12 +76,12 @@ void main() {
 
   test('track() should call platform method with correct arguments', () async {
     final Map<String, dynamic> args = {
-      'eventName': 'test_event',
-      'attributes': {'eventData': 2}
+      'name': 'test_event',
+      'properties': {'eventData': 2}
     };
 
     final customerIO = CustomerIOMethodChannel();
-    customerIO.track(name: args['eventName'], attributes: args['attributes']);
+    customerIO.track(name: args['name'], properties: args['properties']);
 
     expectMethodInvocationArguments('track', args);
   });

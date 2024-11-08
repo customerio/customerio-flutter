@@ -105,10 +105,10 @@ class CustomerIO {
   /// You may also track events with additional yet optional data.
   ///
   /// @param name event name to be tracked
-  /// @param attributes (Optional) params to be sent with event
+  /// @param properties (Optional) params to be sent with event
   void track(
-      {required String name, Map<String, dynamic> attributes = const {}}) {
-    return _platform.track(name: name, attributes: attributes);
+      {required String name, Map<String, dynamic> properties = const {}}) {
+    return _platform.track(name: name, properties: properties);
   }
 
   /// Track a push metric

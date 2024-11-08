@@ -170,18 +170,16 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun track(params: Map<String, Any>) {
-        // TODO: Fix track implementation
-        /*
-        val name = params.getString(Keys.Tracking.EVENT_NAME)
-        val attributes =
-            params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: emptyMap()
+        val name = requireNotNull(params.getAsTypeOrNull<String>(Keys.Tracking.NAME)) {
+            "Event name is required to track event"
+        }
+        val properties = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.PROPERTIES)
 
-        if (attributes.isEmpty()) {
+        if (properties.isNullOrEmpty()) {
             CustomerIO.instance().track(name)
         } else {
-            CustomerIO.instance().track(name, attributes)
+            CustomerIO.instance().track(name, properties)
         }
-         */
     }
 
     private fun registerDeviceToken(params: Map<String, Any>) {

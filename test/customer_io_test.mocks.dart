@@ -81,7 +81,7 @@ class MockTestCustomerIoPlatform extends _i1.Mock
   @override
   void track({
     required String? name,
-    Map<String, dynamic>? attributes = const {},
+    Map<String, dynamic>? properties = const {},
   }) =>
       super.noSuchMethod(
         Invocation.method(
@@ -89,7 +89,7 @@ class MockTestCustomerIoPlatform extends _i1.Mock
           [],
           {
             #name: name,
-            #attributes: attributes,
+            #properties: properties,
           },
         ),
         returnValueForMissingStub: null,
