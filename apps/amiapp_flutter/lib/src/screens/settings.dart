@@ -61,8 +61,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _cdnHostValueController = TextEditingController(text: cioConfig?.cdnHost);
     _flushAtValueController =
         TextEditingController(text: cioConfig?.flushAt?.toString());
-    _flushIntervalValueController = TextEditingController(
-        text: cioConfig?.flushInterval?.toTrimmedString());
+    _flushIntervalValueController =
+        TextEditingController(text: cioConfig?.flushInterval?.toString());
     _featureTrackScreens = cioConfig?.screenTrackingEnabled ?? true;
     _featureTrackDeviceAttributes =
         cioConfig?.autoTrackDeviceAttributes ?? true;
@@ -115,11 +115,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _cdnHostValueController.text = defaultConfig.cdnHost ?? '';
       _flushAtValueController.text = defaultConfig.flushAt?.toString() ?? '';
       _flushIntervalValueController.text =
-          defaultConfig.flushInterval?.toTrimmedString() ?? '';
-      _featureTrackScreens = defaultConfig.screenTrackingEnabled ?? true;
+          defaultConfig.flushInterval?.toString() ?? '';
+      _featureTrackScreens = defaultConfig.screenTrackingEnabled;
       _featureTrackDeviceAttributes =
           defaultConfig.autoTrackDeviceAttributes ?? true;
-      _featureDebugMode = defaultConfig.debugModeEnabled ?? true;
+      _featureDebugMode = defaultConfig.debugModeEnabled;
       _saveSettings(context);
     });
   }

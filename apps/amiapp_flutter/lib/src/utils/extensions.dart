@@ -108,15 +108,6 @@ extension AmiAppStringExtensions on String {
   }
 }
 
-extension AmiAppIntExtensions on int {
-  String? toTrimmedString() {
-    if (this % 1.0 != 0.0) {
-      return toString();
-    }
-    return toStringAsFixed(0);
-  }
-}
-
 extension LocationExtensions on GoRouter {
   // Get location of current route
   // This is a workaround to get the current location as location property
