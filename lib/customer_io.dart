@@ -131,8 +131,8 @@ class CustomerIO {
   /// @param name name of the screen user visited
   /// @param attributes (Optional) params to be sent with event
   void screen(
-      {required String name, Map<String, dynamic> attributes = const {}}) {
-    return _platform.screen(name: name, attributes: attributes);
+      {required String title, Map<String, dynamic> properties = const {}}) {
+    return _platform.screen(title: title, properties: properties);
   }
 
   /// Use this function to send custom device attributes

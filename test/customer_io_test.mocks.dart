@@ -124,16 +124,16 @@ class MockTestCustomerIoPlatform extends _i1.Mock
       );
   @override
   void screen({
-    required String? name,
-    Map<String, dynamic>? attributes = const {},
+    required String? title,
+    Map<String, dynamic>? properties = const {},
   }) =>
       super.noSuchMethod(
         Invocation.method(
           #screen,
           [],
           {
-            #name: name,
-            #attributes: attributes,
+            #title: title,
+            #properties: properties,
           },
         ),
         returnValueForMissingStub: null,
