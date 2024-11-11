@@ -106,20 +106,17 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     }
     
     func screen(params : Dictionary<String, AnyHashable>) {
-        // TODO: Fix screen implementation
-        /*
-         guard let name = params[Keys.Tracking.eventName] as? String
-         else {
-         return
-         }
-         
-         guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable> else{
-         CustomerIO.shared.screen(name: name)
-         return
-         }
-         
-         CustomerIO.shared.screen(name: name, data: attributes)
-         */
+        guard let title = params[Keys.Tracking.title] as? String else {
+            logger.error("Missing screen title in: \(params) for key: \(Keys.Tracking.title)")
+            return
+        }
+        
+        guard let properties = params[Keys.Tracking.properties] as? Dictionary<String, AnyHashable> else {
+            CustomerIO.shared.screen(title: title)
+            return
+        }
+        
+        CustomerIO.shared.screen(title: title, properties: properties)
     }
     
     

@@ -28,5 +28,6 @@ internal object Keys {
 
         const val NAME = "name"
         const val PROPERTIES = "properties"
+        const val TITLE = "title"
     }
 }

@@ -7,6 +7,7 @@ import 'customer_io_config.dart';
 import 'customer_io_enums.dart';
 import 'customer_io_inapp.dart';
 import 'customer_io_platform_interface.dart';
+import 'extensions/map_extensions.dart';
 import 'messaging_in_app/platform_interface.dart';
 import 'messaging_push/platform_interface.dart';
 
@@ -88,9 +89,9 @@ class CustomerIO {
   /// @param userId unique identifier for a profile
   /// @param traits (Optional) params to set profile attributes
   void identify(
-      {required String userId,
-      Map<String, dynamic> traits = const {}}) {
-    return _platform.identify(userId: userId, traits: traits);
+      {required String userId, Map<String, dynamic> traits = const {}}) {
+    return _platform.identify(
+        userId: userId, traits: traits.excludeNullValues());
   }
 
   /// Call this function to stop identifying a person.
@@ -108,7 +109,8 @@ class CustomerIO {
   /// @param properties (Optional) params to be sent with event
   void track(
       {required String name, Map<String, dynamic> properties = const {}}) {
-    return _platform.track(name: name, properties: properties);
+    return _platform.track(
+        name: name, properties: properties.excludeNullValues());
   }
 
   /// Track a push metric
@@ -131,8 +133,9 @@ class CustomerIO {
   /// @param name name of the screen user visited
   /// @param attributes (Optional) params to be sent with event
   void screen(
-      {required String name, Map<String, dynamic> attributes = const {}}) {
-    return _platform.screen(name: name, attributes: attributes);
+      {required String title, Map<String, dynamic> properties = const {}}) {
+    return _platform.screen(
+        title: title, properties: properties.excludeNullValues());
   }
 
   /// Use this function to send custom device attributes
@@ -148,7 +151,8 @@ class CustomerIO {
   ///
   /// @param attributes additional attributes for a user profile
   void setProfileAttributes({required Map<String, dynamic> attributes}) {
-    return _platform.setProfileAttributes(traits: attributes);
+    return _platform.setProfileAttributes(
+        traits: attributes.excludeNullValues());
   }
 
   /// Subscribes to an in-app event listener.

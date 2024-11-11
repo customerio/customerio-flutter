@@ -216,7 +216,7 @@ class _AmiAppState extends State<AmiApp> {
     if (_customerIOSDK.sdkConfig?.screenTrackingEnabled == true) {
       final Screen? screen = _router.currentLocation().toAppScreen();
       if (screen != null) {
-        CustomerIO.instance.screen(name: screen.name);
+        CustomerIO.instance.screen(title: screen.name);
       }
     }
   }
