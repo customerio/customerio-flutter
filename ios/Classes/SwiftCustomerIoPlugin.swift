@@ -168,6 +168,9 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     
     private func initialize(params : Dictionary<String, AnyHashable>){
         do {
+            // Configure and override SdkClient for Flutter before initializing native SDK
+            CustomerIOSdkClient.configure(using: params)
+            // Initialize native SDK with provided config
             let sdkConfigBuilder = try SDKConfigBuilder.create(from: params)
             CustomerIO.initialize(withConfig: sdkConfigBuilder.build())
             
