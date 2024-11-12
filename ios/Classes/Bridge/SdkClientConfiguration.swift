@@ -8,7 +8,8 @@ extension SdkClient {
     
     /// Configures and overrides the shared `SdkClient` instance with provided parameters.
     ///
-    /// - Parameter args: Dictionary containing values required for `SdkClient` protocol.
+    /// - Parameters:
+    ///  - using: Dictionary containing values required for `SdkClient` protocol.
     /// - Returns: Configured `SdkClient` instance. Returns the existing shared client if required parameters are missing.
     @available(iOSApplicationExtension, unavailable)
     @discardableResult
