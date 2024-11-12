@@ -42,7 +42,8 @@
         "assets": [
           "CHANGELOG.md",
           "pubspec.yaml",
-          "lib/customer_io_plugin_version.dart"
+          "lib/customer_io_plugin_version.dart",
+          "android/src/main/res/values/customer_io_config.xml"
         ],
         "message": "chore: prepare for ${nextRelease.version}\n\n${nextRelease.notes}"
       }
