@@ -15,6 +15,19 @@ class CustomerIOMessagingPushMethodChannel
   final methodChannel = const MethodChannel('customer_io_messaging_push');
 
   @override
+  Future<String?> getRegisteredDeviceToken() {
+    try {
+      return methodChannel
+          .invokeMethod(MethodConsts.getRegisteredDeviceToken)
+          .then((result) => result as String?);
+    } on PlatformException catch (exception) {
+      handleException(exception);
+      return Future.error(
+          exception.message ?? "Error fetching registered device token");
+    }
+  }
+
+  @override
   Future<bool> onMessageReceived(Map<String, dynamic> message,
       {bool handleNotificationTrigger = true}) {
     if (Platform.isIOS) {

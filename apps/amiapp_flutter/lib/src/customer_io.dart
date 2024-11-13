@@ -127,10 +127,6 @@ extension AmiAppSDKExtensions on CustomerIOSDK {
       return null;
     }
   }
-
-  Future<String?> getDeviceToken() async {
-    return null;
-  }
 }
 
 /// Customer.io SDK extensions to save/retrieve configurations to/from preferences.

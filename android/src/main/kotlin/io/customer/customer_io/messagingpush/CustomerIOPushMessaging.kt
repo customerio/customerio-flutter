@@ -6,6 +6,7 @@ import io.customer.customer_io.constant.Keys
 import io.customer.customer_io.getAsTypeOrNull
 import io.customer.customer_io.invokeNative
 import io.customer.messagingpush.CustomerIOFirebaseMessagingService
+import io.customer.sdk.CustomerIO
 import io.customer.sdk.core.di.SDKComponent
 import io.customer.sdk.core.util.Logger
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -28,6 +29,11 @@ internal class CustomerIOPushMessaging(
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
+            Keys.Methods.GET_REGISTERED_DEVICE_TOKEN -> {
+                call.invokeNative(result) {
+                    return@invokeNative getRegisteredDeviceToken()
+                }
+            }
             Keys.Methods.ON_MESSAGE_RECEIVED -> {
                 call.invokeNative(result) { args ->
                     return@invokeNative onMessageReceived(
@@ -41,6 +47,10 @@ internal class CustomerIOPushMessaging(
                 result.notImplemented()
             }
         }
+    }
+
+    private fun getRegisteredDeviceToken(): String? {
+        return CustomerIO.instance().registeredDeviceToken
     }
 
     /**
