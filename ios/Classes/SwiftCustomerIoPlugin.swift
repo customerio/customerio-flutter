@@ -133,20 +133,22 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     
     private func setProfileAttributes(params : Dictionary<String, AnyHashable>){
         guard let attributes = params[Keys.Tracking.traits] as? Dictionary<String, AnyHashable>
-        else { return }
+        else {
+            logger.error("Missing attributes in: \(params) for key: \(Keys.Tracking.traits)")
+            return
+        }
+        
         CustomerIO.shared.profileAttributes = attributes
     }
     
     private func registerDeviceToken(params : Dictionary<String, AnyHashable>){
-        // TODO: Fix registerDeviceToken implementation
-        /*
-         guard let token = params[Keys.Tracking.token] as? String
-         else {
-         return
-         }
-         
-         CustomerIO.shared.registerDeviceToken(token)
-         */
+        guard let token = params[Keys.Tracking.token] as? String
+        else {
+            logger.error("Missing token in: \(params) for key: \(Keys.Tracking.token)")
+            return
+        }
+        
+        CustomerIO.shared.registerDeviceToken(token)
     }
     
     private func trackMetric(params : Dictionary<String, AnyHashable>){
