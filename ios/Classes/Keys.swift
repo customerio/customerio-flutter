@@ -14,6 +14,7 @@ struct Keys {
         static let registerDeviceToken = "registerDeviceToken"
         static let trackMetric = "trackMetric"
         static let dismissMessage = "dismissMessage"
+        static let getRegisteredDeviceToken = "getRegisteredDeviceToken"
     }
     
     struct Tracking {

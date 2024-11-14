@@ -12,6 +12,7 @@ class MethodConsts {
   static const String registerDeviceToken = "registerDeviceToken";
   static const String onMessageReceived = "onMessageReceived";
   static const String dismissMessage = "dismissMessage";
+  static const String getRegisteredDeviceToken = "getRegisteredDeviceToken";
 }
 
 class TrackingConsts {

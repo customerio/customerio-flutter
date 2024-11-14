@@ -15,6 +15,7 @@ internal object Keys {
         const val TRACK_METRIC = "trackMetric"
         const val ON_MESSAGE_RECEIVED = "onMessageReceived"
         const val DISMISS_MESSAGE = "dismissMessage"
+        const val GET_REGISTERED_DEVICE_TOKEN = "getRegisteredDeviceToken"
     }
 
     object Tracking {

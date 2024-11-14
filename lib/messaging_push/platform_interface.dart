@@ -24,6 +24,13 @@ abstract class CustomerIOMessagingPushPlatform extends PlatformInterface {
     _instance = instance;
   }
 
+  /// Method to get the device token registered with the Customer.io SDK.
+  /// Returns a [Future] that resolves to the device token registered with
+  /// Customer.io SDK.
+  Future<String?> getRegisteredDeviceToken() {
+    throw UnimplementedError('getRegisteredDeviceToken() has not been implemented.');
+  }
+
   /// Processes push notification received outside the CIO SDK. The method
   /// displays notification on device and tracks CIO metrics for push
   /// notification.
