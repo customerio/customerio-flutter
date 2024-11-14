@@ -136,6 +136,12 @@ void main() {
             .called(1);
       });
 
+      test('registerDeviceToken() calls platform', () {
+        const token = 'abc';
+        CustomerIO.instance.registerDeviceToken(deviceToken: token);
+        verify(mockPlatform.registerDeviceToken(deviceToken: token)).called(1);
+      });
+
       test('track() correct arguments are passed', () {
         const name = 'itemAddedToCart';
         final givenAttributes = {'name': 'John Doe'};
