@@ -184,11 +184,10 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun registerDeviceToken(params: Map<String, Any>) {
-        // TODO: Fix registerDeviceToken implementation
-        /*
-        val token = params.getString(Keys.Tracking.TOKEN)
+        val token = requireNotNull(params.getAsTypeOrNull<String>(Keys.Tracking.TOKEN)) {
+            "Device token is missing in params: $params"
+        }
         CustomerIO.instance().registerDeviceToken(token)
-         */
     }
 
     private fun trackMetric(params: Map<String, Any>) {
