@@ -182,7 +182,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   @override
   void setDeviceAttributes({required Map<String, dynamic> attributes}) {
     try {
-      final payload = {TrackingConsts.attributes: attributes};
+      final payload = {TrackingConsts.traits: attributes};
       methodChannel.invokeMethod(MethodConsts.setDeviceAttributes, payload);
     } on PlatformException catch (exception) {
       handleException(exception);

@@ -121,20 +121,19 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     
     
     private func setDeviceAttributes(params : Dictionary<String, AnyHashable>){
-        // TODO: Fix setDeviceAttributes implementation
-        /*
-         guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable>
-         else {
-         return
-         }
-         CustomerIO.shared.deviceAttributes = attributes
-         */
+        guard let attributes = params[Keys.Tracking.traits] as? Dictionary<String, AnyHashable>
+        else {
+            logger.error("Missing device attributes in: \(params) for key: \(Keys.Tracking.traits)")
+            return
+        }
+        
+        CustomerIO.shared.deviceAttributes = attributes
     }
     
     private func setProfileAttributes(params : Dictionary<String, AnyHashable>){
         guard let attributes = params[Keys.Tracking.traits] as? Dictionary<String, AnyHashable>
         else {
-            logger.error("Missing attributes in: \(params) for key: \(Keys.Tracking.traits)")
+            logger.error("Missing profile attributes in: \(params) for key: \(Keys.Tracking.traits)")
             return
         }
         

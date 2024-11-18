@@ -210,16 +210,23 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun setDeviceAttributes(params: Map<String, Any>) {
-        // TODO: Fix setDeviceAttributes implementation
-        /*
-        val attributes = params.getProperty<Map<String, Any>>(Keys.Tracking.ATTRIBUTES) ?: return
+        val attributes = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.TRAITS)
+
+        if (attributes.isNullOrEmpty()) {
+            logger.error("Device attributes are missing in params: $params")
+            return
+        }
 
         CustomerIO.instance().deviceAttributes = attributes
-         */
     }
 
     private fun setProfileAttributes(params: Map<String, Any>) {
-        val attributes = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.TRAITS) ?: return
+        val attributes = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.TRAITS)
+
+        if (attributes.isNullOrEmpty()) {
+            logger.error("Profile attributes are missing in params: $params")
+            return
+        }
 
         CustomerIO.instance().profileAttributes = attributes
     }
