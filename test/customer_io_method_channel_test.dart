@@ -91,7 +91,7 @@ void main() {
     final Map<String, dynamic> args = {
       'deliveryId': '123',
       'deliveryToken': 'asdf',
-      'metricEvent': 'clicked'
+      'metricEvent': 'opened'
     };
 
     final customerIO = CustomerIOMethodChannel();
