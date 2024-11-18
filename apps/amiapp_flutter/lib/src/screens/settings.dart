@@ -1,3 +1,4 @@
+import 'package:customer_io/customer_io.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -48,7 +49,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   void initState() {
-    widget._customerIOSDK.getDeviceToken().then((value) =>
+    CustomerIO.instance.pushMessaging.getRegisteredDeviceToken().then((value) =>
         setState(() => _deviceTokenValueController.text = value ?? ''));
 
     final cioConfig = widget._customerIOSDK.sdkConfig;
@@ -201,7 +202,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             semanticsLabel: 'API Host Input',
                             hintText: 'cdp.customer.io/v1',
                             valueController: _apiHostValueController,
-                            validator: (value) => value?.isEmptyOrValidUrl() != false
+                            validator: (value) => value?.isEmptyOrValidUrl() !=
+                                    false
                                 ? null
                                 : 'Please enter url e.g. cdp.customer.io/v1 (without https)',
                           ),
@@ -211,7 +213,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             semanticsLabel: 'CDN Host Input',
                             hintText: 'cdp.customer.io/v1',
                             valueController: _cdnHostValueController,
-                            validator: (value) => value?.isEmptyOrValidUrl() != false
+                            validator: (value) => value?.isEmptyOrValidUrl() !=
+                                    false
                                 ? null
                                 : 'Please enter url e.g. cdp.customer.io/v1 (without https)',
                           ),

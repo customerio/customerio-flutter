@@ -8,6 +8,7 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     
     private var methodChannel: FlutterMethodChannel!
     private var inAppMessagingChannelHandler: CusomterIOInAppMessaging!
+    private var messagingPushChannelHandler: CustomerIOMessagingPush!
     private let logger: CioInternalCommon.Logger = DIGraphShared.shared.logger
     
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -16,6 +17,7 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
         registrar.addMethodCallDelegate(instance, channel: instance.methodChannel)
         
         instance.inAppMessagingChannelHandler = CusomterIOInAppMessaging(with: registrar)
+        instance.messagingPushChannelHandler = CustomerIOMessagingPush(with: registrar)
     }
     
     deinit {
