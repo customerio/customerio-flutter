@@ -20,6 +20,7 @@ struct Keys {
     struct Tracking {
         static let userId = "userId"
         static let traits = "traits"
+        static let attributes = "attributes"
         static let eventName = "eventName"
         static let token = "token"
         static let deliveryId = "deliveryId"
