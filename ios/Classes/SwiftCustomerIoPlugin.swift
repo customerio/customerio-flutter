@@ -123,9 +123,9 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     
     
     private func setDeviceAttributes(params : Dictionary<String, AnyHashable>){
-        guard let attributes = params[Keys.Tracking.traits] as? Dictionary<String, AnyHashable>
+        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable>
         else {
-            logger.error("Missing device attributes in: \(params) for key: \(Keys.Tracking.traits)")
+            logger.error("Missing device attributes in: \(params) for key: \(Keys.Tracking.attributes)")
             return
         }
         
@@ -133,9 +133,9 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     }
     
     private func setProfileAttributes(params : Dictionary<String, AnyHashable>){
-        guard let attributes = params[Keys.Tracking.traits] as? Dictionary<String, AnyHashable>
+        guard let attributes = params[Keys.Tracking.attributes] as? Dictionary<String, AnyHashable>
         else {
-            logger.error("Missing profile attributes in: \(params) for key: \(Keys.Tracking.traits)")
+            logger.error("Missing profile attributes in: \(params) for key: \(Keys.Tracking.attributes)")
             return
         }
         

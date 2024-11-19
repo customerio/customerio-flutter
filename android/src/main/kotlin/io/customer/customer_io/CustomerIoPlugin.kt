@@ -210,10 +210,11 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 metric = event
             )
         )
+         */
     }
 
     private fun setDeviceAttributes(params: Map<String, Any>) {
-        val attributes = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.TRAITS)
+        val attributes = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.ATTRIBUTES)
 
         if (attributes.isNullOrEmpty()) {
             logger.error("Device attributes are missing in params: $params")
@@ -224,7 +225,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun setProfileAttributes(params: Map<String, Any>) {
-        val attributes = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.TRAITS)
+        val attributes = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.ATTRIBUTES)
 
         if (attributes.isNullOrEmpty()) {
             logger.error("Profile attributes are missing in params: $params")
