@@ -152,7 +152,7 @@ class CustomerIO {
   /// @param attributes additional attributes for a user profile
   void setProfileAttributes({required Map<String, dynamic> attributes}) {
     return _platform.setProfileAttributes(
-        traits: attributes.excludeNullValues());
+        attributes: attributes.excludeNullValues());
   }
 
   /// Subscribes to an in-app event listener.
