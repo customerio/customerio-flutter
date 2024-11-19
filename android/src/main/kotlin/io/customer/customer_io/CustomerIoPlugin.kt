@@ -210,7 +210,6 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 metric = event
             )
         )
-         */
     }
 
     private fun setDeviceAttributes(params: Map<String, Any>) {
