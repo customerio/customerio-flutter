@@ -29,34 +29,17 @@ import java.lang.ref.WeakReference
  * Android implementation of plugin that will let Flutter developers to
  * interact with a Android platform
  * */
-class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
+class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
     /// when the Flutter Engine is detached from the Activity
     private lateinit var flutterCommunicationChannel: MethodChannel
     private lateinit var context: Context
-    private var activity: WeakReference<Activity>? = null
 
     private lateinit var modules: List<CustomerIOPluginModule>
 
     private val logger: Logger = SDKComponent.logger
-
-    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        this.activity = WeakReference(binding.activity)
-    }
-
-    override fun onDetachedFromActivityForConfigChanges() {
-        onDetachedFromActivity()
-    }
-
-    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        onAttachedToActivity(binding)
-    }
-
-    override fun onDetachedFromActivity() {
-        this.activity = null
-    }
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         context = flutterPluginBinding.applicationContext
@@ -275,11 +258,12 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
             // Configure in-app messaging module based on config provided by customer app
             args.getAsTypeOrNull<Map<String, Any>>(key = "inApp")?.let { inAppConfig ->
-                CustomerIOInAppMessaging.addNativeModuleFromConfig(
-                    builder = this,
-                    config = inAppConfig,
-                    region = givenRegion
-                )
+                modules.filterIsInstance<CustomerIOInAppMessaging>().forEach {
+                    it.configureModuleMessagingInApp(
+                        builder = this,
+                        config = inAppConfig.plus("region" to givenRegion),
+                    )
+                }
             }
             // TODO: Initialize push module with given config
         }.build()
@@ -319,45 +303,5 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         modules.forEach {
             it.onDetachedFromEngine()
         }
-    }
-}
-
-class CustomerIOInAppEventListener(private val invokeMethod: (String, Any?) -> Unit) :
-    InAppEventListener {
-    override fun errorWithMessage(message: InAppMessage) {
-        invokeMethod(
-            "errorWithMessage", mapOf(
-                "messageId" to message.messageId, "deliveryId" to message.deliveryId
-            )
-        )
-    }
-
-    override fun messageActionTaken(
-        message: InAppMessage, actionValue: String, actionName: String
-    ) {
-        invokeMethod(
-            "messageActionTaken", mapOf(
-                "messageId" to message.messageId,
-                "deliveryId" to message.deliveryId,
-                "actionValue" to actionValue,
-                "actionName" to actionName
-            )
-        )
-    }
-
-    override fun messageDismissed(message: InAppMessage) {
-        invokeMethod(
-            "messageDismissed", mapOf(
-                "messageId" to message.messageId, "deliveryId" to message.deliveryId
-            )
-        )
-    }
-
-    override fun messageShown(message: InAppMessage) {
-        invokeMethod(
-            "messageShown", mapOf(
-                "messageId" to message.messageId, "deliveryId" to message.deliveryId
-            )
-        )
     }
 }

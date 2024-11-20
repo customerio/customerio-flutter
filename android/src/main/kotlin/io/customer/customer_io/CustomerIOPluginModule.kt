@@ -1,5 +1,6 @@
 package io.customer.customer_io
 
+import io.customer.sdk.CustomerIOBuilder
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodChannel
 
@@ -36,4 +37,6 @@ internal interface CustomerIOPluginModule : MethodChannel.MethodCallHandler {
     fun onDetachedFromEngine() {
         flutterCommunicationChannel.setMethodCallHandler(null)
     }
+
+    abstract fun configureModuleMessagingInApp(builder: CustomerIOBuilder, config: Map<String, Any>)
 }
