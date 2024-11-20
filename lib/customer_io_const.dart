@@ -17,8 +17,8 @@ class MethodConsts {
 
 class TrackingConsts {
   static const String userId = "userId";
-  static const String traits = "traits";
   static const String attributes = "attributes";
+  static const String traits = "traits";
   static const String eventName = "eventName";
   static const String token = "token";
   static const String deliveryId = "deliveryId";

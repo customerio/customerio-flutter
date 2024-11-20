@@ -8,7 +8,7 @@ enum CioLogLevel { none, error, info, debug }
 enum Region { us, eu }
 
 /// Enum to specify the type of metric for tracking
-enum MetricEvent { delivered, opened, converted, clicked }
+enum MetricEvent { delivered, opened, converted }
 
 /// Enum to specify the click behavior of push notification for Android
 enum PushClickBehaviorAndroid {
