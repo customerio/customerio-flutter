@@ -1,3 +1,4 @@
+import 'package:customer_io/config/in_app_config.dart';
 import 'package:customer_io/customer_io.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -87,6 +88,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       screenTrackingEnabled: _featureTrackScreens,
       autoTrackDeviceAttributes: _featureTrackDeviceAttributes,
       debugModeEnabled: _featureDebugMode,
+      inAppConfig: InAppConfig(siteId: _siteIDValueController.text.trim())
     );
     widget._customerIOSDK.saveConfigToPreferences(newConfig).then((success) {
       if (!context.mounted) {

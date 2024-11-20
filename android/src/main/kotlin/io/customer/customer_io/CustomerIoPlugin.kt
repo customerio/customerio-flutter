@@ -273,7 +273,14 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             args.getAsTypeOrNull<String>("apiHost")?.let(::apiHost)
             args.getAsTypeOrNull<String>("cdnHost")?.let(::cdnHost)
 
-            // TODO: Initialize in-app module with given config
+            // Configure in-app messaging module based on config provided by customer app
+            args.getAsTypeOrNull<Map<String, Any>>(key = "inApp")?.let { inAppConfig ->
+                CustomerIOInAppMessaging.addNativeModuleFromConfig(
+                    builder = this,
+                    config = inAppConfig,
+                    region = givenRegion
+                )
+            }
             // TODO: Initialize push module with given config
         }.build()
 

@@ -177,6 +177,10 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
             let sdkConfigBuilder = try SDKConfigBuilder.create(from: params)
             CustomerIO.initialize(withConfig: sdkConfigBuilder.build())
             
+            if let inAppConfig = try? MessagingInAppConfigBuilder.build(from: params) {
+                MessagingInApp.initialize(withConfig: inAppConfig)
+            }
+            
             // TODO: Initialize in-app module with given config
             logger.debug("Customer.io SDK initialized with config: \(params)")
         } catch {
