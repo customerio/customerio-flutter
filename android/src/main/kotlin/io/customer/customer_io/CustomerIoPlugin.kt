@@ -16,6 +16,8 @@ import io.customer.sdk.core.di.SDKComponent
 import io.customer.sdk.core.util.CioLogLevel
 import io.customer.sdk.core.util.Logger
 import io.customer.sdk.data.model.Region
+import io.customer.sdk.events.Metric
+import io.customer.sdk.events.TrackMetric
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -191,22 +193,23 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun trackMetric(params: Map<String, Any>) {
-        // TODO: Fix trackMetric implementation
-        /*
-        val deliveryId = params.getString(Keys.Tracking.DELIVERY_ID)
-        val deliveryToken = params.getString(Keys.Tracking.DELIVERY_TOKEN)
-        val eventName = params.getProperty<String>(Keys.Tracking.METRIC_EVENT)
-        val event = MetricEvent.getEvent(eventName)
+        val deliveryId = params.getAsTypeOrNull<String>(Keys.Tracking.DELIVERY_ID)
+        val deliveryToken = params.getAsTypeOrNull<String>(Keys.Tracking.DELIVERY_TOKEN)
+        val eventName = params.getAsTypeOrNull<String>(Keys.Tracking.METRIC_EVENT)
 
-        if (event == null) {
-            logger.info("metric event type null. Possible issue with SDK? Given: $eventName")
-            return
+        if (deliveryId == null || deliveryToken == null || eventName == null) {
+            throw IllegalArgumentException("Missing required parameters")
         }
 
+        val event = Metric.valueOf(eventName)
+
         CustomerIO.instance().trackMetric(
-            deliveryID = deliveryId, deviceToken = deliveryToken, event = event
+            event = TrackMetric.Push(
+                deliveryId = deliveryId,
+                deviceToken = deliveryToken,
+                metric = event
+            )
         )
-         */
     }
 
     private fun setDeviceAttributes(params: Map<String, Any>) {
