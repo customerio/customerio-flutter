@@ -63,6 +63,8 @@ class CustomerIOSDKConfig {
       cdnHost: prefs.getString(_PreferencesKey.cdnHost),
       flushAt: prefs.getInt(_PreferencesKey.flushAt),
       flushInterval: prefs.getInt(_PreferencesKey.flushInterval),
+      inAppConfig: InAppConfig(
+          siteId: prefs.getString(_PreferencesKey.migrationSiteId) ?? ""),
     );
   }
 

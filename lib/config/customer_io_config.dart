@@ -47,7 +47,7 @@ class CustomerIOConfig {
       'cdnHost': cdnHost,
       'flushAt': flushAt,
       'flushInterval': flushInterval,
-      'inAppConfig': inAppConfig?.toMap(),
+      'inApp': inAppConfig?.toMap(),
       'pushConfig': pushConfig.toMap(),
       'version': version,
       'source': source
