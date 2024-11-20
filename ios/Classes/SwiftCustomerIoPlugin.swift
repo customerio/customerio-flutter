@@ -153,20 +153,20 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
     }
     
     private func trackMetric(params : Dictionary<String, AnyHashable>){
-        // TODO: Fix trackMetric implementation
-        /*
-         guard let deliveryId = params[Keys.Tracking.deliveryId] as? String,
-         let deviceToken = params[Keys.Tracking.deliveryToken] as? String,
-         let metricEvent = params[Keys.Tracking.metricEvent] as? String,
-         let event = Metric.getEvent(from: metricEvent)
-         else {
-         return
-         }
-         
-         CustomerIO.shared.trackMetric(deliveryID: deliveryId,
-         event: event,
-         deviceToken: deviceToken)
-         */
+        
+        guard let deliveryId = params[Keys.Tracking.deliveryId] as? String,
+              let deviceToken = params[Keys.Tracking.deliveryToken] as? String,
+              let metricEvent = params[Keys.Tracking.metricEvent] as? String,
+              let event = Metric.getEvent(from: metricEvent)
+        else {
+            logger.error("Missing required parameters in: \(params)")
+            return
+        }
+        
+        CustomerIO.shared.trackMetric(deliveryID: deliveryId,
+                                      event: event,
+                                      deviceToken: deviceToken)
+        
     }
     
     private func initialize(params : Dictionary<String, AnyHashable>){

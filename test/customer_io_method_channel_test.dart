@@ -91,7 +91,7 @@ void main() {
     final Map<String, dynamic> args = {
       'deliveryId': '123',
       'deliveryToken': 'asdf',
-      'metricEvent': 'clicked'
+      'metricEvent': 'opened'
     };
 
     final customerIO = CustomerIOMethodChannel();
@@ -153,11 +153,11 @@ void main() {
       'setDeviceAttributes() should call platform method with correct arguments',
       () async {
     final Map<String, dynamic> args = {
-      'attributes': {'os': 'Android'}
+      'traits': {'os': 'Android'}
     };
 
     final customerIO = CustomerIOMethodChannel();
-    customerIO.setDeviceAttributes(attributes: args['attributes']);
+    customerIO.setDeviceAttributes(attributes: args['traits']);
 
     expectMethodInvocationArguments('setDeviceAttributes', args);
   });
