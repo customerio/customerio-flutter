@@ -102,7 +102,7 @@ void main() {
         'cdnHost': 'https://cdn.example.com',
         'flushAt': 25,
         'flushInterval': 55,
-        'inAppConfig': inAppConfig.toMap(),
+        'inApp': inAppConfig.toMap(),
         'pushConfig': pushConfig.toMap(),
         'version': config.version,
         'source': config.source,
