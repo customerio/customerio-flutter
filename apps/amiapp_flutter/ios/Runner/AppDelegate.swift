@@ -20,10 +20,10 @@ import FirebaseCore
 
         Messaging.messaging().delegate = self
         
-        // TODO: Fix MessagingPush initialization
-        /*
-        MessagingPushFCM.initialize(configOptions: nil)
-         */
+        MessagingPushFCM.initialize(
+            withConfig: MessagingPushConfigBuilder()
+                .build()
+        )
         
         // Sets a 3rd party push event handler for the app besides the Customer.io SDK and FlutterFire.
         // Setting the AppDelegate to be the handler will internally use `flutter_local_notifications` to handle the push event.

@@ -50,7 +50,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   void initState() {
-    CustomerIO.instance.pushMessaging.getRegisteredDeviceToken().then((value) =>
+    CustomerIO.pushMessaging.getRegisteredDeviceToken().then((value) =>
         setState(() => _deviceTokenValueController.text = value ?? ''));
 
     final cioConfig = widget._customerIOSDK.sdkConfig;

@@ -13,13 +13,11 @@ class NotificationService: UNNotificationServiceExtension {
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
         print("NotificationService didReceive called")
 
-        // TODO: Fix SDK initialization
-        /*
-        CustomerIO.initialize(siteId: Env.siteId, apiKey: Env.apiKey, region: .US) { config in
-            config.autoTrackDeviceAttributes = true
-            config.logLevel = .debug
-        }
-         */
+        MessagingPushFCM.initializeForExtension(
+            withConfig: MessagingPushConfigBuilder(cdpApiKey: Env.cdpApiKey)
+                .logLevel(.debug)
+                .build()
+        )
         
         MessagingPush.shared.didReceive(request, withContentHandler: contentHandler)
     }
