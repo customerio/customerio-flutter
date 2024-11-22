@@ -88,36 +88,34 @@ internal class CustomerIOPushMessaging(
         }
     }
 
-    companion object {
-        /**
-         * Adds push messaging module to native Android SDK based on the configuration provided by
-         * customer app.
-         *
-         * @param builder instance of CustomerIOBuilder to add push messaging module.
-         * @param config configuration provided by customer app for push messaging module.
-         */
-        internal fun addNativeModuleFromConfig(
-            builder: CustomerIOBuilder,
-            config: Map<String, Any>
-        ) {
-            val androidConfig =
-                config.getAsTypeOrNull<Map<String, Any>>(key = "android") ?: emptyMap()
-            // Prefer `android` object for push configurations as it's more specific to Android
-            // For common push configurations, use `config` object instead of `android`
+    /**
+     * Adds push messaging module to native Android SDK based on the configuration provided by
+     * customer app.
+     *
+     * @param builder instance of CustomerIOBuilder to add push messaging module.
+     * @param config configuration provided by customer app for push messaging module.
+     */
+    override fun configureModule(
+        builder: CustomerIOBuilder,
+        config: Map<String, Any>
+    ) {
+        val androidConfig =
+            config.getAsTypeOrNull<Map<String, Any>>(key = "android") ?: emptyMap()
+        // Prefer `android` object for push configurations as it's more specific to Android
+        // For common push configurations, use `config` object instead of `android`
 
-            // Default push click behavior is to prevent restart of activity in Flutter apps
-            val pushClickBehavior = androidConfig.getAsTypeOrNull<String>("pushClickBehavior")
-                ?.takeIf { it.isNotBlank() }
-                ?.let { value ->
-                    runCatching { enumValueOf<PushClickBehavior>(value) }.getOrNull()
-                } ?: PushClickBehavior.ACTIVITY_PREVENT_RESTART
+        // Default push click behavior is to prevent restart of activity in Flutter apps
+        val pushClickBehavior = androidConfig.getAsTypeOrNull<String>("pushClickBehavior")
+            ?.takeIf { it.isNotBlank() }
+            ?.let { value ->
+                runCatching { enumValueOf<PushClickBehavior>(value) }.getOrNull()
+            } ?: PushClickBehavior.ACTIVITY_PREVENT_RESTART
 
-            val module = ModuleMessagingPushFCM(
-                moduleConfig = MessagingPushModuleConfig.Builder().apply {
-                    setPushClickBehavior(pushClickBehavior = pushClickBehavior)
-                }.build(),
-            )
-            builder.addCustomerIOModule(module)
-        }
+        val module = ModuleMessagingPushFCM(
+            moduleConfig = MessagingPushModuleConfig.Builder().apply {
+                setPushClickBehavior(pushClickBehavior = pushClickBehavior)
+            }.build(),
+        )
+        builder.addCustomerIOModule(module)
     }
 }

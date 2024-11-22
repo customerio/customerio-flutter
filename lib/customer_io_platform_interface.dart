@@ -73,10 +73,4 @@ abstract class CustomerIOPlatform extends PlatformInterface {
     throw UnimplementedError(
         'setProfileAttributes() has not been implemented.');
   }
-
-  StreamSubscription subscribeToInAppEventListener(
-      void Function(InAppEvent) onEvent) {
-    throw UnimplementedError(
-        'subscribeToInAppEventListener() has not been implemented.');
-  }
 }

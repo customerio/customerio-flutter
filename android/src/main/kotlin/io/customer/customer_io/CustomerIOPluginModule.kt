@@ -2,6 +2,8 @@ package io.customer.customer_io
 
 import io.customer.sdk.CustomerIOBuilder
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodChannel
 
 /**
@@ -9,7 +11,7 @@ import io.flutter.plugin.common.MethodChannel
  * should be treated as module in Flutter SDK and should be used to hold all relevant methods at
  * single place.
  */
-internal interface CustomerIOPluginModule : MethodChannel.MethodCallHandler {
+internal interface CustomerIOPluginModule : MethodChannel.MethodCallHandler, ActivityAware {
     /**
      * Unique name of module to identify between other modules
      */
@@ -38,5 +40,13 @@ internal interface CustomerIOPluginModule : MethodChannel.MethodCallHandler {
         flutterCommunicationChannel.setMethodCallHandler(null)
     }
 
-    abstract fun configureModuleMessagingInApp(builder: CustomerIOBuilder, config: Map<String, Any>)
+    fun configureModule(builder: CustomerIOBuilder, config: Map<String, Any>)
+
+    override fun onDetachedFromActivity() {}
+
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {}
+
+    override fun onDetachedFromActivityForConfigChanges() {}
+
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {}
 }

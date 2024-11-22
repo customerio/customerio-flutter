@@ -54,7 +54,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         .then((value) => setState(() => _buildInfo = value));
 
     inAppMessageStreamSubscription =
-    CustomerIO.instance.subscribeToInAppEventListener(handleInAppEvent);
+    CustomerIO.instance.inAppMessaging.subscribeToInAppEventListener(handleInAppEvent);
 
     // Setup 3rd party SDK, flutter-fire.
     // We install this SDK into sample app to make sure the CIO SDK behaves as expected when there is another SDK installed that handles push notifications.

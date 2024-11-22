@@ -15,6 +15,8 @@ import io.customer.sdk.CustomerIOBuilder
 import io.customer.sdk.core.di.SDKComponent
 import io.customer.sdk.data.model.Region
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.lang.ref.WeakReference
@@ -68,7 +70,7 @@ internal class CustomerIOInAppMessaging(
      * @param builder instance of CustomerIOBuilder to add push messaging module.
      * @param config configuration provided by customer app for in-app messaging module.
      */
-    override fun configureModuleMessagingInApp(
+    override fun configureModule(
         builder: CustomerIOBuilder,
         config: Map<String, Any>
     ) {

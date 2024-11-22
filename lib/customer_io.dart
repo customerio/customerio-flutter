@@ -154,15 +154,4 @@ class CustomerIO {
     return _platform.setProfileAttributes(
         attributes: attributes.excludeNullValues());
   }
-
-  /// Subscribes to an in-app event listener.
-  ///
-  /// [onEvent] - A callback function that will be called every time an in-app event occurs.
-  /// The callback returns [InAppEvent].
-  ///
-  /// Returns a [StreamSubscription] that can be used to subscribe/unsubscribe from the event listener.
-  StreamSubscription subscribeToInAppEventListener(
-      void Function(InAppEvent) onEvent) {
-    return _platform.subscribeToInAppEventListener(onEvent);
-  }
 }

@@ -1,14 +1,11 @@
 package io.customer.customer_io
 
-import android.app.Activity
 import android.app.Application
 import android.content.Context
 import androidx.annotation.NonNull
 import io.customer.customer_io.constant.Keys
 import io.customer.customer_io.messaginginapp.CustomerIOInAppMessaging
 import io.customer.customer_io.messagingpush.CustomerIOPushMessaging
-import io.customer.messaginginapp.type.InAppEventListener
-import io.customer.messaginginapp.type.InAppMessage
 import io.customer.sdk.CustomerIO
 import io.customer.sdk.CustomerIOBuilder
 import io.customer.sdk.core.di.SDKComponent
@@ -24,13 +21,12 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import java.lang.ref.WeakReference
 
 /**
  * Android implementation of plugin that will let Flutter developers to
  * interact with a Android platform
  * */
-class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
+class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -260,7 +256,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
             // Configure in-app messaging module based on config provided by customer app
             args.getAsTypeOrNull<Map<String, Any>>(key = "inApp")?.let { inAppConfig ->
                 modules.filterIsInstance<CustomerIOInAppMessaging>().forEach {
-                    it.configureModuleMessagingInApp(
+                    it.configureModule(
                         builder = this,
                         config = inAppConfig.plus("region" to givenRegion),
                     )
@@ -268,10 +264,12 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
             }
             // Configure push messaging module based on config provided by customer app
             args.getAsTypeOrNull<Map<String, Any>>(key = "push").let { pushConfig ->
-                CustomerIOPushMessaging.addNativeModuleFromConfig(
-                    builder = this,
-                    config = pushConfig ?: emptyMap()
-                )
+                modules.filterIsInstance<CustomerIOPushMessaging>().forEach {
+                    it.configureModule(
+                        builder = this,
+                        config = pushConfig ?: emptyMap()
+                    )
+                }
             }
         }.build()
 
@@ -285,6 +283,30 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler {
 
         modules.forEach {
             it.onDetachedFromEngine()
+        }
+    }
+
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        modules.forEach {
+            it.onAttachedToActivity(binding)
+        }
+    }
+
+    override fun onDetachedFromActivityForConfigChanges() {
+        modules.forEach {
+            it.onDetachedFromActivityForConfigChanges()
+        }
+    }
+
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        modules.forEach {
+            it.onReattachedToActivityForConfigChanges(binding)
+        }
+    }
+
+    override fun onDetachedFromActivity() {
+        modules.forEach {
+            it.onDetachedFromActivity()
         }
     }
 }

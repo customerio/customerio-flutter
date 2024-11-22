@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 
 import 'customer_io_config.dart';
 import 'customer_io_const.dart';
-import 'customer_io_inapp.dart';
 import 'customer_io_platform_interface.dart';
 
 /// An implementation of [CustomerIOPlatform] that uses method channels.
@@ -14,50 +13,6 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   /// The method channel used to interact with the native platform.
   @visibleForTesting
   final methodChannel = const MethodChannel('customer_io');
-
-  final _inAppEventStreamController = StreamController<InAppEvent>.broadcast();
-
-  CustomerIOMethodChannel() {
-    methodChannel.setMethodCallHandler(_onMethodCall);
-  }
-
-  /// Method to subscribe to the In-App event listener.
-  ///
-  /// The `onEvent` function will be called whenever an In-App event occurs.
-  /// Returns a [StreamSubscription] object that can be used to unsubscribe from the stream.
-  @override
-  StreamSubscription subscribeToInAppEventListener(
-      void Function(InAppEvent) onEvent) {
-    StreamSubscription subscription =
-        _inAppEventStreamController.stream.listen(onEvent);
-    return subscription;
-  }
-
-  /// Method call handler to handle events from native bindings
-  Future<dynamic> _onMethodCall(MethodCall call) async {
-    /// Cast the arguments to a map of strings to dynamic values.
-    final arguments =
-        (call.arguments as Map<Object?, Object?>).cast<String, dynamic>();
-
-    switch (call.method) {
-      case "messageShown":
-        _inAppEventStreamController
-            .add(InAppEvent.fromMap(EventType.messageShown, arguments));
-        break;
-      case "messageDismissed":
-        _inAppEventStreamController
-            .add(InAppEvent.fromMap(EventType.messageDismissed, arguments));
-        break;
-      case "errorWithMessage":
-        _inAppEventStreamController
-            .add(InAppEvent.fromMap(EventType.errorWithMessage, arguments));
-        break;
-      case "messageActionTaken":
-        _inAppEventStreamController
-            .add(InAppEvent.fromMap(EventType.messageActionTaken, arguments));
-        break;
-    }
-  }
 
   /// To initialize the plugin
   @override
