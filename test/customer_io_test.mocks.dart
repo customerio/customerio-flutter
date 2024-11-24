@@ -158,7 +158,6 @@ class MockTestCustomerIoPlatform extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
-  @override
   _i2.StreamSubscription<dynamic> subscribeToInAppEventListener(
           void Function(_i6.InAppEvent)? onEvent) =>
       (super.noSuchMethod(

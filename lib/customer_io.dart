@@ -5,7 +5,6 @@ import 'package:flutter/cupertino.dart';
 
 import 'customer_io_config.dart';
 import 'customer_io_enums.dart';
-import 'customer_io_inapp.dart';
 import 'customer_io_platform_interface.dart';
 import 'extensions/map_extensions.dart';
 import 'messaging_in_app/platform_interface.dart';
