@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+import '../customer_io_inapp.dart';
 import 'method_channel.dart';
 
 /// The default instance of [CustomerIOMessagingInAppPlatform] to use
@@ -26,5 +29,11 @@ abstract class CustomerIOMessagingInAppPlatform extends PlatformInterface {
 
   void dismissMessage() {
     throw UnimplementedError('dismissMessage() has not been implemented.');
+  }
+
+  StreamSubscription subscribeToInAppEventListener(
+      void Function(InAppEvent) onEvent) {
+    throw UnimplementedError(
+        'subscribeToInAppEventListener() has not been implemented.');
   }
 }

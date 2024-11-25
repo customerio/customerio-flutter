@@ -1,14 +1,11 @@
 package io.customer.customer_io
 
-import android.app.Activity
 import android.app.Application
 import android.content.Context
 import androidx.annotation.NonNull
 import io.customer.customer_io.constant.Keys
 import io.customer.customer_io.messaginginapp.CustomerIOInAppMessaging
 import io.customer.customer_io.messagingpush.CustomerIOPushMessaging
-import io.customer.messaginginapp.type.InAppEventListener
-import io.customer.messaginginapp.type.InAppMessage
 import io.customer.sdk.CustomerIO
 import io.customer.sdk.CustomerIOBuilder
 import io.customer.sdk.core.di.SDKComponent
@@ -24,7 +21,6 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import java.lang.ref.WeakReference
 
 /**
  * Android implementation of plugin that will let Flutter developers to
@@ -37,27 +33,10 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     /// when the Flutter Engine is detached from the Activity
     private lateinit var flutterCommunicationChannel: MethodChannel
     private lateinit var context: Context
-    private var activity: WeakReference<Activity>? = null
 
     private lateinit var modules: List<CustomerIOPluginModule>
 
     private val logger: Logger = SDKComponent.logger
-
-    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        this.activity = WeakReference(binding.activity)
-    }
-
-    override fun onDetachedFromActivityForConfigChanges() {
-        onDetachedFromActivity()
-    }
-
-    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        onAttachedToActivity(binding)
-    }
-
-    override fun onDetachedFromActivity() {
-        this.activity = null
-    }
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         context = flutterPluginBinding.applicationContext
@@ -276,18 +255,21 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             args.getAsTypeOrNull<String>("cdnHost")?.let(::cdnHost)
             // Configure in-app messaging module based on config provided by customer app
             args.getAsTypeOrNull<Map<String, Any>>(key = "inApp")?.let { inAppConfig ->
-                CustomerIOInAppMessaging.addNativeModuleFromConfig(
-                    builder = this,
-                    config = inAppConfig,
-                    region = givenRegion
-                )
+                modules.filterIsInstance<CustomerIOInAppMessaging>().forEach {
+                    it.configureModule(
+                        builder = this,
+                        config = inAppConfig.plus("region" to givenRegion),
+                    )
+                }
             }
             // Configure push messaging module based on config provided by customer app
             args.getAsTypeOrNull<Map<String, Any>>(key = "push").let { pushConfig ->
-                CustomerIOPushMessaging.addNativeModuleFromConfig(
-                    builder = this,
-                    config = pushConfig ?: emptyMap()
-                )
+                modules.filterIsInstance<CustomerIOPushMessaging>().forEach {
+                    it.configureModule(
+                        builder = this,
+                        config = pushConfig ?: emptyMap()
+                    )
+                }
             }
         }.build()
 
@@ -303,44 +285,28 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             it.onDetachedFromEngine()
         }
     }
-}
 
-class CustomerIOInAppEventListener(private val invokeMethod: (String, Any?) -> Unit) :
-    InAppEventListener {
-    override fun errorWithMessage(message: InAppMessage) {
-        invokeMethod(
-            "errorWithMessage", mapOf(
-                "messageId" to message.messageId, "deliveryId" to message.deliveryId
-            )
-        )
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        modules.forEach {
+            it.onAttachedToActivity(binding)
+        }
     }
 
-    override fun messageActionTaken(
-        message: InAppMessage, actionValue: String, actionName: String
-    ) {
-        invokeMethod(
-            "messageActionTaken", mapOf(
-                "messageId" to message.messageId,
-                "deliveryId" to message.deliveryId,
-                "actionValue" to actionValue,
-                "actionName" to actionName
-            )
-        )
+    override fun onDetachedFromActivityForConfigChanges() {
+        modules.forEach {
+            it.onDetachedFromActivityForConfigChanges()
+        }
     }
 
-    override fun messageDismissed(message: InAppMessage) {
-        invokeMethod(
-            "messageDismissed", mapOf(
-                "messageId" to message.messageId, "deliveryId" to message.deliveryId
-            )
-        )
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        modules.forEach {
+            it.onReattachedToActivityForConfigChanges(binding)
+        }
     }
 
-    override fun messageShown(message: InAppMessage) {
-        invokeMethod(
-            "messageShown", mapOf(
-                "messageId" to message.messageId, "deliveryId" to message.deliveryId
-            )
-        )
+    override fun onDetachedFromActivity() {
+        modules.forEach {
+            it.onDetachedFromActivity()
+        }
     }
 }

@@ -179,6 +179,11 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
             
             if let inAppConfig = try? MessagingInAppConfigBuilder.build(from: params) {
                 MessagingInApp.initialize(withConfig: inAppConfig)
+                MessagingInApp.shared.setEventListener(CustomerIOInAppEventListener(
+                    invokeMethod: {method,args in
+                        self.invokeMethod(method, args)
+                    })
+                )
             }
             
             // TODO: Initialize in-app module with given config
