@@ -1,10 +1,10 @@
 package io.customer.customer_io.messaginginapp
 
 import android.app.Activity
-import io.customer.customer_io.CustomerIOPluginModule
+import io.customer.customer_io.bridge.NativeModuleBridge
 import io.customer.customer_io.constant.Keys
-import io.customer.customer_io.getAsTypeOrNull
 import io.customer.customer_io.invokeNative
+import io.customer.customer_io.utils.getAs
 import io.customer.messaginginapp.MessagingInAppModuleConfig
 import io.customer.messaginginapp.ModuleMessagingInApp
 import io.customer.messaginginapp.di.inAppMessaging
@@ -27,7 +27,7 @@ import java.lang.ref.WeakReference
  */
 internal class CustomerIOInAppMessaging(
     pluginBinding: FlutterPlugin.FlutterPluginBinding,
-) : CustomerIOPluginModule, MethodChannel.MethodCallHandler, ActivityAware {
+) : NativeModuleBridge, MethodChannel.MethodCallHandler, ActivityAware {
     override val moduleName: String = "InAppMessaging"
     override val flutterCommunicationChannel: MethodChannel =
         MethodChannel(pluginBinding.binaryMessenger, "customer_io_messaging_in_app")
@@ -74,8 +74,8 @@ internal class CustomerIOInAppMessaging(
         builder: CustomerIOBuilder,
         config: Map<String, Any>
     ) {
-        val siteId = config.getAsTypeOrNull<String>("siteId")
-        val regionRawValue = config.getAsTypeOrNull<String>("region")
+        val siteId = config.getAs<String>("siteId")
+        val regionRawValue = config.getAs<String>("region")
         val givenRegion = regionRawValue.let { Region.getRegion(it) }
 
         if (siteId.isNullOrBlank()) {

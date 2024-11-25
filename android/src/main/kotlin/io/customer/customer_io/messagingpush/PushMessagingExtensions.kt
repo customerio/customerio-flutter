@@ -1,7 +1,7 @@
 package io.customer.customer_io.messagingpush
 
 import com.google.firebase.messaging.RemoteMessage
-import io.customer.customer_io.getAsTypeOrNull
+import io.customer.customer_io.utils.getAs
 
 /**
  * Safely transforms any value to string
@@ -23,8 +23,8 @@ private fun Any.toStringOrNull(): String? = try {
  * string for it.
  */
 internal fun Map<String, Any>.toFCMRemoteMessage(destination: String): RemoteMessage {
-    val notification = getAsTypeOrNull<Map<String, Any>>("notification")
-    val data = getAsTypeOrNull<Map<String, Any>>("data")
+    val notification = getAs<Map<String, Any>>("notification")
+    val data = getAs<Map<String, Any>>("data")
     val messageParams = buildMap {
         notification?.let { result -> putAll(result) }
         // Adding `data` after `notification` so `data` params take more value as we mainly use
@@ -42,10 +42,10 @@ internal fun Map<String, Any>.toFCMRemoteMessage(destination: String): RemoteMes
                 value.toStringOrNull()?.let { v -> addData(key, v) }
             }
         }
-        getAsTypeOrNull<String>("messageId")?.let { id -> setMessageId(id) }
-        getAsTypeOrNull<String>("messageType")?.let { type -> setMessageType(type) }
-        getAsTypeOrNull<String>("collapseKey")?.let { key -> setCollapseKey(key) }
-        getAsTypeOrNull<Int>("ttl")?.let { time -> ttl = time }
+        getAs<String>("messageId")?.let { id -> setMessageId(id) }
+        getAs<String>("messageType")?.let { type -> setMessageType(type) }
+        getAs<String>("collapseKey")?.let { key -> setCollapseKey(key) }
+        getAs<Int>("ttl")?.let { time -> ttl = time }
         return@with build()
     }
 }
