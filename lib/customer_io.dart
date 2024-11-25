@@ -61,7 +61,15 @@ class CustomerIO {
   }
 
   /// Access push messaging functionality
-  CustomerIOMessagingPushPlatform get pushMessaging => _pushMessaging;
+  static CustomerIOMessagingPushPlatform get pushMessaging {
+    if (_instance == null) {
+      throw StateError(
+        'CustomerIO SDK must be initialized before accessing push module.\n'
+            'Call CustomerIO.initialize() first.',
+      );
+    }
+    return _instance!._pushMessaging;
+  }
 
   /// Access in-app messaging functionality
   CustomerIOMessagingInAppPlatform get inAppMessaging => _inAppMessaging;

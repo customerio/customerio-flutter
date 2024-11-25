@@ -117,8 +117,7 @@ jobs:
       - name: Setup workspace credentials in iOS environment files
         run: |
           cp "ios/Env.swift.example" "ios/Env.swift"
-          sd 'siteId: String = ".*"' "siteId: String = \"${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_SITE_ID', matrix.sample-app)] }}\"" "ios/Env.swift"
-          sd 'apiKey: String = ".*"' "apiKey: String = \"${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_API_KEY', matrix.sample-app)] }}\"" "ios/Env.swift"
+          sd 'cdpApiKey: String = ".*"' "cdpApiKey: String = \"${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', matrix.sample-app)] }}\"" "ios/Env.swift"
 
       # Make sure to fetch dependencies only after updating the version numbers and workspace credentials
 

@@ -31,7 +31,11 @@ void main() async {
   // Setup flutter_local_notifications plugin to send local notifications and receive callbacks for them.
   var initSettingsAndroid = const AndroidInitializationSettings("app_icon");
   // The default settings will show local push notifications while app in foreground with plugin.
-  var initSettingsIOS = const DarwinInitializationSettings();
+  var initSettingsIOS = const DarwinInitializationSettings(
+    requestAlertPermission: false,
+    requestBadgePermission: false,
+    requestSoundPermission: false,
+  );
   var initSettings = InitializationSettings(
     android: initSettingsAndroid,
     iOS: initSettingsIOS,
