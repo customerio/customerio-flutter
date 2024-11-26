@@ -2,8 +2,8 @@ package io.customer.customer_io.messagingpush
 
 import android.content.Context
 import io.customer.customer_io.bridge.NativeModuleBridge
-import io.customer.customer_io.constant.Keys
-import io.customer.customer_io.invokeNative
+import io.customer.customer_io.bridge.nativeMapArgs
+import io.customer.customer_io.bridge.nativeNoArgs
 import io.customer.customer_io.utils.getAs
 import io.customer.customer_io.utils.takeIfNotBlank
 import io.customer.messagingpush.CustomerIOFirebaseMessagingService
@@ -34,24 +34,9 @@ internal class CustomerIOPushMessaging(
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
-            Keys.Methods.GET_REGISTERED_DEVICE_TOKEN -> {
-                call.invokeNative(result) {
-                    return@invokeNative getRegisteredDeviceToken()
-                }
-            }
-
-            Keys.Methods.ON_MESSAGE_RECEIVED -> {
-                call.invokeNative(result) { args ->
-                    return@invokeNative onMessageReceived(
-                        message = args.getAs<Map<String, Any>>("message"),
-                        handleNotificationTrigger = args.getAs<Boolean>("handleNotificationTrigger")
-                    )
-                }
-            }
-
-            else -> {
-                result.notImplemented()
-            }
+            "getRegisteredDeviceToken" -> call.nativeNoArgs(result, ::getRegisteredDeviceToken)
+            "onMessageReceived" -> call.nativeMapArgs(result, ::onMessageReceived)
+            else -> super.onMethodCall(call, result)
         }
     }
 
@@ -62,15 +47,14 @@ internal class CustomerIOPushMessaging(
     /**
      * Handles push notification received. This is helpful in processing push notifications
      * received outside the CIO SDK.
-     *
-     * @param message push payload received from FCM.
-     * @param handleNotificationTrigger indicating if the local notification should be triggered.
      */
-    private fun onMessageReceived(
-        message: Map<String, Any>?,
-        handleNotificationTrigger: Boolean?,
-    ): Boolean {
+    private fun onMessageReceived(args: Map<String, Any>): Boolean {
         try {
+            // Push payload received from FCM
+            val message = args.getAs<Map<String, Any>>("message")
+            // Flag to indicate if local notification should be triggered
+            val handleNotificationTrigger = args.getAs<Boolean>("handleNotificationTrigger")
+
             if (message == null) {
                 throw IllegalArgumentException("Message cannot be null")
             }

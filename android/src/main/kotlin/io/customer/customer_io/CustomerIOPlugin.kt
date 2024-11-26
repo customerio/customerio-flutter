@@ -4,7 +4,8 @@ import android.app.Application
 import android.content.Context
 import androidx.annotation.NonNull
 import io.customer.customer_io.bridge.NativeModuleBridge
-import io.customer.customer_io.constant.Keys
+import io.customer.customer_io.bridge.nativeMapArgs
+import io.customer.customer_io.bridge.nativeNoArgs
 import io.customer.customer_io.messaginginapp.CustomerIOInAppMessaging
 import io.customer.customer_io.messagingpush.CustomerIOPushMessaging
 import io.customer.customer_io.utils.getAs
@@ -58,85 +59,28 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
     }
 
-    private fun MethodCall.toNativeMethodCall(
-        result: Result, performAction: (params: Map<String, Any>) -> Unit
-    ) {
-        try {
-            val params = this.arguments as? Map<String, Any> ?: emptyMap()
-            performAction(params)
-            result.success(true)
-        } catch (e: Exception) {
-            result.error(this.method, e.localizedMessage, null)
-        }
-    }
-
-    override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
+    override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
-            Keys.Methods.INITIALIZE -> {
-                call.toNativeMethodCall(result) {
-                    initialize(it)
-                }
-            }
-
-            Keys.Methods.IDENTIFY -> {
-                call.toNativeMethodCall(result) {
-                    identify(it)
-                }
-            }
-
-            Keys.Methods.SCREEN -> {
-                call.toNativeMethodCall(result) {
-                    screen(it)
-                }
-            }
-
-            Keys.Methods.TRACK -> {
-                call.toNativeMethodCall(result) {
-                    track(it)
-                }
-            }
-
-            Keys.Methods.TRACK_METRIC -> {
-                call.toNativeMethodCall(result) {
-                    trackMetric(it)
-                }
-            }
-
-            Keys.Methods.REGISTER_DEVICE_TOKEN -> {
-                call.toNativeMethodCall(result) {
-                    registerDeviceToken(it)
-                }
-            }
-
-            Keys.Methods.SET_DEVICE_ATTRIBUTES -> {
-                call.toNativeMethodCall(result) {
-                    setDeviceAttributes(it)
-                }
-            }
-
-            Keys.Methods.SET_PROFILE_ATTRIBUTES -> {
-                call.toNativeMethodCall(result) {
-                    setProfileAttributes(it)
-                }
-            }
-
-            Keys.Methods.CLEAR_IDENTIFY -> {
-                clearIdentity()
-            }
-
-            else -> {
-                result.notImplemented()
-            }
+            "clearIdentify" -> call.nativeNoArgs(result, ::clearIdentify)
+            "identify" -> call.nativeMapArgs(result, ::identify)
+            "initialize" -> call.nativeMapArgs(result, ::initialize)
+            "registerDeviceToken" -> call.nativeMapArgs(result, ::registerDeviceToken)
+            "screen" -> call.nativeMapArgs(result, ::screen)
+            "setDeviceAttributes" -> call.nativeMapArgs(result, ::setDeviceAttributes)
+            "setProfileAttributes" -> call.nativeMapArgs(result, ::setProfileAttributes)
+            "track" -> call.nativeMapArgs(result, ::track)
+            "trackMetric" -> call.nativeMapArgs(result, ::trackMetric)
+            else -> result.notImplemented()
         }
     }
 
-    private fun clearIdentity() {
+    private fun clearIdentify() {
         CustomerIO.instance().clearIdentify()
     }
 
     private fun identify(params: Map<String, Any>) {
-        val userId = params.getAs<String>(Keys.Tracking.USER_ID)
-        val traits = params.getAs<Map<String, Any>>(Keys.Tracking.TRAITS) ?: emptyMap()
+        val userId = params.getAs<String>(Args.USER_ID)
+        val traits = params.getAs<Map<String, Any>>(Args.TRAITS) ?: emptyMap()
 
         if (userId == null && traits.isEmpty()) {
             logger.error("Please provide either an ID or traits to identify.")
@@ -153,10 +97,10 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun track(params: Map<String, Any>) {
-        val name = requireNotNull(params.getAs<String>(Keys.Tracking.NAME)) {
+        val name = requireNotNull(params.getAs<String>(Args.NAME)) {
             "Event name is missing in params: $params"
         }
-        val properties = params.getAs<Map<String, Any>>(Keys.Tracking.PROPERTIES)
+        val properties = params.getAs<Map<String, Any>>(Args.PROPERTIES)
 
         if (properties.isNullOrEmpty()) {
             CustomerIO.instance().track(name)
@@ -166,16 +110,16 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun registerDeviceToken(params: Map<String, Any>) {
-        val token = requireNotNull(params.getAs<String>(Keys.Tracking.TOKEN)) {
+        val token = requireNotNull(params.getAs<String>(Args.TOKEN)) {
             "Device token is missing in params: $params"
         }
         CustomerIO.instance().registerDeviceToken(token)
     }
 
     private fun trackMetric(params: Map<String, Any>) {
-        val deliveryId = params.getAs<String>(Keys.Tracking.DELIVERY_ID)
-        val deliveryToken = params.getAs<String>(Keys.Tracking.DELIVERY_TOKEN)
-        val eventName = params.getAs<String>(Keys.Tracking.METRIC_EVENT)
+        val deliveryId = params.getAs<String>(Args.DELIVERY_ID)
+        val deliveryToken = params.getAs<String>(Args.DELIVERY_TOKEN)
+        val eventName = params.getAs<String>(Args.METRIC_EVENT)
 
         if (deliveryId == null || deliveryToken == null || eventName == null) {
             throw IllegalArgumentException("Missing required parameters")
@@ -193,7 +137,7 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun setDeviceAttributes(params: Map<String, Any>) {
-        val attributes = params.getAs<Map<String, Any>>(Keys.Tracking.ATTRIBUTES)
+        val attributes = params.getAs<Map<String, Any>>(Args.ATTRIBUTES)
 
         if (attributes.isNullOrEmpty()) {
             logger.error("Device attributes are missing in params: $params")
@@ -204,7 +148,7 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun setProfileAttributes(params: Map<String, Any>) {
-        val attributes = params.getAs<Map<String, Any>>(Keys.Tracking.ATTRIBUTES)
+        val attributes = params.getAs<Map<String, Any>>(Args.ATTRIBUTES)
 
         if (attributes.isNullOrEmpty()) {
             logger.error("Profile attributes are missing in params: $params")
@@ -215,10 +159,10 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun screen(params: Map<String, Any>) {
-        val title = requireNotNull(params.getAs<String>(Keys.Tracking.TITLE)) {
+        val title = requireNotNull(params.getAs<String>(Args.TITLE)) {
             "Screen title is missing in params: $params"
         }
-        val properties = params.getAs<Map<String, Any>>(Keys.Tracking.PROPERTIES)
+        val properties = params.getAs<Map<String, Any>>(Args.PROPERTIES)
 
         if (properties.isNullOrEmpty()) {
             CustomerIO.instance().screen(title)
@@ -308,6 +252,21 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     override fun onDetachedFromActivity() {
         modules.forEach {
             it.onDetachedFromActivity()
+        }
+    }
+
+    companion object {
+        object Args {
+            const val ATTRIBUTES = "attributes"
+            const val DELIVERY_ID = "deliveryId"
+            const val DELIVERY_TOKEN = "deliveryToken"
+            const val METRIC_EVENT = "metricEvent"
+            const val NAME = "name"
+            const val PROPERTIES = "properties"
+            const val TITLE = "title"
+            const val TOKEN = "token"
+            const val TRAITS = "traits"
+            const val USER_ID = "userId"
         }
     }
 }

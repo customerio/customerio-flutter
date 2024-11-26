@@ -2,8 +2,7 @@ package io.customer.customer_io.messaginginapp
 
 import android.app.Activity
 import io.customer.customer_io.bridge.NativeModuleBridge
-import io.customer.customer_io.constant.Keys
-import io.customer.customer_io.invokeNative
+import io.customer.customer_io.bridge.nativeNoArgs
 import io.customer.customer_io.utils.getAs
 import io.customer.messaginginapp.MessagingInAppModuleConfig
 import io.customer.messaginginapp.ModuleMessagingInApp
@@ -51,16 +50,13 @@ internal class CustomerIOInAppMessaging(
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
-            Keys.Methods.DISMISS_MESSAGE -> {
-                call.invokeNative(result) {
-                    CustomerIO.instance().inAppMessaging().dismissMessage()
-                }
-            }
-
-            else -> {
-                result.notImplemented()
-            }
+            "dismissMessage" -> call.nativeNoArgs(result, ::dismissMessage)
+            else -> super.onMethodCall(call, result)
         }
+    }
+
+    private fun dismissMessage() {
+        CustomerIO.instance().inAppMessaging().dismissMessage()
     }
 
     /**
