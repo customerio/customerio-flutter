@@ -4,6 +4,7 @@ import io.customer.sdk.CustomerIOBuilder
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
 /**
@@ -38,6 +39,14 @@ internal interface NativeModuleBridge : MethodChannel.MethodCallHandler, Activit
      */
     fun onDetachedFromEngine() {
         flutterCommunicationChannel.setMethodCallHandler(null)
+    }
+
+    /**
+     * Handles incoming method calls from Flutter and invokes the appropriate native method handler.
+     * If the method is not implemented, the result is marked as not implemented.
+     */
+    override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
+        result.notImplemented()
     }
 
     fun configureModule(builder: CustomerIOBuilder, config: Map<String, Any>)
