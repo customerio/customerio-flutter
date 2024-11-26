@@ -3,9 +3,11 @@ package io.customer.customer_io
 import android.app.Application
 import android.content.Context
 import androidx.annotation.NonNull
+import io.customer.customer_io.bridge.NativeModuleBridge
 import io.customer.customer_io.constant.Keys
 import io.customer.customer_io.messaginginapp.CustomerIOInAppMessaging
 import io.customer.customer_io.messagingpush.CustomerIOPushMessaging
+import io.customer.customer_io.utils.getAs
 import io.customer.sdk.CustomerIO
 import io.customer.sdk.CustomerIOBuilder
 import io.customer.sdk.core.di.SDKComponent
@@ -26,7 +28,7 @@ import io.flutter.plugin.common.MethodChannel.Result
  * Android implementation of plugin that will let Flutter developers to
  * interact with a Android platform
  * */
-class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
+class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -34,7 +36,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var flutterCommunicationChannel: MethodChannel
     private lateinit var context: Context
 
-    private lateinit var modules: List<CustomerIOPluginModule>
+    private lateinit var modules: List<NativeModuleBridge>
 
     private val logger: Logger = SDKComponent.logger
 
@@ -133,8 +135,8 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun identify(params: Map<String, Any>) {
-        val userId = params.getAsTypeOrNull<String>(Keys.Tracking.USER_ID)
-        val traits = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.TRAITS) ?: emptyMap()
+        val userId = params.getAs<String>(Keys.Tracking.USER_ID)
+        val traits = params.getAs<Map<String, Any>>(Keys.Tracking.TRAITS) ?: emptyMap()
 
         if (userId == null && traits.isEmpty()) {
             logger.error("Please provide either an ID or traits to identify.")
@@ -151,10 +153,10 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun track(params: Map<String, Any>) {
-        val name = requireNotNull(params.getAsTypeOrNull<String>(Keys.Tracking.NAME)) {
+        val name = requireNotNull(params.getAs<String>(Keys.Tracking.NAME)) {
             "Event name is missing in params: $params"
         }
-        val properties = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.PROPERTIES)
+        val properties = params.getAs<Map<String, Any>>(Keys.Tracking.PROPERTIES)
 
         if (properties.isNullOrEmpty()) {
             CustomerIO.instance().track(name)
@@ -164,16 +166,16 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun registerDeviceToken(params: Map<String, Any>) {
-        val token = requireNotNull(params.getAsTypeOrNull<String>(Keys.Tracking.TOKEN)) {
+        val token = requireNotNull(params.getAs<String>(Keys.Tracking.TOKEN)) {
             "Device token is missing in params: $params"
         }
         CustomerIO.instance().registerDeviceToken(token)
     }
 
     private fun trackMetric(params: Map<String, Any>) {
-        val deliveryId = params.getAsTypeOrNull<String>(Keys.Tracking.DELIVERY_ID)
-        val deliveryToken = params.getAsTypeOrNull<String>(Keys.Tracking.DELIVERY_TOKEN)
-        val eventName = params.getAsTypeOrNull<String>(Keys.Tracking.METRIC_EVENT)
+        val deliveryId = params.getAs<String>(Keys.Tracking.DELIVERY_ID)
+        val deliveryToken = params.getAs<String>(Keys.Tracking.DELIVERY_TOKEN)
+        val eventName = params.getAs<String>(Keys.Tracking.METRIC_EVENT)
 
         if (deliveryId == null || deliveryToken == null || eventName == null) {
             throw IllegalArgumentException("Missing required parameters")
@@ -191,7 +193,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun setDeviceAttributes(params: Map<String, Any>) {
-        val attributes = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.ATTRIBUTES)
+        val attributes = params.getAs<Map<String, Any>>(Keys.Tracking.ATTRIBUTES)
 
         if (attributes.isNullOrEmpty()) {
             logger.error("Device attributes are missing in params: $params")
@@ -202,7 +204,7 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun setProfileAttributes(params: Map<String, Any>) {
-        val attributes = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.ATTRIBUTES)
+        val attributes = params.getAs<Map<String, Any>>(Keys.Tracking.ATTRIBUTES)
 
         if (attributes.isNullOrEmpty()) {
             logger.error("Profile attributes are missing in params: $params")
@@ -213,10 +215,10 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun screen(params: Map<String, Any>) {
-        val title = requireNotNull(params.getAsTypeOrNull<String>(Keys.Tracking.TITLE)) {
+        val title = requireNotNull(params.getAs<String>(Keys.Tracking.TITLE)) {
             "Screen title is missing in params: $params"
         }
-        val properties = params.getAsTypeOrNull<Map<String, Any>>(Keys.Tracking.PROPERTIES)
+        val properties = params.getAs<Map<String, Any>>(Keys.Tracking.PROPERTIES)
 
         if (properties.isNullOrEmpty()) {
             CustomerIO.instance().screen(title)
@@ -227,12 +229,12 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     private fun initialize(args: Map<String, Any>): kotlin.Result<Unit> = runCatching {
         val application: Application = context.applicationContext as Application
-        val cdpApiKey = requireNotNull(args.getAsTypeOrNull<String>("cdpApiKey")) {
+        val cdpApiKey = requireNotNull(args.getAs<String>("cdpApiKey")) {
             "CDP API Key is required to initialize Customer.io"
         }
 
-        val logLevelRawValue = args.getAsTypeOrNull<String>("logLevel")
-        val regionRawValue = args.getAsTypeOrNull<String>("region")
+        val logLevelRawValue = args.getAs<String>("logLevel")
+        val regionRawValue = args.getAs<String>("region")
         val givenRegion = regionRawValue.let { Region.getRegion(it) }
 
         CustomerIOBuilder(
@@ -242,28 +244,27 @@ class CustomerIoPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             logLevelRawValue?.let { logLevel(CioLogLevel.getLogLevel(it)) }
             regionRawValue?.let { region(givenRegion) }
 
-            args.getAsTypeOrNull<String>("migrationSiteId")?.let(::migrationSiteId)
-            args.getAsTypeOrNull<Boolean>("autoTrackDeviceAttributes")
-                ?.let(::autoTrackDeviceAttributes)
-            args.getAsTypeOrNull<Boolean>("trackApplicationLifecycleEvents")
+            args.getAs<String>("migrationSiteId")?.let(::migrationSiteId)
+            args.getAs<Boolean>("autoTrackDeviceAttributes")?.let(::autoTrackDeviceAttributes)
+            args.getAs<Boolean>("trackApplicationLifecycleEvents")
                 ?.let(::trackApplicationLifecycleEvents)
 
-            args.getAsTypeOrNull<Int>("flushAt")?.let(::flushAt)
-            args.getAsTypeOrNull<Int>("flushInterval")?.let(::flushInterval)
+            args.getAs<Int>("flushAt")?.let(::flushAt)
+            args.getAs<Int>("flushInterval")?.let(::flushInterval)
 
-            args.getAsTypeOrNull<String>("apiHost")?.let(::apiHost)
-            args.getAsTypeOrNull<String>("cdnHost")?.let(::cdnHost)
+            args.getAs<String>("apiHost")?.let(::apiHost)
+            args.getAs<String>("cdnHost")?.let(::cdnHost)
             // Configure in-app messaging module based on config provided by customer app
-            args.getAsTypeOrNull<Map<String, Any>>(key = "inApp")?.let { inAppConfig ->
+            args.getAs<Map<String, Any>>(key = "inApp")?.let { inAppConfig ->
                 modules.filterIsInstance<CustomerIOInAppMessaging>().forEach {
                     it.configureModule(
                         builder = this,
-                        config = inAppConfig.plus("region" to givenRegion),
+                        config = inAppConfig.plus("region" to givenRegion.code),
                     )
                 }
             }
             // Configure push messaging module based on config provided by customer app
-            args.getAsTypeOrNull<Map<String, Any>>(key = "push").let { pushConfig ->
+            args.getAs<Map<String, Any>>(key = "push").let { pushConfig ->
                 modules.filterIsInstance<CustomerIOPushMessaging>().forEach {
                     it.configureModule(
                         builder = this,

@@ -1,10 +1,11 @@
 package io.customer.customer_io.messagingpush
 
 import android.content.Context
-import io.customer.customer_io.CustomerIOPluginModule
+import io.customer.customer_io.bridge.NativeModuleBridge
 import io.customer.customer_io.constant.Keys
-import io.customer.customer_io.getAsTypeOrNull
 import io.customer.customer_io.invokeNative
+import io.customer.customer_io.utils.getAs
+import io.customer.customer_io.utils.takeIfNotBlank
 import io.customer.messagingpush.CustomerIOFirebaseMessagingService
 import io.customer.messagingpush.MessagingPushModuleConfig
 import io.customer.messagingpush.ModuleMessagingPushFCM
@@ -16,7 +17,7 @@ import io.customer.sdk.core.util.Logger
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import java.util.*
+import java.util.UUID
 
 /**
  * Flutter module implementation for messaging push module in native SDKs. All functionality
@@ -24,7 +25,7 @@ import java.util.*
  */
 internal class CustomerIOPushMessaging(
     pluginBinding: FlutterPlugin.FlutterPluginBinding,
-) : CustomerIOPluginModule, MethodChannel.MethodCallHandler {
+) : NativeModuleBridge, MethodChannel.MethodCallHandler {
     override val moduleName: String = "PushMessaging"
     private val applicationContext: Context = pluginBinding.applicationContext
     override val flutterCommunicationChannel: MethodChannel =
@@ -42,8 +43,8 @@ internal class CustomerIOPushMessaging(
             Keys.Methods.ON_MESSAGE_RECEIVED -> {
                 call.invokeNative(result) { args ->
                     return@invokeNative onMessageReceived(
-                        message = args.getAsTypeOrNull<Map<String, Any>>("message"),
-                        handleNotificationTrigger = args.getAsTypeOrNull<Boolean>("handleNotificationTrigger")
+                        message = args.getAs<Map<String, Any>>("message"),
+                        handleNotificationTrigger = args.getAs<Boolean>("handleNotificationTrigger")
                     )
                 }
             }
@@ -75,8 +76,8 @@ internal class CustomerIOPushMessaging(
             }
 
             // Generate destination string, see docs on receiver method for more details
-            val destination = (message["to"] as? String)?.takeIf { it.isNotBlank() }
-                ?: UUID.randomUUID().toString()
+            val destination =
+                (message["to"] as? String)?.takeIfNotBlank() ?: UUID.randomUUID().toString()
             return CustomerIOFirebaseMessagingService.onMessageReceived(
                 context = applicationContext,
                 remoteMessage = message.toFCMRemoteMessage(destination = destination),
@@ -99,14 +100,13 @@ internal class CustomerIOPushMessaging(
         builder: CustomerIOBuilder,
         config: Map<String, Any>
     ) {
-        val androidConfig =
-            config.getAsTypeOrNull<Map<String, Any>>(key = "android") ?: emptyMap()
+        val androidConfig = config.getAs<Map<String, Any>>(key = "android") ?: emptyMap()
         // Prefer `android` object for push configurations as it's more specific to Android
         // For common push configurations, use `config` object instead of `android`
 
         // Default push click behavior is to prevent restart of activity in Flutter apps
-        val pushClickBehavior = androidConfig.getAsTypeOrNull<String>("pushClickBehavior")
-            ?.takeIf { it.isNotBlank() }
+        val pushClickBehavior = androidConfig.getAs<String>("pushClickBehavior")
+            ?.takeIfNotBlank()
             ?.let { value ->
                 runCatching { enumValueOf<PushClickBehavior>(value) }.getOrNull()
             } ?: PushClickBehavior.ACTIVITY_PREVENT_RESTART
