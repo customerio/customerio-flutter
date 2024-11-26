@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:customer_io/extensions/method_channel_extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import '../extensions/method_channel_extensions.dart';
 import '_native_constants.dart';
 import 'platform_interface.dart';
 
@@ -33,7 +33,7 @@ class CustomerIOMessagingPushMethodChannel
     }
 
     return methodChannel
-        .invokeNativeMethod<bool>(NativeMethods.onMessageReceived, arguments: {
+        .invokeNativeMethod<bool>(NativeMethods.onMessageReceived, {
       NativeMethodParams.message: message,
       NativeMethodParams.handleNotificationTrigger: handleNotificationTrigger,
     }).then((handled) => handled == true);

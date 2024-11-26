@@ -5,7 +5,7 @@ extension CustomerIOMethodChannelExtensions on MethodChannel {
   /// Invokes a native method and returns the result.
   /// Logs exceptions internally without propagating them.
   Future<T?> invokeNativeMethod<T>(String method,
-      {Map<String, dynamic> arguments = const {}}) async {
+      [Map<String, dynamic> arguments = const {}]) async {
     try {
       return await invokeMethod<T>(method, arguments);
     } on PlatformException catch (ex) {
@@ -28,6 +28,6 @@ extension CustomerIOMethodChannelExtensions on MethodChannel {
   /// Simplifies invoking a native method that doesn't return a value.
   Future<void> invokeNativeMethodVoid(String method,
       [Map<String, dynamic> arguments = const {}]) async {
-    return await invokeNativeMethod<void>(method, arguments: arguments);
+    return await invokeNativeMethod<void>(method, arguments);
   }
 }
