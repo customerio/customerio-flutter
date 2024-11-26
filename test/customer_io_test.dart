@@ -1,7 +1,7 @@
 import 'package:customer_io/customer_io.dart';
 import 'package:customer_io/customer_io_config.dart';
 import 'package:customer_io/customer_io_enums.dart';
-import 'package:customer_io/customer_io_platform_interface.dart';
+import 'package:customer_io/data_pipelines/customer_io_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -93,10 +93,10 @@ void main() {
         await CustomerIO.initialize(config: config);
       });
 
-      test('identify() calls platform', () {
+      test('identify() calls platform', () async {
         const givenIdentifier = 'user@example.com';
         final givenAttributes = {'name': 'John Doe'};
-        CustomerIO.instance.identify(
+        await CustomerIO.instance.identify(
           userId: givenIdentifier,
           traits: givenAttributes,
         );

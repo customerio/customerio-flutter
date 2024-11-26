@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'customer_io_config.dart';
 import 'customer_io_enums.dart';
-import 'customer_io_platform_interface.dart';
+import 'data_pipelines/customer_io_platform_interface.dart';
 import 'extensions/map_extensions.dart';
 import 'messaging_in_app/platform_interface.dart';
 import 'messaging_push/platform_interface.dart';
@@ -61,17 +61,13 @@ class CustomerIO {
 
   /// Access push messaging functionality
   static CustomerIOMessagingPushPlatform get pushMessaging {
-    if (_instance == null) {
-      throw StateError(
-        'CustomerIO SDK must be initialized before accessing push module.\n'
-            'Call CustomerIO.initialize() first.',
-      );
-    }
-    return _instance!._pushMessaging;
+    return instance._pushMessaging;
   }
 
   /// Access in-app messaging functionality
-  CustomerIOMessagingInAppPlatform get inAppMessaging => _inAppMessaging;
+  static CustomerIOMessagingInAppPlatform get inAppMessaging {
+    return instance._inAppMessaging;
+  }
 
   /// To initialize the plugin
   ///
@@ -95,7 +91,7 @@ class CustomerIO {
   ///
   /// @param userId unique identifier for a profile
   /// @param traits (Optional) params to set profile attributes
-  void identify(
+  Future<void> identify(
       {required String userId, Map<String, dynamic> traits = const {}}) {
     return _platform.identify(
         userId: userId, traits: traits.excludeNullValues());
@@ -105,8 +101,8 @@ class CustomerIO {
   ///
   /// If a profile exists, clearIdentify will stop identifying the profile.
   /// If no profile exists, request to clearIdentify will be ignored.
-  void clearIdentify() {
-    _platform.clearIdentify();
+  Future<void> clearIdentify() {
+    return _platform.clearIdentify();
   }
 
   /// To track user events like loggedIn, addedItemToCart etc.
@@ -114,14 +110,14 @@ class CustomerIO {
   ///
   /// @param name event name to be tracked
   /// @param properties (Optional) params to be sent with event
-  void track(
+  Future<void> track(
       {required String name, Map<String, dynamic> properties = const {}}) {
     return _platform.track(
         name: name, properties: properties.excludeNullValues());
   }
 
   /// Track a push metric
-  void trackMetric(
+  Future<void> trackMetric(
       {required String deliveryID,
       required String deviceToken,
       required MetricEvent event}) {
@@ -131,7 +127,7 @@ class CustomerIO {
 
   /// Register a new device token with Customer.io, associated with the current active customer. If there
   /// is no active customer, this will fail to register the device
-  void registerDeviceToken({required String deviceToken}) {
+  Future<void> registerDeviceToken({required String deviceToken}) {
     return _platform.registerDeviceToken(deviceToken: deviceToken);
   }
 
@@ -139,7 +135,7 @@ class CustomerIO {
   ///
   /// @param name name of the screen user visited
   /// @param attributes (Optional) params to be sent with event
-  void screen(
+  Future<void> screen(
       {required String title, Map<String, dynamic> properties = const {}}) {
     return _platform.screen(
         title: title, properties: properties.excludeNullValues());
@@ -149,7 +145,7 @@ class CustomerIO {
   /// such as app preferences, timezone etc
   ///
   /// @param attributes device attributes
-  void setDeviceAttributes({required Map<String, dynamic> attributes}) {
+  Future<void> setDeviceAttributes({required Map<String, dynamic> attributes}) {
     return _platform.setDeviceAttributes(attributes: attributes);
   }
 
@@ -157,7 +153,8 @@ class CustomerIO {
   /// user actions etc
   ///
   /// @param attributes additional attributes for a user profile
-  void setProfileAttributes({required Map<String, dynamic> attributes}) {
+  Future<void> setProfileAttributes(
+      {required Map<String, dynamic> attributes}) {
     return _platform.setProfileAttributes(
         attributes: attributes.excludeNullValues());
   }

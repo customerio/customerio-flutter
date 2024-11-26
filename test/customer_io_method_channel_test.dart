@@ -1,6 +1,6 @@
 import 'package:customer_io/customer_io_config.dart';
 import 'package:customer_io/customer_io_enums.dart';
-import 'package:customer_io/customer_io_method_channel.dart';
+import 'package:customer_io/data_pipelines/customer_io_method_channel.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -153,11 +153,11 @@ void main() {
       'setDeviceAttributes() should call platform method with correct arguments',
       () async {
     final Map<String, dynamic> args = {
-      'traits': {'os': 'Android'}
+      'attributes': {'os': 'Android'}
     };
 
     final customerIO = CustomerIOMethodChannel();
-    customerIO.setDeviceAttributes(attributes: args['traits']);
+    customerIO.setDeviceAttributes(attributes: args['attributes']);
 
     expectMethodInvocationArguments('setDeviceAttributes', args);
   });
