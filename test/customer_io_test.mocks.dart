@@ -23,17 +23,6 @@ import 'customer_io_test.dart' as _i3;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeStreamSubscription_0<T> extends _i1.SmartFake
-    implements _i2.StreamSubscription<T> {
-  _FakeStreamSubscription_0(
-      Object parent,
-      Invocation parentInvocation,
-      ) : super(
-    parent,
-    parentInvocation,
-  );
-}
-
 /// A class which mocks [TestCustomerIoPlatform].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -158,19 +147,4 @@ class MockTestCustomerIoPlatform extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
-  _i2.StreamSubscription<dynamic> subscribeToInAppEventListener(
-      void Function(_i6.InAppEvent)? onEvent) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #subscribeToInAppEventListener,
-          [onEvent],
-        ),
-        returnValue: _FakeStreamSubscription_0<dynamic>(
-          this,
-          Invocation.method(
-            #subscribeToInAppEventListener,
-            [onEvent],
-          ),
-        ),
-      ) as _i2.StreamSubscription<dynamic>);
 }
