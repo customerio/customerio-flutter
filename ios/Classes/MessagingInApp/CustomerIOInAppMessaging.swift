@@ -1,8 +1,9 @@
 import Foundation
 import Flutter
+import CioInternalCommon
 import CioMessagingInApp
 
-public class CusomterIOInAppMessaging: NSObject, FlutterPlugin {
+public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
     
     private var methodChannel: FlutterMethodChannel?
     
@@ -40,5 +41,24 @@ public class CusomterIOInAppMessaging: NSObject, FlutterPlugin {
     func detachFromEngine() {
         methodChannel?.setMethodCallHandler(nil)
         methodChannel = nil
+    }
+
+    func configureModule(params: [String: AnyHashable]) {
+        if let inAppConfig = try? MessagingInAppConfigBuilder.build(from: params) {
+            MessagingInApp.initialize(withConfig: inAppConfig)
+            MessagingInApp.shared.setEventListener(CustomerIOInAppEventListener(invokeDartMethod: invokeDartMethod))
+        }
+    }
+
+    func invokeDartMethod(_ method: String, _ args: Any?) {
+        // When sending messages from native code to Flutter, it's required to do it on main thread.
+        // Learn more:
+        // * https://docs.flutter.dev/platform-integration/platform-channels#channels-and-platform-threading
+        // * https://linear.app/customerio/issue/MBL-358/
+        DIGraphShared.shared.threadUtil.runMain { [weak self] in
+            guard let self else { return }
+
+            self.methodChannel?.invokeMethod(method, arguments: args)
+        }
     }
 }
