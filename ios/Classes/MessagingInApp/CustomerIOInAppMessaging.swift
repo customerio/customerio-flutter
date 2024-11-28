@@ -1,46 +1,42 @@
-import Foundation
-import Flutter
 import CioInternalCommon
 import CioMessagingInApp
+import Flutter
+import Foundation
 
 public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
-    
     private var methodChannel: FlutterMethodChannel?
-    
-    public static func register(with registrar: FlutterPluginRegistrar) {
-    }
-    
+
+    public static func register(with _: FlutterPluginRegistrar) {}
+
     init(with registrar: FlutterPluginRegistrar) {
         super.init()
-        
+
         methodChannel = FlutterMethodChannel(name: "customer_io_messaging_in_app", binaryMessenger: registrar.messenger())
-        
+
         guard let methodChannel = methodChannel else {
             print("customer_io_messaging_in_app methodChannel is nil")
             return
         }
-        
+
         registrar.addMethodCallDelegate(self, channel: methodChannel)
     }
-    
-    
+
     deinit {
         methodChannel?.setMethodCallHandler(nil)
+        methodChannel = nil
     }
-    
+
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         // Handle method calls for this method channel
-        switch(call.method) {
-            case Keys.Methods.dismissMessage:
+        switch call.method {
+        case "dismissMessage":
+            call.nativeNoArgs(result: result) {
                 MessagingInApp.shared.dismissMessage()
-            default:
-                result(FlutterMethodNotImplemented)
+            }
+
+        default:
+            result(FlutterMethodNotImplemented)
         }
-    }
-    
-    func detachFromEngine() {
-        methodChannel?.setMethodCallHandler(nil)
-        methodChannel = nil
     }
 
     func configureModule(params: [String: AnyHashable]) {
