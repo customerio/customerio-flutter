@@ -26,8 +26,8 @@ extension CustomerIOMethodChannelExtensions on MethodChannel {
   }
 
   /// Simplifies invoking a native method that doesn't return a value.
-  Future<void> invokeNativeMethodVoid(String method,
-      [Map<String, dynamic> arguments = const {}]) async {
-    return await invokeNativeMethod<void>(method, arguments);
+  void invokeNativeMethodVoid(String method,
+      [Map<String, dynamic> arguments = const {}]) {
+    invokeNativeMethod<void>(method, arguments);
   }
 }

@@ -26,12 +26,12 @@ import 'customer_io_test.dart' as _i3;
 class _FakeStreamSubscription_0<T> extends _i1.SmartFake
     implements _i2.StreamSubscription<T> {
   _FakeStreamSubscription_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+      Object parent,
+      Invocation parentInvocation,
+      ) : super(
+    parent,
+    parentInvocation,
+  );
 }
 
 /// A class which mocks [TestCustomerIoPlatform].
@@ -55,7 +55,7 @@ class MockTestCustomerIoPlatform extends _i1.Mock
         returnValueForMissingStub: _i2.Future<void>.value(),
       ) as _i2.Future<void>);
   @override
-  _i2.Future<void> identify({
+  void identify({
     required String? userId,
     Map<String, dynamic>? traits = const {},
   }) =>
@@ -68,20 +68,18 @@ class MockTestCustomerIoPlatform extends _i1.Mock
             #traits: traits,
           },
         ),
-        returnValue: _i2.Future<void>.value(),
-        returnValueForMissingStub: _i2.Future<void>.value(),
+        returnValueForMissingStub: null,
       );
   @override
-  _i2.Future<void> clearIdentify() => super.noSuchMethod(
-        Invocation.method(
-          #clearIdentify,
-          [],
-        ),
-        returnValue: _i2.Future<void>.value(),
-        returnValueForMissingStub: _i2.Future<void>.value(),
-      );
+  void clearIdentify() => super.noSuchMethod(
+    Invocation.method(
+      #clearIdentify,
+      [],
+    ),
+    returnValueForMissingStub: null,
+  );
   @override
-  _i2.Future<void> track({
+  void track({
     required String? name,
     Map<String, dynamic>? properties = const {},
   }) =>
@@ -94,11 +92,10 @@ class MockTestCustomerIoPlatform extends _i1.Mock
             #properties: properties,
           },
         ),
-        returnValue: _i2.Future<void>.value(),
-        returnValueForMissingStub: _i2.Future<void>.value(),
+        returnValueForMissingStub: null,
       );
   @override
-  _i2.Future<void> trackMetric({
+  void trackMetric({
     required String? deliveryID,
     required String? deviceToken,
     required _i5.MetricEvent? event,
@@ -113,22 +110,20 @@ class MockTestCustomerIoPlatform extends _i1.Mock
             #event: event,
           },
         ),
-        returnValue: _i2.Future<void>.value(),
-        returnValueForMissingStub: _i2.Future<void>.value(),
+        returnValueForMissingStub: null,
       );
   @override
-  _i2.Future<void> registerDeviceToken({required String? deviceToken}) =>
+  void registerDeviceToken({required String? deviceToken}) =>
       super.noSuchMethod(
         Invocation.method(
           #registerDeviceToken,
           [],
           {#deviceToken: deviceToken},
         ),
-        returnValue: _i2.Future<void>.value(),
-        returnValueForMissingStub: _i2.Future<void>.value(),
+        returnValueForMissingStub: null,
       );
   @override
-  _i2.Future<void> screen({
+  void screen({
     required String? title,
     Map<String, dynamic>? properties = const {},
   }) =>
@@ -141,35 +136,30 @@ class MockTestCustomerIoPlatform extends _i1.Mock
             #properties: properties,
           },
         ),
-        returnValue: _i2.Future<void>.value(),
-        returnValueForMissingStub: _i2.Future<void>.value(),
+        returnValueForMissingStub: null,
       );
   @override
-  _i2.Future<void> setDeviceAttributes(
-          {required Map<String, dynamic>? attributes}) =>
+  void setDeviceAttributes({required Map<String, dynamic>? attributes}) =>
       super.noSuchMethod(
         Invocation.method(
           #setDeviceAttributes,
           [],
           {#attributes: attributes},
         ),
-        returnValue: _i2.Future<void>.value(),
-        returnValueForMissingStub: _i2.Future<void>.value(),
+        returnValueForMissingStub: null,
       );
   @override
-  _i2.Future<void> setProfileAttributes(
-          {required Map<String, dynamic>? attributes}) =>
+  void setProfileAttributes({required Map<String, dynamic>? attributes}) =>
       super.noSuchMethod(
         Invocation.method(
           #setProfileAttributes,
           [],
           {#attributes: attributes},
         ),
-        returnValue: _i2.Future<void>.value(),
-        returnValueForMissingStub: _i2.Future<void>.value(),
+        returnValueForMissingStub: null,
       );
   _i2.StreamSubscription<dynamic> subscribeToInAppEventListener(
-          void Function(_i6.InAppEvent)? onEvent) =>
+      void Function(_i6.InAppEvent)? onEvent) =>
       (super.noSuchMethod(
         Invocation.method(
           #subscribeToInAppEventListener,

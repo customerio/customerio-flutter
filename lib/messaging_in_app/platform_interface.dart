@@ -27,7 +27,7 @@ abstract class CustomerIOMessagingInAppPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<void> dismissMessage() {
+  void dismissMessage() {
     throw UnimplementedError('dismissMessage() has not been implemented.');
   }
 

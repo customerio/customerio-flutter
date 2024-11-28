@@ -33,41 +33,41 @@ abstract class CustomerIOPlatform extends PlatformInterface {
     throw UnimplementedError('initialize() has not been implemented.');
   }
 
-  Future<void> identify(
+  void identify(
       {required String userId, Map<String, dynamic> traits = const {}}) {
     throw UnimplementedError('identify() has not been implemented.');
   }
 
-  Future<void> clearIdentify() {
+  void clearIdentify() {
     throw UnimplementedError('clearIdentify() has not been implemented.');
   }
 
-  Future<void> track(
+  void track(
       {required String name, Map<String, dynamic> properties = const {}}) {
     throw UnimplementedError('track() has not been implemented.');
   }
 
-  Future<void> trackMetric(
+  void trackMetric(
       {required String deliveryID,
       required String deviceToken,
       required MetricEvent event}) {
     throw UnimplementedError('trackMetric() has not been implemented.');
   }
 
-  Future<void> registerDeviceToken({required String deviceToken}) {
+  void registerDeviceToken({required String deviceToken}) {
     throw UnimplementedError('registerDeviceToken() has not been implemented.');
   }
 
-  Future<void> screen(
+  void screen(
       {required String title, Map<String, dynamic> properties = const {}}) {
     throw UnimplementedError('screen() has not been implemented.');
   }
 
-  Future<void> setDeviceAttributes({required Map<String, dynamic> attributes}) {
+  void setDeviceAttributes({required Map<String, dynamic> attributes}) {
     throw UnimplementedError('setDeviceAttributes() has not been implemented.');
   }
 
-  Future<void> setProfileAttributes(
+  void setProfileAttributes(
       {required Map<String, dynamic> attributes}) {
     throw UnimplementedError(
         'setProfileAttributes() has not been implemented.');

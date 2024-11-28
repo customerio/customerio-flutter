@@ -18,7 +18,7 @@ class CustomerIOMessagingInAppMethodChannel
   final _inAppEventStreamController = StreamController<InAppEvent>.broadcast();
 
   @override
-  Future<void> dismissMessage() {
+  void dismissMessage() {
     return methodChannel.invokeNativeMethodVoid(NativeMethods.dismissMessage);
   }
 

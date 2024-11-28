@@ -93,10 +93,10 @@ void main() {
         await CustomerIO.initialize(config: config);
       });
 
-      test('identify() calls platform', () async {
+      test('identify() calls platform', () {
         const givenIdentifier = 'user@example.com';
         final givenAttributes = {'name': 'John Doe'};
-        await CustomerIO.instance.identify(
+        CustomerIO.instance.identify(
           userId: givenIdentifier,
           traits: givenAttributes,
         );

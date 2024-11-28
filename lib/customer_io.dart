@@ -91,7 +91,7 @@ class CustomerIO {
   ///
   /// @param userId unique identifier for a profile
   /// @param traits (Optional) params to set profile attributes
-  Future<void> identify(
+  void identify(
       {required String userId, Map<String, dynamic> traits = const {}}) {
     return _platform.identify(
         userId: userId, traits: traits.excludeNullValues());
@@ -101,7 +101,7 @@ class CustomerIO {
   ///
   /// If a profile exists, clearIdentify will stop identifying the profile.
   /// If no profile exists, request to clearIdentify will be ignored.
-  Future<void> clearIdentify() {
+  void clearIdentify() {
     return _platform.clearIdentify();
   }
 
@@ -110,14 +110,14 @@ class CustomerIO {
   ///
   /// @param name event name to be tracked
   /// @param properties (Optional) params to be sent with event
-  Future<void> track(
+  void track(
       {required String name, Map<String, dynamic> properties = const {}}) {
     return _platform.track(
         name: name, properties: properties.excludeNullValues());
   }
 
   /// Track a push metric
-  Future<void> trackMetric(
+  void trackMetric(
       {required String deliveryID,
       required String deviceToken,
       required MetricEvent event}) {
@@ -127,7 +127,7 @@ class CustomerIO {
 
   /// Register a new device token with Customer.io, associated with the current active customer. If there
   /// is no active customer, this will fail to register the device
-  Future<void> registerDeviceToken({required String deviceToken}) {
+  void registerDeviceToken({required String deviceToken}) {
     return _platform.registerDeviceToken(deviceToken: deviceToken);
   }
 
@@ -135,7 +135,7 @@ class CustomerIO {
   ///
   /// @param name name of the screen user visited
   /// @param attributes (Optional) params to be sent with event
-  Future<void> screen(
+  void screen(
       {required String title, Map<String, dynamic> properties = const {}}) {
     return _platform.screen(
         title: title, properties: properties.excludeNullValues());
@@ -145,7 +145,7 @@ class CustomerIO {
   /// such as app preferences, timezone etc
   ///
   /// @param attributes device attributes
-  Future<void> setDeviceAttributes({required Map<String, dynamic> attributes}) {
+  void setDeviceAttributes({required Map<String, dynamic> attributes}) {
     return _platform.setDeviceAttributes(attributes: attributes);
   }
 
@@ -153,7 +153,7 @@ class CustomerIO {
   /// user actions etc
   ///
   /// @param attributes additional attributes for a user profile
-  Future<void> setProfileAttributes(
+  void setProfileAttributes(
       {required Map<String, dynamic> attributes}) {
     return _platform.setProfileAttributes(
         attributes: attributes.excludeNullValues());
