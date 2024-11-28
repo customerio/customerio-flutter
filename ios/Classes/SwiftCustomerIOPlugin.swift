@@ -4,19 +4,19 @@ import CioDataPipelines
 import CioInternalCommon
 import CioMessagingInApp
 
-public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
+public class SwiftCustomerIOPlugin: NSObject, FlutterPlugin {
     
     private var methodChannel: FlutterMethodChannel!
-    private var inAppMessagingChannelHandler: CusomterIOInAppMessaging!
+    private var inAppMessagingChannelHandler: CustomerIOInAppMessaging!
     private var messagingPushChannelHandler: CustomerIOMessagingPush!
     private let logger: CioInternalCommon.Logger = DIGraphShared.shared.logger
     
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let instance = SwiftCustomerIoPlugin()
+        let instance = SwiftCustomerIOPlugin()
         instance.methodChannel = FlutterMethodChannel(name: "customer_io", binaryMessenger: registrar.messenger())
         registrar.addMethodCallDelegate(instance, channel: instance.methodChannel)
         
-        instance.inAppMessagingChannelHandler = CusomterIOInAppMessaging(with: registrar)
+        instance.inAppMessagingChannelHandler = CustomerIOInAppMessaging(with: registrar)
         instance.messagingPushChannelHandler = CustomerIOMessagingPush(with: registrar)
     }
     
@@ -176,15 +176,9 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
             // Initialize native SDK with provided config
             let sdkConfigBuilder = try SDKConfigBuilder.create(from: params)
             CustomerIO.initialize(withConfig: sdkConfigBuilder.build())
-            
-            if let inAppConfig = try? MessagingInAppConfigBuilder.build(from: params) {
-                MessagingInApp.initialize(withConfig: inAppConfig)
-                MessagingInApp.shared.setEventListener(CustomerIOInAppEventListener(
-                    invokeMethod: {method,args in
-                        self.invokeMethod(method, args)
-                    })
-                )
-            }
+
+            // Initialize in-app messaging with provided config
+            inAppMessagingChannelHandler.configureModule(params: params)
             
             // TODO: Initialize in-app module with given config
             logger.debug("Customer.io SDK initialized with config: \(params)")
@@ -192,33 +186,6 @@ public class SwiftCustomerIoPlugin: NSObject, FlutterPlugin {
             logger.error("Initializing Customer.io SDK failed with error: \(error)")
         }
     }
-    
-    /**
-     Initialize in-app using customerio plugin
-     */
-    private func initializeInApp(){
-        // TODO: Fix initializeInApp implementation
-        /*
-         DispatchQueue.main.async {
-         MessagingInApp.shared.initialize(eventListener: CustomerIOInAppEventListener(
-         invokeMethod: {method,args in
-         self.invokeMethod(method, args)
-         })
-         )
-         }
-         */
-    }
-    
-    func invokeMethod(_ method: String, _ args: Any?) {
-        // When sending messages from native code to Flutter, it's required to do it on main thread.
-        // Learn more:
-        // * https://docs.flutter.dev/platform-integration/platform-channels#channels-and-platform-threading
-        // * https://linear.app/customerio/issue/MBL-358/
-        DispatchQueue.main.async {
-            self.methodChannel.invokeMethod(method, arguments: args)
-        }
-    }
-    
 }
 
 private extension FlutterMethodCall {
@@ -236,36 +203,5 @@ private extension FlutterMethodCall {
             result(FlutterError(code: self.method, message: "Unexpected error: \(error).", details: nil))
         }
         
-    }
-}
-
-class CustomerIOInAppEventListener {
-    private let invokeMethod: (String, Any?) -> Void
-    
-    init(invokeMethod: @escaping (String, Any?) -> Void) {
-        self.invokeMethod = invokeMethod
-    }
-}
-
-extension CustomerIOInAppEventListener: InAppEventListener {
-    func errorWithMessage(message: InAppMessage) {
-        invokeMethod("errorWithMessage", ["messageId": message.messageId, "deliveryId": message.deliveryId])
-    }
-    
-    func messageActionTaken(message: InAppMessage, actionValue: String, actionName: String) {
-        invokeMethod("messageActionTaken", [
-            "messageId": message.messageId,
-            "deliveryId": message.deliveryId,
-            "actionValue": actionValue,
-            "actionName": actionName
-        ])
-    }
-    
-    func messageDismissed(message: InAppMessage) {
-        invokeMethod("messageDismissed", ["messageId": message.messageId, "deliveryId": message.deliveryId])
-    }
-    
-    func messageShown(message: InAppMessage) {
-        invokeMethod("messageShown", ["messageId": message.messageId, "deliveryId": message.deliveryId])
     }
 }
