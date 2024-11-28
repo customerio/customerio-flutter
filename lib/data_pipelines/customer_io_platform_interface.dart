@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:customer_io/customer_io_config.dart';
-import 'package:customer_io/customer_io_enums.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+import '../customer_io_config.dart';
+import '../customer_io_enums.dart';
 import 'customer_io_method_channel.dart';
 
 /// The default instance of [CustomerIOPlatform] to use
@@ -34,8 +34,7 @@ abstract class CustomerIOPlatform extends PlatformInterface {
   }
 
   void identify(
-      {required String userId,
-      Map<String, dynamic> traits = const {}}) {
+      {required String userId, Map<String, dynamic> traits = const {}}) {
     throw UnimplementedError('identify() has not been implemented.');
   }
 
@@ -68,7 +67,8 @@ abstract class CustomerIOPlatform extends PlatformInterface {
     throw UnimplementedError('setDeviceAttributes() has not been implemented.');
   }
 
-  void setProfileAttributes({required Map<String, dynamic> attributes}) {
+  void setProfileAttributes(
+      {required Map<String, dynamic> attributes}) {
     throw UnimplementedError(
         'setProfileAttributes() has not been implemented.');
   }

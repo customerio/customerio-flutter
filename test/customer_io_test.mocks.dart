@@ -26,12 +26,12 @@ import 'customer_io_test.dart' as _i3;
 class _FakeStreamSubscription_0<T> extends _i1.SmartFake
     implements _i2.StreamSubscription<T> {
   _FakeStreamSubscription_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+      Object parent,
+      Invocation parentInvocation,
+      ) : super(
+    parent,
+    parentInvocation,
+  );
 }
 
 /// A class which mocks [TestCustomerIoPlatform].
@@ -72,12 +72,12 @@ class MockTestCustomerIoPlatform extends _i1.Mock
       );
   @override
   void clearIdentify() => super.noSuchMethod(
-        Invocation.method(
-          #clearIdentify,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(
+      #clearIdentify,
+      [],
+    ),
+    returnValueForMissingStub: null,
+  );
   @override
   void track({
     required String? name,
@@ -159,7 +159,7 @@ class MockTestCustomerIoPlatform extends _i1.Mock
         returnValueForMissingStub: null,
       );
   _i2.StreamSubscription<dynamic> subscribeToInAppEventListener(
-          void Function(_i6.InAppEvent)? onEvent) =>
+      void Function(_i6.InAppEvent)? onEvent) =>
       (super.noSuchMethod(
         Invocation.method(
           #subscribeToInAppEventListener,

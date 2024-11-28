@@ -1,7 +1,7 @@
 import 'package:customer_io/customer_io.dart';
 import 'package:customer_io/customer_io_config.dart';
 import 'package:customer_io/customer_io_enums.dart';
-import 'package:customer_io/customer_io_platform_interface.dart';
+import 'package:customer_io/data_pipelines/customer_io_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';

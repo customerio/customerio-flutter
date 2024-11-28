@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'customer_io_config.dart';
 import 'customer_io_enums.dart';
-import 'customer_io_platform_interface.dart';
+import 'data_pipelines/customer_io_platform_interface.dart';
 import 'extensions/map_extensions.dart';
 import 'messaging_in_app/platform_interface.dart';
 import 'messaging_push/platform_interface.dart';
@@ -61,17 +61,13 @@ class CustomerIO {
 
   /// Access push messaging functionality
   static CustomerIOMessagingPushPlatform get pushMessaging {
-    if (_instance == null) {
-      throw StateError(
-        'CustomerIO SDK must be initialized before accessing push module.\n'
-            'Call CustomerIO.initialize() first.',
-      );
-    }
-    return _instance!._pushMessaging;
+    return instance._pushMessaging;
   }
 
   /// Access in-app messaging functionality
-  CustomerIOMessagingInAppPlatform get inAppMessaging => _inAppMessaging;
+  static CustomerIOMessagingInAppPlatform get inAppMessaging {
+    return instance._inAppMessaging;
+  }
 
   /// To initialize the plugin
   ///
@@ -106,7 +102,7 @@ class CustomerIO {
   /// If a profile exists, clearIdentify will stop identifying the profile.
   /// If no profile exists, request to clearIdentify will be ignored.
   void clearIdentify() {
-    _platform.clearIdentify();
+    return _platform.clearIdentify();
   }
 
   /// To track user events like loggedIn, addedItemToCart etc.
@@ -157,7 +153,8 @@ class CustomerIO {
   /// user actions etc
   ///
   /// @param attributes additional attributes for a user profile
-  void setProfileAttributes({required Map<String, dynamic> attributes}) {
+  void setProfileAttributes(
+      {required Map<String, dynamic> attributes}) {
     return _platform.setProfileAttributes(
         attributes: attributes.excludeNullValues());
   }
