@@ -5,7 +5,6 @@ import CioInternalCommon
 /// **Note**: Due to Swift limitations with static methods in protocol extensions, static functions
 /// in this extension should be called using `CustomerIOSdkClient.` to ensure correct behavior.
 extension SdkClient {
-    
     /// Configures and overrides the shared `SdkClient` instance with provided parameters.
     ///
     /// - Parameters:
@@ -23,7 +22,7 @@ extension SdkClient {
 
         let client = CustomerIOSdkClient(source: source, sdkVersion: version)
         DIGraphShared.shared.override(value: client, forType: SdkClient.self)
-        
+
         return DIGraphShared.shared.sdkClient
     }
 }
