@@ -27,7 +27,7 @@ class CustomerIOMessagingInAppMethodChannel
   /// The `onEvent` function will be called whenever an In-App event occurs.
   /// Returns a [StreamSubscription] object that can be used to unsubscribe from the stream.
   @override
-  StreamSubscription subscribeToInAppEventListener(
+  StreamSubscription subscribeToEventsListener(
       void Function(InAppEvent) onEvent) {
     StreamSubscription subscription =
         _inAppEventStreamController.stream.listen(onEvent);

@@ -31,9 +31,9 @@ abstract class CustomerIOMessagingInAppPlatform extends PlatformInterface {
     throw UnimplementedError('dismissMessage() has not been implemented.');
   }
 
-  StreamSubscription subscribeToInAppEventListener(
+  StreamSubscription subscribeToEventsListener(
       void Function(InAppEvent) onEvent) {
     throw UnimplementedError(
-        'subscribeToInAppEventListener() has not been implemented.');
+        'subscribeToEventsListener() has not been implemented.');
   }
 }
