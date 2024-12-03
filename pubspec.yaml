@@ -42,4 +42,4 @@ flutter:
         pluginClass: CustomerIOPlugin
       ios:
         pluginClass: CustomerIOPlugin
-        native_sdk_version: 3.5.1
+        native_sdk_version: 3.6.0
