@@ -62,6 +62,9 @@ class TextSettingsFormField extends StatelessWidget {
                   semanticsLabel: semanticsLabel,
                 ),
                 hintText: hintText,
+                hintStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.outline,
+                ),
                 isDense: true,
                 floatingLabelBehavior: floatingLabelBehavior,
               ),

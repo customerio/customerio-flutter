@@ -7,7 +7,6 @@ import 'dart:async' as _i2;
 
 import 'package:customer_io/customer_io_config.dart' as _i4;
 import 'package:customer_io/customer_io_enums.dart' as _i5;
-import 'package:customer_io/customer_io_inapp.dart' as _i6;
 import 'package:mockito/mockito.dart' as _i1;
 
 import 'customer_io_test.dart' as _i3;
@@ -22,17 +21,6 @@ import 'customer_io_test.dart' as _i3;
 // ignore_for_file: unnecessary_parenthesis
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
-
-class _FakeStreamSubscription_0<T> extends _i1.SmartFake
-    implements _i2.StreamSubscription<T> {
-  _FakeStreamSubscription_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
 
 /// A class which mocks [TestCustomerIoPlatform].
 ///
@@ -56,32 +44,32 @@ class MockTestCustomerIoPlatform extends _i1.Mock
       ) as _i2.Future<void>);
   @override
   void identify({
-    required String? identifier,
-    Map<String, dynamic>? attributes = const {},
+    required String? userId,
+    Map<String, dynamic>? traits = const {},
   }) =>
       super.noSuchMethod(
         Invocation.method(
           #identify,
           [],
           {
-            #identifier: identifier,
-            #attributes: attributes,
+            #userId: userId,
+            #traits: traits,
           },
         ),
         returnValueForMissingStub: null,
       );
   @override
   void clearIdentify() => super.noSuchMethod(
-        Invocation.method(
-          #clearIdentify,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(
+      #clearIdentify,
+      [],
+    ),
+    returnValueForMissingStub: null,
+  );
   @override
   void track({
     required String? name,
-    Map<String, dynamic>? attributes = const {},
+    Map<String, dynamic>? properties = const {},
   }) =>
       super.noSuchMethod(
         Invocation.method(
@@ -89,7 +77,7 @@ class MockTestCustomerIoPlatform extends _i1.Mock
           [],
           {
             #name: name,
-            #attributes: attributes,
+            #properties: properties,
           },
         ),
         returnValueForMissingStub: null,
@@ -124,16 +112,16 @@ class MockTestCustomerIoPlatform extends _i1.Mock
       );
   @override
   void screen({
-    required String? name,
-    Map<String, dynamic>? attributes = const {},
+    required String? title,
+    Map<String, dynamic>? properties = const {},
   }) =>
       super.noSuchMethod(
         Invocation.method(
           #screen,
           [],
           {
-            #name: name,
-            #attributes: attributes,
+            #title: title,
+            #properties: properties,
           },
         ),
         returnValueForMissingStub: null,
@@ -158,20 +146,4 @@ class MockTestCustomerIoPlatform extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
-  @override
-  _i2.StreamSubscription<dynamic> subscribeToInAppEventListener(
-          void Function(_i6.InAppEvent)? onEvent) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #subscribeToInAppEventListener,
-          [onEvent],
-        ),
-        returnValue: _FakeStreamSubscription_0<dynamic>(
-          this,
-          Invocation.method(
-            #subscribeToInAppEventListener,
-            [onEvent],
-          ),
-        ),
-      ) as _i2.StreamSubscription<dynamic>);
 }

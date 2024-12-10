@@ -43,7 +43,7 @@ target 'Runner' do
   use_modular_headers!
   
   # Uncomment only 1 of the lines below to install a version of the iOS SDK
-  pod 'CustomerIO/MessagingPushFCM', '~> 2.14' # install production build
+  pod 'customer_io/fcm', :path => '.symlinks/plugins/customer_io/ios' # install podspec bundled with the plugin
   # install_non_production_ios_sdk_local_path(local_path: '~/code/customerio-ios/', is_app_extension: false, push_service: "fcm")
   # install_non_production_ios_sdk_git_branch(branch_name: 'levi/v2-multiple-push-handlers', is_app_extension: false, push_service: "fcm")
 
@@ -52,8 +52,9 @@ end
 
 target 'NotificationServiceExtension' do
   use_frameworks!
-  # Uncomment only 1 of the lines below to install a version of the iOS SDK
-  pod 'CustomerIO/MessagingPushFCM', '~> 2.14' # install production build
+  # Ideally, installing non-production SDK to main target should be enough
+  # We may not need to install non-production SDK to app extension separately
+  pod 'customer_io_richpush/fcm', :path => '.symlinks/plugins/customer_io/ios' # install podspec bundled with the plugin
   # install_non_production_ios_sdk_local_path(local_path: '~/code/customerio-ios/', is_app_extension: true, push_service: "fcm")
   # install_non_production_ios_sdk_git_branch(branch_name: 'levi/v2-multiple-push-handlers', is_app_extension: true, push_service: "fcm")
 end

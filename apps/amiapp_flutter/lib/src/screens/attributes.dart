@@ -155,11 +155,11 @@ class _AttributesScreenState extends State<AttributesScreen> {
                       };
                       switch (widget._attributeType) {
                         case _attributeTypeDevice:
-                          CustomerIO.setDeviceAttributes(
+                          CustomerIO.instance.setDeviceAttributes(
                               attributes: attributes);
                           break;
                         case _attributeTypeProfile:
-                          CustomerIO.setProfileAttributes(
+                          CustomerIO.instance.setProfileAttributes(
                               attributes: attributes);
                           break;
                       }

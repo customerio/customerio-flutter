@@ -1,1 +1,15 @@
-<manifest />
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!--
+        Provide source and version of Customer.io Flutter SDK so user agent can be
+        generated based on this information.
+        -->
+        <meta-data
+            android:name="io.customer.sdk.android.core.SDK_SOURCE"
+            android:value="@string/customer_io_wrapper_sdk_client_source" />
+        <meta-data
+            android:name="io.customer.sdk.android.core.SDK_VERSION"
+            android:value="@string/customer_io_wrapper_sdk_client_version" />
+    </application>
+</manifest>

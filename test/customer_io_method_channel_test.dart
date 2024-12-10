@@ -1,6 +1,6 @@
 import 'package:customer_io/customer_io_config.dart';
 import 'package:customer_io/customer_io_enums.dart';
-import 'package:customer_io/customer_io_method_channel.dart';
+import 'package:customer_io/data_pipelines/customer_io_method_channel.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -52,36 +52,36 @@ void main() {
   test('initialize() should call platform method with correct arguments',
       () async {
     final customerIO = CustomerIOMethodChannel();
-    final config = CustomerIOConfig(siteId: 'site_id', apiKey: 'api_key');
+    final config = CustomerIOConfig(cdpApiKey: 'cdp_api_key');
     await customerIO.initialize(config: config);
 
     expectMethodInvocationArguments(
-        'initialize', {'siteId': config.siteId, 'apiKey': config.apiKey});
+        'initialize', {'cdpApiKey': config.cdpApiKey});
   });
 
   test('identify() should call platform method with correct arguments',
       () async {
     final Map<String, dynamic> args = {
-      'identifier': 'Customer 1',
-      'attributes': {'email': 'customer@email.com'}
+      'userId': 'Customer 1',
+      'traits': {'email': 'customer@email.com'}
     };
 
     final customerIO = CustomerIOMethodChannel();
     customerIO.identify(
-        identifier: args['identifier'] as String,
-        attributes: args['attributes']);
+        userId: args['userId'] as String,
+        traits: args['traits']);
 
     expectMethodInvocationArguments('identify', args);
   });
 
   test('track() should call platform method with correct arguments', () async {
     final Map<String, dynamic> args = {
-      'eventName': 'test_event',
-      'attributes': {'eventData': 2}
+      'name': 'test_event',
+      'properties': {'eventData': 2}
     };
 
     final customerIO = CustomerIOMethodChannel();
-    customerIO.track(name: args['eventName'], attributes: args['attributes']);
+    customerIO.track(name: args['name'], properties: args['properties']);
 
     expectMethodInvocationArguments('track', args);
   });
@@ -91,7 +91,7 @@ void main() {
     final Map<String, dynamic> args = {
       'deliveryId': '123',
       'deliveryToken': 'asdf',
-      'metricEvent': 'clicked'
+      'metricEvent': 'opened'
     };
 
     final customerIO = CustomerIOMethodChannel();
@@ -105,12 +105,12 @@ void main() {
 
   test('screen() should call platform method with correct arguments', () async {
     final Map<String, dynamic> args = {
-      'eventName': 'screen_event',
-      'attributes': {'screenName': '你好'}
+      'title': 'screen_event',
+      'properties': {'screenName': '你好'}
     };
 
     final customerIO = CustomerIOMethodChannel();
-    customerIO.screen(name: args['eventName'], attributes: args['attributes']);
+    customerIO.screen(title: args['title'], properties: args['properties']);
 
     expectMethodInvocationArguments('screen', args);
   });

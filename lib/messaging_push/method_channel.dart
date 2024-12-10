@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import '../customer_io_const.dart';
+import '../extensions/method_channel_extensions.dart';
+import '_native_constants.dart';
 import 'platform_interface.dart';
 
 /// An implementation of [CustomerIOMessagingPushPlatform] that uses method
@@ -13,6 +14,12 @@ class CustomerIOMessagingPushMethodChannel
   /// The method channel used to interact with the native platform.
   @visibleForTesting
   final methodChannel = const MethodChannel('customer_io_messaging_push');
+
+  @override
+  Future<String?> getRegisteredDeviceToken() {
+    return methodChannel
+        .invokeNativeMethod<String>(NativeMethods.getRegisteredDeviceToken);
+  }
 
   @override
   Future<bool> onMessageReceived(Map<String, dynamic> message,
@@ -25,24 +32,10 @@ class CustomerIOMessagingPushMethodChannel
       return Future.value(true);
     }
 
-    try {
-      final arguments = {
-        TrackingConsts.message: message,
-        TrackingConsts.handleNotificationTrigger: handleNotificationTrigger,
-      };
-      return methodChannel
-          .invokeMethod(MethodConsts.onMessageReceived, arguments)
-          .then((handled) => handled == true);
-    } on PlatformException catch (exception) {
-      handleException(exception);
-      return Future.error(
-          exception.message ?? "Error handling push notification");
-    }
-  }
-
-  void handleException(PlatformException exception) {
-    if (kDebugMode) {
-      print(exception);
-    }
+    return methodChannel
+        .invokeNativeMethod<bool>(NativeMethods.onMessageReceived, {
+      NativeMethodParams.message: message,
+      NativeMethodParams.handleNotificationTrigger: handleNotificationTrigger,
+    }).then((handled) => handled == true);
   }
 }

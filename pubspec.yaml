@@ -39,6 +39,7 @@ flutter:
     platforms:
       android:
         package: io.customer.customer_io
-        pluginClass: CustomerIoPlugin
+        pluginClass: CustomerIOPlugin
       ios:
-        pluginClass: CustomerIoPlugin
+        pluginClass: CustomerIOPlugin
+        native_sdk_version: 3.6.0

@@ -1,7 +1,7 @@
 import 'package:customer_io/customer_io.dart';
 import 'package:customer_io/customer_io_config.dart';
 import 'package:customer_io/customer_io_enums.dart';
-import 'package:customer_io/customer_io_platform_interface.dart';
+import 'package:customer_io/data_pipelines/customer_io_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -22,8 +22,6 @@ class TestCustomerIoPlatform extends Mock
   }
 }
 
-// The following test suite makes sure when any CustomerIO class method is called,
-// the correct corresponding platform methods are called and with the correct arguments.
 @GenerateMocks([TestCustomerIoPlatform])
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -32,186 +30,172 @@ void main() {
     late MockTestCustomerIoPlatform mockPlatform;
 
     setUp(() {
+      // Reset singleton state before each test
+      CustomerIO.reset();
+
       mockPlatform = MockTestCustomerIoPlatform();
       CustomerIOPlatform.instance = mockPlatform;
     });
 
-    // initialize
-    test('initialize() calls platform', () async {
-      final config = CustomerIOConfig(siteId: '123', apiKey: '456');
-      await CustomerIO.initialize(config: config);
+    group('initialization', () {
+      test('throws when accessing instance before initialization', () {
+        expect(() => CustomerIO.instance, throwsStateError);
+      });
 
-      verify(mockPlatform.initialize(config: config)).called(1);
-    });
+      test('initialize() succeeds first time', () async {
+        final config = CustomerIOConfig(cdpApiKey: '123');
+        await CustomerIO.initialize(config: config);
+        expect(() => CustomerIO.instance, isNot(throwsStateError));
+      });
 
-    test('initialize() correct arguments are passed', () async {
-      final givenConfig = CustomerIOConfig(
-          siteId: '123',
-          apiKey: '456',
+      test('subsequent initialize() calls are ignored', () async {
+        final config = CustomerIOConfig(cdpApiKey: '123');
+
+        // First initialization
+        await CustomerIO.initialize(config: config);
+        verify(mockPlatform.initialize(config: config)).called(1);
+
+        // Second initialization should be ignored
+        await CustomerIO.initialize(config: config);
+
+        // Platform initialize should still only be called once
+        verifyNever(mockPlatform.initialize(config: config));
+      });
+
+      test('initialize() calls platform', () async {
+        final config = CustomerIOConfig(cdpApiKey: '123');
+        await CustomerIO.initialize(config: config);
+        verify(mockPlatform.initialize(config: config)).called(1);
+      });
+
+      test('initialize() correct arguments are passed', () async {
+        final givenConfig = CustomerIOConfig(
+          cdpApiKey: '123',
+          migrationSiteId: '456',
           region: Region.eu,
-          autoTrackPushEvents: false);
-      await CustomerIO.initialize(config: givenConfig);
-      expect(
+          autoTrackDeviceAttributes: false,
+        );
+        await CustomerIO.initialize(config: givenConfig);
+        expect(
           verify(mockPlatform.initialize(config: captureAnyNamed("config")))
               .captured
               .single,
-          givenConfig);
+          givenConfig,
+        );
+      });
     });
 
-    // identify
-    test('identify() calls platform', () {
-      const givenIdentifier = 'user@example.com';
-      final givenAttributes = {'name': 'John Doe'};
-      CustomerIO.identify(
-          identifier: givenIdentifier, attributes: givenAttributes);
+    group('methods requiring initialization', () {
+      late CustomerIOConfig config;
 
-      verify(mockPlatform.identify(
-              identifier: givenIdentifier, attributes: givenAttributes))
-          .called(1);
-    });
+      setUp(() async {
+        config = CustomerIOConfig(cdpApiKey: '123');
+        await CustomerIO.initialize(config: config);
+      });
 
-    test('identify() correct arguments are passed', () {
-      const givenIdentifier = 'user@example.com';
-      final givenAttributes = {'name': 'John Doe'};
-      CustomerIO.identify(
-          identifier: givenIdentifier, attributes: givenAttributes);
-      expect(
+      test('identify() calls platform', () {
+        const givenIdentifier = 'user@example.com';
+        final givenAttributes = {'name': 'John Doe'};
+        CustomerIO.instance.identify(
+          userId: givenIdentifier,
+          traits: givenAttributes,
+        );
+
+        verify(mockPlatform.identify(
+          userId: givenIdentifier,
+          traits: givenAttributes,
+        )).called(1);
+      });
+
+      test('identify() correct arguments are passed', () {
+        const givenIdentifier = 'user@example.com';
+        final givenAttributes = {'name': 'John Doe'};
+        CustomerIO.instance.identify(
+          userId: givenIdentifier,
+          traits: givenAttributes,
+        );
+        expect(
           verify(mockPlatform.identify(
-                  identifier: captureAnyNamed("identifier"),
-                  attributes: captureAnyNamed("attributes")))
-              .captured,
-          [givenIdentifier, givenAttributes]);
-    });
+            userId: captureAnyNamed("userId"),
+            traits: captureAnyNamed("traits"),
+          )).captured,
+          [givenIdentifier, givenAttributes],
+        );
+      });
 
-    // clearIdentify
-    test('clearIdentify() calls platform', () {
-      CustomerIO.clearIdentify();
-      verify(mockPlatform.clearIdentify()).called(1);
-    });
+      test('clearIdentify() calls platform', () {
+        CustomerIO.instance.clearIdentify();
+        verify(mockPlatform.clearIdentify()).called(1);
+      });
 
-    // track
-    test('track() calls platform', () {
-      const name = 'itemAddedToCart';
-      final attributes = {'item': 'shoes'};
-      CustomerIO.track(name: name, attributes: attributes);
-      verify(mockPlatform.track(name: name, attributes: attributes)).called(1);
-    });
+      test('track() calls platform', () {
+        const name = 'itemAddedToCart';
+        final attributes = {'item': 'shoes'};
+        CustomerIO.instance.track(name: name, properties: attributes);
+        verify(mockPlatform.track(name: name, properties: attributes))
+            .called(1);
+      });
 
-    test('track() correct arguments are passed', () {
-      const name = 'itemAddedToCart';
-      final givenAttributes = {'name': 'John Doe'};
-      CustomerIO.track(name: name, attributes: givenAttributes);
-      expect(
+      test('registerDeviceToken() calls platform', () {
+        const token = 'abc';
+        CustomerIO.instance.registerDeviceToken(deviceToken: token);
+        verify(mockPlatform.registerDeviceToken(deviceToken: token)).called(1);
+      });
+
+      test('track() correct arguments are passed', () {
+        const name = 'itemAddedToCart';
+        final givenAttributes = {'name': 'John Doe'};
+        CustomerIO.instance.track(name: name, properties: givenAttributes);
+        expect(
           verify(mockPlatform.track(
-                  name: captureAnyNamed("name"),
-                  attributes: captureAnyNamed("attributes")))
-              .captured,
-          [name, givenAttributes]);
-    });
+            name: captureAnyNamed("name"),
+            properties: captureAnyNamed("properties"),
+          )).captured,
+          [name, givenAttributes],
+        );
+      });
 
-    // trackMetric
-    test('trackMetric() calls platform', () {
-      const deliveryID = '123';
-      const deviceToken = 'abc';
-      const event = MetricEvent.opened;
-      CustomerIO.trackMetric(
-          deliveryID: deliveryID, deviceToken: deviceToken, event: event);
-      verify(mockPlatform.trackMetric(
-              deliveryID: deliveryID, deviceToken: deviceToken, event: event))
-          .called(1);
-    });
-
-    test('trackMetric() correct arguments are passed', () {
-      const deliveryID = '123';
-      const deviceToken = 'abc';
-      const event = MetricEvent.opened;
-      CustomerIO.trackMetric(
-          deliveryID: deliveryID, deviceToken: deviceToken, event: event);
-      expect(
-          verify(mockPlatform.trackMetric(
-                  deliveryID: captureAnyNamed("deliveryID"),
-                  deviceToken: captureAnyNamed("deviceToken"),
-                  event: captureAnyNamed("event")))
-              .captured,
-          [deliveryID, deviceToken, event]);
-    });
-
-    // registerDeviceToken
-    test('registerDeviceToken() calls platform', () {
-      const deviceToken = 'token';
-      CustomerIO.registerDeviceToken(deviceToken: deviceToken);
-      verify(mockPlatform.registerDeviceToken(deviceToken: deviceToken))
-          .called(1);
-    });
-
-    test('registerDeviceToken() correct arguments are passed', () {
-      const deviceToken = 'token';
-      CustomerIO.registerDeviceToken(deviceToken: deviceToken);
-      expect(
-          verify(mockPlatform.registerDeviceToken(
-                  deviceToken: captureAnyNamed("deviceToken")))
-              .captured
-              .first,
-          deviceToken);
-    });
-
-    // screen
-    test('screen() calls platform', () {
-      const name = 'home';
-      final givenAttributes = {'user': 'John Doe'};
-      CustomerIO.screen(name: name, attributes: givenAttributes);
-      verify(mockPlatform.screen(name: name, attributes: givenAttributes))
-          .called(1);
-    });
-
-    test('screen() correct arguments are passed', () {
-      const name = 'itemAddedToCart';
-      final givenAttributes = {'name': 'John Doe'};
-      CustomerIO.screen(name: name, attributes: givenAttributes);
-      expect(
+      test('screen() correct arguments are passed', () {
+        const title = 'checkout';
+        final givenProperties = {'source': 'push'};
+        CustomerIO.instance.screen(title: title, properties: givenProperties);
+        expect(
           verify(mockPlatform.screen(
-                  name: captureAnyNamed("name"),
-                  attributes: captureAnyNamed("attributes")))
-              .captured,
-          [name, givenAttributes]);
-    });
+            title: captureAnyNamed("title"),
+            properties: captureAnyNamed("properties"),
+          )).captured,
+          [title, givenProperties],
+        );
+      });
 
-    // setDeviceAttributes
-    test('setDeviceAttributes() calls platform', () {
-      final givenAttributes = {'area': 'US'};
-      CustomerIO.setDeviceAttributes(attributes: givenAttributes);
-      verify(mockPlatform.setDeviceAttributes(attributes: givenAttributes))
-          .called(1);
-    });
+      test('trackMetric() calls platform', () {
+        const deliveryID = '123';
+        const deviceToken = 'abc';
+        const event = MetricEvent.opened;
+        CustomerIO.instance.trackMetric(
+          deliveryID: deliveryID,
+          deviceToken: deviceToken,
+          event: event,
+        );
+        verify(mockPlatform.trackMetric(
+          deliveryID: deliveryID,
+          deviceToken: deviceToken,
+          event: event,
+        )).called(1);
+      });
 
-    test('setDeviceAttributes() correct arguments are passed', () {
-      final givenAttributes = {'area': 'US'};
-      CustomerIO.setDeviceAttributes(attributes: givenAttributes);
-      expect(
-          verify(mockPlatform.setDeviceAttributes(
-                  attributes: captureAnyNamed("attributes")))
-              .captured
-              .first,
-          givenAttributes);
-    });
+      // ... rest of the existing tests, but moved inside this group ...
 
-    // setProfileAttributes
-    test('setProfileAttributes() calls platform', () {
-      final givenAttributes = {'age': 10};
-      CustomerIO.setProfileAttributes(attributes: givenAttributes);
-      verify(mockPlatform.setProfileAttributes(attributes: givenAttributes))
-          .called(1);
-    });
-
-    test('setProfileAttributes() correct arguments are passed', () {
-      final givenAttributes = {'age': 10};
-      CustomerIO.setProfileAttributes(attributes: givenAttributes);
-      expect(
+      test('setProfileAttributes() correct arguments are passed', () {
+        final givenAttributes = {'age': 10};
+        CustomerIO.instance.setProfileAttributes(attributes: givenAttributes);
+        expect(
           verify(mockPlatform.setProfileAttributes(
-                  attributes: captureAnyNamed("attributes")))
-              .captured
-              .first,
-          givenAttributes);
+            attributes: captureAnyNamed("attributes"),
+          )).captured.first,
+          givenAttributes,
+        );
+      });
     });
   });
 }

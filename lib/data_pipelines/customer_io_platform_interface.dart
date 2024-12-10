@@ -1,10 +1,9 @@
 import 'dart:async';
 
-import 'package:customer_io/customer_io_config.dart';
-import 'package:customer_io/customer_io_enums.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-import 'customer_io_inapp.dart';
+import '../customer_io_config.dart';
+import '../customer_io_enums.dart';
 import 'customer_io_method_channel.dart';
 
 /// The default instance of [CustomerIOPlatform] to use
@@ -35,8 +34,7 @@ abstract class CustomerIOPlatform extends PlatformInterface {
   }
 
   void identify(
-      {required String identifier,
-      Map<String, dynamic> attributes = const {}}) {
+      {required String userId, Map<String, dynamic> traits = const {}}) {
     throw UnimplementedError('identify() has not been implemented.');
   }
 
@@ -45,7 +43,7 @@ abstract class CustomerIOPlatform extends PlatformInterface {
   }
 
   void track(
-      {required String name, Map<String, dynamic> attributes = const {}}) {
+      {required String name, Map<String, dynamic> properties = const {}}) {
     throw UnimplementedError('track() has not been implemented.');
   }
 
@@ -61,7 +59,7 @@ abstract class CustomerIOPlatform extends PlatformInterface {
   }
 
   void screen(
-      {required String name, Map<String, dynamic> attributes = const {}}) {
+      {required String title, Map<String, dynamic> properties = const {}}) {
     throw UnimplementedError('screen() has not been implemented.');
   }
 
@@ -69,14 +67,9 @@ abstract class CustomerIOPlatform extends PlatformInterface {
     throw UnimplementedError('setDeviceAttributes() has not been implemented.');
   }
 
-  void setProfileAttributes({required Map<String, dynamic> attributes}) {
+  void setProfileAttributes(
+      {required Map<String, dynamic> attributes}) {
     throw UnimplementedError(
         'setProfileAttributes() has not been implemented.');
-  }
-
-  StreamSubscription subscribeToInAppEventListener(
-      void Function(InAppEvent) onEvent) {
-    throw UnimplementedError(
-        'subscribeToInAppEventListener() has not been implemented.');
   }
 }

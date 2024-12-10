@@ -53,22 +53,26 @@ class CustomerIOSDK extends ChangeNotifier {
       } else {
         logLevel = CioLogLevel.debug;
       }
+
+      final InAppConfig? inAppConfig;
+      final migrationSiteId = _sdkConfig?.migrationSiteId;
+      if (migrationSiteId != null) {
+        inAppConfig = InAppConfig(siteId: migrationSiteId);
+      } else {
+        inAppConfig = null;
+      }
       return CustomerIO.initialize(
         config: CustomerIOConfig(
-          siteId: _sdkConfig?.siteId ?? '',
-          apiKey: _sdkConfig?.apiKey ?? '',
-          enableInApp: true,
+          cdpApiKey: _sdkConfig?.cdpApiKey ?? 'INVALID',
+          migrationSiteId: migrationSiteId,
           region: Region.us,
-          //config options go here
-          trackingApiUrl: _sdkConfig?.trackingUrl ?? '',
-          autoTrackDeviceAttributes:
-              _sdkConfig?.deviceAttributesTrackingEnabled ?? true,
-          autoTrackPushEvents: true,
-          backgroundQueueMinNumberOfTasks:
-              _sdkConfig?.backgroundQueueMinNumOfTasks ?? 10,
-          backgroundQueueSecondsDelay:
-              _sdkConfig?.backgroundQueueSecondsDelay ?? 30.0,
           logLevel: logLevel,
+          autoTrackDeviceAttributes: _sdkConfig?.autoTrackDeviceAttributes,
+          apiHost: _sdkConfig?.apiHost,
+          cdnHost: _sdkConfig?.cdnHost,
+          flushAt: _sdkConfig?.flushAt,
+          flushInterval: _sdkConfig?.flushInterval?.toInt(),
+          inAppConfig: inAppConfig,
         ),
       );
     } catch (ex) {
@@ -122,10 +126,6 @@ extension AmiAppSDKExtensions on CustomerIOSDK {
       debugError("Failed to get build info: '${ex.message}'", error: ex);
       return null;
     }
-  }
-
-  Future<String?> getDeviceToken() async {
-    return null;
   }
 }
 

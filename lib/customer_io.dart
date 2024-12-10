@@ -1,119 +1,161 @@
 import 'dart:async';
+import 'dart:developer';
+
+import 'package:flutter/cupertino.dart';
 
 import 'customer_io_config.dart';
 import 'customer_io_enums.dart';
-import 'customer_io_inapp.dart';
-import 'customer_io_platform_interface.dart';
+import 'data_pipelines/customer_io_platform_interface.dart';
+import 'extensions/map_extensions.dart';
 import 'messaging_in_app/platform_interface.dart';
 import 'messaging_push/platform_interface.dart';
 
 class CustomerIO {
-  const CustomerIO._();
+  static CustomerIO? _instance;
 
-  static CustomerIOPlatform get _customerIO => CustomerIOPlatform.instance;
+  final CustomerIOPlatform _platform;
+  final CustomerIOMessagingPushPlatform _pushMessaging;
+  final CustomerIOMessagingInAppPlatform _inAppMessaging;
 
-  static CustomerIOMessagingPushPlatform get _customerIOMessagingPush =>
-      CustomerIOMessagingPushPlatform.instance;
+  /// Private constructor to enforce singleton pattern
+  CustomerIO._({
+    CustomerIOPlatform? platform,
+    CustomerIOMessagingPushPlatform? pushMessaging,
+    CustomerIOMessagingInAppPlatform? inAppMessaging,
+  })  : _platform = platform ?? CustomerIOPlatform.instance,
+        _pushMessaging =
+            pushMessaging ?? CustomerIOMessagingPushPlatform.instance,
+        _inAppMessaging =
+            inAppMessaging ?? CustomerIOMessagingInAppPlatform.instance;
 
-  static CustomerIOMessagingInAppPlatform get _customerIOMessagingInApp =>
-      CustomerIOMessagingInAppPlatform.instance;
+  /// Get the singleton instance of CustomerIO
+  static CustomerIO get instance {
+    if (_instance == null) {
+      throw StateError(
+        'CustomerIO SDK must be initialized before accessing instance.\n'
+        'Call CustomerIO.initialize() first.',
+      );
+    }
+    return _instance!;
+  }
+
+  /// For testing: create a new instance with mock implementations
+  @visibleForTesting
+  static CustomerIO createInstance({
+    CustomerIOPlatform? platform,
+    CustomerIOMessagingPushPlatform? pushMessaging,
+    CustomerIOMessagingInAppPlatform? inAppMessaging,
+  }) {
+    _instance = CustomerIO._(
+      platform: platform,
+      pushMessaging: pushMessaging,
+      inAppMessaging: inAppMessaging,
+    );
+    return _instance!;
+  }
+
+  @visibleForTesting
+  static void reset() {
+    _instance = null;
+  }
+
+  /// Access push messaging functionality
+  static CustomerIOMessagingPushPlatform get pushMessaging {
+    return _instance?._pushMessaging ?? CustomerIOMessagingPushPlatform.instance;
+  }
+
+  /// Access in-app messaging functionality
+  static CustomerIOMessagingInAppPlatform get inAppMessaging {
+    return _instance?._inAppMessaging ?? CustomerIOMessagingInAppPlatform.instance;
+  }
 
   /// To initialize the plugin
   ///
   /// @param config includes required and optional configs etc
-  static Future<void> initialize({
-    required CustomerIOConfig config,
-  }) {
-    return _customerIO.initialize(config: config);
+  static Future<void> initialize({required CustomerIOConfig config}) async {
+    // Check if already initialized
+    if (_instance == null) {
+      // Create new instance if not initialized
+      _instance = CustomerIO._();
+      // Initialize the platform
+      await _instance!._platform.initialize(config: config);
+    } else {
+      log('CustomerIO SDK has already been initialized');
+    }
   }
 
-  /// Identify a person using a unique identifier, eg. email id.
+  /// Identify a person using a unique userId, eg. email id.
   /// Note that you can identify only 1 profile at a time. In case, multiple
   /// identifiers are attempted to be identified, then the last identified profile
   /// will be removed automatically.
   ///
-  /// @param identifier unique identifier for a profile
-  /// @param attributes (Optional) params to set profile attributes
-  static void identify(
-      {required String identifier,
-      Map<String, dynamic> attributes = const {}}) {
-    return _customerIO.identify(identifier: identifier, attributes: attributes);
+  /// @param userId unique identifier for a profile
+  /// @param traits (Optional) params to set profile attributes
+  void identify(
+      {required String userId, Map<String, dynamic> traits = const {}}) {
+    return _platform.identify(
+        userId: userId, traits: traits.excludeNullValues());
   }
 
   /// Call this function to stop identifying a person.
   ///
   /// If a profile exists, clearIdentify will stop identifying the profile.
   /// If no profile exists, request to clearIdentify will be ignored.
-  static void clearIdentify() {
-    _customerIO.clearIdentify();
+  void clearIdentify() {
+    return _platform.clearIdentify();
   }
 
   /// To track user events like loggedIn, addedItemToCart etc.
   /// You may also track events with additional yet optional data.
   ///
   /// @param name event name to be tracked
-  /// @param attributes (Optional) params to be sent with event
-  static void track(
-      {required String name, Map<String, dynamic> attributes = const {}}) {
-    return _customerIO.track(name: name, attributes: attributes);
+  /// @param properties (Optional) params to be sent with event
+  void track(
+      {required String name, Map<String, dynamic> properties = const {}}) {
+    return _platform.track(
+        name: name, properties: properties.excludeNullValues());
   }
 
   /// Track a push metric
-  static void trackMetric(
+  void trackMetric(
       {required String deliveryID,
       required String deviceToken,
       required MetricEvent event}) {
-    return _customerIO.trackMetric(
+    return _platform.trackMetric(
         deliveryID: deliveryID, deviceToken: deviceToken, event: event);
   }
 
   /// Register a new device token with Customer.io, associated with the current active customer. If there
   /// is no active customer, this will fail to register the device
-  static void registerDeviceToken({required String deviceToken}) {
-    return _customerIO.registerDeviceToken(deviceToken: deviceToken);
+  void registerDeviceToken({required String deviceToken}) {
+    return _platform.registerDeviceToken(deviceToken: deviceToken);
   }
 
   /// Track screen events to record the screens a user visits
   ///
   /// @param name name of the screen user visited
   /// @param attributes (Optional) params to be sent with event
-  static void screen(
-      {required String name, Map<String, dynamic> attributes = const {}}) {
-    return _customerIO.screen(name: name, attributes: attributes);
+  void screen(
+      {required String title, Map<String, dynamic> properties = const {}}) {
+    return _platform.screen(
+        title: title, properties: properties.excludeNullValues());
   }
 
   /// Use this function to send custom device attributes
   /// such as app preferences, timezone etc
   ///
   /// @param attributes device attributes
-  static void setDeviceAttributes({required Map<String, dynamic> attributes}) {
-    return _customerIO.setDeviceAttributes(attributes: attributes);
+  void setDeviceAttributes({required Map<String, dynamic> attributes}) {
+    return _platform.setDeviceAttributes(attributes: attributes);
   }
 
   /// Set custom user profile information such as user preference, specific
   /// user actions etc
   ///
   /// @param attributes additional attributes for a user profile
-  static void setProfileAttributes({required Map<String, dynamic> attributes}) {
-    return _customerIO.setProfileAttributes(attributes: attributes);
-  }
-
-  /// Subscribes to an in-app event listener.
-  ///
-  /// [onEvent] - A callback function that will be called every time an in-app event occurs.
-  /// The callback returns [InAppEvent].
-  ///
-  /// Returns a [StreamSubscription] that can be used to subscribe/unsubscribe from the event listener.
-  static StreamSubscription subscribeToInAppEventListener(
-      void Function(InAppEvent) onEvent) {
-    return _customerIO.subscribeToInAppEventListener(onEvent);
-  }
-
-  static CustomerIOMessagingPushPlatform messagingPush() {
-    return _customerIOMessagingPush;
-  }
-
-  static CustomerIOMessagingInAppPlatform messagingInApp() {
-    return _customerIOMessagingInApp;
+  void setProfileAttributes(
+      {required Map<String, dynamic> attributes}) {
+    return _platform.setProfileAttributes(
+        attributes: attributes.excludeNullValues());
   }
 }

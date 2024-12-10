@@ -1,4 +1,4 @@
-#import "CustomerIoPlugin.h"
+#import "CustomerIOPlugin.h"
 #if __has_include(<customer_io/customer_io-Swift.h>)
 #import <customer_io/customer_io-Swift.h>
 #else
@@ -8,8 +8,8 @@
 #import "customer_io-Swift.h"
 #endif
 
-@implementation CustomerIoPlugin
+@implementation CustomerIOPlugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-  [SwiftCustomerIoPlugin registerWithRegistrar:registrar];
+  [SwiftCustomerIOPlugin registerWithRegistrar:registrar];
 }
 @end
