@@ -103,7 +103,7 @@ void main() {
         'flushAt': 25,
         'flushInterval': 55,
         'inApp': inAppConfig.toMap(),
-        'pushConfig': pushConfig.toMap(),
+        'push': pushConfig.toMap(),
         'version': config.version,
         'source': config.source,
       };
