@@ -1,3 +1,13 @@
+## [2.0.0](https://github.com/customerio/customerio-flutter/compare/1.5.2...2.0.0) (2024-12-10)
+
+### ⚠ BREAKING CHANGES
+
+* flutter as a source for Data pipelines
+
+### Features
+
+* flutter as a source for Data pipelines ([21a2bf0](https://github.com/customerio/customerio-flutter/commit/21a2bf0ab506bbb78fc94dc933950dafb1583e7c))
+
 ## [1.5.2](https://github.com/customerio/customerio-flutter/compare/1.5.1...1.5.2) (2024-09-06)
 
 ### Bug Fixes
