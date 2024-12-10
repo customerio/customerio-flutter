@@ -17,6 +17,7 @@ import io.customer.sdk.core.util.Logger
 import io.customer.sdk.data.model.Region
 import io.customer.sdk.events.Metric
 import io.customer.sdk.events.TrackMetric
+import io.customer.sdk.events.serializedName
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -125,7 +126,8 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             throw IllegalArgumentException("Missing required parameters")
         }
 
-        val event = Metric.valueOf(eventName)
+        val event = Metric.values().find { it.serializedName.equals(eventName, true) }
+            ?: throw IllegalArgumentException("Invalid metric event name")
 
         CustomerIO.instance().trackMetric(
             event = TrackMetric.Push(

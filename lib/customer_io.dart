@@ -61,12 +61,12 @@ class CustomerIO {
 
   /// Access push messaging functionality
   static CustomerIOMessagingPushPlatform get pushMessaging {
-    return instance._pushMessaging;
+    return _instance?._pushMessaging ?? CustomerIOMessagingPushPlatform.instance;
   }
 
   /// Access in-app messaging functionality
   static CustomerIOMessagingInAppPlatform get inAppMessaging {
-    return instance._inAppMessaging;
+    return _instance?._inAppMessaging ?? CustomerIOMessagingInAppPlatform.instance;
   }
 
   /// To initialize the plugin
