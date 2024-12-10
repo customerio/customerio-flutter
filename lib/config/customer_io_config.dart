@@ -48,7 +48,7 @@ class CustomerIOConfig {
       'flushAt': flushAt,
       'flushInterval': flushInterval,
       'inApp': inAppConfig?.toMap(),
-      'pushConfig': pushConfig.toMap(),
+      'push': pushConfig.toMap(),
       'version': version,
       'source': source
     };
