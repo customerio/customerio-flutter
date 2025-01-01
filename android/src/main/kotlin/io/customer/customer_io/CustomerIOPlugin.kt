@@ -9,6 +9,7 @@ import io.customer.customer_io.bridge.nativeNoArgs
 import io.customer.customer_io.messaginginapp.CustomerIOInAppMessaging
 import io.customer.customer_io.messagingpush.CustomerIOPushMessaging
 import io.customer.customer_io.utils.getAs
+import io.customer.datapipelines.config.ScreenView
 import io.customer.sdk.CustomerIO
 import io.customer.sdk.CustomerIOBuilder
 import io.customer.sdk.core.di.SDKComponent
@@ -182,6 +183,7 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         val logLevelRawValue = args.getAs<String>("logLevel")
         val regionRawValue = args.getAs<String>("region")
         val givenRegion = regionRawValue.let { Region.getRegion(it) }
+        val screenViewRawValue = args.getAs<String>("screenViewUse")
 
         CustomerIOBuilder(
             applicationContext = application,
@@ -189,6 +191,7 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         ).apply {
             logLevelRawValue?.let { logLevel(CioLogLevel.getLogLevel(it)) }
             regionRawValue?.let { region(givenRegion) }
+            screenViewRawValue?.let { screenViewUse(ScreenView.getScreenView(it)) }
 
             args.getAs<String>("migrationSiteId")?.let(::migrationSiteId)
             args.getAs<Boolean>("autoTrackDeviceAttributes")?.let(::autoTrackDeviceAttributes)

@@ -17,6 +17,7 @@ class CustomerIOConfig {
   final String? cdnHost;
   final int? flushAt;
   final int? flushInterval;
+  final ScreenView? screenViewUse;
   final InAppConfig? inAppConfig;
   final PushConfig pushConfig;
 
@@ -31,6 +32,7 @@ class CustomerIOConfig {
     this.cdnHost,
     this.flushAt,
     this.flushInterval,
+    this.screenViewUse,
     this.inAppConfig,
     PushConfig? pushConfig,
   }) : pushConfig = pushConfig ?? PushConfig();
@@ -47,6 +49,7 @@ class CustomerIOConfig {
       'cdnHost': cdnHost,
       'flushAt': flushAt,
       'flushInterval': flushInterval,
+      'screenViewUse': screenViewUse?.name,
       'inApp': inAppConfig?.toMap(),
       'push': pushConfig.toMap(),
       'version': version,

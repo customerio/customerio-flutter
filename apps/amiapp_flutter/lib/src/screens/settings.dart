@@ -1,5 +1,6 @@
 import 'package:customer_io/config/in_app_config.dart';
 import 'package:customer_io/customer_io.dart';
+import 'package:customer_io/customer_io_enums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -44,6 +45,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController _flushAtValueController;
   late final TextEditingController _flushIntervalValueController;
 
+  late ScreenView _screenViewUse;
   late bool _featureTrackScreens;
   late bool _featureTrackDeviceAttributes;
   late bool _featureDebugMode;
@@ -65,6 +67,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         TextEditingController(text: cioConfig?.flushAt?.toString());
     _flushIntervalValueController =
         TextEditingController(text: cioConfig?.flushInterval?.toString());
+    _screenViewUse = cioConfig?.screenViewUse ?? ScreenView.all;
     _featureTrackScreens = cioConfig?.screenTrackingEnabled ?? true;
     _featureTrackDeviceAttributes =
         cioConfig?.autoTrackDeviceAttributes ?? true;
@@ -85,6 +88,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       cdnHost: _cdnHostValueController.text.trim().nullIfEmpty(),
       flushAt: _flushAtValueController.text.trim().toIntOrNull(),
       flushInterval: _flushIntervalValueController.text.trim().toIntOrNull(),
+      screenViewUse: _screenViewUse,
       screenTrackingEnabled: _featureTrackScreens,
       autoTrackDeviceAttributes: _featureTrackDeviceAttributes,
       debugModeEnabled: _featureDebugMode,
@@ -119,6 +123,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _flushAtValueController.text = defaultConfig.flushAt?.toString() ?? '';
       _flushIntervalValueController.text =
           defaultConfig.flushInterval?.toString() ?? '';
+      _screenViewUse = defaultConfig.screenViewUse ?? ScreenView.all;
       _featureTrackScreens = defaultConfig.screenTrackingEnabled;
       _featureTrackDeviceAttributes =
           defaultConfig.autoTrackDeviceAttributes ?? true;
@@ -286,6 +291,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             value: _featureDebugMode,
                             updateState: ((value) =>
                                 setState(() => _featureDebugMode = value)),
+                          ),
+                          const SizedBox(height: 8),
+                          ChoiceSettingsFormField<ScreenView>(
+                            labelText: 'ScreenView Use',
+                            semanticsLabel: 'ScreenView options',
+                            value: _screenViewUse,
+                            options: ScreenView.values,
+                            updateState: (ScreenView selected) {
+                              setState(() {
+                                _screenViewUse = selected;
+                              });
+                            },
                           ),
                         ],
                       ),
