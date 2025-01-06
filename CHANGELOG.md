@@ -1,3 +1,9 @@
+## [2.1.0](https://github.com/customerio/customerio-flutter/compare/2.0.0...2.1.0) (2025-01-06)
+
+### Features
+
+* add option to disable screen view usage ([#190](https://github.com/customerio/customerio-flutter/issues/190)) ([b4a4fed](https://github.com/customerio/customerio-flutter/commit/b4a4feddb943972f635826d55d31a4cb14904210))
+
 ## [2.0.0](https://github.com/customerio/customerio-flutter/compare/1.5.2...2.0.0) (2024-12-10)
 
 ### ⚠ BREAKING CHANGES
