@@ -2,6 +2,8 @@ import 'package:customer_io/customer_io.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:segment_analytics/client.dart';
+import 'package:segment_analytics/state.dart';
 
 import 'auth.dart';
 import 'color_schemes.g.dart';
@@ -159,6 +161,9 @@ class _AmiAppState extends State<AmiApp> {
 
     // Listen to screen changes for observing screens
     _router.routerDelegate.addListener(() => _onRouteChanged());
+
+    final analytics = createClient(Configuration("writeKey",
+        debug: true, trackApplicationLifecycleEvents: true));
 
     super.initState();
   }

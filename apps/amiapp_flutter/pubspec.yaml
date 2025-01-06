@@ -39,6 +39,7 @@ dependencies:
   customer_io:
     path: ../../
   email_validator: ^3.0.0
+  segment_analytics: ^1.1.2
   go_router: ^14.2.3
   shared_preferences: ^2.0.15
   permission_handler: ^11.3.1
