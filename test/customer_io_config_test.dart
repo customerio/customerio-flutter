@@ -19,6 +19,7 @@ void main() {
       expect(config.cdnHost, isNull);
       expect(config.flushAt, isNull);
       expect(config.flushInterval, isNull);
+      expect(config.screenViewUse, isNull);
 
       expect(config.inAppConfig, isNull);
 
@@ -50,6 +51,7 @@ void main() {
         cdnHost: 'https://cdn.example.com',
         flushAt: 15,
         flushInterval: 45,
+        screenViewUse: ScreenView.all,
         inAppConfig: inAppConfig,
         pushConfig: pushConfig,
       );
@@ -63,6 +65,7 @@ void main() {
       expect(config.cdnHost, 'https://cdn.example.com');
       expect(config.flushAt, 15);
       expect(config.flushInterval, 45);
+      expect(config.screenViewUse, ScreenView.all);
       expect(config.inAppConfig, inAppConfig);
       expect(config.pushConfig, pushConfig);
       expect(config.source, 'Flutter');
@@ -87,6 +90,7 @@ void main() {
         cdnHost: 'https://cdn.example.com',
         flushAt: 25,
         flushInterval: 55,
+        screenViewUse: ScreenView.inApp,
         inAppConfig: inAppConfig,
         pushConfig: pushConfig,
       );
@@ -102,6 +106,7 @@ void main() {
         'cdnHost': 'https://cdn.example.com',
         'flushAt': 25,
         'flushInterval': 55,
+        'screenViewUse': 'inApp',
         'inApp': inAppConfig.toMap(),
         'push': pushConfig.toMap(),
         'version': config.version,

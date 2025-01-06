@@ -35,3 +35,8 @@ enum PushClickBehaviorAndroid {
 
   final String rawValue;
 }
+
+/// Enum class to define how CustomerIO SDK should handle screen view events.
+/// all - to send screen events to destinations for analytics purposes and to display in-app messages.
+/// inApp - to only display in-app messages and not send screen events to destinations.
+enum ScreenView { all, inApp }

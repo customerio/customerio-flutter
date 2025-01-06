@@ -72,6 +72,7 @@ class CustomerIOSDK extends ChangeNotifier {
           cdnHost: _sdkConfig?.cdnHost,
           flushAt: _sdkConfig?.flushAt,
           flushInterval: _sdkConfig?.flushInterval?.toInt(),
+          screenViewUse: _sdkConfig?.screenViewUse,
           inAppConfig: inAppConfig,
         ),
       );

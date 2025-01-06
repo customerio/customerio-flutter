@@ -106,6 +106,10 @@ extension AmiAppStringExtensions on String {
         (min == null || value >= min) &&
         (max == null || value <= max);
   }
+
+  String capitalize() {
+    return '${this[0].toUpperCase()}${substring(1)}';
+  }
 }
 
 extension LocationExtensions on GoRouter {

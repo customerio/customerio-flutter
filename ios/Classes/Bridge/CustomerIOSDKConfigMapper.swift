@@ -16,6 +16,7 @@ extension SDKConfigBuilder {
         case flushInterval
         case apiHost
         case cdnHost
+        case screenViewUse
     }
 
     @available(iOSApplicationExtension, unavailable)
@@ -34,6 +35,7 @@ extension SDKConfigBuilder {
         Config.flushInterval.ifNotNil(in: config, thenPassItTo: builder.flushInterval) { (value: NSNumber) in value.doubleValue }
         Config.apiHost.ifNotNil(in: config, thenPassItTo: builder.apiHost)
         Config.cdnHost.ifNotNil(in: config, thenPassItTo: builder.cdnHost)
+        Config.screenViewUse.ifNotNil(in: config, thenPassItTo: builder.screenViewUse) { ScreenView.getScreenView($0)  }
 
         return builder
     }

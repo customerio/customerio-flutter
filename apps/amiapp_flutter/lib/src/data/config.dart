@@ -15,6 +15,7 @@ class CustomerIOSDKConfig {
   final String? cdnHost;
   final int? flushAt;
   final int? flushInterval;
+  final ScreenView? screenViewUse;
   final InAppConfig? inAppConfig;
   final PushConfig pushConfig;
 
@@ -29,6 +30,7 @@ class CustomerIOSDKConfig {
     this.cdnHost,
     this.flushAt,
     this.flushInterval,
+    this.screenViewUse,
     this.inAppConfig,
     PushConfig? pushConfig,
   }) : pushConfig = pushConfig ?? PushConfig();
@@ -45,10 +47,11 @@ class CustomerIOSDKConfig {
       throw ArgumentError('cdpApiKey cannot be null');
     }
 
-    final region = prefs.getString(_PreferencesKey.region) != null
-        ? Region.values.firstWhere(
-            (e) => e.name == prefs.getString(_PreferencesKey.region))
-        : null;
+    final region =
+        prefs.getEnumValueFromPrefs(_PreferencesKey.region, Region.values);
+    final screenViewUse = prefs.getEnumValueFromPrefs(
+        _PreferencesKey.screenViewUse, ScreenView.values);
+
     return CustomerIOSDKConfig(
       cdpApiKey: cdpApiKey,
       migrationSiteId: prefs.getString(_PreferencesKey.migrationSiteId),
@@ -63,26 +66,10 @@ class CustomerIOSDKConfig {
       cdnHost: prefs.getString(_PreferencesKey.cdnHost),
       flushAt: prefs.getInt(_PreferencesKey.flushAt),
       flushInterval: prefs.getInt(_PreferencesKey.flushInterval),
+      screenViewUse: screenViewUse,
       inAppConfig: InAppConfig(
           siteId: prefs.getString(_PreferencesKey.migrationSiteId) ?? ""),
     );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'cdpApiKey': cdpApiKey,
-      'migrationSiteId': migrationSiteId,
-      'region': region?.name,
-      'logLevel': debugModeEnabled,
-      'screenTrackingEnabled': screenTrackingEnabled,
-      'autoTrackDeviceAttributes': autoTrackDeviceAttributes,
-      'apiHost': apiHost,
-      'cdnHost': cdnHost,
-      'flushAt': flushAt,
-      'flushInterval': flushInterval,
-      'inAppConfig': inAppConfig?.toMap(),
-      'pushConfig': pushConfig.toMap(),
-    };
   }
 }
 
@@ -128,7 +115,17 @@ extension ConfigurationPreferencesExtensions on SharedPreferences {
     result = result &&
         await setOrRemoveInt(
             _PreferencesKey.flushInterval, config.flushInterval);
+    result = result &&
+        await setOrRemoveString(
+            _PreferencesKey.screenViewUse, config.screenViewUse?.name);
     return result;
+  }
+
+  T? getEnumValueFromPrefs<T extends Enum>(String key, List<T> values) {
+    final storedValue = getString(key);
+    if (storedValue == null) return null;
+
+    return values.firstWhere((e) => e.name == storedValue);
   }
 }
 
@@ -143,4 +140,5 @@ class _PreferencesKey {
   static const cdnHost = 'CDN_HOST';
   static const flushAt = 'FLUSH_AT';
   static const flushInterval = 'FLUSH_INTERVAL';
+  static const screenViewUse = 'SCREEN_VIEW_USE';
 }
