@@ -67,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.symmetric(vertical: 32.0),
               child: Center(
                 child: Text(
-                  'Flutter FCM Ami App',
+                  'Flutter (FCM)',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
