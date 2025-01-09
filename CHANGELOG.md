@@ -1,3 +1,9 @@
+## [2.1.1](https://github.com/customerio/customerio-flutter/compare/2.1.0...2.1.1) (2025-01-09)
+
+### Bug Fixes
+
+* Update native Android and iOS CIO SDK versions ([#192](https://github.com/customerio/customerio-flutter/issues/192)) ([b8cb309](https://github.com/customerio/customerio-flutter/commit/b8cb309b775e24288acd3c31192429962bc5cd8c))
+
 ## [2.1.0](https://github.com/customerio/customerio-flutter/compare/2.0.0...2.1.0) (2025-01-06)
 
 ### Features
