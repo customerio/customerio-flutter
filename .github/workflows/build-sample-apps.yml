@@ -81,8 +81,8 @@ jobs:
           
           # Append distribution groups based on branch and context
           [[ "$CURRENT_BRANCH" == "refs/heads/feature/"* ]] && distribution_groups+=("$FEATURE_BUILDS_GROUP")
-          [[ "$CURRENT_BRANCH" == "refs/heads/main" ]] && distribution_groups+=("NEXT_BUILDS_GROUP")
-          [[ "$CURRENT_BRANCH" == "refs/heads/main" ]] && distribution_groups+=("PUBLIC_BUILDS_GROUP")
+          [[ "$CURRENT_BRANCH" == "refs/heads/main" ]] && distribution_groups+=("$NEXT_BUILDS_GROUP")
+          [[ "$CURRENT_BRANCH" == "refs/heads/main" ]] && distribution_groups+=("$PUBLIC_BUILDS_GROUP")
           
           # Export the groups as an environment variable
           echo "firebase_distribution_groups=$(IFS=','; echo "${distribution_groups[*]}")" >> $GITHUB_ENV
