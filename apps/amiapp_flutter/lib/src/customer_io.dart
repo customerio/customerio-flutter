@@ -4,8 +4,6 @@ import 'package:amiapp_flutter/src/utils/build_info.dart';
 import 'package:customer_io/customer_io.dart';
 import 'package:customer_io/customer_io_config.dart';
 import 'package:customer_io/customer_io_enums.dart';
-import 'package:customer_io/customer_io_plugin_version.dart'
-    as customer_io_plugin_version;
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';

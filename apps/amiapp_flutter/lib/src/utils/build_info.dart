@@ -42,11 +42,11 @@ class BuildInfoMetadata {
   @override
   String toString() {
     return '''
-    SDK Version: $sdkVersion\tApp Version: $appVersion
+    SDK Version: $sdkVersion \tApp Version: $appVersion
     Build Date: $buildDate
     Branch: $gitMetadata
     Default Workspace: $defaultWorkspace
-    Language: $language\tUI Framework: $uiFramework
+    Language: $language \tUI Framework: $uiFramework
     SDK Integration: $sdkIntegration
     ''';
   }
