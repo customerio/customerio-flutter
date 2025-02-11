@@ -56,12 +56,13 @@ jobs:
         sample-app:
           # List all sample apps you want to have compiled.
           # List item is name of directory inside of "apps" directory for the corresponding app to compile.
-          - "amiapp_flutter"
+          - name: "amiapp_flutter"
+            cio-workspace-name: "Mobile: Flutter"
     defaults:
       run:
-        working-directory: apps/${{ matrix.sample-app }}
+        working-directory: apps/${{ matrix.sample-app.name }}
     runs-on: macos-14
-    name: Building sample app ${{ matrix.sample-app }}
+    name: Building sample app ${{ matrix.sample-app.name }}
     steps:
       - uses: actions/checkout@v4
 
@@ -99,21 +100,21 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true # cache tools to make builds faster in future
-          working-directory: apps/${{ matrix.sample-app }}
+          working-directory: apps/${{ matrix.sample-app.name }}
 
       # Update version numbers and workspace credentials before building the app
 
       - name: Generate New Version
         uses: maierj/fastlane-action@v3.1.0
         with:
-          subdirectory: apps/${{ matrix.sample-app }}
+          subdirectory: apps/${{ matrix.sample-app.name }}
           lane: "generate_new_version"
           options: '{"branch_name":"${{ github.ref_name }}", "pull_request_number":"${{ github.event.pull_request.number }}"}'
 
       - name: Update Flutter SDK Version
         uses: maierj/fastlane-action@v3.1.0
         with:
-          subdirectory: apps/${{ matrix.sample-app }}
+          subdirectory: apps/${{ matrix.sample-app.name }}
           lane: "update_flutter_sdk_version"
         env:
           SDK_VERSION_NAME: ${{ env.SDK_VERSION_NAME }}
@@ -123,7 +124,7 @@ jobs:
       - name: Update Sample App Version
         uses: maierj/fastlane-action@v3.1.0
         with:
-          subdirectory: apps/${{ matrix.sample-app }}
+          subdirectory: apps/${{ matrix.sample-app.name }}
           lane: "update_flutter_app_version"
         env:
           SDK_VERSION_NAME: ${{ env.SDK_VERSION_NAME }}
@@ -131,15 +132,25 @@ jobs:
           APP_VERSION_CODE: ${{ env.APP_VERSION_CODE }}
 
       - name: Setup workspace credentials in flutter environment files
+        env:
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+          COMMIT_HASH: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: |
-          cp ".env.example" ".env"
-          sd 'SITE_ID=.*' "SITE_ID=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_SITE_ID', matrix.sample-app)] }}" ".env"
-          sd 'CDP_API_KEY=.*' "CDP_API_KEY=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', matrix.sample-app)] }}" ".env"
+          env_file=".env"
+          touch "$env_file"
+          echo "BUILD_TIMESTAMP=$(date +%s)" >> "$env_file"
+          echo "CDP_API_KEY=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', matrix.sample-app.name)] }}" >> "$env_file"
+          echo "SITE_ID=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_SITE_ID', matrix.sample-app.name)] }}" >> "$env_file"
+          echo "WORKSPACE_NAME=${{ matrix.sample-app.cio-workspace-name }}" >> "$env_file"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> "$env_file"
+          echo "COMMIT_HASH=${COMMIT_HASH:0:7}" >> "$env_file"
+          echo "COMMITS_AHEAD_COUNT=$(git rev-list $(git describe --tags --abbrev=0)..HEAD --count)" >> "$env_file"
+          # Add `SDK_VERSION` to env_file here if it's a public build
 
       - name: Setup workspace credentials in iOS environment files
         run: |
           cp "ios/Env.swift.example" "ios/Env.swift"
-          sd 'cdpApiKey: String = ".*"' "cdpApiKey: String = \"${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', matrix.sample-app)] }}\"" "ios/Env.swift"
+          sd 'cdpApiKey: String = ".*"' "cdpApiKey: String = \"${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', matrix.sample-app.name)] }}\"" "ios/Env.swift"
 
       # Make sure to fetch dependencies only after updating the version numbers and workspace credentials
 
@@ -156,7 +167,7 @@ jobs:
         id: android_build
         uses: maierj/fastlane-action@v3.1.0
         with:
-          subdirectory: apps/${{ matrix.sample-app }}
+          subdirectory: apps/${{ matrix.sample-app.name }}
           lane: 'android build'
           options: '{"distribution_groups": "${{ env.firebase_distribution_groups }}"}'
         env:
@@ -172,9 +183,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Pods
-          key: ${{ runner.os }}-${{ matrix.sample-app }}-Pods-${{ github.ref }}
+          key: ${{ runner.os }}-${{ matrix.sample-app.name }}-Pods-${{ github.ref }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.sample-app }}-Pods
+            ${{ runner.os }}-${{ matrix.sample-app.name }}-Pods
 
       - name: pod install
         run: pod install --project-directory=ios
@@ -183,7 +194,7 @@ jobs:
         id: ios_build
         uses: maierj/fastlane-action@v3.1.0
         with:
-          subdirectory: apps/${{ matrix.sample-app }}
+          subdirectory: apps/${{ matrix.sample-app.name }}
           lane: "ios build"
           options: '{"distribution_groups": "${{ env.firebase_distribution_groups }}"}'
         env:
@@ -205,7 +216,7 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           # the variables APP_VERSION_NAME, APP_VERSION_CODE are created when fastlane runs "build".
           body: |
-            * ${{ matrix.sample-app }}: `${{ env.APP_VERSION_NAME }} (${{ env.APP_VERSION_CODE }})`
+            * ${{ matrix.sample-app.name }}: `${{ env.APP_VERSION_NAME }} (${{ env.APP_VERSION_CODE }})`
           edit-mode: append # append new line to the existing PR comment to build a list of all sample app builds.
 
       - name: Update sample builds PR comment with build failure message
@@ -215,5 +226,5 @@ jobs:
           comment-id: ${{ needs.update-pr-comment.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            * ${{ matrix.sample-app }}: Build failed. See [CI job logs](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to determine the issue and try re-building.
+            * ${{ matrix.sample-app.name }}: Build failed. See [CI job logs](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to determine the issue and try re-building.
           edit-mode: append # append new line to the existing PR comment to build a list of all sample app builds.
