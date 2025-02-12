@@ -5,11 +5,13 @@ class TextFooter extends StatelessWidget {
   const TextFooter({
     super.key,
     required this.text,
+    this.textAlign,
     this.paddingInsets = const EdgeInsets.fromLTRB(16.0, 0, 16.0, 32.0),
   });
 
   final EdgeInsetsGeometry paddingInsets;
   final String text;
+  final TextAlign? textAlign;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +21,7 @@ class TextFooter extends StatelessWidget {
         child: Text(
           text,
           style: Theme.of(context).textTheme.bodySmall,
-          textAlign: TextAlign.center,
+          textAlign: textAlign ?? TextAlign.justify,
         ),
       ),
     );
