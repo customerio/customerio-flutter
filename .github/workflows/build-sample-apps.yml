@@ -64,7 +64,10 @@ jobs:
     runs-on: macos-14
     name: Building sample app ${{ matrix.sample-app.name }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out code with conditional fetch-depth
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Workaround for bug https://github.com/actions/checkout/issues/1471
 
       - name: Set Default Firebase Distribution Groups
         shell: bash
@@ -136,16 +139,18 @@ jobs:
           BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
           COMMIT_HASH: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: |
-          env_file=".env"
-          touch "$env_file"
-          echo "BUILD_TIMESTAMP=$(date +%s)" >> "$env_file"
-          echo "CDP_API_KEY=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', matrix.sample-app.name)] }}" >> "$env_file"
-          echo "SITE_ID=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_SITE_ID', matrix.sample-app.name)] }}" >> "$env_file"
-          echo "WORKSPACE_NAME=${{ matrix.sample-app.cio-workspace-name }}" >> "$env_file"
-          echo "BRANCH_NAME=$BRANCH_NAME" >> "$env_file"
-          echo "COMMIT_HASH=${COMMIT_HASH:0:7}" >> "$env_file"
-          echo "COMMITS_AHEAD_COUNT=$(git rev-list $(git describe --tags --abbrev=0)..HEAD --count)" >> "$env_file"
-          # Add `SDK_VERSION` to env_file here if it's a public build
+          ENV_FILE=".env"
+          touch "$ENV_FILE"
+          echo "BUILD_TIMESTAMP=$(date +%s)" >> "$ENV_FILE"
+          echo "CDP_API_KEY=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', matrix.sample-app.name)] }}" >> "$ENV_FILE"
+          echo "SITE_ID=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_SITE_ID', matrix.sample-app.name)] }}" >> "$ENV_FILE"
+          echo "WORKSPACE_NAME=${{ matrix.sample-app.cio-workspace-name }}" >> "$ENV_FILE"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> "$ENV_FILE"
+          echo "COMMIT_HASH=${COMMIT_HASH:0:7}" >> "$ENV_FILE"
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "untagged")
+          COMMITS_AHEAD=$(git rev-list $LAST_TAG..HEAD --count 2>/dev/null || echo "untracked")
+          echo "COMMITS_AHEAD_COUNT=$COMMITS_AHEAD" >> "$ENV_FILE"
+          # Add `SDK_VERSION` to ENV_FILE here if it's a public build
 
       - name: Setup workspace credentials in iOS environment files
         run: |
