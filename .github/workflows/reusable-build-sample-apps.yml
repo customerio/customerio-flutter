@@ -1,0 +1,318 @@
+name: Reusable build sample apps workflow
+
+on:
+  workflow_call:
+    inputs:
+      use_latest_sdk_version:
+        description: "Whether this workflow should build sample apps with latest SDK version or source code"
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  build-android-sample-app:
+    strategy:
+      fail-fast: false # if one sample app fails to build, let the other sample apps continue to build and not cancel them.
+      matrix: # Use a matrix allowing us to build multiple apps in parallel. Just add an entry to the matrix and it will build!
+        sample-app:
+          # List all sample apps you want to have compiled.
+          # List item is name of directory inside of "apps" directory for the corresponding app to compile.
+          - name: "amiapp_flutter"
+            cio-workspace-name: "Mobile: Flutter"
+    defaults:
+      run:
+        working-directory: apps/${{ matrix.sample-app.name }}
+    runs-on: ubuntu-latest
+    outputs:
+      APP_VERSION_NAME: ${{ steps.set_output.outputs.APP_VERSION_NAME }}
+      APP_VERSION_CODE: ${{ steps.set_output.outputs.APP_VERSION_CODE }}
+    name: Building Android sample app ${{ matrix.sample-app.name }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Workaround for bug https://github.com/actions/checkout/issues/1471
+
+      - name: Get latest SDK version
+        if: ${{ inputs.use_latest_sdk_version == true }}
+        id: latest-sdk-version-step
+        run: |
+          latest_tag=$(git describe --tags --abbrev=0)
+          echo "LATEST_TAG=$latest_tag" >> "$GITHUB_OUTPUT"
+
+      - name: Set Default Firebase Distribution Groups
+        shell: bash
+        env:
+          # Distribution group constants
+          ALL_BUILDS_GROUP: all-builds
+          FEATURE_BUILDS_GROUP: feature-branch
+          NEXT_BUILDS_GROUP: next
+          PUBLIC_BUILDS_GROUP: public
+          # Input variables
+          CURRENT_BRANCH: ${{ github.ref }}
+        run: |
+          # Initialize with the default distribution group
+          distribution_groups=("$ALL_BUILDS_GROUP")
+          
+          # Append distribution groups based on branch and context
+          [[ "$CURRENT_BRANCH" == "refs/heads/feature/"* ]] && distribution_groups+=("$FEATURE_BUILDS_GROUP")
+          [[ "$CURRENT_BRANCH" == "refs/heads/main" ]] && distribution_groups+=("$NEXT_BUILDS_GROUP")
+          [[ "$USE_LATEST_SDK_VERSION" == "true" ]] && distribution_groups+=("$PUBLIC_BUILDS_GROUP")
+          
+          # Export the groups as an environment variable
+          echo "firebase_distribution_groups=$(IFS=','; echo "${distribution_groups[*]}")" >> $GITHUB_ENV
+
+      # Install CLI tools, Ruby, and Ruby dependencies for Fastlane
+
+      # CLI to replace strings in files. The CLI recommends using `cargo install` which is slow. This Action is fast because it downloads pre-built binaries.
+      # If using sd on macos, "brew install" works great. for Linux, this is the recommended way.
+      - name: Install sd CLI to use later in the workflow
+        uses: kenji-miyake/setup-sd@v2
+
+      - name: Install Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+          bundler-cache: true # cache tools to make builds faster in future
+          working-directory: apps/${{ matrix.sample-app.name }}
+
+      # Update version numbers and workspace credentials before building the app
+
+      - name: Generate New Version
+        uses: maierj/fastlane-action@v3.1.0
+        with:
+          subdirectory: apps/${{ matrix.sample-app.name }}
+          lane: "generate_new_version"
+          options: '{"branch_name":"${{ github.ref_name }}", "pull_request_number":"${{ github.event.pull_request.number }}"}'
+
+      - name: Update Flutter SDK Version
+        uses: maierj/fastlane-action@v3.1.0
+        with:
+          subdirectory: apps/${{ matrix.sample-app.name }}
+          lane: "update_flutter_sdk_version"
+        env:
+          SDK_VERSION_NAME: ${{ env.SDK_VERSION_NAME }}
+          APP_VERSION_NAME: ${{ env.APP_VERSION_NAME }}
+          APP_VERSION_CODE: ${{ env.APP_VERSION_CODE }}
+
+      - name: Update Sample App Version
+        uses: maierj/fastlane-action@v3.1.0
+        with:
+          subdirectory: apps/${{ matrix.sample-app.name }}
+          lane: "update_flutter_android_app_version"
+          options: ${{ inputs.use_latest_sdk_version == true && format('{{"version_name":"{0}"}}', steps.latest-sdk-version-step.outputs.LATEST_TAG) || '' }}
+        env:
+          SDK_VERSION_NAME: ${{ env.SDK_VERSION_NAME }}
+          APP_VERSION_NAME: ${{ env.APP_VERSION_NAME }}
+          APP_VERSION_CODE: ${{ env.APP_VERSION_CODE }}
+
+      - name: Setup workspace credentials in flutter environment files
+        env:
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+          COMMIT_HASH: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        run: |
+          ENV_FILE=".env"
+          touch "$ENV_FILE"
+          echo "BUILD_TIMESTAMP=$(date +%s)" >> "$ENV_FILE"
+          echo "CDP_API_KEY=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', matrix.sample-app.name)] }}" >> "$ENV_FILE"
+          echo "SITE_ID=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_SITE_ID', matrix.sample-app.name)] }}" >> "$ENV_FILE"
+          echo "WORKSPACE_NAME=${{ matrix.sample-app.cio-workspace-name }}" >> "$ENV_FILE"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> "$ENV_FILE"
+          echo "COMMIT_HASH=${COMMIT_HASH:0:7}" >> "$ENV_FILE"
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "untagged")
+          COMMITS_AHEAD=$(git rev-list $LAST_TAG..HEAD --count 2>/dev/null || echo "untracked")
+          echo "COMMITS_AHEAD_COUNT=$COMMITS_AHEAD" >> "$ENV_FILE"
+          if [ "${{ inputs.use_latest_sdk_version }}" == "true" ]; then
+            echo "SDK_VERSION=${{ steps.latest-sdk-version-step.outputs.LATEST_TAG }}" >> "$ENV_FILE"
+          fi
+
+      # Make sure to fetch dependencies only after updating the version numbers and workspace credentials
+
+      - name: Setup flutter environment and install dependencies
+        uses: ./.github/actions/setup-flutter
+
+      - name: Use SDK release version for sample app (if needed)
+        working-directory: apps/amiapp_flutter
+        run: |
+          dart run scripts/update_sample_app_sdk_version.dart
+          cat pubspec.lock
+
+      - name: Install flutter dependencies for sample app
+        run: flutter pub get
+
+      - name: Setup Android environment for sample app
+        uses: customerio/customerio-android/.github/actions/setup-android@main
+
+      - name: Build and upload Android app via Fastlane
+        id: android_build
+        uses: maierj/fastlane-action@v3.1.0
+        with:
+          subdirectory: apps/${{ matrix.sample-app.name }}
+          lane: 'android build'
+          options: '{"distribution_groups": "${{ env.firebase_distribution_groups }}"}'
+        env:
+          FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64: ${{ secrets.FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64 }}
+        continue-on-error: true # continue to build iOS app even if Android build fails
+
+  build-ios-sample-app:
+    strategy:
+      fail-fast: false # if one sample app fails to build, let the other sample apps continue to build and not cancel them.
+      matrix: # Use a matrix allowing us to build multiple apps in parallel. Just add an entry to the matrix and it will build!
+        sample-app:
+          # List all sample apps you want to have compiled.
+          # List item is name of directory inside of "apps" directory for the corresponding app to compile.
+          - name: "amiapp_flutter"
+            cio-workspace-name: "Mobile: Flutter"
+    defaults:
+      run:
+        working-directory: apps/${{ matrix.sample-app.name }}
+    runs-on: macos-14
+    outputs:
+      APP_VERSION_NAME: ${{ steps.set_output.outputs.APP_VERSION_NAME }}
+      APP_VERSION_CODE: ${{ steps.set_output.outputs.APP_VERSION_CODE }}
+    name: Building iOS sample app ${{ matrix.sample-app.name }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Workaround for bug https://github.com/actions/checkout/issues/1471
+
+      - name: Get latest SDK version
+        if: ${{ inputs.use_latest_sdk_version == true }}
+        id: latest-sdk-version-step
+        run: |
+          latest_tag=$(git describe --tags --abbrev=0)
+          echo "LATEST_TAG=$latest_tag" >> "$GITHUB_OUTPUT"
+
+      - name: Set Default Firebase Distribution Groups
+        shell: bash
+        env:
+          # Distribution group constants
+          ALL_BUILDS_GROUP: all-builds
+          FEATURE_BUILDS_GROUP: feature-branch
+          NEXT_BUILDS_GROUP: next
+          PUBLIC_BUILDS_GROUP: public
+          # Input variables
+          CURRENT_BRANCH: ${{ github.ref }}
+        run: |
+          # Initialize with the default distribution group
+          distribution_groups=("$ALL_BUILDS_GROUP")
+          
+          # Append distribution groups based on branch and context
+          [[ "$CURRENT_BRANCH" == "refs/heads/feature/"* ]] && distribution_groups+=("$FEATURE_BUILDS_GROUP")
+          [[ "$CURRENT_BRANCH" == "refs/heads/main" ]] && distribution_groups+=("$NEXT_BUILDS_GROUP")
+          [[ "$USE_LATEST_SDK_VERSION" == "true" ]] && distribution_groups+=("$PUBLIC_BUILDS_GROUP")
+          
+          # Export the groups as an environment variable
+          echo "firebase_distribution_groups=$(IFS=','; echo "${distribution_groups[*]}")" >> $GITHUB_ENV
+
+      # Install CLI tools, Ruby, and Ruby dependencies for Fastlane
+
+      - name: Install CLI tools used in CI script
+        shell: bash
+        run: |
+          brew install sd # used in CI script as an easier to use sed CLI. Replaces text in files. 
+          brew install xcbeautify # used by fastlane for output
+
+      - name: Install Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+          bundler-cache: true # cache tools to make builds faster in future
+          working-directory: apps/${{ matrix.sample-app.name }}
+
+      # Update version numbers and workspace credentials before building the app
+
+      - name: Generate New Version
+        uses: maierj/fastlane-action@v3.1.0
+        with:
+          subdirectory: apps/${{ matrix.sample-app.name }}
+          lane: "generate_new_version"
+          options: '{"branch_name":"${{ github.ref_name }}", "pull_request_number":"${{ github.event.pull_request.number }}"}'
+
+      - name: Update Flutter SDK Version
+        uses: maierj/fastlane-action@v3.1.0
+        with:
+          subdirectory: apps/${{ matrix.sample-app.name }}
+          lane: "update_flutter_sdk_version"
+        env:
+          SDK_VERSION_NAME: ${{ env.SDK_VERSION_NAME }}
+          APP_VERSION_NAME: ${{ env.APP_VERSION_NAME }}
+          APP_VERSION_CODE: ${{ env.APP_VERSION_CODE }}
+
+      - name: Update Sample App Version
+        uses: maierj/fastlane-action@v3.1.0
+        with:
+          subdirectory: apps/${{ matrix.sample-app.name }}
+          lane: "update_flutter_ios_app_version"
+          options: ${{ inputs.use_latest_sdk_version == true && format('{{"version_name":"{0}"}}', steps.latest-sdk-version-step.outputs.LATEST_TAG) || '' }}
+        env:
+          SDK_VERSION_NAME: ${{ env.SDK_VERSION_NAME }}
+          APP_VERSION_NAME: ${{ env.APP_VERSION_NAME }}
+          APP_VERSION_CODE: ${{ env.APP_VERSION_CODE }}
+
+      - name: Setup workspace credentials in flutter environment files
+        env:
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+          COMMIT_HASH: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        run: |
+          ENV_FILE=".env"
+          touch "$ENV_FILE"
+          echo "BUILD_TIMESTAMP=$(date +%s)" >> "$ENV_FILE"
+          echo "CDP_API_KEY=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', matrix.sample-app.name)] }}" >> "$ENV_FILE"
+          echo "SITE_ID=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_SITE_ID', matrix.sample-app.name)] }}" >> "$ENV_FILE"
+          echo "WORKSPACE_NAME=${{ matrix.sample-app.cio-workspace-name }}" >> "$ENV_FILE"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> "$ENV_FILE"
+          echo "COMMIT_HASH=${COMMIT_HASH:0:7}" >> "$ENV_FILE"
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "untagged")
+          COMMITS_AHEAD=$(git rev-list $LAST_TAG..HEAD --count 2>/dev/null || echo "untracked")
+          echo "COMMITS_AHEAD_COUNT=$COMMITS_AHEAD" >> "$ENV_FILE"
+          if [ "${{ inputs.use_latest_sdk_version }}" == "true" ]; then
+            echo "SDK_VERSION=${{ steps.latest-sdk-version-step.outputs.LATEST_TAG }}" >> "$ENV_FILE"
+          fi
+
+      - name: Setup workspace credentials in iOS environment files
+        run: |
+          cp "ios/Env.swift.example" "ios/Env.swift"
+          sd 'cdpApiKey: String = ".*"' "cdpApiKey: String = \"${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', matrix.sample-app.name)] }}\"" "ios/Env.swift"
+
+      # Make sure to fetch dependencies only after updating the version numbers and workspace credentials
+
+      - name: Setup flutter environment and install dependencies
+        uses: ./.github/actions/setup-flutter
+
+      - name: Use SDK release version for sample app (if needed)
+        working-directory: apps/amiapp_flutter
+        run: |
+          dart run scripts/update_sample_app_sdk_version.dart
+          cat pubspec.lock
+
+      - name: Install flutter dependencies for sample app
+        run: flutter pub get
+
+      - name: Setup iOS environment for sample app
+        uses: customerio/customerio-ios/.github/actions/setup-ios@main
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Cache CocoaPods downloaded dependencies for faster builds in the future
+        uses: actions/cache@v4
+        with:
+          path: Pods
+          key: ${{ runner.os }}-${{ matrix.sample-app.name }}-Pods-${{ github.ref }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.sample-app.name }}-Pods
+
+      - name: pod install
+        run: pod install --project-directory=ios
+
+      - name: Build and upload iOS app via Fastlane
+        id: ios_build
+        uses: maierj/fastlane-action@v3.1.0
+        with:
+          subdirectory: apps/${{ matrix.sample-app.name }}
+          lane: "ios build"
+          options: '{"distribution_groups": "${{ env.firebase_distribution_groups }}"}'
+        env:
+          GOOGLE_CLOUD_MATCH_READONLY_SERVICE_ACCOUNT_B64: ${{ secrets.GOOGLE_CLOUD_MATCH_READONLY_SERVICE_ACCOUNT_B64 }}
+          FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64: ${{ secrets.FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64 }}
