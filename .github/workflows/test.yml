@@ -28,4 +28,3 @@ jobs:
         dryRunOnly: true 
         flutter: true
         flutterBranch: dev
-        relativePath: flutter.package
