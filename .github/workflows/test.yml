@@ -27,4 +27,4 @@ jobs:
         credentialJson: ${{ secrets.CREDENTIAL_JSON }}
         dryRunOnly: true 
         flutter: true
-        flutterBranch: dev
+        flutterBranch: stable
