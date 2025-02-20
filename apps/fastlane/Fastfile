@@ -33,7 +33,7 @@ lane :update_flutter_sdk_version do |options|
 end
 
 # Lane to update Flutter app version
-lane :update_flutter_app_version do |options|
+lane :update_flutter_android_app_version do |options|
   project_path = options[:project_path] || File.join(Dir.pwd, '..')
   version_name = options[:version_name] || ENV['APP_VERSION_NAME']
   version_code = options[:version_code] || ENV['APP_VERSION_CODE']
@@ -44,5 +44,17 @@ lane :update_flutter_app_version do |options|
   UI.message("Updating app versions to #{new_version} in #{project_path}")
   update_pubspec_version(project_path, new_version)
   update_android_version(project_path, version_name, version_code)
+end
+
+lane :update_flutter_ios_app_version do |options|
+  project_path = options[:project_path] || File.join(Dir.pwd, '..')
+  version_name = options[:version_name] || ENV['APP_VERSION_NAME']
+  version_code = options[:version_code] || ENV['APP_VERSION_CODE']
+
+  # To match version format with flutter apps e.g. 1.0.0+1
+  new_version = "#{version_name}+#{version_code}"
+
+  UI.message("Updating app versions to #{new_version} in #{project_path}")
+  update_pubspec_version(project_path, new_version)
   update_ios_version(project_path, version_name, version_code)
 end

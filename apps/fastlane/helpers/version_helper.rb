@@ -44,6 +44,10 @@ lane :generate_new_version do |options|
   sh("echo SDK_VERSION_NAME=#{sdk_version_name} >> $GITHUB_ENV")
   sh("echo APP_VERSION_NAME=#{app_version_name} >> $GITHUB_ENV")
   sh("echo APP_VERSION_CODE=#{app_version_code} >> $GITHUB_ENV")
+
+  sh("echo SDK_VERSION_NAME=#{sdk_version_name} >> $GITHUB_OUTPUT")
+  sh("echo APP_VERSION_NAME=#{app_version_name} >> $GITHUB_OUTPUT")
+  sh("echo APP_VERSION_CODE=#{app_version_code} >> $GITHUB_OUTPUT")
 end
 
 # Helper method to update Android version
