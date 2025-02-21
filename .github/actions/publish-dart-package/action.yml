@@ -107,7 +107,7 @@ runs:
         REMOTE_VERSION="${{ steps.remote_version.outputs.remoteVersion }}"
         echo "Local version: $LOCAL_VERSION"
         echo "Remote version: $REMOTE_VERSION"
-        
+
         # Perform dry-run
         if [ "${{ inputs.flutter }}" = "true" ]; then
           flutter pub publish --dry-run
