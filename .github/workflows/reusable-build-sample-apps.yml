@@ -106,10 +106,13 @@ jobs:
           APP_VERSION_NAME: ${{ env.APP_VERSION_NAME }}
           APP_VERSION_CODE: ${{ env.APP_VERSION_CODE }}
 
+      - name: Set Git Context Variables
+        run: |
+          echo "BRANCH_NAME=${{ github.head_ref || github.ref_name }}" >> $GITHUB_ENV
+          COMMIT_HASH="${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}"
+          echo "COMMIT_HASH=${COMMIT_HASH:0:7}" >> $GITHUB_ENV
+
       - name: Setup workspace credentials in flutter environment files
-        env:
-          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
-          COMMIT_HASH: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: |
           ENV_FILE=".env"
           touch "$ENV_FILE"
@@ -117,8 +120,8 @@ jobs:
           echo "CDP_API_KEY=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', matrix.sample-app.name)] }}" >> "$ENV_FILE"
           echo "SITE_ID=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_SITE_ID', matrix.sample-app.name)] }}" >> "$ENV_FILE"
           echo "WORKSPACE_NAME=${{ matrix.sample-app.cio-workspace-name }}" >> "$ENV_FILE"
-          echo "BRANCH_NAME=$BRANCH_NAME" >> "$ENV_FILE"
-          echo "COMMIT_HASH=${COMMIT_HASH:0:7}" >> "$ENV_FILE"
+          echo "BRANCH_NAME=${{ env.BRANCH_NAME }}" >> "$ENV_FILE"
+          echo "COMMIT_HASH=${{ env.COMMIT_HASH }}" >> "$ENV_FILE"
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "untagged")
           COMMITS_AHEAD=$(git rev-list $LAST_TAG..HEAD --count 2>/dev/null || echo "untracked")
           echo "COMMITS_AHEAD_COUNT=$COMMITS_AHEAD" >> "$ENV_FILE"
@@ -153,6 +156,23 @@ jobs:
         env:
           FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64: ${{ secrets.FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64 }}
         continue-on-error: true # continue to build iOS app even if Android build fails
+
+      - name: Send Slack Notification for Sample App Builds (Android)
+        if: always()
+        uses: customerio/mobile-ci-tools/github-actions/slack-notify-sample-app/v1
+        with:
+          build_status: ${{ steps.android_build.outcome }}
+          app_icon_emoji: ":flutter:"
+          app_name: "Flutter"
+          firebase_app_id: ${{ secrets[format('SAMPLE_APPS_{0}_FIREBASE_APP_ID_ANDROID', matrix.sample-app.name)] }}
+          firebase_distribution_groups: ${{ env.firebase_distribution_groups }}
+          git_context: "${{ env.BRANCH_NAME }} (${{ env.COMMIT_HASH }})"
+          icon_url: "https://img.icons8.com/color/512/flutter.png"
+          instructions_guide_link: ${{ secrets.SAMPLE_APPS_INSTRUCTIONS_GUIDE_LINK }}
+          platform: "android"
+          sdk_name: "Flutter SDK"
+          sdk_version: ${{ env.SDK_VERSION_NAME }}
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   build-ios-sample-app:
     strategy:
@@ -251,10 +271,13 @@ jobs:
           APP_VERSION_NAME: ${{ env.APP_VERSION_NAME }}
           APP_VERSION_CODE: ${{ env.APP_VERSION_CODE }}
 
+      - name: Set Git Context Variables
+        run: |
+          echo "BRANCH_NAME=${{ github.head_ref || github.ref_name }}" >> $GITHUB_ENV
+          COMMIT_HASH="${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}"
+          echo "COMMIT_HASH=${COMMIT_HASH:0:7}" >> $GITHUB_ENV
+
       - name: Setup workspace credentials in flutter environment files
-        env:
-          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
-          COMMIT_HASH: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: |
           ENV_FILE=".env"
           touch "$ENV_FILE"
@@ -262,8 +285,8 @@ jobs:
           echo "CDP_API_KEY=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', matrix.sample-app.name)] }}" >> "$ENV_FILE"
           echo "SITE_ID=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_SITE_ID', matrix.sample-app.name)] }}" >> "$ENV_FILE"
           echo "WORKSPACE_NAME=${{ matrix.sample-app.cio-workspace-name }}" >> "$ENV_FILE"
-          echo "BRANCH_NAME=$BRANCH_NAME" >> "$ENV_FILE"
-          echo "COMMIT_HASH=${COMMIT_HASH:0:7}" >> "$ENV_FILE"
+          echo "BRANCH_NAME=${{ env.BRANCH_NAME }}" >> "$ENV_FILE"
+          echo "COMMIT_HASH=${{ env.COMMIT_HASH }}" >> "$ENV_FILE"
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "untagged")
           COMMITS_AHEAD=$(git rev-list $LAST_TAG..HEAD --count 2>/dev/null || echo "untracked")
           echo "COMMITS_AHEAD_COUNT=$COMMITS_AHEAD" >> "$ENV_FILE"
@@ -316,3 +339,20 @@ jobs:
         env:
           GOOGLE_CLOUD_MATCH_READONLY_SERVICE_ACCOUNT_B64: ${{ secrets.GOOGLE_CLOUD_MATCH_READONLY_SERVICE_ACCOUNT_B64 }}
           FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64: ${{ secrets.FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64 }}
+
+      - name: Send Slack Notification for Sample App Builds (iOS)
+        if: always()
+        uses: customerio/mobile-ci-tools/github-actions/slack-notify-sample-app/v1
+        with:
+          build_status: ${{ steps.ios_build.outcome }}
+          app_icon_emoji: ":flutter:"
+          app_name: "Flutter"
+          firebase_app_id: ${{ secrets[format('SAMPLE_APPS_{0}_FIREBASE_APP_ID_IOS', matrix.sample-app.name)] }}
+          firebase_distribution_groups: ${{ env.firebase_distribution_groups }}
+          git_context: "${{ env.BRANCH_NAME }} (${{ env.COMMIT_HASH }})"
+          icon_url: "https://img.icons8.com/color/512/flutter.png"
+          instructions_guide_link: ${{ secrets.SAMPLE_APPS_INSTRUCTIONS_GUIDE_LINK }}
+          platform: "ios"
+          sdk_name: "Flutter SDK"
+          sdk_version: ${{ env.SDK_VERSION_NAME }}
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
