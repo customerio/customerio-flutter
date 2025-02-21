@@ -1,3 +1,9 @@
+## [2.1.2](https://github.com/customerio/customerio-flutter/compare/2.1.1...2.1.2) (2025-02-21)
+
+### Bug Fixes
+
+* improve push delivery tracking for Android 14 and above ([#204](https://github.com/customerio/customerio-flutter/issues/204)) ([8b60a4e](https://github.com/customerio/customerio-flutter/commit/8b60a4ee1d5357ee871fcf03684b307a117350fa))
+
 ## [2.1.1](https://github.com/customerio/customerio-flutter/compare/2.1.0...2.1.1) (2025-01-09)
 
 ### Bug Fixes
