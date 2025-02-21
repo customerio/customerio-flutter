@@ -22,7 +22,8 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: dry-run publishing to feel confident deployment will work after merging PR
-      uses: sakebook/actions-flutter-pub-publisher@v1.4.1
+      uses: k-paxian/dart-package-publisher@v1.6
       with:
-        credential: ${{ secrets.CREDENTIAL_JSON }}
-        dry_run: true
+        credentialJson: ${{ secrets.CREDENTIAL_JSON }}
+        dryRunOnly: true
+        flutter: true
