@@ -123,10 +123,11 @@ jobs:
       - uses: ./.github/actions/setup-flutter
 
       - name: Publish to pub.dev
-        uses: k-paxian/dart-package-publisher@v1.6
+        uses: ./.github/actions/publish-dart-package
         with:
           credentialJson: ${{ secrets.CREDENTIAL_JSON }}
           flutter: true
+          dryRunOnly: false
 
       - name: Notify team of successful deployment
         uses: slackapi/slack-github-action@v1.26.0
