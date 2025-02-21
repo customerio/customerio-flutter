@@ -20,10 +20,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - uses: ./.github/actions/setup-flutter
 
     - name: dry-run publishing to feel confident deployment will work after merging PR
-      uses: k-paxian/dart-package-publisher@v1.6
+      uses: sakebook/actions-flutter-pub-publisher@v1.4.1
       with:
-        credentialJson: ${{ secrets.CREDENTIAL_JSON }}
-        dryRunOnly: true
+        credential: ${{ secrets.CREDENTIAL_JSON }}
+        dry_run: true
         flutter: true
