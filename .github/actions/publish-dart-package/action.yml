@@ -107,18 +107,18 @@ runs:
         REMOTE_VERSION="${{ steps.remote_version.outputs.remoteVersion }}"
         echo "Local version: $LOCAL_VERSION"
         echo "Remote version: $REMOTE_VERSION"
-
-        # Skip if same version
-        if [ "$LOCAL_VERSION" = "$REMOTE_VERSION" ]; then
-          echo "Local and remote versions match. Skipping publish."
-          exit 0
-        fi
-
+        
         # Perform dry-run
         if [ "${{ inputs.flutter }}" = "true" ]; then
           flutter pub publish --dry-run
         else
           dart pub publish --dry-run
+        fi
+
+        # Skip if same version
+        if [ "$LOCAL_VERSION" = "$REMOTE_VERSION" ]; then
+          echo "Local and remote versions match. Skipping publish."
+          exit 0
         fi
 
         # Stop if dryRunOnly
