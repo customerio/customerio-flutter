@@ -165,7 +165,7 @@ jobs:
           fi
 
       - name: Send Slack Notification for Sample App Builds (Android)
-        if: always()
+        if: ${{ always() }}
         uses: customerio/mobile-ci-tools/github-actions/slack-notify-sample-app/v1
         with:
           build_status: ${{ steps.android_build.outcome }}
@@ -355,7 +355,7 @@ jobs:
           fi
 
       - name: Send Slack Notification for Sample App Builds (iOS)
-        if: always()
+        if: ${{ always() }}
         uses: customerio/mobile-ci-tools/github-actions/slack-notify-sample-app/v1
         with:
           build_status: ${{ steps.ios_build.outcome }}
