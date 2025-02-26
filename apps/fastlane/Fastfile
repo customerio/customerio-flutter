@@ -29,7 +29,7 @@ lane :update_flutter_sdk_version do |options|
   version_name = options[:version_name] || ENV['SDK_VERSION_NAME']
 
   UI.message("Updating sdk version to #{version_name} in #{project_path}")
-  update_pubspec_version(project_path, version_name)
+  sh("cd #{project_path} && ./scripts/update-version.sh \"#{version_name}\"")
 end
 
 # Lane to update Flutter app version
