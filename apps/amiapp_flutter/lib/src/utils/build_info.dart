@@ -42,7 +42,8 @@ class BuildInfoMetadata {
   @override
   String toString() {
     return '''
-    SDK Version: $sdkVersion \tApp Version: $appVersion
+    SDK Version: $sdkVersion
+    App Version: $appVersion
     Build Date: $buildDate
     Branch: $gitMetadata
     Default Workspace: $defaultWorkspace
