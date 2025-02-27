@@ -1,3 +1,9 @@
+## [2.1.3](https://github.com/customerio/customerio-flutter/compare/2.1.2...2.1.3) (2025-02-27)
+
+### Bug Fixes
+
+* Incorrectly scrolling content for in-app modal messages positioned top/bottom ([#208](https://github.com/customerio/customerio-flutter/issues/208)) ([5bdf0eb](https://github.com/customerio/customerio-flutter/commit/5bdf0ebae6a5c2f0f34589d80c77212557dfd033))
+
 ## [2.1.2](https://github.com/customerio/customerio-flutter/compare/2.1.1...2.1.2) (2025-02-21)
 
 ### Bug Fixes

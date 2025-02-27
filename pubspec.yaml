@@ -1,6 +1,6 @@
 name: customer_io
 description: An official flutter plugin for Customer.io, an automated messaging platform for tech-savvy marketers.
-version: 2.1.2
+version: 2.1.3
 homepage: https://customer.io
 repository: https://github.com/customerio/customerio-flutter
 
@@ -42,4 +42,4 @@ flutter:
         pluginClass: CustomerIOPlugin
       ios:
         pluginClass: CustomerIOPlugin
-        native_sdk_version: 3.7.2
+        native_sdk_version: 3.8.0
