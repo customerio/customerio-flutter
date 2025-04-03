@@ -1,3 +1,9 @@
+## [2.1.4](https://github.com/customerio/customerio-flutter/compare/2.1.3...2.1.4) (2025-04-03)
+
+### Bug Fixes
+
+* Native SDKs version updated ([#212](https://github.com/customerio/customerio-flutter/issues/212)) ([9f66d42](https://github.com/customerio/customerio-flutter/commit/9f66d42577312c2bc822ed551f42d5a5d77d278c))
+
 ## [2.1.3](https://github.com/customerio/customerio-flutter/compare/2.1.2...2.1.3) (2025-02-27)
 
 ### Bug Fixes
