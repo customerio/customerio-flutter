@@ -35,7 +35,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Notify team of git tag creation
-        uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+        uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
         if: steps.semantic-release.outputs.new_release_published == 'true'
         with:
           payload: |
@@ -69,7 +69,7 @@ jobs:
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
       - name: Notify team of failure
-        uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+        uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
         if: ${{ failure() }}
         with:
           payload: |
@@ -115,13 +115,13 @@ jobs:
       - uses: ./.github/actions/setup-flutter
 
       - name: Publish to pub.dev
-        uses: k-paxian/dart-package-publisher@e555d5c07a728bca4c6706ff8907a76ab53a5bf0 # master
+        uses: k-paxian/dart-package-publisher@69562ff6bcddfb48d0c637dbf1d5d6b5d1b3a165 # master
         with:
           credentialJson: ${{ secrets.CREDENTIAL_JSON }}
           flutter: true
 
       - name: Notify team of successful deployment
-        uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+        uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
         if: ${{ success() }}
         with:
           payload: |
@@ -155,7 +155,7 @@ jobs:
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
       - name: Notify team of failure
-        uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+        uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
         if: ${{ failure() }}
         with:
           payload: |
