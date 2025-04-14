@@ -1,3 +1,9 @@
+## [2.1.5](https://github.com/customerio/customerio-flutter/compare/2.1.4...2.1.5) (2025-04-14)
+
+### Bug Fixes
+
+* support null handling in nested structures ([#217](https://github.com/customerio/customerio-flutter/issues/217)) ([0d5928b](https://github.com/customerio/customerio-flutter/commit/0d5928b27292def1e427becb165d64880bb46883))
+
 ## [2.1.4](https://github.com/customerio/customerio-flutter/compare/2.1.3...2.1.4) (2025-04-03)
 
 ### Bug Fixes
