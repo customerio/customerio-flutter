@@ -40,10 +40,23 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
     }
 
     func configureModule(params: [String: AnyHashable]) {
-        if let inAppConfig = try? MessagingInAppConfigBuilder.build(from: params) {
-            MessagingInApp.initialize(withConfig: inAppConfig)
-            MessagingInApp.shared.setEventListener(CustomerIOInAppEventListener(invokeDartMethod: invokeDartMethod))
+        guard let rawInAppConfig = params["inApp"] else {
+            return
         }
+        guard let inAppConfig = rawInAppConfig as? [String: Any] else {
+            DIGraphShared.shared.logger.error("[InApp] Failed to initialize module: invalid config structure")
+            return
+        }
+        
+        guard let siteId = inAppConfig["siteId"] as? String else {
+            DIGraphShared.shared.logger.error("[InApp] Failed to initialize module missing: siteId")
+            return
+        }
+        let rawRegion = inAppConfig["region"] as? String ?? ""
+        let region = Region.getRegion(from: rawRegion)
+
+        MessagingInApp.initialize(withConfig: MessagingInAppConfigBuilder(siteId: siteId, region: region).build())
+        MessagingInApp.shared.setEventListener(CustomerIOInAppEventListener(invokeDartMethod: invokeDartMethod))
     }
 
     func invokeDartMethod(_ method: String, _ args: Any?) {
