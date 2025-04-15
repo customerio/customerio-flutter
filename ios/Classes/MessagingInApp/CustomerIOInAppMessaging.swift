@@ -52,7 +52,7 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
             DIGraphShared.shared.logger.error("[InApp] Failed to initialize module missing: siteId")
             return
         }
-        let rawRegion = inAppConfig["region"] as? String ?? ""
+        let rawRegion = params["region"] as? String ?? ""
         let region = Region.getRegion(from: rawRegion)
 
         MessagingInApp.initialize(withConfig: MessagingInAppConfigBuilder(siteId: siteId, region: region).build())
