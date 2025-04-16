@@ -187,3 +187,11 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  publish-sample-apps-public-builds:
+    needs: deploy-to-pub-dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger sample apps public builds
+        uses: ./.github/workflows/build-sample-app-for-sdk-release.yml
+        
