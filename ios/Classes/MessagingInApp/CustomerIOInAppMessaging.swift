@@ -43,6 +43,8 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
         if let inAppConfig = try? MessagingInAppConfigBuilder.build(from: params) {
             MessagingInApp.initialize(withConfig: inAppConfig)
             MessagingInApp.shared.setEventListener(CustomerIOInAppEventListener(invokeDartMethod: invokeDartMethod))
+        } else {
+            DIGraphShared.shared.logger.error("[InApp] Failed to initialize module: invalid config")
         }
     }
 
