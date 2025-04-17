@@ -187,3 +187,8 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  publish-sample-apps-public-builds:
+    needs: deploy-to-pub-dev
+    uses: ./.github/workflows/build-sample-app-for-sdk-release.yml
+    secrets: inherit
