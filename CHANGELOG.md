@@ -1,3 +1,9 @@
+## [2.1.6](https://github.com/customerio/customerio-flutter/compare/2.1.5...2.1.6) (2025-04-28)
+
+### Bug Fixes
+
+* make region optional in SDK config for iOS ([#221](https://github.com/customerio/customerio-flutter/issues/221)) ([56418f2](https://github.com/customerio/customerio-flutter/commit/56418f292b377fbf5f05f14143be1740e7bce31e))
+
 ## [2.1.5](https://github.com/customerio/customerio-flutter/compare/2.1.4...2.1.5) (2025-04-14)
 
 ### Bug Fixes
