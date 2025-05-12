@@ -22,6 +22,13 @@ jobs:
       - name: Install sd CLI
         uses: levibostian/setup-sd@cbdeed93d4fe03f9e36b73bb6d9e7c3c4805e1f9 # add-file-extension
 
+      - name: 'Generate token'
+        id: generate_token
+        uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a # v2.1.0
+        with:
+          app_id: ${{ secrets.CIO_APP_ID }}
+          private_key: ${{ secrets.CIO_APP_SECRET }}
+
       - name: Deploy git tag via semantic-release
         uses: cycjimmy/semantic-release-action@0a51e81a6baff2acad3ee88f4121c589c73d0f0e # v4.2.0
         id: semantic-release
@@ -32,7 +39,7 @@ jobs:
             @semantic-release/github
             @semantic-release/exec
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
 
       - name: Notify team of git tag creation
         uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
