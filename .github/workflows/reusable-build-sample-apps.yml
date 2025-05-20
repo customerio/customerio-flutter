@@ -143,9 +143,14 @@ jobs:
       - name: Setup Android environment for sample app
         uses: customerio/customerio-android/.github/actions/setup-android@main
 
+      - name: Increase Gradle memory limit
+        run: echo "org.gradle.jvmargs=-Xmx4g" >> ~/.gradle/gradle.properties
+
       - name: Run Android unit tests for Flutter plugin
         run: ./gradlew testDebugUnitTest
         working-directory: apps/${{ matrix.sample-app.name }}/android
+        env:
+          _JAVA_OPTIONS: "-Xmx4g"
 
       - name: Build and upload Android app via Fastlane
         id: android_build
