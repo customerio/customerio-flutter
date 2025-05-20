@@ -13,8 +13,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/setup-flutter
-    - name: Run tests
+    - name: Run Flutter tests
       run: flutter test
+    - name: Setup Android environment
+      uses: customerio/customerio-android/.github/actions/setup-android@main
+    - name: Run Android native tests
+      run: cd android && ./gradlew test
   
   test_publish:
     runs-on: ubuntu-latest
