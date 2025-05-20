@@ -143,6 +143,10 @@ jobs:
       - name: Setup Android environment for sample app
         uses: customerio/customerio-android/.github/actions/setup-android@main
 
+      - name: Run Android unit tests for Flutter plugin
+        run: ./gradlew testDebugUnitTest
+        working-directory: apps/${{ matrix.sample-app.name }}/android
+
       - name: Build and upload Android app via Fastlane
         id: android_build
         uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0

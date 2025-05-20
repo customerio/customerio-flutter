@@ -15,10 +15,6 @@ jobs:
     - uses: ./.github/actions/setup-flutter
     - name: Run Flutter tests
       run: flutter test
-    - name: Setup Android environment
-      uses: customerio/customerio-android/.github/actions/setup-android@main
-    - name: Run Android native tests
-      run: cd android && ./gradlew test
   
   test_publish:
     runs-on: ubuntu-latest
