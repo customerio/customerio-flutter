@@ -1,3 +1,9 @@
+## [2.1.7](https://github.com/customerio/customerio-flutter/compare/2.1.6...2.1.7) (2025-05-22)
+
+### Bug Fixes
+
+* unit result type handling ([#224](https://github.com/customerio/customerio-flutter/issues/224)) ([2022c27](https://github.com/customerio/customerio-flutter/commit/2022c27609462461596ddc50076a134f38f514fb))
+
 ## [2.1.6](https://github.com/customerio/customerio-flutter/compare/2.1.5...2.1.6) (2025-04-28)
 
 ### Bug Fixes
