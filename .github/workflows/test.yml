@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/setup-flutter
-    - name: Run tests
+    - name: Run Flutter tests
       run: flutter test
   
   test_publish:
