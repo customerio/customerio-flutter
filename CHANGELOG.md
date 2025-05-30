@@ -1,3 +1,9 @@
+## [2.1.8](https://github.com/customerio/customerio-flutter/compare/2.1.7...2.1.8) (2025-05-30)
+
+### Bug Fixes
+
+* finish modal message early if native android sdk not initialized on restore ([#225](https://github.com/customerio/customerio-flutter/issues/225)) ([b521461](https://github.com/customerio/customerio-flutter/commit/b521461a823e42d4ff040b83e7c37d957c83b839))
+
 ## [2.1.7](https://github.com/customerio/customerio-flutter/compare/2.1.6...2.1.7) (2025-05-22)
 
 ### Bug Fixes
