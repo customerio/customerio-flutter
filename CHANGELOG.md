@@ -1,3 +1,9 @@
+## [2.2.0](https://github.com/customerio/customerio-flutter/compare/2.1.8...2.2.0) (2025-06-02)
+
+### Features
+
+* Add support for iOS no-swizzling approach and improve example app setup ([#226](https://github.com/customerio/customerio-flutter/issues/226)) ([2f4c0a2](https://github.com/customerio/customerio-flutter/commit/2f4c0a2064a6006829df5b0ee68627f501c62822))
+
 ## [2.1.8](https://github.com/customerio/customerio-flutter/compare/2.1.7...2.1.8) (2025-05-30)
 
 ### Bug Fixes
