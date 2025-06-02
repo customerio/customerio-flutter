@@ -49,7 +49,7 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
     }
     
     // IMPORTANT: This method is necessary to have CIO deep linking working!
-    // Puting `return false` in body is sufficient, as this is indicator for CIO SDK to do forward iOS the link for processing.
+    // Putting `return false` in the body is sufficient, as this is an indicator for the CIO SDK to forward the link to iOS for processing.
     // This will open the browser or the associated app.
     // If this method is not overriden, default Flutter's deep link processing will just discard CIO deep links.
     override func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
