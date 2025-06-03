@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:customer_io/messaging_in_app/inline_in_app_message_view.dart';
 
 import '../auth.dart';
 import '../components/container.dart';
@@ -138,6 +139,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
+            const SizedBox(height: 16),
+            const InlineInAppMessageView(
+              elementId: 'welcome-message',
+              height: 100,
+            ),
+            const SizedBox(height: 16),
             const Spacer(),
             Center(
               child: Text(
