@@ -60,7 +60,7 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
     if (defaultTargetPlatform == TargetPlatform.android) {
       final creationParams = <String, dynamic>{
         'elementId': widget.elementId,
-        if (widget.progressTint != null) 'progressTint': widget.progressTint!.value,
+        if (widget.progressTint != null) 'progressTint': widget.progressTint!.toARGB32(),
       };
       
       return AndroidView(
@@ -130,7 +130,7 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
   Future<void> _setProgressTint(Color color) async {
     if (_methodChannel != null) {
       try {
-        await _methodChannel!.invokeMethod('setProgressTint', color.value);
+        await _methodChannel!.invokeMethod('setProgressTint', color.toARGB32());
       } on PlatformException catch (e) {
         debugPrint('Failed to set progress tint: ${e.message}');
       }

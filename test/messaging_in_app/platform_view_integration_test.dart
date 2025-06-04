@@ -19,7 +19,7 @@ void main() {
             body: Column(
               children: [
                 const Text('Test App'),
-                Container(
+                SizedBox(
                   height: 200,
                   child: InlineInAppMessageView(
                     elementId: 'integration-test-banner',
@@ -49,7 +49,7 @@ void main() {
       
       final params = androidView.creationParams as Map<String, dynamic>;
       expect(params['elementId'], equals('integration-test-banner'));
-      expect(params['progressTint'], equals(Colors.purple.value));
+      expect(params['progressTint'], equals(Colors.purple.toARGB32()));
 
       debugDefaultTargetPlatformOverride = null;
     });

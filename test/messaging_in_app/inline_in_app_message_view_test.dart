@@ -10,7 +10,7 @@ void main() {
     group('Widget Creation', () {
       testWidgets('creates widget with required elementId', (WidgetTester tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: InlineInAppMessageView(
                 elementId: 'test-banner',
@@ -47,7 +47,7 @@ void main() {
         debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: InlineInAppMessageView(
                 elementId: 'test-banner',
@@ -67,7 +67,7 @@ void main() {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
 
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: InlineInAppMessageView(
                 elementId: 'test-banner',
@@ -89,11 +89,11 @@ void main() {
         debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: InlineInAppMessageView(
                 elementId: 'test-element-id',
-                progressTint: const Color(0xFF123456),
+                progressTint: Color(0xFF123456),
               ),
             ),
           ),
@@ -115,7 +115,7 @@ void main() {
         debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: InlineInAppMessageView(
                 elementId: 'test-element-id',
@@ -162,7 +162,7 @@ void main() {
         debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: InlineInAppMessageView(
                 elementId: 'test-banner',
@@ -185,7 +185,7 @@ void main() {
         debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: InlineInAppMessageView(
                 elementId: 'initial-element',
@@ -200,7 +200,7 @@ void main() {
 
         // Update the widget with a new elementId
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: InlineInAppMessageView(
                 elementId: 'updated-element',
@@ -222,7 +222,7 @@ void main() {
         debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: InlineInAppMessageView(
                 elementId: 'test-element',
@@ -237,7 +237,7 @@ void main() {
 
         // Update the widget with a new progressTint
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: InlineInAppMessageView(
                 elementId: 'test-element',
@@ -261,7 +261,7 @@ void main() {
         debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: InlineInAppMessageView(
                 elementId: 'test-element',
