@@ -25,12 +25,22 @@ import java.lang.ref.WeakReference
  * linked with the module should be placed here.
  */
 internal class CustomerIOInAppMessaging(
-    pluginBinding: FlutterPlugin.FlutterPluginBinding,
+    private val pluginBinding: FlutterPlugin.FlutterPluginBinding,
 ) : NativeModuleBridge, MethodChannel.MethodCallHandler, ActivityAware {
     override val moduleName: String = "InAppMessaging"
     override val flutterCommunicationChannel: MethodChannel =
         MethodChannel(pluginBinding.binaryMessenger, "customer_io_messaging_in_app")
     private var activity: WeakReference<Activity>? = null
+
+    override fun onAttachedToEngine() {
+        super.onAttachedToEngine()
+        
+        // Register the platform view factory for inline in-app messages
+        pluginBinding.platformViewRegistry.registerViewFactory(
+            "customer_io_inline_in_app_message_view",
+            InlineInAppMessageViewFactory(pluginBinding.binaryMessenger)
+        )
+    }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         this.activity = WeakReference(binding.activity)
