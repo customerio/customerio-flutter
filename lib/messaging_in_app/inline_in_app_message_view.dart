@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -74,7 +72,7 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
     }
 
     // Return an empty container for other platforms
-    return Container();
+    return const SizedBox.shrink();
   }
 
   void _onPlatformViewCreated(int id) {
