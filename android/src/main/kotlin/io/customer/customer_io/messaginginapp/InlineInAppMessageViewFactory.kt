@@ -15,7 +15,7 @@ class InlineInAppMessageViewFactory(
 ) : PlatformViewFactory(StandardMessageCodec.INSTANCE) {
 
     override fun create(context: Context, viewId: Int, args: Any?): PlatformView {
-        val creationParams = args as Map<String, Any?>?
+        val creationParams = args as? Map<String, Any?>
         return InlineInAppMessagePlatformView(context, viewId, creationParams, messenger)
     }
 }

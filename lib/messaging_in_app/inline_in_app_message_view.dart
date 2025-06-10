@@ -117,37 +117,36 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
 
   /// Sets the element ID for the inline message view
   Future<void> _setElementId(String elementId) async {
-    if (_methodChannel != null) {
-      try {
-        await _methodChannel!.invokeMethod('setElementId', elementId);
-      } on PlatformException catch (e) {
-        debugPrint('Failed to set element ID: ${e.message}');
-      }
-    }
+    await _safeInvokeMethod('setElementId', elementId);
   }
 
   /// Sets the progress tint color for the inline message view
   Future<void> _setProgressTint(Color color) async {
-    if (_methodChannel != null) {
-      try {
-        await _methodChannel!.invokeMethod('setProgressTint', color.toARGB32());
-      } on PlatformException catch (e) {
-        debugPrint('Failed to set progress tint: ${e.message}');
-      }
-    }
+    await _safeInvokeMethod('setProgressTint', color.toARGB32());
   }
 
   /// Gets the current element ID from the native view
   Future<String?> getElementId() async {
-    if (_methodChannel != null) {
-      try {
-        return await _methodChannel!.invokeMethod('getElementId');
-      } on PlatformException catch (e) {
-        debugPrint('Failed to get element ID: ${e.message}');
-        return null;
+    return await _safeInvokeMethod<String>('getElementId');
+  }
+
+  /// Safely invokes a method channel method with automatic error handling
+  Future<T?> _safeInvokeMethod<T>(String method, [dynamic arguments]) async {
+    if (_methodChannel == null) return null;
+    
+    try {
+      return await _methodChannel!.invokeMethod<T>(method, arguments);
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to invoke $method: ${e.message}');
       }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Unexpected error invoking $method: $e');
+      }
+      return null;
     }
-    return null;
   }
 
   @override

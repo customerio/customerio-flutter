@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import io.customer.customer_io.bridge.native
 import io.customer.messaginginapp.type.InAppMessage
 import io.customer.messaginginapp.type.InlineMessageActionListener
 import io.customer.messaginginapp.ui.InlineInAppMessageView
@@ -117,33 +118,31 @@ class InlineInAppMessagePlatformView(
         Log.d(TAG, "Method call received: ${call.method} with arguments: ${call.arguments}")
         
         when (call.method) {
-            "setElementId" -> {
-                val elementId = call.arguments as? String
-                Log.d(TAG, "Setting elementId via method call: $elementId")
-                inlineView.elementId = elementId
-                Log.d(TAG, "ElementId set to: ${inlineView.elementId}")
-                result.success(null)
-            }
-            "setProgressTint" -> {
-                val color = call.arguments as? Int
-                if (color != null) {
-                    Log.d(TAG, "Setting progressTint via method call: $color")
-                    inlineView.setProgressTint(color)
-                    result.success(null)
-                } else {
-                    Log.e(TAG, "Invalid color argument: ${call.arguments}")
-                    result.error("INVALID_ARGUMENT", "Color must be an integer", null)
-                }
-            }
-            "getElementId" -> {
-                val currentElementId = inlineView.elementId
-                Log.d(TAG, "Getting elementId: $currentElementId")
-                result.success(currentElementId)
-            }
+            "setElementId" -> call.native(result, { it as? String }, ::setElementId)
+            "setProgressTint" -> call.native(result, { it as? Int }, ::setProgressTint)
+            "getElementId" -> call.native(result, { Unit }, { getElementId() })
             else -> {
                 Log.w(TAG, "Unhandled method call: ${call.method}")
                 result.notImplemented()
             }
         }
+    }
+
+    private fun setElementId(elementId: String?) {
+        Log.d(TAG, "Setting elementId via method call: $elementId")
+        inlineView.elementId = elementId
+        Log.d(TAG, "ElementId set to: ${inlineView.elementId}")
+    }
+
+    private fun setProgressTint(color: Int?) {
+        require(color != null) { "Color must be an integer" }
+        Log.d(TAG, "Setting progressTint via method call: $color")
+        inlineView.setProgressTint(color)
+    }
+
+    private fun getElementId(): String? {
+        val currentElementId = inlineView.elementId
+        Log.d(TAG, "Getting elementId: $currentElementId")
+        return currentElementId
     }
 }
