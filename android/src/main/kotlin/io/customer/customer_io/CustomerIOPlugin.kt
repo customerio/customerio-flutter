@@ -26,7 +26,6 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import io.customer.customer_io.messaginginapp.InlineInAppMessageViewFactory
 
 /**
  * Android implementation of plugin that will let Flutter developers to
@@ -50,11 +49,6 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             MethodChannel(flutterPluginBinding.binaryMessenger, "customer_io")
         flutterCommunicationChannel.setMethodCallHandler(this)
 
-        // Register the PlatformView factory for InlineInAppMessageView
-        flutterPluginBinding.platformViewRegistry.registerViewFactory(
-            "inline_in_app_message_view",
-            InlineInAppMessageViewFactory()
-        )
 
         // Initialize modules
         modules = listOf(

@@ -1,20 +1,21 @@
 package io.customer.customer_io.messaginginapp
 
 import android.content.Context
-import io.customer.messaginginapp.ui.InlineInAppMessageView
+import io.flutter.plugin.common.BinaryMessenger
+import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.platform.PlatformView
 import io.flutter.plugin.platform.PlatformViewFactory
-import io.flutter.plugin.common.StandardMessageCodec
 
-class InlineInAppMessageViewFactory : PlatformViewFactory(StandardMessageCodec.INSTANCE) {
-    override fun create(context: Context, id: Int, args: Any?): PlatformView {
-        val view = InlineInAppMessageView(context)
-        val params = args as? Map<String, Any>
-        val elementId = params?.get("elementId") as? String
-        view.elementId = elementId
-        return object : PlatformView {
-            override fun getView() = view
-            override fun dispose() {}
-        }
+/**
+ * Factory for creating InlineInAppMessagePlatformView instances.
+ * This factory is registered with Flutter to create platform views for inline in-app messages.
+ */
+class InlineInAppMessageViewFactory(
+    private val messenger: BinaryMessenger
+) : PlatformViewFactory(StandardMessageCodec.INSTANCE) {
+
+    override fun create(context: Context, viewId: Int, args: Any?): PlatformView {
+        val creationParams = args as? Map<String, Any?>
+        return InlineInAppMessagePlatformView(context, viewId, creationParams, messenger)
     }
-} 
+}

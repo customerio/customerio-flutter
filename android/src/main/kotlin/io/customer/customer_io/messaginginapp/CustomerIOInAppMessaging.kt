@@ -31,6 +31,18 @@ internal class CustomerIOInAppMessaging(
     override val flutterCommunicationChannel: MethodChannel =
         MethodChannel(pluginBinding.binaryMessenger, "customer_io_messaging_in_app")
     private var activity: WeakReference<Activity>? = null
+    private val binaryMessenger = pluginBinding.binaryMessenger
+    private val platformViewRegistry = pluginBinding.platformViewRegistry
+
+    override fun onAttachedToEngine() {
+        super.onAttachedToEngine()
+        
+        // Register the platform view factory for inline in-app messages
+        platformViewRegistry.registerViewFactory(
+            "customer_io_inline_in_app_message_view",
+            io.customer.customer_io.messaginginapp.InlineInAppMessageViewFactory(binaryMessenger)
+        )
+    }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         this.activity = WeakReference(binding.activity)
