@@ -10,11 +10,12 @@ typedef InAppMessageActionCallback = void Function(
   String? deliveryId,
 });
 
-/// A Flutter widget that displays an inline in-app message using the native Android InlineInAppMessageView.
+/// A Flutter widget that displays an inline in-app message using native platform views.
 /// 
-/// This widget wraps the native Android InlineInAppMessageView and provides Flutter integration.
-/// It shows a progress indicator while the message is loading and hides it once the message is displayed.
-/// If there is no message to display, the view will hide itself and display automatically when a new message is available.
+/// This widget wraps the native Android InlineInAppMessageView and iOS GistInlineInAppMessageView 
+/// and provides Flutter integration. It shows a progress indicator while the message is loading 
+/// and hides it once the message is displayed. If there is no message to display, the view will 
+/// hide itself and display automatically when a new message is available.
 ///
 /// Example usage:
 /// ```dart
@@ -56,14 +57,21 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
 
   @override
   Widget build(BuildContext context) {
-    // Only build the platform view on Android
+    final creationParams = <String, dynamic>{
+      'elementId': widget.elementId,
+      if (widget.progressTint != null) 'progressTint': _colorToArgb(widget.progressTint!),
+    };
+
+    // Build platform-specific views
     if (defaultTargetPlatform == TargetPlatform.android) {
-      final creationParams = <String, dynamic>{
-        'elementId': widget.elementId,
-        if (widget.progressTint != null) 'progressTint': _colorToArgb(widget.progressTint!),
-      };
-      
       return AndroidView(
+        viewType: 'customer_io_inline_in_app_message_view',
+        creationParams: creationParams,
+        creationParamsCodec: const StandardMessageCodec(),
+        onPlatformViewCreated: _onPlatformViewCreated,
+      );
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return UiKitView(
         viewType: 'customer_io_inline_in_app_message_view',
         creationParams: creationParams,
         creationParamsCodec: const StandardMessageCodec(),

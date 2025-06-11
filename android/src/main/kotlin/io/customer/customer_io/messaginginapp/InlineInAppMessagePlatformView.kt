@@ -34,6 +34,14 @@ class InlineInAppMessagePlatformView(
     
     companion object {
         private const val TAG = "InlineInAppMessagePlatformView"
+        
+        // Parameter constants for consistency with iOS implementation
+        private const val ELEMENT_ID = "elementId"
+        private const val PROGRESS_TINT = "progressTint"
+        private const val ACTION_VALUE = "actionValue"
+        private const val ACTION_NAME = "actionName"
+        private const val MESSAGE_ID = "messageId"
+        private const val DELIVERY_ID = "deliveryId"
     }
 
     init {
@@ -41,7 +49,7 @@ class InlineInAppMessagePlatformView(
         Log.d(TAG, "Creation params: $creationParams")
         
         // Set initial element ID from creation params
-        creationParams?.get("elementId")?.let { elementId ->
+        creationParams?.get(ELEMENT_ID)?.let { elementId ->
             if (elementId is String) {
                 Log.d(TAG, "Setting elementId: $elementId")
                 inlineView.elementId = elementId
@@ -51,7 +59,7 @@ class InlineInAppMessagePlatformView(
         } ?: Log.w(TAG, "No elementId found in creation params")
 
         // Set initial progress tint color if provided
-        creationParams?.get("progressTint")?.let { color ->
+        creationParams?.get(PROGRESS_TINT)?.let { color ->
             if (color is Int) {
                 Log.d(TAG, "Setting progressTint: $color")
                 inlineView.setProgressTint(color)
@@ -70,10 +78,10 @@ class InlineInAppMessagePlatformView(
             override fun onActionClick(message: InAppMessage, actionValue: String, actionName: String) {
                 Log.d(TAG, "Action triggered: $actionName = $actionValue for message: ${message.messageId}")
                 methodChannel.invokeMethod("onAction", mapOf(
-                    "messageId" to message.messageId,
-                    "deliveryId" to message.deliveryId,
-                    "actionValue" to actionValue,
-                    "actionName" to actionName
+                    MESSAGE_ID to message.messageId,
+                    DELIVERY_ID to message.deliveryId,
+                    ACTION_VALUE to actionValue,
+                    ACTION_NAME to actionName
                 ))
             }
         })
