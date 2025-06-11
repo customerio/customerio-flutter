@@ -25,7 +25,7 @@ import java.lang.ref.WeakReference
  * linked with the module should be placed here.
  */
 internal class CustomerIOInAppMessaging(
-    pluginBinding: FlutterPlugin.FlutterPluginBinding,
+    private val pluginBinding: FlutterPlugin.FlutterPluginBinding,
 ) : NativeModuleBridge, MethodChannel.MethodCallHandler, ActivityAware {
     override val moduleName: String = "InAppMessaging"
     override val flutterCommunicationChannel: MethodChannel =
