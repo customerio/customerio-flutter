@@ -48,8 +48,7 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         flutterCommunicationChannel =
             MethodChannel(flutterPluginBinding.binaryMessenger, "customer_io")
         flutterCommunicationChannel.setMethodCallHandler(this)
-
-
+        
         // Initialize modules
         modules = listOf(
             CustomerIOPushMessaging(flutterPluginBinding),
