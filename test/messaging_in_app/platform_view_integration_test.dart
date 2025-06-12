@@ -3,6 +3,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+/// Converts a Flutter Color to ARGB integer format for native platform
+int _colorToArgb(Color color) {
+  return ((color.a * 255).round() << 24) | 
+         ((color.r * 255).round() << 16) | 
+         ((color.g * 255).round() << 8) | 
+         (color.b * 255).round();
+}
+
 void main() {
   group('Platform View Integration', () {
     testWidgets('InlineInAppMessageView integrates with platform view registry',
@@ -49,7 +57,7 @@ void main() {
       
       final params = androidView.creationParams as Map<String, dynamic>;
       expect(params['elementId'], equals('integration-test-banner'));
-      expect(params['progressTint'], equals(Colors.purple.toARGB32()));
+      expect(params['progressTint'], equals(_colorToArgb(Colors.purple)));
 
       debugDefaultTargetPlatformOverride = null;
     });

@@ -60,7 +60,7 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
     if (defaultTargetPlatform == TargetPlatform.android) {
       final creationParams = <String, dynamic>{
         'elementId': widget.elementId,
-        if (widget.progressTint != null) 'progressTint': widget.progressTint!.toARGB32(),
+        if (widget.progressTint != null) 'progressTint': _colorToArgb(widget.progressTint!),
       };
       
       return AndroidView(
@@ -122,12 +122,20 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
 
   /// Sets the progress tint color for the inline message view
   Future<void> _setProgressTint(Color color) async {
-    await _safeInvokeMethod('setProgressTint', color.toARGB32());
+    await _safeInvokeMethod('setProgressTint', _colorToArgb(color));
   }
 
   /// Gets the current element ID from the native view
   Future<String?> getElementId() async {
     return await _safeInvokeMethod<String>('getElementId');
+  }
+
+  /// Converts a Flutter Color to ARGB integer format for native platform
+  int _colorToArgb(Color color) {
+    return ((color.a * 255).round() << 24) | 
+           ((color.r * 255).round() << 16) | 
+           ((color.g * 255).round() << 8) | 
+           (color.b * 255).round();
   }
 
   /// Safely invokes a method channel method with automatic error handling

@@ -3,6 +3,7 @@ package io.customer.customer_io.messaginginapp
 import android.app.Activity
 import io.customer.customer_io.bridge.NativeModuleBridge
 import io.customer.customer_io.bridge.nativeNoArgs
+import io.customer.customer_io.messaginginapp.InlineInAppMessageViewFactory
 import io.customer.customer_io.utils.getAs
 import io.customer.messaginginapp.MessagingInAppModuleConfig
 import io.customer.messaginginapp.ModuleMessagingInApp
@@ -31,14 +32,16 @@ internal class CustomerIOInAppMessaging(
     override val flutterCommunicationChannel: MethodChannel =
         MethodChannel(pluginBinding.binaryMessenger, "customer_io_messaging_in_app")
     private var activity: WeakReference<Activity>? = null
+    private val binaryMessenger = pluginBinding.binaryMessenger
+    private val platformViewRegistry = pluginBinding.platformViewRegistry
 
     override fun onAttachedToEngine() {
         super.onAttachedToEngine()
         
         // Register the platform view factory for inline in-app messages
-        pluginBinding.platformViewRegistry.registerViewFactory(
+        platformViewRegistry.registerViewFactory(
             "customer_io_inline_in_app_message_view",
-            InlineInAppMessageViewFactory(pluginBinding.binaryMessenger)
+            InlineInAppMessageViewFactory(binaryMessenger)
         )
     }
 
