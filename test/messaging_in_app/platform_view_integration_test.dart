@@ -62,6 +62,55 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
+    testWidgets('InlineInAppMessageView integrates with iOS platform view registry',
+        (WidgetTester tester) async {
+      // This test verifies that the widget can be created and rendered on iOS
+      // without throwing platform view registration errors
+      
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+      // Create the widget
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                const Text('Test App'),
+                SizedBox(
+                  height: 200,
+                  child: InlineInAppMessageView(
+                    elementId: 'integration-test-banner',
+                    onAction: (actionValue, actionName, {messageId, deliveryId}) {
+                      // Action handler for testing
+                      debugPrint('Action: $actionName = $actionValue');
+                    },
+                    progressTint: Colors.purple,
+                  ),
+                ),
+                const Text('End of Test'),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      // Verify the widget tree is built correctly
+      expect(find.text('Test App'), findsOneWidget);
+      expect(find.text('End of Test'), findsOneWidget);
+      expect(find.byType(InlineInAppMessageView), findsOneWidget);
+      expect(find.byType(UiKitView), findsOneWidget);
+
+      // Verify UiKitView has correct configuration
+      final uiKitView = tester.widget<UiKitView>(find.byType(UiKitView));
+      expect(uiKitView.viewType, equals('customer_io_inline_in_app_message_view'));
+      
+      final params = uiKitView.creationParams as Map<String, dynamic>;
+      expect(params['elementId'], equals('integration-test-banner'));
+      expect(params['progressTint'], equals(_colorToArgb(Colors.purple)));
+
+      debugDefaultTargetPlatformOverride = null;
+    });
+
     testWidgets('Multiple InlineInAppMessageView widgets can coexist',
         (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
@@ -106,6 +155,43 @@ void main() {
       }).toList();
 
       expect(elementIds, containsAll(['banner-1', 'banner-2', 'banner-3']));
+
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    testWidgets('Cross-platform platform view creation works correctly',
+        (WidgetTester tester) async {
+      // Test Android
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: InlineInAppMessageView(
+              elementId: 'cross-platform-test',
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(AndroidView), findsOneWidget);
+      expect(find.byType(UiKitView), findsNothing);
+
+      // Test iOS
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: InlineInAppMessageView(
+              elementId: 'cross-platform-test',
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(AndroidView), findsNothing);
+      expect(find.byType(UiKitView), findsOneWidget);
 
       debugDefaultTargetPlatformOverride = null;
     });

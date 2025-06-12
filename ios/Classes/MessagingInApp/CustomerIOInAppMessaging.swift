@@ -19,6 +19,12 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
         }
 
         registrar.addMethodCallDelegate(self, channel: methodChannel)
+        
+        // Register the platform view factory for inline in-app messages
+        registrar.register(
+            InlineInAppMessageViewFactory(messenger: registrar.messenger()),
+            withId: "customer_io_inline_in_app_message_view"
+        )
     }
 
     deinit {
