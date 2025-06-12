@@ -81,10 +81,10 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
         case "setProgressTint":
             call.native(result: result, transform: { 
                 guard let number = $0 as? NSNumber else { 
-                    throw FlutterError(code: "INVALID_ARGUMENT", message: "Expected NSNumber", details: nil)
+                    throw NSError(domain: "INVALID_ARGUMENT", code: 0, userInfo: [NSLocalizedDescriptionKey: "Expected NSNumber"])
                 }
                 return number
-            }) { colorValue in
+            }) { (colorValue: NSNumber) in
                 setProgressTint(colorValue.uint32Value)
             }
             
@@ -142,8 +142,8 @@ extension InlineInAppMessagePlatformView: InlineMessageUIViewDelegate {
         let args: [String: Any] = [
             Args.actionValue: actionValue,
             Args.actionName: actionName,
-            Args.messageId: message.messageId,
-            Args.deliveryId: message.deliveryId
+            Args.messageId: message.messageId as Any,
+            Args.deliveryId: message.deliveryId as Any
         ]
         
         invokeDartMethod("onAction", args)
