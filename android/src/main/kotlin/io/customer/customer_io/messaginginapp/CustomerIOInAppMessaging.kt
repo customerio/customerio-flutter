@@ -3,6 +3,7 @@ package io.customer.customer_io.messaginginapp
 import android.app.Activity
 import io.customer.customer_io.bridge.NativeModuleBridge
 import io.customer.customer_io.bridge.nativeNoArgs
+import io.customer.customer_io.messaginginapp.InlineInAppMessageViewFactory
 import io.customer.customer_io.utils.getAs
 import io.customer.messaginginapp.MessagingInAppModuleConfig
 import io.customer.messaginginapp.ModuleMessagingInApp
@@ -40,7 +41,7 @@ internal class CustomerIOInAppMessaging(
         // Register the platform view factory for inline in-app messages
         platformViewRegistry.registerViewFactory(
             "customer_io_inline_in_app_message_view",
-            io.customer.customer_io.messaginginapp.InlineInAppMessageViewFactory(binaryMessenger)
+            InlineInAppMessageViewFactory(binaryMessenger)
         )
     }
 
