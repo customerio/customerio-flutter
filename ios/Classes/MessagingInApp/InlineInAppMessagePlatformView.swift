@@ -25,7 +25,8 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
         binaryMessenger messenger: FlutterBinaryMessenger?
     ) {
         _view = UIView(frame: frame)
-        _inlineView = InlineMessageUIView()
+        let elementId = (args as? [String: AnyHashable])?.require(Args.elementId) ?? ""
+        _inlineView = InlineMessageUIView(elementId: elementId)
         
         super.init()
         
@@ -68,8 +69,6 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
             setProgressTint(progressTint.uint32Value)
         }
         
-        // Setup delegate for handling message events
-        _inlineView.delegate = self
     }
     
     private func handleMethodCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -80,7 +79,12 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
             }
             
         case "setProgressTint":
-            call.native(result: result, transform: { $0 as? NSNumber }) { colorValue in
+            call.native(result: result, transform: { 
+                guard let number = $0 as? NSNumber else { 
+                    throw FlutterError(code: "INVALID_ARGUMENT", message: "Expected NSNumber", details: nil)
+                }
+                return number
+            }) { colorValue in
                 setProgressTint(colorValue.uint32Value)
             }
             
@@ -138,8 +142,8 @@ extension InlineInAppMessagePlatformView: InlineMessageUIViewDelegate {
         let args: [String: Any] = [
             Args.actionValue: actionValue,
             Args.actionName: actionName,
-            Args.messageId: message.messageId ?? "",
-            Args.deliveryId: message.deliveryId ?? ""
+            Args.messageId: message.messageId,
+            Args.deliveryId: message.deliveryId
         ]
         
         invokeDartMethod("onAction", args)
