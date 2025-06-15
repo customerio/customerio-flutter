@@ -10,7 +10,8 @@ enum Screen {
   customEvents(name: 'Custom Event', path: 'events/custom'),
   deviceAttributes(name: 'Custom Device Attribute', path: 'attributes/device'),
   profileAttributes(
-      name: 'Custom Profile Attribute', path: 'attributes/profile');
+      name: 'Custom Profile Attribute', path: 'attributes/profile'),
+  inlineMessages(name: 'Inline Messages Test', path: 'inline-messages');
 
   const Screen({
     required this.name,
