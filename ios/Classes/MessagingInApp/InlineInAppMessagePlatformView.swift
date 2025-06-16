@@ -9,7 +9,6 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
     private var _inlineView: InlineMessageUIView
     private var methodChannel: FlutterMethodChannel?
     private var lastReportedHeight: CGFloat = 0
-    private var heightConstraint: NSLayoutConstraint?
     
     private enum Args {
         static let elementId = "elementId"

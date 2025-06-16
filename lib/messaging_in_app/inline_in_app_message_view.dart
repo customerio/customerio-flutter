@@ -68,6 +68,12 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
   double? _nativeHeight;
 
   @override
+  void dispose() {
+    _methodChannel?.setMethodCallHandler(null);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final creationParams = <String, dynamic>{
       'elementId': widget.elementId,
@@ -96,10 +102,10 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
       return const SizedBox.shrink();
     }
 
-    // Wrap the platform view with a container that respects the native height
-    // Use a reasonable default height when native height isn't available yet
+    // Flutter platform views need some height constraint to render
+    // Use native height if available, otherwise use a reasonable default
     return SizedBox(
-      height: _nativeHeight ?? 120.0, // Default to 120 logical pixels
+      height: _nativeHeight ?? 120.0, // Default minimum height for visibility
       child: platformView,
     );
   }
@@ -203,9 +209,4 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
     }
   }
 
-  @override
-  void dispose() {
-    _methodChannel?.setMethodCallHandler(null);
-    super.dispose();
-  }
 }

@@ -52,7 +52,6 @@ class InlineMessagesScreen extends StatelessWidget {
               ),
             );
           },
-          // Debug logging for height changes during testing
           onHeightChanged: (height) => debugPrint('Inline message ($elementId) height changed to: $height logical pixels'),
           progressTint: Theme.of(context).primaryColor,
         );
