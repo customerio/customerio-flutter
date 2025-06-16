@@ -39,24 +39,22 @@ class InlineMessagesScreen extends StatelessWidget {
   Widget _buildInlineMessageSection(String elementId) {
     return Builder(
       builder: (context) {
-        return SizedBox(
-          height: 120, // Good height for inline messages
-          width: double.infinity,
-          child: InlineInAppMessageView(
-            elementId: elementId,
-            onAction: (actionValue, actionName, {messageId, deliveryId}) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Action: $actionName, Value: $actionValue'
-                    '${messageId != null ? ', Message ID: $messageId' : ''}'
-                    '${deliveryId != null ? ', Delivery ID: $deliveryId' : ''}',
-                  ),
+        return InlineInAppMessageView(
+          elementId: elementId,
+          onAction: (actionValue, actionName, {messageId, deliveryId}) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Action: $actionName, Value: $actionValue'
+                  '${messageId != null ? ', Message ID: $messageId' : ''}'
+                  '${deliveryId != null ? ', Delivery ID: $deliveryId' : ''}',
                 ),
-              );
-            },
-            progressTint: Theme.of(context).primaryColor,
-          ),
+              ),
+            );
+          },
+          // Debug logging for height changes during testing
+          onHeightChanged: (height) => debugPrint('Inline message ($elementId) height changed to: $height logical pixels'),
+          progressTint: Theme.of(context).primaryColor,
         );
       },
     );

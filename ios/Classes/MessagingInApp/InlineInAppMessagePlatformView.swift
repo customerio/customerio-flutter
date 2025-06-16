@@ -8,6 +8,8 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
     private var _view: UIView
     private var _inlineView: InlineMessageUIView
     private var methodChannel: FlutterMethodChannel?
+    private var lastReportedHeight: CGFloat = 0
+    private var heightConstraint: NSLayoutConstraint?
     
     private enum Args {
         static let elementId = "elementId"
@@ -51,6 +53,9 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
             _inlineView.topAnchor.constraint(equalTo: _view.topAnchor),
             _inlineView.bottomAnchor.constraint(equalTo: _view.bottomAnchor)
         ])
+        
+        // Setup auto-resizing
+        setupAutoResizing()
     }
     
     func view() -> UIView {
@@ -131,6 +136,48 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
             guard let self else { return }
             self.methodChannel?.invokeMethod(method, arguments: args)
         }
+    }
+    
+    private func setupAutoResizing() {
+        // Add observer for view bounds changes
+        _inlineView.addObserver(self, forKeyPath: "bounds", options: [.new, .old], context: nil)
+        
+        // Trigger initial height calculation
+        DispatchQueue.main.async { [weak self] in
+            self?.checkAndReportHeightChange()
+        }
+    }
+    
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if keyPath == "bounds", let _ = object as? InlineMessageUIView {
+            checkAndReportHeightChange()
+        }
+    }
+    
+    private func checkAndReportHeightChange() {
+        let currentHeight = _inlineView.bounds.height
+        
+        // Only notify Flutter if the height has actually changed and is greater than 0
+        if currentHeight != lastReportedHeight && currentHeight > 0 {
+            lastReportedHeight = currentHeight
+            
+            // Convert height from points to pixels
+            let scale = UIScreen.main.scale
+            let heightInPixels = Int(currentHeight * scale)
+            
+            // Notify Flutter about the height change
+            let args: [String: Any] = [
+                "height": heightInPixels,
+                "heightInDp": Int(currentHeight) // Points are roughly equivalent to dp on iOS
+            ]
+            
+            invokeDartMethod("onHeightChanged", args)
+        }
+    }
+    
+    deinit {
+        // Remove observer to prevent crashes
+        _inlineView.removeObserver(self, forKeyPath: "bounds")
     }
 }
 

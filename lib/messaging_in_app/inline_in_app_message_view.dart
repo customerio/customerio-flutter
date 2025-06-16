@@ -10,6 +10,9 @@ typedef InAppMessageActionCallback = void Function(
   String? deliveryId,
 });
 
+/// Callback function for handling height changes in the native view
+typedef HeightChangeCallback = void Function(double height);
+
 /// A Flutter widget that displays an inline in-app message using native platform views.
 /// 
 /// This widget wraps the native Android InlineInAppMessageView and iOS GistInlineInAppMessageView 
@@ -24,6 +27,9 @@ typedef InAppMessageActionCallback = void Function(
 ///   onAction: (actionValue, actionName) {
 ///     print('Action triggered: $actionName with value: $actionValue');
 ///   },
+///   onHeightChanged: (height) {
+///     print('Native view height changed to: $height logical pixels');
+///   },
 /// )
 /// ```
 class InlineInAppMessageView extends StatefulWidget {
@@ -32,11 +38,13 @@ class InlineInAppMessageView extends StatefulWidget {
   /// [elementId] is required and identifies which message to display.
   /// [onAction] is an optional callback for handling message actions.
   /// [progressTint] is an optional color for the progress indicator.
+  /// [onHeightChanged] is an optional callback for handling height changes.
   const InlineInAppMessageView({
     super.key,
     required this.elementId,
     this.onAction,
     this.progressTint,
+    this.onHeightChanged,
   });
 
   /// The element ID that identifies which message to display
@@ -48,12 +56,16 @@ class InlineInAppMessageView extends StatefulWidget {
   /// Optional color for the progress indicator
   final Color? progressTint;
 
+  /// Optional callback for handling height changes in the native view
+  final HeightChangeCallback? onHeightChanged;
+
   @override
   State<InlineInAppMessageView> createState() => _InlineInAppMessageViewState();
 }
 
 class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
   MethodChannel? _methodChannel;
+  double? _nativeHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -62,25 +74,34 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
       if (widget.progressTint != null) 'progressTint': _colorToArgb(widget.progressTint!),
     };
 
+    Widget platformView;
+
     // Build platform-specific views
     if (defaultTargetPlatform == TargetPlatform.android) {
-      return AndroidView(
+      platformView = AndroidView(
         viewType: 'customer_io_inline_in_app_message_view',
         creationParams: creationParams,
         creationParamsCodec: const StandardMessageCodec(),
         onPlatformViewCreated: _onPlatformViewCreated,
       );
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-      return UiKitView(
+      platformView = UiKitView(
         viewType: 'customer_io_inline_in_app_message_view',
         creationParams: creationParams,
         creationParamsCodec: const StandardMessageCodec(),
         onPlatformViewCreated: _onPlatformViewCreated,
       );
+    } else {
+      // Return an empty container for other platforms
+      return const SizedBox.shrink();
     }
 
-    // Return an empty container for other platforms
-    return const SizedBox.shrink();
+    // Wrap the platform view with a container that respects the native height
+    // Use a reasonable default height when native height isn't available yet
+    return SizedBox(
+      height: _nativeHeight ?? 120.0, // Default to 120 logical pixels
+      child: platformView,
+    );
   }
 
   void _onPlatformViewCreated(int id) {
@@ -103,6 +124,23 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
             messageId: messageId,
             deliveryId: deliveryId,
           );
+        }
+        break;
+      case 'onHeightChanged':
+        final arguments = call.arguments as Map<dynamic, dynamic>;
+        final heightInPixels = arguments['height'] as int?;
+        if (heightInPixels != null && heightInPixels > 0) {
+          // Convert pixels to logical pixels using device pixel ratio
+          final logicalHeight = heightInPixels / MediaQuery.of(context).devicePixelRatio;
+          
+          if (mounted) {
+            setState(() {
+              _nativeHeight = logicalHeight;
+            });
+            
+            // Notify the parent widget about the height change
+            widget.onHeightChanged?.call(logicalHeight);
+          }
         }
         break;
     }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.widget.FrameLayout
 import io.customer.customer_io.bridge.native
 import io.customer.messaginginapp.type.InAppMessage
@@ -31,6 +32,8 @@ class InlineInAppMessagePlatformView(
 
     private val inlineView: InlineInAppMessageView = InlineInAppMessageView(context)
     private val methodChannel: MethodChannel
+    private var lastReportedHeight: Int = 0
+    private var globalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
     
     companion object {
         private const val TAG = "InlineInAppMessagePlatformView"
@@ -109,6 +112,9 @@ class InlineInAppMessagePlatformView(
                 inlineView.elementId = currentElementId
                 Log.d(TAG, "Initial elementId reset complete")
             }
+            
+            // Setup auto-resizing listener after view is attached
+            setupAutoResizing()
         }
     }
 
@@ -119,6 +125,13 @@ class InlineInAppMessagePlatformView(
 
     override fun dispose() {
         Log.d(TAG, "dispose() called")
+        
+        // Remove global layout listener to prevent memory leaks
+        globalLayoutListener?.let { listener ->
+            inlineView.viewTreeObserver?.removeOnGlobalLayoutListener(listener)
+            globalLayoutListener = null
+        }
+        
         methodChannel.setMethodCallHandler(null)
     }
 
@@ -152,5 +165,39 @@ class InlineInAppMessagePlatformView(
         val currentElementId = inlineView.elementId
         Log.d(TAG, "Getting elementId: $currentElementId")
         return currentElementId
+    }
+    
+    /**
+     * Sets up auto-resizing functionality by listening to layout changes in the native view
+     * and notifying Flutter when the height changes.
+     */
+    private fun setupAutoResizing() {
+        Log.d(TAG, "Setting up auto-resizing listener")
+        
+        globalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
+            val currentHeight = inlineView.measuredHeight
+            
+            // Only notify Flutter if the height has actually changed
+            if (currentHeight != lastReportedHeight && currentHeight > 0) {
+                Log.d(TAG, "View height changed from $lastReportedHeight to $currentHeight")
+                lastReportedHeight = currentHeight
+                
+                // Convert height from pixels to density-independent pixels (dp)
+                val density = inlineView.context.resources.displayMetrics.density
+                val heightInDp = (currentHeight / density).toInt()
+                
+                // Notify Flutter about the height change
+                methodChannel.invokeMethod("onHeightChanged", mapOf(
+                    "height" to currentHeight,
+                    "heightInDp" to heightInDp
+                ))
+                
+                Log.d(TAG, "Notified Flutter of height change: ${currentHeight}px (${heightInDp}dp)")
+            }
+        }
+        
+        // Add the listener to the view tree observer
+        inlineView.viewTreeObserver?.addOnGlobalLayoutListener(globalLayoutListener)
+        Log.d(TAG, "Auto-resizing listener added successfully")
     }
 }
