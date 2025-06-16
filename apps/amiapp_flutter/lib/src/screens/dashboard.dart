@@ -287,6 +287,7 @@ enum _ActionItem {
   customEvent,
   deviceAttributes,
   profileAttributes,
+  inlineMessages,
   showPushPrompt,
   showLocalPush,
   signOut,
@@ -303,6 +304,8 @@ extension _ActionNames on _ActionItem {
         return 'Set Device Attribute';
       case _ActionItem.profileAttributes:
         return 'Set Profile Attribute';
+      case _ActionItem.inlineMessages:
+        return 'Test Inline Messages';
       case _ActionItem.showPushPrompt:
         return 'Show Push Prompt';
       case _ActionItem.showLocalPush:
@@ -322,6 +325,8 @@ extension _ActionNames on _ActionItem {
         return 'Device Attribute Button';
       case _ActionItem.profileAttributes:
         return 'Profile Attribute Button';
+      case _ActionItem.inlineMessages:
+        return 'Inline Messages Button';
       case _ActionItem.showPushPrompt:
         return 'Show Push Prompt Button';
       case _ActionItem.showLocalPush:
@@ -341,6 +346,8 @@ extension _ActionNames on _ActionItem {
         return Screen.deviceAttributes;
       case _ActionItem.profileAttributes:
         return Screen.profileAttributes;
+      case _ActionItem.inlineMessages:
+        return Screen.inlineMessages;
       case _ActionItem.showPushPrompt:
         return null;
       case _ActionItem.showLocalPush:
