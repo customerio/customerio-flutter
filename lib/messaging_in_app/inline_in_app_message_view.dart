@@ -88,7 +88,7 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView>
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _heightAnimation = Tween<double>(begin: 120.0, end: 120.0).animate(
+    _heightAnimation = Tween<double>(begin: 1.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
     _widthAnimation = Tween<double>(begin: 0.0, end: 0.0).animate(
@@ -185,6 +185,11 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView>
           setState(() {
             _isLoading = state == 'LoadingStarted';
           });
+          
+          // Handle no message state - animate to minimal height
+          if (state == 'NoMessageToDisplay') {
+            _animateToSize(height: 1.0, duration: 200);
+          }
         }
         break;
       case 'onHeightChanged':
