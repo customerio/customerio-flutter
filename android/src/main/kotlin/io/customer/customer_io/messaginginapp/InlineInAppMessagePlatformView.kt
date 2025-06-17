@@ -5,7 +5,6 @@ import android.os.Handler
 import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
 import io.customer.customer_io.bridge.native
 import io.customer.messaginginapp.type.InAppMessage
 import io.customer.messaginginapp.type.InlineMessageActionListener
@@ -31,8 +30,6 @@ class InlineInAppMessagePlatformView(
 
     private val methodChannel: MethodChannel = MethodChannel(messenger, "customer_io_inline_view_$id")
     private val inlineView: FlutterInlineInAppMessageView = FlutterInlineInAppMessageView(context, methodChannel = methodChannel)
-    private var lastReportedHeight: Int = 0
-    private var globalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
     private val mainHandler = Handler(Looper.getMainLooper())
     
     companion object {
@@ -90,19 +87,12 @@ class InlineInAppMessagePlatformView(
                 inlineView.elementId = null
                 inlineView.elementId = currentElementId
             }
-            setupAutoResizing()
         }
     }
 
     override fun getView(): View = inlineView
 
     override fun dispose() {
-        // Remove global layout listener to prevent memory leaks
-        globalLayoutListener?.let { listener ->
-            inlineView.viewTreeObserver?.removeOnGlobalLayoutListener(listener)
-            globalLayoutListener = null
-        }
-        
         methodChannel.setMethodCallHandler(null)
     }
 
@@ -125,24 +115,4 @@ class InlineInAppMessagePlatformView(
     }
 
     private fun getElementId(): String? = inlineView.elementId
-
-    private fun setupAutoResizing() {
-        globalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
-            val currentHeight = inlineView.measuredHeight
-            
-            if (currentHeight != lastReportedHeight && currentHeight > 0) {
-                lastReportedHeight = currentHeight
-                val density = inlineView.context.resources.displayMetrics.density
-                val heightInDp = (currentHeight / density).toDouble()
-                
-                inlineView.triggerSizeAnimation(
-                    widthInDp = null,
-                    heightInDp = heightInDp,
-                    duration = 200L
-                )
-            }
-        }
-        
-        inlineView.viewTreeObserver?.addOnGlobalLayoutListener(globalLayoutListener)
-    }
 }
