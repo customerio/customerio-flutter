@@ -6,8 +6,6 @@ import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
 import io.customer.customer_io.bridge.native
-import io.customer.messaginginapp.type.InAppMessage
-import io.customer.messaginginapp.type.InlineMessageActionListener
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -38,10 +36,6 @@ class InlineInAppMessagePlatformView(
         // Parameter constants for consistency with iOS implementation
         private const val ELEMENT_ID = "elementId"
         private const val PROGRESS_TINT = "progressTint"
-        private const val ACTION_VALUE = "actionValue"
-        private const val ACTION_NAME = "actionName"
-        private const val MESSAGE_ID = "messageId"
-        private const val DELIVERY_ID = "deliveryId"
     }
 
     init {
@@ -63,20 +57,6 @@ class InlineInAppMessagePlatformView(
         // Set method call handler for the channel
         methodChannel.setMethodCallHandler(this)
 
-        // Set up action listener to forward actions to Flutter
-        inlineView.setActionListener(object : InlineMessageActionListener {
-            override fun onActionClick(message: InAppMessage, actionValue: String, actionName: String) {
-                // Ensure we're on the main thread for Flutter method channel calls
-                mainHandler.post {
-                    methodChannel.invokeMethod("onAction", mapOf(
-                        MESSAGE_ID to message.messageId,
-                        DELIVERY_ID to message.deliveryId,
-                        ACTION_VALUE to actionValue,
-                        ACTION_NAME to actionName
-                    ))
-                }
-            }
-        })
         
         inlineView.visibility = View.VISIBLE
         
