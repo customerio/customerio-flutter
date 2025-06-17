@@ -2,7 +2,6 @@ package io.customer.customer_io.messaginginapp
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.MotionEvent
 import android.view.ViewGroup
 import androidx.annotation.AttrRes
 import androidx.annotation.StyleRes
@@ -32,10 +31,6 @@ class FlutterInlineInAppMessageView @JvmOverloads constructor(
         this.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
         descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
         configureView()
-        
-        // Ensure this view can receive touch events
-        isClickable = true
-        isFocusable = true
     }
 
     override fun onDetachedFromWindow() {
@@ -70,23 +65,5 @@ class FlutterInlineInAppMessageView @JvmOverloads constructor(
     }
     
 
-    override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
-        // Don't intercept - let children handle touches
-        return false
-    }
 
-    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
-        // Ensure EngineWebView can receive touch events on first touch
-        if (childCount > 0) {
-            val child = getChildAt(0)
-            if (child.javaClass.simpleName == "EngineWebView" && (!child.isClickable || !child.isFocusable)) {
-                child.isClickable = true
-                child.isFocusable = true
-                child.isFocusableInTouchMode = true
-            }
-        }
-        
-        // Let the Customer.io EngineWebView handle touches normally
-        return super.dispatchTouchEvent(ev)
-    }
 }
