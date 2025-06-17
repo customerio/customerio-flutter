@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -113,9 +114,30 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView>
     if (defaultTargetPlatform == TargetPlatform.android) {
       platformView = AndroidView(
         viewType: 'customer_io_inline_in_app_message_view',
+        layoutDirection: TextDirection.ltr,
         creationParams: creationParams,
         creationParamsCodec: const StandardMessageCodec(),
         onPlatformViewCreated: _onPlatformViewCreated,
+        gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+          Factory<TapGestureRecognizer>(() => TapGestureRecognizer()
+            ..onTap = () {
+              if (kDebugMode) {
+                debugPrint('InlineInAppMessageView: TapGestureRecognizer triggered');
+              }
+            }),
+          Factory<PanGestureRecognizer>(() => PanGestureRecognizer()
+            ..onStart = (details) {
+              if (kDebugMode) {
+                debugPrint('InlineInAppMessageView: PanGestureRecognizer started at ${details.localPosition}');
+              }
+            }),
+          Factory<ScaleGestureRecognizer>(() => ScaleGestureRecognizer()
+            ..onStart = (details) {
+              if (kDebugMode) {
+                debugPrint('InlineInAppMessageView: ScaleGestureRecognizer started at ${details.localFocalPoint}');
+              }
+            }),
+        }.toSet(),
       );
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       platformView = UiKitView(
@@ -140,6 +162,9 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView>
   }
 
   void _onPlatformViewCreated(int id) {
+    if (kDebugMode) {
+      debugPrint('InlineInAppMessageView: Platform view created with id: $id');
+    }
     _methodChannel = MethodChannel('customer_io_inline_view_$id');
     _methodChannel!.setMethodCallHandler(_handleMethodCall);
   }

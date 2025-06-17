@@ -1,6 +1,8 @@
 package io.customer.customer_io.messaginginapp
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -34,6 +36,7 @@ class InlineInAppMessagePlatformView(
     private val inlineView: FlutterInlineInAppMessageView = FlutterInlineInAppMessageView(context, methodChannel = methodChannel)
     private var lastReportedHeight: Int = 0
     private var globalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
+    private val mainHandler = Handler(Looper.getMainLooper())
     
     companion object {
         private const val TAG = "InlineInAppMessagePlatformView"
@@ -77,15 +80,31 @@ class InlineInAppMessagePlatformView(
         // Set up action listener to forward actions to Flutter
         inlineView.setActionListener(object : InlineMessageActionListener {
             override fun onActionClick(message: InAppMessage, actionValue: String, actionName: String) {
-                Log.d(TAG, "Action triggered: $actionName = $actionValue for message: ${message.messageId}")
-                methodChannel.invokeMethod("onAction", mapOf(
-                    MESSAGE_ID to message.messageId,
-                    DELIVERY_ID to message.deliveryId,
-                    ACTION_VALUE to actionValue,
-                    ACTION_NAME to actionName
-                ))
+                Log.d(TAG, "🔥 ACTION TRIGGERED: $actionName = $actionValue for message: ${message.messageId}")
+                Log.d(TAG, "🔥 ACTION DETAILS: deliveryId=${message.deliveryId}, messageId=${message.messageId}")
+                Log.d(TAG, "🔥 Current thread: ${Thread.currentThread().name}")
+                
+                // Ensure we're on the main thread for Flutter method channel calls
+                mainHandler.post {
+                    try {
+                        Log.d(TAG, "🔥 Forwarding action to Flutter on main thread")
+                        // Forward to Flutter
+                        methodChannel.invokeMethod("onAction", mapOf(
+                            MESSAGE_ID to message.messageId,
+                            DELIVERY_ID to message.deliveryId,
+                            ACTION_VALUE to actionValue,
+                            ACTION_NAME to actionName
+                        ))
+                        
+                        Log.d(TAG, "🔥 ACTION FORWARDED to Flutter successfully")
+                    } catch (e: Exception) {
+                        Log.e(TAG, "🔥 Error forwarding action to Flutter: ${e.message}")
+                    }
+                }
             }
         })
+        
+        Log.d(TAG, "Action listener set up successfully")
         
         inlineView.layoutParams = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -107,6 +126,8 @@ class InlineInAppMessagePlatformView(
     }
 
     override fun getView(): View {
+        Log.d(TAG, "getView() called - returning inlineView with id: ${inlineView.id}")
+        Log.d(TAG, "inlineView properties: clickable=${inlineView.isClickable}, focusable=${inlineView.isFocusable}, enabled=${inlineView.isEnabled}")
         return inlineView
     }
 
