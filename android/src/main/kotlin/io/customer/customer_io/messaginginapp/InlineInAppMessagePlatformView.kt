@@ -10,7 +10,6 @@ import io.customer.customer_io.bridge.native
 import io.customer.messaginginapp.type.InAppMessage
 import io.customer.messaginginapp.type.InlineMessageActionListener
 import io.customer.messaginginapp.ui.InlineInAppMessageView
-import io.customer.messaginginapp.ui.bridge.AndroidInAppPlatformDelegate
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -65,19 +64,9 @@ class InlineInAppMessagePlatformView(
         // Set initial progress tint color if provided
         creationParams?.get(PROGRESS_TINT)?.let { color ->
             when (color) {
-                is Int -> {
-                    Log.d(TAG, "Setting progressTint: $color")
-                    // TODO: Implement setProgressTint when available in BaseInlineInAppMessageView
-                    // inlineView.setProgressTint(color)
-                }
-                is Long -> {
-                    Log.d(TAG, "Setting progressTint (Long): $color")
-                    // TODO: Implement setProgressTint when available in BaseInlineInAppMessageView
-                    // inlineView.setProgressTint(color.toInt())
-                }
-                else -> {
-                    Log.w(TAG, "ProgressTint is not an int/long: $color (${color?.javaClass?.simpleName})")
-                }
+                is Int -> inlineView.setProgressTint(color)
+                is Long -> inlineView.setProgressTint(color.toInt())
+                else -> Log.w(TAG, "ProgressTint must be an integer, got: ${color?.javaClass?.simpleName}")
             }
         }
 
@@ -98,39 +87,26 @@ class InlineInAppMessagePlatformView(
             }
         })
         
-        // Set up the inline view with proper layout params - no container needed
         inlineView.layoutParams = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
-        
-        // Make sure view is visible
         inlineView.visibility = View.VISIBLE
-        
-        // Loading state events are handled automatically by FlutterInlineInAppMessageView
         
         Log.d(TAG, "InlineInAppMessageView initialized with elementId: ${inlineView.elementId}")
         
-        // Post initial setup to ensure proper initialization
         inlineView.post {
-            Log.d(TAG, "View posted to UI thread, elementId is: ${inlineView.elementId}")
-            
             // Reset elementId to trigger Customer.io registration
             val currentElementId = inlineView.elementId
             if (currentElementId != null) {
-                Log.d(TAG, "Initial elementId reset for registration: $currentElementId")
                 inlineView.elementId = null
                 inlineView.elementId = currentElementId
-                Log.d(TAG, "Initial elementId reset complete")
             }
-            
-            // Setup auto-resizing to trigger platform delegate animations
             setupAutoResizing()
         }
     }
 
     override fun getView(): View {
-        Log.d(TAG, "getView() called, returning FlutterInlineInAppMessageView")
         return inlineView
     }
 
@@ -168,9 +144,7 @@ class InlineInAppMessagePlatformView(
 
     private fun setProgressTint(color: Int?) {
         require(color != null) { "Color must be an integer" }
-        Log.d(TAG, "Setting progressTint via method call: $color")
-        // TODO: Implement setProgressTint when available in BaseInlineInAppMessageView
-        // inlineView.setProgressTint(color)
+        inlineView.setProgressTint(color)
     }
 
     private fun getElementId(): String? {
@@ -179,39 +153,23 @@ class InlineInAppMessagePlatformView(
         return currentElementId
     }
 
-    /**
-     * Sets up auto-resizing functionality by listening to layout changes in the native view
-     * and triggering platform delegate animations which notify Flutter.
-     */
     private fun setupAutoResizing() {
-        Log.d(TAG, "Setting up auto-resizing listener")
-        
         globalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
-            // Measure the actual content height from the inline view
             val currentHeight = inlineView.measuredHeight
             
-            // Only process if the height has actually changed and is meaningful
             if (currentHeight != lastReportedHeight && currentHeight > 0) {
-                Log.d(TAG, "View height changed from $lastReportedHeight to $currentHeight")
                 lastReportedHeight = currentHeight
-                
-                // Convert height from pixels to density-independent pixels (dp)
                 val density = inlineView.context.resources.displayMetrics.density
                 val heightInDp = (currentHeight / density).toDouble()
                 
-                // Trigger platform delegate animation which will notify Flutter
                 inlineView.triggerSizeAnimation(
                     widthInDp = null,
                     heightInDp = heightInDp,
                     duration = 200L
                 )
-                
-                Log.d(TAG, "Triggered platform delegate animation for height: ${heightInDp}dp")
             }
         }
         
-        // Add the listener to the view tree observer
         inlineView.viewTreeObserver?.addOnGlobalLayoutListener(globalLayoutListener)
-        Log.d(TAG, "Auto-resizing listener added successfully")
     }
 }

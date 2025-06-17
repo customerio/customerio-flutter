@@ -2,6 +2,8 @@ package io.customer.customer_io.messaginginapp
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.MotionEvent
+import android.view.ViewGroup
 import androidx.annotation.AttrRes
 import androidx.annotation.StyleRes
 import io.customer.messaginginapp.ui.core.BaseInlineInAppMessageView
@@ -9,9 +11,7 @@ import io.flutter.plugin.common.MethodChannel
 
 /**
  * Flutter implementation of inline in-app message view.
- * Replacement for [InlineInAppMessageView] from native SDK to work seamlessly with Flutter.
  * Bridges native in-app message functionality with Flutter event handling and layout system.
- * Similar to ReactInlineInAppMessageView but for Flutter integration.
  */
 class FlutterInlineInAppMessageView @JvmOverloads constructor(
     context: Context,
@@ -26,6 +26,7 @@ class FlutterInlineInAppMessageView @JvmOverloads constructor(
 
     init {
         this.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+        descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
         configureView()
     }
 
@@ -46,18 +47,10 @@ class FlutterInlineInAppMessageView @JvmOverloads constructor(
         platformDelegate.sendLoadingStateEvent(InlineInAppMessageStateEvent.NoMessageToDisplay)
     }
 
-    /**
-     * Set progress tint color for the loading indicator
-     * TODO: Implement when setProgressTint is available in BaseInlineInAppMessageView
-     */
     fun setProgressTint(color: Int) {
-        // TODO: Call actual setProgressTint method when available
-        // For now, this is a placeholder
+        // TODO: Implement when setProgressTint is available in BaseInlineInAppMessageView
     }
 
-    /**
-     * Trigger size animation through the platform delegate
-     */
     fun triggerSizeAnimation(widthInDp: Double?, heightInDp: Double?, duration: Long = 200L) {
         platformDelegate.animateViewSize(
             widthInDp = widthInDp,
@@ -66,5 +59,9 @@ class FlutterInlineInAppMessageView @JvmOverloads constructor(
             onStart = null,
             onEnd = null
         )
+    }
+
+    override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
+        return false
     }
 }

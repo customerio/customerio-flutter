@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/gestures.dart';
 
 /// Callback function for handling in-app message actions
 typedef InAppMessageActionCallback = void Function(
@@ -112,7 +110,6 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView>
 
     Widget platformView;
 
-    // Build platform-specific views
     if (defaultTargetPlatform == TargetPlatform.android) {
       platformView = AndroidView(
         viewType: 'customer_io_inline_in_app_message_view',
@@ -128,11 +125,8 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView>
         onPlatformViewCreated: _onPlatformViewCreated,
       );
     } else {
-      // Return an empty container for other platforms
       return const SizedBox.shrink();
     }
-
-    // Use AnimatedBuilder for smooth size transitions like React Native
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
@@ -186,25 +180,8 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView>
             _isLoading = state == 'LoadingStarted';
           });
           
-          // Handle no message state - animate to minimal height
           if (state == 'NoMessageToDisplay') {
             _animateToSize(height: 1.0, duration: 200);
-          }
-        }
-        break;
-      case 'onHeightChanged':
-        // Legacy support for old height change events
-        final arguments = call.arguments as Map<dynamic, dynamic>;
-        final heightInPixels = arguments['height'] as int?;
-        if (heightInPixels != null && heightInPixels > 0) {
-          final logicalHeight = heightInPixels / MediaQuery.of(context).devicePixelRatio;
-          
-          if (mounted) {
-            setState(() {
-              _nativeHeight = logicalHeight;
-            });
-            
-            widget.onHeightChanged?.call(logicalHeight);
           }
         }
         break;
