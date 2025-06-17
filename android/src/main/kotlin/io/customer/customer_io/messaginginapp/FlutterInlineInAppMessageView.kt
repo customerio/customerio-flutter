@@ -22,14 +22,9 @@ class FlutterInlineInAppMessageView @JvmOverloads constructor(
     context, attrs, defStyleAttr, defStyleRes
 ) {
     override val platformDelegate = FlutterInAppPlatformDelegate(view = this, methodChannel = methodChannel)
-    
-    companion object {
-        private const val TAG = "FlutterInlineView"
-    }
 
     init {
-        this.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
-        descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
+        layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
         configureView()
     }
 
@@ -63,7 +58,4 @@ class FlutterInlineInAppMessageView @JvmOverloads constructor(
             onEnd = null
         )
     }
-    
-
-
 }

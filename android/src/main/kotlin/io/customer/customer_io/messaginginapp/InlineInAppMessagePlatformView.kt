@@ -3,15 +3,12 @@ package io.customer.customer_io.messaginginapp
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
-import android.widget.FrameLayout
 import io.customer.customer_io.bridge.native
 import io.customer.messaginginapp.type.InAppMessage
 import io.customer.messaginginapp.type.InlineMessageActionListener
-import io.customer.messaginginapp.ui.InlineInAppMessageView
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -51,68 +48,40 @@ class InlineInAppMessagePlatformView(
     }
 
     init {
-        Log.d(TAG, "Creating InlineInAppMessagePlatformView with id: $id")
-        Log.d(TAG, "Creation params: $creationParams")
-        
         // Set initial element ID from creation params
         creationParams?.get(ELEMENT_ID)?.let { elementId ->
             if (elementId is String) {
-                Log.d(TAG, "Setting elementId: $elementId")
                 inlineView.elementId = elementId
-            } else {
-                Log.w(TAG, "ElementId is not a string: $elementId (${elementId?.javaClass?.simpleName})")
             }
-        } ?: Log.w(TAG, "No elementId found in creation params")
+        }
 
         // Set initial progress tint color if provided
         creationParams?.get(PROGRESS_TINT)?.let { color ->
             when (color) {
                 is Int -> inlineView.setProgressTint(color)
                 is Long -> inlineView.setProgressTint(color.toInt())
-                else -> Log.w(TAG, "ProgressTint must be an integer, got: ${color?.javaClass?.simpleName}")
             }
         }
 
         // Set method call handler for the channel
         methodChannel.setMethodCallHandler(this)
-        Log.d(TAG, "Method channel created: customer_io_inline_view_$id")
 
         // Set up action listener to forward actions to Flutter
         inlineView.setActionListener(object : InlineMessageActionListener {
             override fun onActionClick(message: InAppMessage, actionValue: String, actionName: String) {
-                Log.d(TAG, "🔥 ACTION TRIGGERED: $actionName = $actionValue for message: ${message.messageId}")
-                Log.d(TAG, "🔥 ACTION DETAILS: deliveryId=${message.deliveryId}, messageId=${message.messageId}")
-                Log.d(TAG, "🔥 Current thread: ${Thread.currentThread().name}")
-                
                 // Ensure we're on the main thread for Flutter method channel calls
                 mainHandler.post {
-                    try {
-                        Log.d(TAG, "🔥 Forwarding action to Flutter on main thread")
-                        // Forward to Flutter
-                        methodChannel.invokeMethod("onAction", mapOf(
-                            MESSAGE_ID to message.messageId,
-                            DELIVERY_ID to message.deliveryId,
-                            ACTION_VALUE to actionValue,
-                            ACTION_NAME to actionName
-                        ))
-                        
-                        Log.d(TAG, "🔥 ACTION FORWARDED to Flutter successfully")
-                    } catch (e: Exception) {
-                        Log.e(TAG, "🔥 Error forwarding action to Flutter: ${e.message}")
-                    }
+                    methodChannel.invokeMethod("onAction", mapOf(
+                        MESSAGE_ID to message.messageId,
+                        DELIVERY_ID to message.deliveryId,
+                        ACTION_VALUE to actionValue,
+                        ACTION_NAME to actionName
+                    ))
                 }
             }
         })
         
-        Log.d(TAG, "Action listener set up successfully")
-        
-        inlineView.layoutParams = ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        )
         inlineView.visibility = View.VISIBLE
-        
-        Log.d(TAG, "InlineInAppMessageView initialized with elementId: ${inlineView.elementId}")
         
         inlineView.post {
             // Reset elementId to trigger Customer.io registration
@@ -125,15 +94,9 @@ class InlineInAppMessagePlatformView(
         }
     }
 
-    override fun getView(): View {
-        Log.d(TAG, "getView() called - returning inlineView with id: ${inlineView.id}")
-        Log.d(TAG, "inlineView properties: clickable=${inlineView.isClickable}, focusable=${inlineView.isFocusable}, enabled=${inlineView.isEnabled}")
-        return inlineView
-    }
+    override fun getView(): View = inlineView
 
     override fun dispose() {
-        Log.d(TAG, "dispose() called")
-        
         // Remove global layout listener to prevent memory leaks
         globalLayoutListener?.let { listener ->
             inlineView.viewTreeObserver?.removeOnGlobalLayoutListener(listener)
@@ -144,23 +107,16 @@ class InlineInAppMessagePlatformView(
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
-        Log.d(TAG, "Method call received: ${call.method} with arguments: ${call.arguments}")
-        
         when (call.method) {
             "setElementId" -> call.native(result, { it as? String }, ::setElementId)
             "setProgressTint" -> call.native(result, { it as? Int }, ::setProgressTint)
             "getElementId" -> call.native(result, { Unit }, { getElementId() })
-            else -> {
-                Log.w(TAG, "Unhandled method call: ${call.method}")
-                result.notImplemented()
-            }
+            else -> result.notImplemented()
         }
     }
 
     private fun setElementId(elementId: String?) {
-        Log.d(TAG, "Setting elementId via method call: $elementId")
         inlineView.elementId = elementId
-        Log.d(TAG, "ElementId set to: ${inlineView.elementId}")
     }
 
     private fun setProgressTint(color: Int?) {
@@ -168,11 +124,7 @@ class InlineInAppMessagePlatformView(
         inlineView.setProgressTint(color)
     }
 
-    private fun getElementId(): String? {
-        val currentElementId = inlineView.elementId
-        Log.d(TAG, "Getting elementId: $currentElementId")
-        return currentElementId
-    }
+    private fun getElementId(): String? = inlineView.elementId
 
     private fun setupAutoResizing() {
         globalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
