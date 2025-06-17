@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/gestures.dart';
 
 /// Callback function for handling in-app message actions
 typedef InAppMessageActionCallback = void Function(
@@ -12,6 +14,12 @@ typedef InAppMessageActionCallback = void Function(
 
 /// Callback function for handling height changes in the native view
 typedef HeightChangeCallback = void Function(double height);
+
+/// Callback function for handling size changes (width and height) in the native view
+typedef SizeChangeCallback = void Function({double? width, double? height, double? duration});
+
+/// Callback function for handling loading state changes
+typedef StateChangeCallback = void Function(String state);
 
 /// A Flutter widget that displays an inline in-app message using native platform views.
 /// 
@@ -63,13 +71,35 @@ class InlineInAppMessageView extends StatefulWidget {
   State<InlineInAppMessageView> createState() => _InlineInAppMessageViewState();
 }
 
-class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
+class _InlineInAppMessageViewState extends State<InlineInAppMessageView> 
+    with SingleTickerProviderStateMixin {
   MethodChannel? _methodChannel;
   double? _nativeHeight;
+  double? _nativeWidth;
+  bool _isLoading = false;
+  late AnimationController _animationController;
+  late Animation<double> _heightAnimation;
+  late Animation<double> _widthAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _heightAnimation = Tween<double>(begin: 120.0, end: 120.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _widthAnimation = Tween<double>(begin: 0.0, end: 0.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+  }
 
   @override
   void dispose() {
     _methodChannel?.setMethodCallHandler(null);
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -102,11 +132,16 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
       return const SizedBox.shrink();
     }
 
-    // Flutter platform views need some height constraint to render
-    // Use native height if available, otherwise use a reasonable default
-    return SizedBox(
-      height: _nativeHeight ?? 120.0, // Default minimum height for visibility
-      child: platformView,
+    // Use AnimatedBuilder for smooth size transitions like React Native
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return SizedBox(
+          height: _nativeHeight ?? _heightAnimation.value,
+          width: _nativeWidth ?? (_widthAnimation.value > 0 ? _widthAnimation.value : null),
+          child: platformView,
+        );
+      },
     );
   }
 
@@ -132,11 +167,31 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
           );
         }
         break;
+      case 'onSizeChange':
+        final arguments = call.arguments as Map<dynamic, dynamic>;
+        final width = arguments['width'] as double?;
+        final height = arguments['height'] as double?;
+        final duration = arguments['duration'] as double? ?? 200.0;
+        
+        if (mounted) {
+          _animateToSize(width: width, height: height, duration: duration.toInt());
+        }
+        break;
+      case 'onStateChange':
+        final arguments = call.arguments as Map<dynamic, dynamic>;
+        final state = arguments['state'] as String;
+        
+        if (mounted) {
+          setState(() {
+            _isLoading = state == 'LoadingStarted';
+          });
+        }
+        break;
       case 'onHeightChanged':
+        // Legacy support for old height change events
         final arguments = call.arguments as Map<dynamic, dynamic>;
         final heightInPixels = arguments['height'] as int?;
         if (heightInPixels != null && heightInPixels > 0) {
-          // Convert pixels to logical pixels using device pixel ratio
           final logicalHeight = heightInPixels / MediaQuery.of(context).devicePixelRatio;
           
           if (mounted) {
@@ -144,12 +199,38 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
               _nativeHeight = logicalHeight;
             });
             
-            // Notify the parent widget about the height change
             widget.onHeightChanged?.call(logicalHeight);
           }
         }
         break;
     }
+  }
+
+  void _animateToSize({double? width, double? height, int duration = 200}) {
+    _animationController.duration = Duration(milliseconds: duration);
+    
+    if (height != null) {
+      final currentHeight = _nativeHeight ?? _heightAnimation.value;
+      _heightAnimation = Tween<double>(
+        begin: currentHeight,
+        end: height,
+      ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
+      
+      _nativeHeight = height;
+      widget.onHeightChanged?.call(height);
+    }
+    
+    if (width != null) {
+      final currentWidth = _nativeWidth ?? _widthAnimation.value;
+      _widthAnimation = Tween<double>(
+        begin: currentWidth,
+        end: width,
+      ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
+      
+      _nativeWidth = width;
+    }
+    
+    _animationController.forward(from: 0.0);
   }
 
   @override
