@@ -45,10 +45,6 @@ class FlutterInlineInAppMessageView @JvmOverloads constructor(
         platformDelegate.sendLoadingStateEvent(InlineInAppMessageStateEvent.NoMessageToDisplay)
     }
 
-    fun setProgressTint(color: Int) {
-        // TODO: Implement when setProgressTint is available in BaseInlineInAppMessageView
-    }
-
     fun triggerSizeAnimation(widthInDp: Double?, heightInDp: Double?, duration: Long = 200L) {
         platformDelegate.animateViewSize(
             widthInDp = widthInDp,

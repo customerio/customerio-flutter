@@ -12,7 +12,6 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
     
     private enum Args {
         static let elementId = "elementId"
-        static let progressTint = "progressTint"
         static let actionValue = "actionValue"
         static let actionName = "actionName"
         static let messageId = "messageId"
@@ -69,10 +68,6 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
             _inlineView.elementId = elementId
         }
         
-        if let progressTint: NSNumber = params.require(Args.progressTint) {
-            setProgressTint(progressTint.uint32Value)
-        }
-        
     }
     
     private func handleMethodCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -80,16 +75,6 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
         case "setElementId":
             call.native(result: result, transform: { $0 as? String }) { elementId in
                 setElementId(elementId)
-            }
-            
-        case "setProgressTint":
-            call.native(result: result, transform: { 
-                guard let number = $0 as? NSNumber else { 
-                    throw NSError(domain: "INVALID_ARGUMENT", code: 0, userInfo: [NSLocalizedDescriptionKey: "Expected NSNumber"])
-                }
-                return number
-            }) { (colorValue: NSNumber) in
-                setProgressTint(colorValue.uint32Value)
             }
             
         case "getElementId":
@@ -104,25 +89,6 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
     
     private func setElementId(_ elementId: String?) {
         _inlineView.elementId = elementId
-    }
-    
-    private func setProgressTint(_ colorValue: UInt32) {
-        // Convert ARGB to UIColor
-        let alpha = CGFloat((colorValue >> 24) & 0xFF) / 255.0
-        let red = CGFloat((colorValue >> 16) & 0xFF) / 255.0
-        let green = CGFloat((colorValue >> 8) & 0xFF) / 255.0
-        let blue = CGFloat(colorValue & 0xFF) / 255.0
-        
-        let color = UIColor(red: red, green: green, blue: blue, alpha: alpha)
-        
-        // InlineMessageUIView doesn't directly expose progress tint
-        // Try to access the internal GistInlineMessageUIView if available
-        if let internalView = _inlineView.value(forKey: "inAppMessageView") as? UIView,
-           internalView.responds(to: Selector(("setProgressTintColor:"))) {
-            internalView.setValue(color, forKey: "progressTintColor")
-        }
-        // Fallback: Set tint color on the main view
-        _inlineView.tintColor = color
     }
     
     private func getElementId() -> String? {

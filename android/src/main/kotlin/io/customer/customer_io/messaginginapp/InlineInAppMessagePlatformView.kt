@@ -35,7 +35,6 @@ class InlineInAppMessagePlatformView(
         
         // Parameter constants for consistency with iOS implementation
         private const val ELEMENT_ID = "elementId"
-        private const val PROGRESS_TINT = "progressTint"
     }
 
     init {
@@ -46,13 +45,6 @@ class InlineInAppMessagePlatformView(
             }
         }
 
-        // Set initial progress tint color if provided
-        creationParams?.get(PROGRESS_TINT)?.let { color ->
-            when (color) {
-                is Int -> inlineView.setProgressTint(color)
-                is Long -> inlineView.setProgressTint(color.toInt())
-            }
-        }
 
         // Set method call handler for the channel
         methodChannel.setMethodCallHandler(this)
@@ -79,7 +71,6 @@ class InlineInAppMessagePlatformView(
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
             "setElementId" -> call.native(result, { it as? String }, ::setElementId)
-            "setProgressTint" -> call.native(result, { it as? Int }, ::setProgressTint)
             "getElementId" -> call.native(result, { Unit }, { getElementId() })
             else -> result.notImplemented()
         }
@@ -87,11 +78,6 @@ class InlineInAppMessagePlatformView(
 
     private fun setElementId(elementId: String?) {
         inlineView.elementId = elementId
-    }
-
-    private fun setProgressTint(color: Int?) {
-        require(color != null) { "Color must be an integer" }
-        inlineView.setProgressTint(color)
     }
 
     private fun getElementId(): String? = inlineView.elementId
