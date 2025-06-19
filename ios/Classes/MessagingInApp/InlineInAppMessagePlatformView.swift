@@ -42,18 +42,36 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
         // Configure the inline view
         setupInlineView(with: args)
         
+        // Set this platform view as the delegate to receive action callbacks
+        _inlineView.onActionDelegate = self
+        
         // Add inline view to container
         _view.addSubview(_inlineView)
         _inlineView.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Use priority-based constraints to avoid conflicts with Flutter's layout
+        let topConstraint = _inlineView.topAnchor.constraint(equalTo: _view.topAnchor)
+        let leadingConstraint = _inlineView.leadingAnchor.constraint(equalTo: _view.leadingAnchor)
+        let trailingConstraint = _inlineView.trailingAnchor.constraint(equalTo: _view.trailingAnchor)
+        let bottomConstraint = _inlineView.bottomAnchor.constraint(equalTo: _view.bottomAnchor)
+        
+        // Lower priority to avoid conflicts with intrinsic content size
+        bottomConstraint.priority = UILayoutPriority(999)
+        
         NSLayoutConstraint.activate([
-            _inlineView.leadingAnchor.constraint(equalTo: _view.leadingAnchor),
-            _inlineView.trailingAnchor.constraint(equalTo: _view.trailingAnchor),
-            _inlineView.topAnchor.constraint(equalTo: _view.topAnchor),
-            _inlineView.bottomAnchor.constraint(equalTo: _view.bottomAnchor)
+            topConstraint,
+            leadingConstraint, 
+            trailingConstraint,
+            bottomConstraint
         ])
         
-        // Setup auto-resizing
-        setupAutoResizing()
+        // Setup size observer for Flutter callbacks
+        setupSizeObserver()
+        
+        // Trigger Customer.io element ID registration
+        DispatchQueue.main.async { [weak self] in
+            self?.triggerElementIdRegistration()
+        }
     }
     
     func view() -> UIView {
@@ -103,50 +121,75 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
         }
     }
     
-    private func setupAutoResizing() {
-        // Add observer for view bounds changes
+    private func setupSizeObserver() {
+        // Add observer for view bounds changes to send size callbacks to Flutter
         _inlineView.addObserver(self, forKeyPath: "bounds", options: [.new, .old], context: nil)
         
-        // Trigger initial height calculation
+        // Initial check
         DispatchQueue.main.async { [weak self] in
-            self?.checkAndReportHeightChange()
+            self?.handleSizeChange()
         }
     }
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "bounds", let _ = object as? InlineMessageUIView {
-            checkAndReportHeightChange()
+            handleSizeChange()
         }
     }
     
-    private func checkAndReportHeightChange() {
+    private func handleSizeChange() {
         let currentHeight = _inlineView.bounds.height
+        let currentWidth = _inlineView.bounds.width
         
-        // Only notify Flutter if the height has actually changed and is greater than 0
-        if currentHeight != lastReportedHeight && currentHeight > 0 {
+        // Only send updates when height actually changes
+        if currentHeight != lastReportedHeight {
             lastReportedHeight = currentHeight
             
-            // Notify Flutter about the size change (consistent with Android)
-            let args: [String: Any] = [
-                "height": currentHeight,
-                "duration": 200.0
-            ]
-            
-            invokeDartMethod("onSizeChange", args)
+            if currentHeight > 0 {
+                // Message is displayed - send state and size
+                let stateArgs = ["state": "LoadingFinished"]
+                invokeDartMethod("onStateChange", stateArgs)
+                
+                let sizeArgs: [String: Any] = [
+                    "height": currentHeight,
+                    "width": currentWidth,
+                    "duration": 200.0
+                ]
+                invokeDartMethod("onSizeChange", sizeArgs)
+            } else {
+                // Height is 0 - no message
+                let stateArgs = ["state": "NoMessageToDisplay"]
+                invokeDartMethod("onStateChange", stateArgs)
+                
+                let sizeArgs: [String: Any] = [
+                    "height": 0.0,
+                    "duration": 200.0
+                ]
+                invokeDartMethod("onSizeChange", sizeArgs)
+            }
+        }
+    }
+    
+    private func triggerElementIdRegistration() {
+        // Reset elementId to trigger Customer.io registration
+        let currentElementId = _inlineView.elementId
+        if let elementId = currentElementId {
+            _inlineView.elementId = nil
+            _inlineView.elementId = elementId
         }
     }
     
     deinit {
-        // Remove observer to prevent crashes
         _inlineView.removeObserver(self, forKeyPath: "bounds")
     }
+    
 }
 
 // MARK: - InlineMessageUIViewDelegate
 
 extension InlineInAppMessagePlatformView: InlineMessageUIViewDelegate {
     func onActionClick(message: InAppMessage, actionValue: String, actionName: String) {
-        // Send action event back to Flutter using consistent parameter constants
+        // Send widget-specific action callbacks to Flutter
         let args: [String: Any] = [
             Args.actionValue: actionValue,
             Args.actionName: actionName,
@@ -157,3 +200,4 @@ extension InlineInAppMessagePlatformView: InlineMessageUIViewDelegate {
         invokeDartMethod("onAction", args)
     }
 }
+
