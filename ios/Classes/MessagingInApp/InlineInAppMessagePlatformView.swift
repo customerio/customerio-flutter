@@ -126,17 +126,13 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
         if currentHeight != lastReportedHeight && currentHeight > 0 {
             lastReportedHeight = currentHeight
             
-            // Convert height from points to pixels
-            let scale = UIScreen.main.scale
-            let heightInPixels = Int(currentHeight * scale)
-            
-            // Notify Flutter about the height change
+            // Notify Flutter about the size change (consistent with Android)
             let args: [String: Any] = [
-                "height": heightInPixels,
-                "heightInDp": Int(currentHeight) // Points are roughly equivalent to dp on iOS
+                "height": currentHeight,
+                "duration": 200.0
             ]
             
-            invokeDartMethod("onHeightChanged", args)
+            invokeDartMethod("onSizeChange", args)
         }
     }
     

@@ -11,21 +11,11 @@ typedef InAppMessageActionCallback = void Function(
   String? deliveryId,
 });
 
-/// Callback function for handling height changes in the native view
-typedef HeightChangeCallback = void Function(double height);
-
-/// Callback function for handling size changes (width and height) in the native view
-typedef SizeChangeCallback = void Function({double? width, double? height, double? duration});
-
-/// Callback function for handling loading state changes
-typedef StateChangeCallback = void Function(String state);
-
 /// A Flutter widget that displays an inline in-app message using native platform views.
 /// 
-/// This widget wraps the native Android InlineInAppMessageView and iOS GistInlineInAppMessageView 
-/// and provides Flutter integration. It shows a progress indicator while the message is loading 
-/// and hides it once the message is displayed. If there is no message to display, the view will 
-/// hide itself and display automatically when a new message is available.
+/// This widget wraps the native Android InlineInAppMessageView and iOS InlineMessageUIView 
+/// and provides Flutter integration. The view will automatically show and hide based on 
+/// whether there are messages available for the specified element ID.
 ///
 /// Example usage:
 /// ```dart
@@ -34,9 +24,6 @@ typedef StateChangeCallback = void Function(String state);
 ///   onAction: (actionValue, actionName) {
 ///     print('Action triggered: $actionName with value: $actionValue');
 ///   },
-///   onHeightChanged: (height) {
-///     print('Native view height changed to: $height logical pixels');
-///   },
 /// )
 /// ```
 class InlineInAppMessageView extends StatefulWidget {
@@ -44,14 +31,10 @@ class InlineInAppMessageView extends StatefulWidget {
   ///
   /// [elementId] is required and identifies which message to display.
   /// [onAction] is an optional callback for handling message actions.
-  /// [progressTint] is an optional color for the progress indicator.
-  /// [onHeightChanged] is an optional callback for handling height changes.
   const InlineInAppMessageView({
     super.key,
     required this.elementId,
     this.onAction,
-    this.progressTint,
-    this.onHeightChanged,
   });
 
   /// The element ID that identifies which message to display
@@ -59,12 +42,6 @@ class InlineInAppMessageView extends StatefulWidget {
 
   /// Callback function that gets called when a message action is triggered
   final InAppMessageActionCallback? onAction;
-
-  /// Optional color for the progress indicator
-  final Color? progressTint;
-
-  /// Optional callback for handling height changes in the native view
-  final HeightChangeCallback? onHeightChanged;
 
   @override
   State<InlineInAppMessageView> createState() => _InlineInAppMessageViewState();
@@ -106,7 +83,6 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView>
   Widget build(BuildContext context) {
     final creationParams = <String, dynamic>{
       'elementId': widget.elementId,
-      if (widget.progressTint != null) 'progressTint': _colorToArgb(widget.progressTint!),
     };
 
     Widget platformView;
@@ -202,7 +178,6 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView>
       ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
       
       _nativeHeight = height;
-      widget.onHeightChanged?.call(height);
     }
     
     if (width != null) {
@@ -227,10 +202,6 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView>
       _setElementId(widget.elementId);
     }
 
-    // Update progress tint if it changed
-    if (oldWidget.progressTint != widget.progressTint && widget.progressTint != null) {
-      _setProgressTint(widget.progressTint!);
-    }
   }
 
   /// Sets the element ID for the inline message view
@@ -238,23 +209,12 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView>
     await _safeInvokeMethod('setElementId', elementId);
   }
 
-  /// Sets the progress tint color for the inline message view
-  Future<void> _setProgressTint(Color color) async {
-    await _safeInvokeMethod('setProgressTint', _colorToArgb(color));
-  }
 
   /// Gets the current element ID from the native view
   Future<String?> getElementId() async {
     return await _safeInvokeMethod<String>('getElementId');
   }
 
-  /// Converts a Flutter Color to ARGB integer format for native platform
-  int _colorToArgb(Color color) {
-    return ((color.a * 255).round() << 24) | 
-           ((color.r * 255).round() << 16) | 
-           ((color.g * 255).round() << 8) | 
-           (color.b * 255).round();
-  }
 
   /// Safely invokes a method channel method with automatic error handling
   Future<T?> _safeInvokeMethod<T>(String method, [dynamic arguments]) async {
