@@ -1,12 +1,13 @@
 package io.customer.customer_io.messaginginapp
 
 import android.view.View
-import io.customer.messaginginapp.ui.bridge.AndroidInAppPlatformDelegate
+import io.customer.messaginginapp.ui.bridge.WrapperPlatformDelegate
 import io.flutter.plugin.common.MethodChannel
 
 /**
  * Flutter platform delegate for in-app messaging.
- * Bridges native in-app message events to Flutter components.
+ * Now uses WrapperPlatformDelegate from native SDK to eliminate code duplication with React Native.
+ * Only contains Flutter-specific event dispatch logic - all animation and state management is shared.
  *
  * @param view The native Android view hosting the in-app message
  * @param methodChannel The Flutter method channel for communication
@@ -14,43 +15,17 @@ import io.flutter.plugin.common.MethodChannel
 class FlutterInAppPlatformDelegate(
     view: View,
     private val methodChannel: MethodChannel
-) : AndroidInAppPlatformDelegate(view) {
+) : WrapperPlatformDelegate(view) {
 
     companion object {
         private const val TAG = "FlutterInAppPlatformDelegate"
     }
 
-    override fun animateViewSize(
-        widthInDp: Double?,
-        heightInDp: Double?,
-        duration: Long?,
-        onStart: (() -> Unit)?,
-        onEnd: (() -> Unit)?
-    ) {
-        onStart?.invoke()
-
-        val animDuration = duration ?: defaultAnimDuration
-        val payload = mutableMapOf<String, Any?>()
-
-        widthInDp?.takeIf { it > 0 }?.let { payload["width"] = it }
-        heightInDp?.let { payload["height"] = it }
-        payload["duration"] = animDuration.toDouble()
-
-        methodChannel.invokeMethod("onSizeChange", payload)
-
-        onEnd?.let { 
-            view.postDelayed({ it.invoke() }, animDuration)
-        }
+    /**
+     * Flutter-specific event dispatch implementation.
+     * This is the ONLY platform-specific code - everything else is now shared!
+     */
+    override fun dispatchEvent(eventName: String, payload: Map<String, Any?>) {
+        methodChannel.invokeMethod(eventName, payload)
     }
-
-    fun sendLoadingStateEvent(state: InlineInAppMessageStateEvent) {
-        val payload = mapOf("state" to state.name)
-        methodChannel.invokeMethod("onStateChange", payload)
-    }
-}
-
-enum class InlineInAppMessageStateEvent {
-    LoadingStarted,
-    LoadingFinished,
-    NoMessageToDisplay
 }
