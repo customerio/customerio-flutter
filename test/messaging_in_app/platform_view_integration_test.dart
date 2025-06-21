@@ -3,13 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Converts a Flutter Color to ARGB integer format for native platform
-int _colorToArgb(Color color) {
-  return ((color.a * 255).round() << 24) | 
-         ((color.r * 255).round() << 16) | 
-         ((color.g * 255).round() << 8) | 
-         (color.b * 255).round();
-}
 
 void main() {
   group('Platform View Integration', () {
@@ -35,7 +28,6 @@ void main() {
                       // Action handler for testing
                       debugPrint('Action: $actionName = $actionValue');
                     },
-                    progressTint: Colors.purple,
                   ),
                 ),
                 const Text('End of Test'),
@@ -57,7 +49,6 @@ void main() {
       
       final params = androidView.creationParams as Map<String, dynamic>;
       expect(params['elementId'], equals('integration-test-banner'));
-      expect(params['progressTint'], equals(_colorToArgb(Colors.purple)));
 
       debugDefaultTargetPlatformOverride = null;
     });
@@ -84,7 +75,6 @@ void main() {
                       // Action handler for testing
                       debugPrint('Action: $actionName = $actionValue');
                     },
-                    progressTint: Colors.purple,
                   ),
                 ),
                 const Text('End of Test'),
@@ -106,7 +96,6 @@ void main() {
       
       final params = uiKitView.creationParams as Map<String, dynamic>;
       expect(params['elementId'], equals('integration-test-banner'));
-      expect(params['progressTint'], equals(_colorToArgb(Colors.purple)));
 
       debugDefaultTargetPlatformOverride = null;
     });
@@ -123,13 +112,11 @@ void main() {
                 Expanded(
                   child: InlineInAppMessageView(
                     elementId: 'banner-1',
-                    progressTint: Colors.red,
                   ),
                 ),
                 Expanded(
                   child: InlineInAppMessageView(
                     elementId: 'banner-2',
-                    progressTint: Colors.blue,
                   ),
                 ),
                 Expanded(

@@ -52,7 +52,6 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView>
   MethodChannel? _methodChannel;
   double? _nativeHeight;
   double? _nativeWidth;
-  bool _isLoading = false;
   late AnimationController _animationController;
   late Animation<double> _heightAnimation;
   late Animation<double> _widthAnimation;
@@ -155,10 +154,6 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView>
         final state = arguments['state'] as String;
         
         if (mounted) {
-          setState(() {
-            _isLoading = state == 'LoadingStarted';
-          });
-          
           if (state == 'NoMessageToDisplay') {
             _animateToSize(height: 1.0, duration: 200);
           }
