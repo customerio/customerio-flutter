@@ -28,7 +28,6 @@ void main() {
             home: Scaffold(
               body: InlineInAppMessageView(
                 elementId: 'test-banner',
-                progressTint: Colors.blue,
                 onAction: (actionValue, actionName, {messageId, deliveryId}) {
                   // Action handler for testing
                 },
@@ -114,7 +113,6 @@ void main() {
             home: Scaffold(
               body: InlineInAppMessageView(
                 elementId: 'test-element-id',
-                progressTint: Color(0xFF123456),
               ),
             ),
           ),
@@ -127,7 +125,6 @@ void main() {
         
         final params = androidView.creationParams as Map<String, dynamic>;
         expect(params['elementId'], equals('test-element-id'));
-        expect(params['progressTint'], equals(0xFF123456));
 
         debugDefaultTargetPlatformOverride = null;
       });
@@ -140,7 +137,6 @@ void main() {
             home: Scaffold(
               body: InlineInAppMessageView(
                 elementId: 'test-element-id',
-                progressTint: Color(0xFF123456),
               ),
             ),
           ),
@@ -153,32 +149,10 @@ void main() {
         
         final params = uiKitView.creationParams as Map<String, dynamic>;
         expect(params['elementId'], equals('test-element-id'));
-        expect(params['progressTint'], equals(0xFF123456));
 
         debugDefaultTargetPlatformOverride = null;
       });
 
-      testWidgets('omits progressTint when not provided', (WidgetTester tester) async {
-        debugDefaultTargetPlatformOverride = TargetPlatform.android;
-
-        await tester.pumpWidget(
-          const MaterialApp(
-            home: Scaffold(
-              body: InlineInAppMessageView(
-                elementId: 'test-element-id',
-              ),
-            ),
-          ),
-        );
-
-        final androidView = tester.widget<AndroidView>(find.byType(AndroidView));
-        final params = androidView.creationParams as Map<String, dynamic>;
-        
-        expect(params['elementId'], equals('test-element-id'));
-        expect(params.containsKey('progressTint'), isFalse);
-
-        debugDefaultTargetPlatformOverride = null;
-      });
     });
 
     group('Action Handling', () {
@@ -265,42 +239,6 @@ void main() {
         debugDefaultTargetPlatformOverride = null;
       });
 
-      testWidgets('widget rebuilds correctly when progressTint changes', (WidgetTester tester) async {
-        debugDefaultTargetPlatformOverride = TargetPlatform.android;
-
-        await tester.pumpWidget(
-          const MaterialApp(
-            home: Scaffold(
-              body: InlineInAppMessageView(
-                elementId: 'test-element',
-                progressTint: Colors.red,
-              ),
-            ),
-          ),
-        );
-
-        // Verify initial widget creation
-        expect(find.byType(InlineInAppMessageView), findsOneWidget);
-
-        // Update the widget with a new progressTint
-        await tester.pumpWidget(
-          const MaterialApp(
-            home: Scaffold(
-              body: InlineInAppMessageView(
-                elementId: 'test-element',
-                progressTint: Colors.blue,
-              ),
-            ),
-          ),
-        );
-
-        await tester.pump();
-
-        // Verify widget still exists after update
-        expect(find.byType(InlineInAppMessageView), findsOneWidget);
-
-        debugDefaultTargetPlatformOverride = null;
-      });
     });
 
     group('Platform View Integration', () {
