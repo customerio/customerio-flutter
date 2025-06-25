@@ -47,34 +47,19 @@ class InlineInAppMessageView extends StatefulWidget {
   State<InlineInAppMessageView> createState() => _InlineInAppMessageViewState();
 }
 
-class _InlineInAppMessageViewState extends State<InlineInAppMessageView> 
-    with SingleTickerProviderStateMixin {
+class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
   MethodChannel? _methodChannel;
   double? _nativeHeight;
   double? _nativeWidth;
-  late AnimationController _animationController;
-  late Animation<double> _heightAnimation;
-  late Animation<double> _widthAnimation;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
-    _heightAnimation = Tween<double>(begin: 1.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-    _widthAnimation = Tween<double>(begin: 0.0, end: 0.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
   }
 
   @override
   void dispose() {
     _methodChannel?.setMethodCallHandler(null);
-    _animationController.dispose();
     super.dispose();
   }
 
@@ -105,15 +90,16 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView>
     } else {
       return const SizedBox.shrink();
     }
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        return SizedBox(
-          height: _nativeHeight ?? _heightAnimation.value,
-          width: _nativeWidth ?? (_widthAnimation.value > 0 ? _widthAnimation.value : null),
-          child: platformView,
-        );
-      },
+
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 200),
+      child: SizedBox(
+        // height is 1.0 to avoid zero-height layout issues,
+        // which cause Flutter to skip laying out the native view
+        height: _nativeHeight ?? 1.0,
+        width: _nativeWidth ?? double.infinity,
+        child: platformView,
+      ),
     );
   }
 
@@ -132,8 +118,8 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView>
           final messageId = arguments['messageId'] as String?;
           final deliveryId = arguments['deliveryId'] as String?;
           widget.onAction!(
-            actionValue, 
-            actionName, 
+            actionValue,
+            actionName,
             messageId: messageId,
             deliveryId: deliveryId,
           );
@@ -143,50 +129,27 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView>
         final arguments = call.arguments as Map<dynamic, dynamic>;
         final width = arguments['width'] as double?;
         final height = arguments['height'] as double?;
-        final duration = arguments['duration'] as double? ?? 200.0;
-        
         if (mounted) {
-          _animateToSize(width: width, height: height, duration: duration.toInt());
+          setState(() {
+            _nativeHeight = height;
+            _nativeWidth = width;
+          });
         }
         break;
       case 'onStateChange':
         final arguments = call.arguments as Map<dynamic, dynamic>;
         final state = arguments['state'] as String;
-        
         if (mounted) {
           if (state == 'NoMessageToDisplay') {
-            _animateToSize(height: 1.0, duration: 200);
+            setState(() {
+              _nativeHeight = 1.0; // to map to same height as it starts with
+            });
           }
         }
         break;
     }
   }
 
-  void _animateToSize({double? width, double? height, int duration = 200}) {
-    _animationController.duration = Duration(milliseconds: duration);
-    
-    if (height != null) {
-      final currentHeight = _nativeHeight ?? _heightAnimation.value;
-      _heightAnimation = Tween<double>(
-        begin: currentHeight,
-        end: height,
-      ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
-      
-      _nativeHeight = height;
-    }
-    
-    if (width != null) {
-      final currentWidth = _nativeWidth ?? _widthAnimation.value;
-      _widthAnimation = Tween<double>(
-        begin: currentWidth,
-        end: width,
-      ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
-      
-      _nativeWidth = width;
-    }
-    
-    _animationController.forward(from: 0.0);
-  }
 
   @override
   void didUpdateWidget(InlineInAppMessageView oldWidget) {

@@ -6,6 +6,7 @@ import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
 import io.customer.customer_io.bridge.native
+import io.customer.sdk.core.util.Logger
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -29,6 +30,7 @@ class InlineInAppMessagePlatformView(
     private val methodChannel: MethodChannel = MethodChannel(messenger, "customer_io_inline_view_$id")
     private val inlineView: FlutterInlineInAppMessageView = FlutterInlineInAppMessageView(context, methodChannel = methodChannel)
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val logger: Logger = SDKComponent.logger
     
     companion object {
         private const val TAG = "InlineInAppMessagePlatformView"
@@ -42,14 +44,14 @@ class InlineInAppMessagePlatformView(
         creationParams?.get(ELEMENT_ID)?.let { elementId ->
             if (elementId is String) {
                 inlineView.elementId = elementId
+            } else {
+                logger.error("ElementId is not a string: $elementId")
             }
-        }
-
+        } ?: logger.error("No elementId found in creation params")
 
         // Set method call handler for the channel
         methodChannel.setMethodCallHandler(this)
 
-        
         inlineView.visibility = View.VISIBLE
         
         inlineView.post {
