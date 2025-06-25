@@ -60,6 +60,8 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
   @override
   void dispose() {
     _methodChannel?.setMethodCallHandler(null);
+    // Explicitly call cleanup on iOS side
+    _safeInvokeMethod('cleanup');
     super.dispose();
   }
 

@@ -67,6 +67,12 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
                 getElementId()
             }
             
+        case "cleanup":
+            // dart view makes explicitly call cleanup when view goes away
+            call.nativeNoArgs(result: result) {
+                cleanup()
+            }
+            
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -78,6 +84,10 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
     
     private func getElementId() -> String? {
         return contentView.elementId
+    }
+    
+    private func cleanup() {
+        contentView.onViewDetached()
     }
     
     private func invokeDartMethod(_ method: String, _ args: Any?) {
