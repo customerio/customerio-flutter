@@ -28,16 +28,4 @@ class FlutterInlineInAppMessageView @JvmOverloads constructor(
         initializeView()
     }
 
-    /**
-     * Flutter-specific method to trigger size animations from Dart code.
-     */
-    fun triggerSizeAnimation(widthInDp: Double?, heightInDp: Double?, duration: Long = 200L) {
-        platformDelegate.animateViewSize(
-            widthInDp = widthInDp,
-            heightInDp = heightInDp,
-            duration = duration,
-            onStart = null,
-            onEnd = null
-        )
-    }
 }
