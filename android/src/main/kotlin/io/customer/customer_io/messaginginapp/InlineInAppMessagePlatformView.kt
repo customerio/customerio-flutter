@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import io.customer.customer_io.bridge.native
 import io.customer.sdk.core.util.Logger
+import io.customer.sdk.core.di.SDKComponent
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -27,6 +28,8 @@ class InlineInAppMessagePlatformView(
     messenger: BinaryMessenger
 ) : PlatformView, MethodCallHandler {
 
+    // MethodChannel neeeds to be unique per view instance to handle mulitple inline views on
+    // the same screen.
     private val methodChannel: MethodChannel = MethodChannel(messenger, "customer_io_inline_view_$id")
     private val inlineView: FlutterInlineInAppMessageView = FlutterInlineInAppMessageView(context, methodChannel = methodChannel)
     private val mainHandler = Handler(Looper.getMainLooper())
