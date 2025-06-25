@@ -131,7 +131,8 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
         final height = arguments['height'] as double?;
         if (mounted) {
           setState(() {
-            _nativeHeight = height;
+            // Treat height 0.0 as "no message" state, set to 1.0 to maintain layout
+            _nativeHeight = (height == 0.0) ? 1.0 : height;
             _nativeWidth = width;
           });
         }
@@ -142,10 +143,12 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
         if (mounted) {
           if (state == 'NoMessageToDisplay') {
             setState(() {
-              _nativeHeight = 1.0; // to map to same height as it starts with
+              _nativeHeight = 1.0; // Unified no-message height
             });
           }
         }
+        break;
+      default:
         break;
     }
   }
