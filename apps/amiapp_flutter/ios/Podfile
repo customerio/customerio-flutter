@@ -43,9 +43,9 @@ target 'Runner' do
   use_modular_headers!
   
   # Uncomment only 1 of the lines below to install a version of the iOS SDK
-  pod 'customer_io/fcm', :path => '.symlinks/plugins/customer_io/ios' # install podspec bundled with the plugin
+#   pod 'customer_io/fcm', :path => '.symlinks/plugins/customer_io/ios' # install podspec bundled with the plugin
   # install_non_production_ios_sdk_local_path(local_path: '~/Development/customerio-ios/', is_app_extension: false, push_service: "fcm")
-  # install_non_production_ios_sdk_git_branch(branch_name: 'BRANCH-NAME-HERE', is_app_extension: false, push_service: "fcm")
+  install_non_production_ios_sdk_git_branch(branch_name: 'feature/wrappers-inline-support', is_app_extension: false, push_service: "fcm")
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
