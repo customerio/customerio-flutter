@@ -1,3 +1,4 @@
+import 'package:customer_io/customer_io.dart';
 import 'package:customer_io/customer_io_widgets.dart';
 import 'package:customer_io/messaging_in_app/inline_in_app_message_view.dart';
 import 'package:flutter/material.dart';
@@ -49,13 +50,17 @@ class InlineMessagesScreen extends StatelessWidget {
   }
 
   void _showInlineActionClick(InAppMessage message, String actionValue, String actionName) {
-    // Handle action (e.g., show snackbar, track event)
-    print('🎯 Inline Action Clicked!');
-    print('📨 Message ID: ${message.messageId}');
-    print('🚀 Delivery ID: ${message.deliveryId}');
-    print('🎯 Element ID: ${message.elementId}');
-    print('🔗 Action Value: $actionValue');
-    print('📝 Action Name: $actionName');
+    print('Inline message action clicked: $actionName with value: $actionValue');
+    
+    CustomerIO.instance.track(
+      name: 'Inline Message Action Clicked',
+      properties: {
+        'action_name': actionName,
+        'action_value': actionValue,
+        'message_id': message.messageId,
+        'delivery_id': message.deliveryId ?? 'NULL',
+      },
+    );
   }
 
   Widget _buildImageAndTextBlock() {

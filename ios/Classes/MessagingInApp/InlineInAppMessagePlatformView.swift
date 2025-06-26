@@ -122,7 +122,9 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
     private func invokeDartMethod(_ method: String, _ args: Any?) {
         // Thread-safe Flutter communication following the same pattern as CustomerIOInAppMessaging
         DIGraphShared.shared.threadUtil.runMain { [weak self] in
-            guard let self else { return }
+            guard let self else { 
+                return 
+            }
             self.methodChannel?.invokeMethod(method, arguments: args)
         }
     }
