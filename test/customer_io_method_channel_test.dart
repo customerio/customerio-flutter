@@ -68,8 +68,7 @@ void main() {
 
     final customerIO = CustomerIOMethodChannel();
     customerIO.identify(
-        userId: args['userId'] as String,
-        traits: args['traits']);
+        userId: args['userId'] as String, traits: args['traits']);
 
     expectMethodInvocationArguments('identify', args);
   });

@@ -6,15 +6,15 @@ import 'package:flutter/widgets.dart';
 /// Constants for inline in-app message view implementation
 class _InlineMessageConstants {
   _InlineMessageConstants._(); // Prevent instantiation
-  
+
   // Platform view configuration
   static const String viewType = 'customer_io_inline_in_app_message_view';
   static const String channelPrefix = 'customer_io_inline_view_';
-  
+
   // Animation and layout
   static const Duration animationDuration = Duration(milliseconds: 200);
   static const double fallbackHeight = 1.0;
-  
+
   // Method names
   static const String setElementId = 'setElementId';
   static const String getElementId = 'getElementId';
@@ -22,7 +22,7 @@ class _InlineMessageConstants {
   static const String onAction = 'onAction';
   static const String onSizeChange = 'onSizeChange';
   static const String onStateChange = 'onStateChange';
-  
+
   // Argument keys
   static const String elementId = 'elementId';
   static const String actionValue = 'actionValue';
@@ -32,7 +32,7 @@ class _InlineMessageConstants {
   static const String width = 'width';
   static const String height = 'height';
   static const String state = 'state';
-  
+
   // State values
   static const String noMessageToDisplay = 'NoMessageToDisplay';
 }
@@ -56,7 +56,8 @@ class InAppMessage {
   final String? elementId;
 
   @override
-  String toString() => 'InAppMessage(messageId: $messageId, deliveryId: $deliveryId, elementId: $elementId)';
+  String toString() =>
+      'InAppMessage(messageId: $messageId, deliveryId: $deliveryId, elementId: $elementId)';
 
   @override
   bool operator ==(Object other) {
@@ -68,7 +69,8 @@ class InAppMessage {
   }
 
   @override
-  int get hashCode => messageId.hashCode ^ deliveryId.hashCode ^ elementId.hashCode;
+  int get hashCode =>
+      messageId.hashCode ^ deliveryId.hashCode ^ elementId.hashCode;
 }
 
 /// Callback function for handling in-app message action clicks
@@ -79,9 +81,9 @@ typedef InAppMessageActionClickCallback = void Function(
 );
 
 /// A Flutter widget that displays an inline in-app message using native platform views.
-/// 
-/// This widget wraps the native Android InlineInAppMessageView and iOS InlineMessageUIView 
-/// and provides Flutter integration. The view will automatically show and hide based on 
+///
+/// This widget wraps the native Android InlineInAppMessageView and iOS InlineMessageUIView
+/// and provides Flutter integration. The view will automatically show and hide based on
 /// whether there are messages available for the specified element ID.
 ///
 /// Example usage:
@@ -148,7 +150,8 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
         creationParams: creationParams,
         creationParamsCodec: const StandardMessageCodec(),
         onPlatformViewCreated: _onPlatformViewCreated,
-        gestureRecognizers: const <Factory<OneSequenceGestureRecognizer>>{}.toSet(),
+        gestureRecognizers:
+            const <Factory<OneSequenceGestureRecognizer>>{}.toSet(),
       );
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       platformView = UiKitView(
@@ -174,7 +177,8 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
   }
 
   void _onPlatformViewCreated(int id) {
-    _methodChannel = MethodChannel('${_InlineMessageConstants.channelPrefix}$id');
+    _methodChannel =
+        MethodChannel('${_InlineMessageConstants.channelPrefix}$id');
     _methodChannel!.setMethodCallHandler(_handleMethodCall);
   }
 
@@ -183,17 +187,21 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
       case _InlineMessageConstants.onAction:
         if (widget.onActionClick != null) {
           final arguments = call.arguments as Map<dynamic, dynamic>;
-          final actionValue = arguments[_InlineMessageConstants.actionValue] as String;
-          final actionName = arguments[_InlineMessageConstants.actionName] as String;
-          final messageId = arguments[_InlineMessageConstants.messageId] as String?;
-          final deliveryId = arguments[_InlineMessageConstants.deliveryId] as String?;
-          
+          final actionValue =
+              arguments[_InlineMessageConstants.actionValue] as String;
+          final actionName =
+              arguments[_InlineMessageConstants.actionName] as String;
+          final messageId =
+              arguments[_InlineMessageConstants.messageId] as String?;
+          final deliveryId =
+              arguments[_InlineMessageConstants.deliveryId] as String?;
+
           final message = InAppMessage(
             messageId: messageId ?? '',
             deliveryId: deliveryId,
             elementId: widget.elementId,
           );
-          
+
           widget.onActionClick!(message, actionValue, actionName);
         }
         break;
@@ -204,7 +212,9 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
         if (mounted) {
           setState(() {
             // Treat height 0.0 as "no message" state, set to 1.0 to maintain layout
-            _nativeHeight = (height == 0.0) ? _InlineMessageConstants.fallbackHeight : height;
+            _nativeHeight = (height == 0.0)
+                ? _InlineMessageConstants.fallbackHeight
+                : height;
             _nativeWidth = width;
           });
         }
@@ -215,7 +225,8 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
         if (mounted) {
           if (state == _InlineMessageConstants.noMessageToDisplay) {
             setState(() {
-              _nativeHeight = _InlineMessageConstants.fallbackHeight; // Unified no-message height
+              _nativeHeight = _InlineMessageConstants
+                  .fallbackHeight; // Unified no-message height
             });
           }
         }
@@ -225,7 +236,6 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
     }
   }
 
-
   @override
   void didUpdateWidget(InlineInAppMessageView oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -234,7 +244,6 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
     if (oldWidget.elementId != widget.elementId) {
       _setElementId(widget.elementId);
     }
-
   }
 
   /// Sets the element ID for the inline message view
@@ -242,17 +251,16 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
     await _safeInvokeMethod(_InlineMessageConstants.setElementId, elementId);
   }
 
-
   /// Gets the current element ID from the native view
   Future<String?> getElementId() async {
-    return await _safeInvokeMethod<String>(_InlineMessageConstants.getElementId);
+    return await _safeInvokeMethod<String>(
+        _InlineMessageConstants.getElementId);
   }
-
 
   /// Safely invokes a method channel method with automatic error handling
   Future<T?> _safeInvokeMethod<T>(String method, [dynamic arguments]) async {
     if (_methodChannel == null) return null;
-    
+
     try {
       return await _methodChannel!.invokeMethod<T>(method, arguments);
     } on PlatformException catch (e) {
@@ -267,5 +275,4 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
       return null;
     }
   }
-
 }

@@ -17,9 +17,10 @@ void main() {
     });
 
     group('Widget Creation', () {
-      testWidgets('creates widget with required elementId', (WidgetTester tester) async {
+      testWidgets('creates widget with required elementId',
+          (WidgetTester tester) async {
         const elementId = 'test-element';
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: InlineInAppMessageView(elementId: elementId),
@@ -29,10 +30,11 @@ void main() {
         expect(find.byType(InlineInAppMessageView), findsOneWidget);
       });
 
-      testWidgets('accepts optional onActionClick callback', (WidgetTester tester) async {
+      testWidgets('accepts optional onActionClick callback',
+          (WidgetTester tester) async {
         const elementId = 'test-element';
         bool callbackCalled = false;
-        
+
         await tester.pumpWidget(
           MaterialApp(
             home: InlineInAppMessageView(
@@ -50,9 +52,10 @@ void main() {
     });
 
     group('Platform-Specific Rendering', () {
-      testWidgets('renders AndroidView on Android platform', (WidgetTester tester) async {
+      testWidgets('renders AndroidView on Android platform',
+          (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.android;
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: InlineInAppMessageView(elementId: 'test-element'),
@@ -63,9 +66,10 @@ void main() {
         expect(find.byType(UiKitView), findsNothing);
       });
 
-      testWidgets('renders UiKitView on iOS platform', (WidgetTester tester) async {
+      testWidgets('renders UiKitView on iOS platform',
+          (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: InlineInAppMessageView(elementId: 'test-element'),
@@ -76,9 +80,10 @@ void main() {
         expect(find.byType(AndroidView), findsNothing);
       });
 
-      testWidgets('renders empty widget on unsupported platforms', (WidgetTester tester) async {
+      testWidgets('renders empty widget on unsupported platforms',
+          (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.linux;
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: InlineInAppMessageView(elementId: 'test-element'),
@@ -92,26 +97,29 @@ void main() {
     });
 
     group('Platform View Configuration', () {
-      testWidgets('passes correct creation parameters to AndroidView', (WidgetTester tester) async {
+      testWidgets('passes correct creation parameters to AndroidView',
+          (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.android;
         const elementId = 'test-element-android';
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: InlineInAppMessageView(elementId: elementId),
           ),
         );
 
-        final androidView = tester.widget<AndroidView>(find.byType(AndroidView));
+        final androidView =
+            tester.widget<AndroidView>(find.byType(AndroidView));
         expect(androidView.viewType, 'customer_io_inline_in_app_message_view');
         expect(androidView.creationParams, {'elementId': elementId});
         expect(androidView.layoutDirection, TextDirection.ltr);
       });
 
-      testWidgets('passes correct creation parameters to UiKitView', (WidgetTester tester) async {
+      testWidgets('passes correct creation parameters to UiKitView',
+          (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
         const elementId = 'test-element-ios';
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: InlineInAppMessageView(elementId: elementId),
@@ -125,9 +133,10 @@ void main() {
     });
 
     group('Method Channel Communication', () {
-      testWidgets('sets up method channel on platform view creation', (WidgetTester tester) async {
+      testWidgets('sets up method channel on platform view creation',
+          (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: InlineInAppMessageView(elementId: 'test-element'),
@@ -135,7 +144,7 @@ void main() {
         );
 
         final uiKitView = tester.widget<UiKitView>(find.byType(UiKitView));
-        
+
         // Simulate platform view creation
         if (uiKitView.onPlatformViewCreated != null) {
           uiKitView.onPlatformViewCreated!(123);
@@ -145,12 +154,13 @@ void main() {
         await tester.pump();
       });
 
-      testWidgets('handles onActionClick method calls correctly', (WidgetTester tester) async {
+      testWidgets('handles onActionClick method calls correctly',
+          (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
         String? receivedActionValue;
         String? receivedActionName;
         InAppMessage? receivedMessage;
-        
+
         await tester.pumpWidget(
           MaterialApp(
             home: InlineInAppMessageView(
@@ -192,9 +202,10 @@ void main() {
         expect(receivedMessage?.elementId, 'test-element');
       });
 
-      testWidgets('handles onSizeChange method calls correctly', (WidgetTester tester) async {
+      testWidgets('handles onSizeChange method calls correctly',
+          (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: InlineInAppMessageView(elementId: 'test-element'),
@@ -227,9 +238,10 @@ void main() {
         expect(sizedBox.width, 300.0);
       });
 
-      testWidgets('handles zero height in onSizeChange correctly', (WidgetTester tester) async {
+      testWidgets('handles zero height in onSizeChange correctly',
+          (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: InlineInAppMessageView(elementId: 'test-element'),
@@ -261,9 +273,10 @@ void main() {
         expect(sizedBox.width, 300.0);
       });
 
-      testWidgets('handles onStateChange with NoMessageToDisplay correctly', (WidgetTester tester) async {
+      testWidgets('handles onStateChange with NoMessageToDisplay correctly',
+          (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: InlineInAppMessageView(elementId: 'test-element'),
@@ -297,7 +310,7 @@ void main() {
     group('Widget Lifecycle', () {
       testWidgets('calls cleanup on dispose', (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: InlineInAppMessageView(elementId: 'test-element'),
@@ -328,9 +341,10 @@ void main() {
         expect(cleanupCalled, true);
       });
 
-      testWidgets('updates elementId when widget is updated', (WidgetTester tester) async {
+      testWidgets('updates elementId when widget is updated',
+          (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: InlineInAppMessageView(elementId: 'initial-element'),
@@ -366,9 +380,10 @@ void main() {
     });
 
     group('Error Handling', () {
-      testWidgets('handles missing arguments gracefully', (WidgetTester tester) async {
+      testWidgets('handles missing arguments gracefully',
+          (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: InlineInAppMessageView(elementId: 'test-element'),
@@ -394,9 +409,10 @@ void main() {
         await tester.pump();
       });
 
-      testWidgets('handles unknown method calls gracefully', (WidgetTester tester) async {
+      testWidgets('handles unknown method calls gracefully',
+          (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: InlineInAppMessageView(elementId: 'test-element'),
@@ -422,9 +438,10 @@ void main() {
         await tester.pump();
       });
 
-      testWidgets('handles onAction without callback gracefully', (WidgetTester tester) async {
+      testWidgets('handles onAction without callback gracefully',
+          (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: InlineInAppMessageView(elementId: 'test-element'),
@@ -456,9 +473,10 @@ void main() {
     });
 
     group('Animation and Layout', () {
-      testWidgets('uses AnimatedSize for smooth transitions', (WidgetTester tester) async {
+      testWidgets('uses AnimatedSize for smooth transitions',
+          (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: InlineInAppMessageView(elementId: 'test-element'),
@@ -466,14 +484,16 @@ void main() {
         );
 
         expect(find.byType(AnimatedSize), findsOneWidget);
-        
-        final animatedSize = tester.widget<AnimatedSize>(find.byType(AnimatedSize));
+
+        final animatedSize =
+            tester.widget<AnimatedSize>(find.byType(AnimatedSize));
         expect(animatedSize.duration, const Duration(milliseconds: 200));
       });
 
-      testWidgets('starts with default height of 1.0', (WidgetTester tester) async {
+      testWidgets('starts with default height of 1.0',
+          (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: InlineInAppMessageView(elementId: 'test-element'),

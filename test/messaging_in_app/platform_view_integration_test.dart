@@ -3,14 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-
 void main() {
   group('Platform View Integration', () {
     testWidgets('InlineInAppMessageView integrates with platform view registry',
         (WidgetTester tester) async {
       // This test verifies that the widget can be created and rendered
       // without throwing platform view registration errors
-      
+
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       // Create the widget
@@ -45,19 +44,21 @@ void main() {
 
       // Verify AndroidView has correct configuration
       final androidView = tester.widget<AndroidView>(find.byType(AndroidView));
-      expect(androidView.viewType, equals('customer_io_inline_in_app_message_view'));
-      
+      expect(androidView.viewType,
+          equals('customer_io_inline_in_app_message_view'));
+
       final params = androidView.creationParams as Map<String, dynamic>;
       expect(params['elementId'], equals('integration-test-banner'));
 
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('InlineInAppMessageView integrates with iOS platform view registry',
+    testWidgets(
+        'InlineInAppMessageView integrates with iOS platform view registry',
         (WidgetTester tester) async {
       // This test verifies that the widget can be created and rendered on iOS
       // without throwing platform view registration errors
-      
+
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
 
       // Create the widget
@@ -92,8 +93,9 @@ void main() {
 
       // Verify UiKitView has correct configuration
       final uiKitView = tester.widget<UiKitView>(find.byType(UiKitView));
-      expect(uiKitView.viewType, equals('customer_io_inline_in_app_message_view'));
-      
+      expect(
+          uiKitView.viewType, equals('customer_io_inline_in_app_message_view'));
+
       final params = uiKitView.creationParams as Map<String, dynamic>;
       expect(params['elementId'], equals('integration-test-banner'));
 
@@ -135,7 +137,8 @@ void main() {
       expect(find.byType(AndroidView), findsNWidgets(3));
 
       // Verify each has unique element IDs
-      final androidViews = tester.widgetList<AndroidView>(find.byType(AndroidView));
+      final androidViews =
+          tester.widgetList<AndroidView>(find.byType(AndroidView));
       final elementIds = androidViews.map((view) {
         final params = view.creationParams as Map<String, dynamic>;
         return params['elementId'];
@@ -198,14 +201,14 @@ void main() {
       );
 
       final androidView = tester.widget<AndroidView>(find.byType(AndroidView));
-      
+
       // Verify that onPlatformViewCreated callback is set
       expect(androidView.onPlatformViewCreated, isNotNull);
 
       // Simulate platform view creation (this would normally be called by the platform)
       // Note: In a real test environment, we can't easily mock this without more setup
       // but we can verify the callback is properly configured
-      
+
       debugDefaultTargetPlatformOverride = null;
     });
   });
