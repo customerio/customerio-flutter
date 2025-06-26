@@ -13,8 +13,7 @@ class AmiAppAuth extends ChangeNotifier {
   AmiAppAuth();
 
   // Validates current signed in state
-  Future<bool> updateState() =>
-      fetchUserState().then((user) {
+  Future<bool> updateState() => fetchUserState().then((user) {
         _signedIn = user.isLoggedIn;
         notifyListeners();
         return _signedIn == true;

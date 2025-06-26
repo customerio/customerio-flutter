@@ -61,12 +61,14 @@ class CustomerIO {
 
   /// Access push messaging functionality
   static CustomerIOMessagingPushPlatform get pushMessaging {
-    return _instance?._pushMessaging ?? CustomerIOMessagingPushPlatform.instance;
+    return _instance?._pushMessaging ??
+        CustomerIOMessagingPushPlatform.instance;
   }
 
   /// Access in-app messaging functionality
   static CustomerIOMessagingInAppPlatform get inAppMessaging {
-    return _instance?._inAppMessaging ?? CustomerIOMessagingInAppPlatform.instance;
+    return _instance?._inAppMessaging ??
+        CustomerIOMessagingInAppPlatform.instance;
   }
 
   /// To initialize the plugin
@@ -153,8 +155,7 @@ class CustomerIO {
   /// user actions etc
   ///
   /// @param attributes additional attributes for a user profile
-  void setProfileAttributes(
-      {required Map<String, dynamic> attributes}) {
+  void setProfileAttributes({required Map<String, dynamic> attributes}) {
     return _platform.setProfileAttributes(
         attributes: attributes.excludeNullValues());
   }

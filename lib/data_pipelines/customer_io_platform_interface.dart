@@ -67,8 +67,7 @@ abstract class CustomerIOPlatform extends PlatformInterface {
     throw UnimplementedError('setDeviceAttributes() has not been implemented.');
   }
 
-  void setProfileAttributes(
-      {required Map<String, dynamic> attributes}) {
+  void setProfileAttributes({required Map<String, dynamic> attributes}) {
     throw UnimplementedError(
         'setProfileAttributes() has not been implemented.');
   }

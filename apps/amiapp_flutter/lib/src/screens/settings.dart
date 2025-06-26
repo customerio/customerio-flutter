@@ -82,18 +82,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     final newConfig = CustomerIOSDKConfig(
-      cdpApiKey: _cdpApiKeyValueController.text.trim(),
-      migrationSiteId: _siteIDValueController.text.trim().nullIfEmpty(),
-      apiHost: _apiHostValueController.text.trim().nullIfEmpty(),
-      cdnHost: _cdnHostValueController.text.trim().nullIfEmpty(),
-      flushAt: _flushAtValueController.text.trim().toIntOrNull(),
-      flushInterval: _flushIntervalValueController.text.trim().toIntOrNull(),
-      screenViewUse: _screenViewUse,
-      screenTrackingEnabled: _featureTrackScreens,
-      autoTrackDeviceAttributes: _featureTrackDeviceAttributes,
-      debugModeEnabled: _featureDebugMode,
-      inAppConfig: InAppConfig(siteId: _siteIDValueController.text.trim())
-    );
+        cdpApiKey: _cdpApiKeyValueController.text.trim(),
+        migrationSiteId: _siteIDValueController.text.trim().nullIfEmpty(),
+        apiHost: _apiHostValueController.text.trim().nullIfEmpty(),
+        cdnHost: _cdnHostValueController.text.trim().nullIfEmpty(),
+        flushAt: _flushAtValueController.text.trim().toIntOrNull(),
+        flushInterval: _flushIntervalValueController.text.trim().toIntOrNull(),
+        screenViewUse: _screenViewUse,
+        screenTrackingEnabled: _featureTrackScreens,
+        autoTrackDeviceAttributes: _featureTrackDeviceAttributes,
+        debugModeEnabled: _featureDebugMode,
+        inAppConfig: InAppConfig(siteId: _siteIDValueController.text.trim()));
     widget._customerIOSDK.saveConfigToPreferences(newConfig).then((success) {
       if (!context.mounted) {
         return;
