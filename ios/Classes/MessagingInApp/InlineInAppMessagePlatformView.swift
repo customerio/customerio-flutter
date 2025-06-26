@@ -37,6 +37,7 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
     private var _view: UIView
     private let contentView: InlineMessageBridgeView = .init()
     private var methodChannel: FlutterMethodChannel?
+    private var lastReportedHeight: CGFloat = 0
     
     private enum Args {
         static let elementId = "elementId"
@@ -180,5 +181,3 @@ extension InlineInAppMessagePlatformView: InlineMessageBridgeViewDelegate {
         invokeDartMethod(MethodNames.onStateChange, stateArgs)
     }
 }
-
-

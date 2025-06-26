@@ -128,7 +128,7 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
     }
 
     return AnimatedSize(
-      duration: const Duration(milliseconds: 300),
+      duration: _InlineMessageConstants.animationDuration,
       child: SizedBox(
         // height is 1.0 to avoid zero-height layout issues,
         // which cause Flutter to skip laying out the native view
@@ -168,7 +168,7 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
         if (mounted) {
           setState(() {
             // Treat height 0.0 as "no message" state, set to 1.0 to maintain layout
-            _nativeHeight = (height == 0.0) ? 1.0 : height;
+            _nativeHeight = (height == 0.0) ? _InlineMessageConstants.fallbackHeight : height;
             _nativeWidth = width;
           });
         }
@@ -179,7 +179,7 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
         if (mounted) {
           if (state == 'NoMessageToDisplay') {
             setState(() {
-              _nativeHeight = 1.0; // Unified no-message height
+              _nativeHeight = _InlineMessageConstants.fallbackHeight; // Unified no-message height
             });
           }
         }
