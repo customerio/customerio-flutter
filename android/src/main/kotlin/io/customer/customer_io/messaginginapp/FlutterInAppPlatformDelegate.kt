@@ -6,7 +6,7 @@ import io.flutter.plugin.common.MethodChannel
 
 /**
  * Flutter platform delegate for in-app messaging.
- * Now uses WrapperPlatformDelegate from native SDK to eliminate code duplication with React Native.
+ * Now uses WrapperPlatformDelegate from native SDK to eliminate code duplication with other wrappers.
  * Only contains Flutter-specific event dispatch logic - all animation and state management is shared.
  *
  * @param view The native Android view hosting the in-app message

@@ -32,7 +32,7 @@ private enum PayloadKeys {
     static let duration = "duration"
 }
 
-/// Flutter wrapper for inline message display with InlineMessageBridgeView (same as React Native)
+/// Flutter wrapper for inline message display with InlineMessageBridgeView
 class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
     private var _view: UIView
     private let contentView: InlineMessageBridgeView = .init()
@@ -66,7 +66,7 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
             methodChannel?.setMethodCallHandler(handleMethodCall)
         }
         
-        // Attach content view to container and set delegate (same as React Native)
+        // Attach content view to container and set delegate
         contentView.attachToParent(parent: _view, delegate: self)
         
         // Set initial element ID from creation params
@@ -75,7 +75,6 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
             contentView.elementId = elementId
         }
         
-        // Setup for use (same as React Native)
         contentView.onViewAttached()
     }
     
@@ -135,8 +134,7 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
     
 }
 
-// MARK: - InlineMessageBridgeViewDelegate (Same as React Native)
-
+// MARK: - InlineMessageBridgeViewDelegate
 extension InlineInAppMessagePlatformView: InlineMessageBridgeViewDelegate {
     func onActionClick(message: InAppMessage, actionValue: String, actionName: String) -> Bool {
         // Send widget-specific action callbacks to Flutter
@@ -152,7 +150,7 @@ extension InlineInAppMessagePlatformView: InlineMessageBridgeViewDelegate {
     }
     
     func onMessageSizeChanged(width: CGFloat, height: CGFloat) {
-        // Native SDK size change callback - same as React Native receives
+        // Native SDK size change callback
         var payload: [String: Any] = [
             PayloadKeys.height: height,
             PayloadKeys.duration: InlineMessageConstants.defaultAnimationDuration
@@ -167,7 +165,7 @@ extension InlineInAppMessagePlatformView: InlineMessageBridgeViewDelegate {
     }
     
     func onNoMessageToDisplay() {
-        // Native SDK state change callback - same as React Native receives
+        // Native SDK state change callback
         let stateArgs = [PayloadKeys.state: MessageState.noMessageToDisplay]
         invokeDartMethod(MethodNames.onStateChange, stateArgs)
     }

@@ -41,7 +41,6 @@ class FlutterInlineInAppMessageView @JvmOverloads constructor(
      * Handle action clicks from inline in-app messages.
      */
     override fun onActionClick(message: InAppMessage, actionValue: String, actionName: String) {
-        // Create payload matching React Native format
         val payload = mapOf(
             "actionValue" to actionValue,
             "actionName" to actionName,
