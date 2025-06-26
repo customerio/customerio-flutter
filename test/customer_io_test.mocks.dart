@@ -60,12 +60,12 @@ class MockTestCustomerIoPlatform extends _i1.Mock
       );
   @override
   void clearIdentify() => super.noSuchMethod(
-    Invocation.method(
-      #clearIdentify,
-      [],
-    ),
-    returnValueForMissingStub: null,
-  );
+        Invocation.method(
+          #clearIdentify,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
   @override
   void track({
     required String? name,

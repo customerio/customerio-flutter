@@ -88,8 +88,7 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
   /// Set custom user profile information such as user preference, specific
   /// user actions etc
   @override
-  void setProfileAttributes(
-      {required Map<String, dynamic> attributes}) {
+  void setProfileAttributes({required Map<String, dynamic> attributes}) {
     return methodChannel
         .invokeNativeMethodVoid(NativeMethods.setProfileAttributes, {
       NativeMethodParams.attributes: attributes,

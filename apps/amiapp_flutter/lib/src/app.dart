@@ -10,6 +10,7 @@ import 'data/screen.dart';
 import 'screens/attributes.dart';
 import 'screens/dashboard.dart';
 import 'screens/events.dart';
+import 'screens/inline_messages.dart';
 import 'screens/login.dart';
 import 'screens/settings.dart';
 import 'theme/sizes.dart';
@@ -137,6 +138,11 @@ class _AmiAppState extends State<AmiApp> {
               name: Screen.profileAttributes.name,
               path: Screen.profileAttributes.path,
               builder: (context, state) => AttributesScreen.profile(),
+            ),
+            GoRoute(
+              name: Screen.inlineMessages.name,
+              path: Screen.inlineMessages.path,
+              builder: (context, state) => const InlineMessagesScreen(),
             ),
           ],
         ),
