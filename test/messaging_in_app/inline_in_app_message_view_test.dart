@@ -1,18 +1,15 @@
-import 'dart:convert';
 import 'package:customer_io/messaging_in_app/inline_in_app_message_view.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('InlineInAppMessageView', () {
-    late List<MethodCall> methodCalls;
-
     setUp(() {
-      methodCalls = [];
+      // Setup test environment
     });
 
     tearDown(() {

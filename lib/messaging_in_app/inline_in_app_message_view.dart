@@ -102,14 +102,14 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
   @override
   Widget build(BuildContext context) {
     final creationParams = <String, dynamic>{
-      'elementId': widget.elementId,
+      _InlineMessageConstants.elementId: widget.elementId,
     };
 
     Widget platformView;
 
     if (defaultTargetPlatform == TargetPlatform.android) {
       platformView = AndroidView(
-        viewType: 'customer_io_inline_in_app_message_view',
+        viewType: _InlineMessageConstants.viewType,
         layoutDirection: TextDirection.ltr,
         creationParams: creationParams,
         creationParamsCodec: const StandardMessageCodec(),
@@ -118,7 +118,7 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
       );
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       platformView = UiKitView(
-        viewType: 'customer_io_inline_in_app_message_view',
+        viewType: _InlineMessageConstants.viewType,
         creationParams: creationParams,
         creationParamsCodec: const StandardMessageCodec(),
         onPlatformViewCreated: _onPlatformViewCreated,
@@ -140,19 +140,19 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
   }
 
   void _onPlatformViewCreated(int id) {
-    _methodChannel = MethodChannel('customer_io_inline_view_$id');
+    _methodChannel = MethodChannel('${_InlineMessageConstants.channelPrefix}$id');
     _methodChannel!.setMethodCallHandler(_handleMethodCall);
   }
 
   Future<dynamic> _handleMethodCall(MethodCall call) async {
     switch (call.method) {
-      case 'onAction':
+      case _InlineMessageConstants.onAction:
         if (widget.onAction != null) {
           final arguments = call.arguments as Map<dynamic, dynamic>;
-          final actionValue = arguments['actionValue'] as String;
-          final actionName = arguments['actionName'] as String;
-          final messageId = arguments['messageId'] as String?;
-          final deliveryId = arguments['deliveryId'] as String?;
+          final actionValue = arguments[_InlineMessageConstants.actionValue] as String;
+          final actionName = arguments[_InlineMessageConstants.actionName] as String;
+          final messageId = arguments[_InlineMessageConstants.messageId] as String?;
+          final deliveryId = arguments[_InlineMessageConstants.deliveryId] as String?;
           widget.onAction!(
             actionValue,
             actionName,
@@ -161,10 +161,10 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
           );
         }
         break;
-      case 'onSizeChange':
+      case _InlineMessageConstants.onSizeChange:
         final arguments = call.arguments as Map<dynamic, dynamic>;
-        final width = arguments['width'] as double?;
-        final height = arguments['height'] as double?;
+        final width = arguments[_InlineMessageConstants.width] as double?;
+        final height = arguments[_InlineMessageConstants.height] as double?;
         if (mounted) {
           setState(() {
             // Treat height 0.0 as "no message" state, set to 1.0 to maintain layout
@@ -173,11 +173,11 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
           });
         }
         break;
-      case 'onStateChange':
+      case _InlineMessageConstants.onStateChange:
         final arguments = call.arguments as Map<dynamic, dynamic>;
-        final state = arguments['state'] as String;
+        final state = arguments[_InlineMessageConstants.state] as String;
         if (mounted) {
-          if (state == 'NoMessageToDisplay') {
+          if (state == _InlineMessageConstants.noMessageToDisplay) {
             setState(() {
               _nativeHeight = _InlineMessageConstants.fallbackHeight; // Unified no-message height
             });
