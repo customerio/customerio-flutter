@@ -37,13 +37,46 @@ class _InlineMessageConstants {
   static const String noMessageToDisplay = 'NoMessageToDisplay';
 }
 
-/// Callback function for handling in-app message actions
-typedef InAppMessageActionCallback = void Function(
-  String actionValue, 
-  String actionName, {
-  String? messageId,
-  String? deliveryId,
-});
+/// Represents an in-app message with its metadata
+class InAppMessage {
+  /// Creates an in-app message instance
+  const InAppMessage({
+    required this.messageId,
+    this.deliveryId,
+    this.elementId,
+  });
+
+  /// The unique identifier for the message
+  final String messageId;
+
+  /// The delivery/campaign identifier (optional)
+  final String? deliveryId;
+
+  /// The element identifier for inline messages (optional)
+  final String? elementId;
+
+  @override
+  String toString() => 'InAppMessage(messageId: $messageId, deliveryId: $deliveryId, elementId: $elementId)';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is InAppMessage &&
+        other.messageId == messageId &&
+        other.deliveryId == deliveryId &&
+        other.elementId == elementId;
+  }
+
+  @override
+  int get hashCode => messageId.hashCode ^ deliveryId.hashCode ^ elementId.hashCode;
+}
+
+/// Callback function for handling in-app message action clicks
+typedef InAppMessageActionClickCallback = void Function(
+  InAppMessage message,
+  String actionValue,
+  String actionName,
+);
 
 /// A Flutter widget that displays an inline in-app message using native platform views.
 /// 
@@ -55,8 +88,9 @@ typedef InAppMessageActionCallback = void Function(
 /// ```dart
 /// InlineInAppMessageView(
 ///   elementId: 'banner-message',
-///   onAction: (actionValue, actionName) {
-///     print('Action triggered: $actionName with value: $actionValue');
+///   onActionClick: (message, actionValue, actionName) {
+///     print('Action clicked: $actionName with value: $actionValue');
+///     print('Message ID: ${message.messageId}');
 ///   },
 /// )
 /// ```
@@ -64,18 +98,18 @@ class InlineInAppMessageView extends StatefulWidget {
   /// Creates an inline in-app message view.
   ///
   /// [elementId] is required and identifies which message to display.
-  /// [onAction] is an optional callback for handling message actions.
+  /// [onActionClick] is an optional callback for handling message action clicks.
   const InlineInAppMessageView({
     super.key,
     required this.elementId,
-    this.onAction,
+    this.onActionClick,
   });
 
   /// The element ID that identifies which message to display
   final String elementId;
 
-  /// Callback function that gets called when a message action is triggered
-  final InAppMessageActionCallback? onAction;
+  /// Callback function that gets called when a message action is clicked
+  final InAppMessageActionClickCallback? onActionClick;
 
   @override
   State<InlineInAppMessageView> createState() => _InlineInAppMessageViewState();
@@ -147,18 +181,20 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
   Future<dynamic> _handleMethodCall(MethodCall call) async {
     switch (call.method) {
       case _InlineMessageConstants.onAction:
-        if (widget.onAction != null) {
+        if (widget.onActionClick != null) {
           final arguments = call.arguments as Map<dynamic, dynamic>;
           final actionValue = arguments[_InlineMessageConstants.actionValue] as String;
           final actionName = arguments[_InlineMessageConstants.actionName] as String;
           final messageId = arguments[_InlineMessageConstants.messageId] as String?;
           final deliveryId = arguments[_InlineMessageConstants.deliveryId] as String?;
-          widget.onAction!(
-            actionValue,
-            actionName,
-            messageId: messageId,
+          
+          final message = InAppMessage(
+            messageId: messageId ?? '',
             deliveryId: deliveryId,
+            elementId: widget.elementId,
           );
+          
+          widget.onActionClick!(message, actionValue, actionName);
         }
         break;
       case _InlineMessageConstants.onSizeChange:

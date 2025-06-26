@@ -22,12 +22,12 @@ void main() {
           home: Scaffold(
             body: InlineInAppMessageView(
               elementId: 'test-banner',
-              onAction: (actionValue, actionName, {messageId, deliveryId}) {
+              onActionClick: (message, actionValue, actionName) {
                 lastActionCallback = {
                   'actionValue': actionValue,
                   'actionName': actionName,
-                  'messageId': messageId,
-                  'deliveryId': deliveryId,
+                  'messageId': message.messageId,
+                  'deliveryId': message.deliveryId,
                 };
               },
             ),

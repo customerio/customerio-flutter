@@ -17,7 +17,7 @@ void main() {
           home: Scaffold(
             body: InlineInAppMessageView(
               elementId: 'test-banner',
-              onAction: (actionValue, actionName, {messageId, deliveryId}) {
+              onActionClick: (message, actionValue, actionName) {
                 // Test callback
               },
             ),
@@ -378,7 +378,7 @@ void main() {
           home: Scaffold(
             body: InlineInAppMessageView(
               elementId: 'test-banner',
-              onAction: (actionValue, actionName, {messageId, deliveryId}) {
+              onActionClick: (message, actionValue, actionName) {
                 // Simulate an exception in the callback
                 throw Exception('Test exception in callback');
               },

@@ -24,7 +24,7 @@ void main() {
                   height: 200,
                   child: InlineInAppMessageView(
                     elementId: 'integration-test-banner',
-                    onAction: (actionValue, actionName, {messageId, deliveryId}) {
+                    onActionClick: (message, actionValue, actionName) {
                       // Action handler for testing
                       debugPrint('Action: $actionName = $actionValue');
                     },
@@ -71,7 +71,7 @@ void main() {
                   height: 200,
                   child: InlineInAppMessageView(
                     elementId: 'integration-test-banner',
-                    onAction: (actionValue, actionName, {messageId, deliveryId}) {
+                    onActionClick: (message, actionValue, actionName) {
                       // Action handler for testing
                       debugPrint('Action: $actionName = $actionValue');
                     },

@@ -29,7 +29,7 @@ void main() {
         expect(find.byType(InlineInAppMessageView), findsOneWidget);
       });
 
-      testWidgets('accepts optional onAction callback', (WidgetTester tester) async {
+      testWidgets('accepts optional onActionClick callback', (WidgetTester tester) async {
         const elementId = 'test-element';
         bool callbackCalled = false;
         
@@ -37,7 +37,7 @@ void main() {
           MaterialApp(
             home: InlineInAppMessageView(
               elementId: elementId,
-              onAction: (actionValue, actionName, {messageId, deliveryId}) {
+              onActionClick: (message, actionValue, actionName) {
                 callbackCalled = true;
               },
             ),
@@ -145,22 +145,20 @@ void main() {
         await tester.pump();
       });
 
-      testWidgets('handles onAction method calls correctly', (WidgetTester tester) async {
+      testWidgets('handles onActionClick method calls correctly', (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
         String? receivedActionValue;
         String? receivedActionName;
-        String? receivedMessageId;
-        String? receivedDeliveryId;
+        InAppMessage? receivedMessage;
         
         await tester.pumpWidget(
           MaterialApp(
             home: InlineInAppMessageView(
               elementId: 'test-element',
-              onAction: (actionValue, actionName, {messageId, deliveryId}) {
+              onActionClick: (message, actionValue, actionName) {
+                receivedMessage = message;
                 receivedActionValue = actionValue;
                 receivedActionName = actionName;
-                receivedMessageId = messageId;
-                receivedDeliveryId = deliveryId;
               },
             ),
           ),
@@ -189,8 +187,9 @@ void main() {
 
         expect(receivedActionValue, 'test-action-value');
         expect(receivedActionName, 'test-action-name');
-        expect(receivedMessageId, 'test-message-id');
-        expect(receivedDeliveryId, 'test-delivery-id');
+        expect(receivedMessage?.messageId, 'test-message-id');
+        expect(receivedMessage?.deliveryId, 'test-delivery-id');
+        expect(receivedMessage?.elementId, 'test-element');
       });
 
       testWidgets('handles onSizeChange method calls correctly', (WidgetTester tester) async {
@@ -429,7 +428,7 @@ void main() {
         await tester.pumpWidget(
           const MaterialApp(
             home: InlineInAppMessageView(elementId: 'test-element'),
-            // No onAction callback provided
+            // No onActionClick callback provided
           ),
         );
 
