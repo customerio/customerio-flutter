@@ -14,7 +14,8 @@ void main() {
       lastActionCallback = {};
     });
 
-    testWidgets('handles onAction method calls correctly', (WidgetTester tester) async {
+    testWidgets('handles onAction method calls correctly',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(
@@ -75,7 +76,8 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('handles onAction method calls without callback', (WidgetTester tester) async {
+    testWidgets('handles onAction method calls without callback',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(
@@ -116,7 +118,8 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('handles onSizeChange method calls', (WidgetTester tester) async {
+    testWidgets('handles onSizeChange method calls',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(
@@ -159,7 +162,8 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('handles onStateChange method calls', (WidgetTester tester) async {
+    testWidgets('handles onStateChange method calls',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(
@@ -206,7 +210,8 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('handles unknown method calls gracefully', (WidgetTester tester) async {
+    testWidgets('handles unknown method calls gracefully',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(
@@ -227,7 +232,7 @@ void main() {
 
       // Simulate unknown method call
       const String channelName = 'customer_io_inline_view_123';
-      
+
       expect(() async {
         await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
           channelName,
@@ -241,7 +246,8 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('widget cleans up method channel on disposal', (WidgetTester tester) async {
+    testWidgets('widget cleans up method channel on disposal',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(

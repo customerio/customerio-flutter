@@ -49,9 +49,11 @@ class InlineMessagesScreen extends StatelessWidget {
     );
   }
 
-  void _showInlineActionClick(InAppMessage message, String actionValue, String actionName) {
-    print('Inline message action clicked: $actionName with value: $actionValue');
-    
+  void _showInlineActionClick(
+      InAppMessage message, String actionValue, String actionName) {
+    debugPrint(
+        'Inline message action clicked: $actionName with value: $actionValue');
+
     CustomerIO.instance.track(
       name: 'Inline Message Action Clicked',
       properties: {

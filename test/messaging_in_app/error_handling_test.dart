@@ -8,10 +8,10 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('InlineInAppMessageView Error Handling', () {
-    testWidgets('widget handles malformed onAction arguments gracefully', (WidgetTester tester) async {
+    testWidgets('widget handles malformed onAction arguments gracefully',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
-      
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -38,7 +38,8 @@ void main() {
         await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
           channelName,
           const StandardMethodCodec().encodeMethodCall(
-            const MethodCall('onAction', {'actionValue': 'test'}), // Missing actionName
+            const MethodCall(
+                'onAction', {'actionValue': 'test'}), // Missing actionName
           ),
           (data) {},
         );
@@ -62,7 +63,7 @@ void main() {
           const StandardMethodCodec().encodeMethodCall(
             const MethodCall('onAction', {
               'actionValue': 123, // Should be string
-              'actionName': 456,  // Should be string
+              'actionName': 456, // Should be string
             }),
           ),
           (data) {},
@@ -72,7 +73,8 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('widget handles malformed onSizeChange arguments gracefully', (WidgetTester tester) async {
+    testWidgets('widget handles malformed onSizeChange arguments gracefully',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(
@@ -99,7 +101,7 @@ void main() {
           channelName,
           const StandardMethodCodec().encodeMethodCall(
             const MethodCall('onSizeChange', {
-              'width': 'invalid',  // Should be number
+              'width': 'invalid', // Should be number
               'height': 'invalid', // Should be number
               'duration': 'invalid', // Should be number
             }),
@@ -137,7 +139,8 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('widget handles malformed onStateChange arguments gracefully', (WidgetTester tester) async {
+    testWidgets('widget handles malformed onStateChange arguments gracefully',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(
@@ -185,7 +188,8 @@ void main() {
         await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
           channelName,
           const StandardMethodCodec().encodeMethodCall(
-            const MethodCall('onStateChange', {'state': 123}), // Should be string
+            const MethodCall(
+                'onStateChange', {'state': 123}), // Should be string
           ),
           (data) {},
         );
@@ -194,7 +198,8 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('widget handles method calls when not mounted', (WidgetTester tester) async {
+    testWidgets('widget handles method calls when not mounted',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(
@@ -251,7 +256,8 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('widget handles empty or invalid element IDs', (WidgetTester tester) async {
+    testWidgets('widget handles empty or invalid element IDs',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       // Test with empty string
@@ -299,7 +305,8 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('widget handles disposal during method channel setup', (WidgetTester tester) async {
+    testWidgets('widget handles disposal during method channel setup',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(
@@ -313,7 +320,7 @@ void main() {
       );
 
       final androidView = tester.widget<AndroidView>(find.byType(AndroidView));
-      
+
       // Immediately remove the widget after finding it but before platform view setup
       await tester.pumpWidget(
         const MaterialApp(
@@ -331,7 +338,8 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('widget handles rapid elementId changes', (WidgetTester tester) async {
+    testWidgets('widget handles rapid elementId changes',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       String currentElementId = 'initial-element';
@@ -370,7 +378,8 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('widget handles callback exceptions gracefully', (WidgetTester tester) async {
+    testWidgets('widget handles callback exceptions gracefully',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(

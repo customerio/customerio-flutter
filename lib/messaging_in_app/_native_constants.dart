@@ -4,5 +4,4 @@ class NativeMethods {
 }
 
 /// Method parameters specific to In-App module.
-class NativeMethodParams {
-}
+class NativeMethodParams {}

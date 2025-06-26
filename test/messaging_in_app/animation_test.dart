@@ -8,7 +8,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('InlineInAppMessageView Animation', () {
-    testWidgets('widget has initial animation state', (WidgetTester tester) async {
+    testWidgets('widget has initial animation state',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(
@@ -29,7 +30,8 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('widget responds to size change animations', (WidgetTester tester) async {
+    testWidgets('widget responds to size change animations',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(
@@ -48,7 +50,6 @@ void main() {
 
       await tester.pump();
 
-      
       // Simulate method channel call for onSizeChange
       const String channelName = 'customer_io_inline_view_123';
       const sizeArguments = {
@@ -73,17 +74,27 @@ void main() {
 
       // Verify the widget still exists and has been updated
       expect(find.byType(InlineInAppMessageView), findsOneWidget);
-      expect(find.byType(SizedBox), findsOneWidget);
+      expect(find.byType(AnimatedSize), findsOneWidget);
 
-      final updatedSizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
-      
+      final inlineView = find.byType(InlineInAppMessageView);
+      final animatedSize = find.descendant(
+        of: inlineView,
+        matching: find.byType(AnimatedSize),
+      );
+      final sizedBoxes = find.descendant(
+        of: animatedSize,
+        matching: find.byType(SizedBox),
+      );
+      final updatedSizedBox = tester.widget<SizedBox>(sizedBoxes.first);
+
       // The height should be updated to the new size
       expect(updatedSizedBox.height, equals(200.0));
 
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('widget handles width-only size changes', (WidgetTester tester) async {
+    testWidgets('widget handles width-only size changes',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(
@@ -125,7 +136,8 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('widget handles height-only size changes', (WidgetTester tester) async {
+    testWidgets('widget handles height-only size changes',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(
@@ -162,13 +174,23 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
+      final inlineView = find.byType(InlineInAppMessageView);
+      final animatedSize = find.descendant(
+        of: inlineView,
+        matching: find.byType(AnimatedSize),
+      );
+      final sizedBoxes = find.descendant(
+        of: animatedSize,
+        matching: find.byType(SizedBox),
+      );
+      final sizedBox = tester.widget<SizedBox>(sizedBoxes.first);
       expect(sizedBox.height, equals(100.0));
 
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('widget handles NoMessageToDisplay state animation', (WidgetTester tester) async {
+    testWidgets('widget handles NoMessageToDisplay state animation',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(
@@ -202,13 +224,23 @@ void main() {
 
       // Verify widget still exists and has minimal height
       expect(find.byType(InlineInAppMessageView), findsOneWidget);
-      final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
+      final inlineView = find.byType(InlineInAppMessageView);
+      final animatedSize = find.descendant(
+        of: inlineView,
+        matching: find.byType(AnimatedSize),
+      );
+      final sizedBoxes = find.descendant(
+        of: animatedSize,
+        matching: find.byType(SizedBox),
+      );
+      final sizedBox = tester.widget<SizedBox>(sizedBoxes.first);
       expect(sizedBox.height, equals(1.0));
 
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('widget handles multiple rapid size changes', (WidgetTester tester) async {
+    testWidgets('widget handles multiple rapid size changes',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(
@@ -257,7 +289,8 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('widget animation respects custom duration', (WidgetTester tester) async {
+    testWidgets('widget animation respects custom duration',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(
@@ -295,17 +328,27 @@ void main() {
 
       // Animation should not be complete after 250ms (half duration)
       await tester.pump(const Duration(milliseconds: 250));
-      
+
       // Complete the animation
       await tester.pump(const Duration(milliseconds: 250));
 
-      final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
+      final inlineView = find.byType(InlineInAppMessageView);
+      final animatedSize = find.descendant(
+        of: inlineView,
+        matching: find.byType(AnimatedSize),
+      );
+      final sizedBoxes = find.descendant(
+        of: animatedSize,
+        matching: find.byType(SizedBox),
+      );
+      final sizedBox = tester.widget<SizedBox>(sizedBoxes.first);
       expect(sizedBox.height, equals(150.0));
 
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('widget handles size changes without duration parameter', (WidgetTester tester) async {
+    testWidgets('widget handles size changes without duration parameter',
+        (WidgetTester tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(
@@ -342,7 +385,16 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200)); // Default duration
 
-      final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
+      final inlineView = find.byType(InlineInAppMessageView);
+      final animatedSize = find.descendant(
+        of: inlineView,
+        matching: find.byType(AnimatedSize),
+      );
+      final sizedBoxes = find.descendant(
+        of: animatedSize,
+        matching: find.byType(SizedBox),
+      );
+      final sizedBox = tester.widget<SizedBox>(sizedBoxes.first);
       expect(sizedBox.height, equals(120.0));
 
       debugDefaultTargetPlatformOverride = null;
