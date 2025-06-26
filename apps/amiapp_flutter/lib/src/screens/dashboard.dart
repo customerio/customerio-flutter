@@ -53,18 +53,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
         .getBuildInfo()
         .then((value) => setState(() => _buildInfo = value));
 
-    inAppMessageStreamSubscription = CustomerIO.inAppMessaging
-        .subscribeToEventsListener(handleInAppEvent);
+    inAppMessageStreamSubscription =
+        CustomerIO.inAppMessaging.subscribeToEventsListener(handleInAppEvent);
 
     // Setup 3rd party SDK, flutter-fire.
     // We install this SDK into sample app to make sure the CIO SDK behaves as expected when there is another SDK installed that handles push notifications.
     FirebaseMessaging.instance.getInitialMessage().then((initialMessage) {
-      CustomerIO.instance.track(name: "push clicked", properties: {"push": initialMessage?.notification?.title, "app-state": "killed"});
+      CustomerIO.instance.track(name: "push clicked", properties: {
+        "push": initialMessage?.notification?.title,
+        "app-state": "killed"
+      });
     });
 
     // ...while app was in the background (but not killed).
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      CustomerIO.instance.track(name: "push clicked", properties: {"push": message.notification?.title, "app-state": "background"});
+      CustomerIO.instance.track(name: "push clicked", properties: {
+        "push": message.notification?.title,
+        "app-state": "background"
+      });
     });
 
     // Important that a 3rd party SDK can receive callbacks when a push is received while app in background.
@@ -72,7 +78,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Note: A push will not be shown on the device while app is in foreground. This is a FCM behavior, not a CIO SDK behavior.
     // If you send a push using Customer.io with the FCM service setup in Customer.io, the push will be shown on the device.
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      CustomerIO.instance.track(name: "push received", properties: {"push": message.notification?.title, "app-state": "foreground"});
+      CustomerIO.instance.track(name: "push received", properties: {
+        "push": message.notification?.title,
+        "app-state": "foreground"
+      });
     });
 
     super.initState();
@@ -256,10 +265,16 @@ class _ActionList extends StatelessWidget {
                           break;
                         case _ActionItem.showLocalPush:
                           const NotificationDetails notificationDetails =
-                          NotificationDetails();
-                          FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-                          FlutterLocalNotificationsPlugin();
-                          await flutterLocalNotificationsPlugin.show(0, 'Show Local Push', 'Show Local Push Button', notificationDetails, payload: 'item x');
+                              NotificationDetails();
+                          FlutterLocalNotificationsPlugin
+                              flutterLocalNotificationsPlugin =
+                              FlutterLocalNotificationsPlugin();
+                          await flutterLocalNotificationsPlugin.show(
+                              0,
+                              'Show Local Push',
+                              'Show Local Push Button',
+                              notificationDetails,
+                              payload: 'item x');
                           break;
                         default:
                           final Screen? screen = item.targetScreen();
