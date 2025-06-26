@@ -1,4 +1,5 @@
 import 'package:customer_io/customer_io_widgets.dart';
+import 'package:customer_io/messaging_in_app/inline_in_app_message_view.dart';
 import 'package:flutter/material.dart';
 
 import '../components/container.dart';
@@ -17,7 +18,7 @@ class InlineMessagesScreen extends StatelessWidget {
           // Sticky Header Inline Message
           InlineInAppMessageView(
             elementId: 'sticky-header',
-            onAction: _showInlineAction,
+            onActionClick: _showInlineActionClick,
           ),
           Expanded(
             child: SingleChildScrollView(
@@ -29,14 +30,14 @@ class InlineMessagesScreen extends StatelessWidget {
                   _buildThreeColumnRow(),
                   InlineInAppMessageView(
                     elementId: 'inline',
-                    onAction: _showInlineAction,
+                    onActionClick: _showInlineActionClick,
                   ),
                   _buildImageAndTextBlock(),
                   _buildFullWidthCard(),
                   _buildThreeColumnRow(),
                   InlineInAppMessageView(
                     elementId: 'below-fold',
-                    onAction: _showInlineAction,
+                    onActionClick: _showInlineActionClick,
                   ),
                 ],
               ),
@@ -47,8 +48,14 @@ class InlineMessagesScreen extends StatelessWidget {
     );
   }
 
-  void _showInlineAction(String actionValue, String actionName, {String? messageId, String? deliveryId}) {
-    // Handle action (e.g., show snackbar)
+  void _showInlineActionClick(InAppMessage message, String actionValue, String actionName) {
+    // Handle action (e.g., show snackbar, track event)
+    print('🎯 Inline Action Clicked!');
+    print('📨 Message ID: ${message.messageId}');
+    print('🚀 Delivery ID: ${message.deliveryId}');
+    print('🎯 Element ID: ${message.elementId}');
+    print('🔗 Action Value: $actionValue');
+    print('📝 Action Name: $actionName');
   }
 
   Widget _buildImageAndTextBlock() {
