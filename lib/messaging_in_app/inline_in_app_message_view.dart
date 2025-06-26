@@ -3,6 +3,40 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+/// Constants for inline in-app message view implementation
+class _InlineMessageConstants {
+  _InlineMessageConstants._(); // Prevent instantiation
+  
+  // Platform view configuration
+  static const String viewType = 'customer_io_inline_in_app_message_view';
+  static const String channelPrefix = 'customer_io_inline_view_';
+  
+  // Animation and layout
+  static const Duration animationDuration = Duration(milliseconds: 200);
+  static const double fallbackHeight = 1.0;
+  
+  // Method names
+  static const String setElementId = 'setElementId';
+  static const String getElementId = 'getElementId';
+  static const String cleanup = 'cleanup';
+  static const String onAction = 'onAction';
+  static const String onSizeChange = 'onSizeChange';
+  static const String onStateChange = 'onStateChange';
+  
+  // Argument keys
+  static const String elementId = 'elementId';
+  static const String actionValue = 'actionValue';
+  static const String actionName = 'actionName';
+  static const String messageId = 'messageId';
+  static const String deliveryId = 'deliveryId';
+  static const String width = 'width';
+  static const String height = 'height';
+  static const String state = 'state';
+  
+  // State values
+  static const String noMessageToDisplay = 'NoMessageToDisplay';
+}
+
 /// Callback function for handling in-app message actions
 typedef InAppMessageActionCallback = void Function(
   String actionValue, 
@@ -61,7 +95,7 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
   void dispose() {
     _methodChannel?.setMethodCallHandler(null);
     // Explicitly call cleanup on iOS side
-    _safeInvokeMethod('cleanup');
+    _safeInvokeMethod(_InlineMessageConstants.cleanup);
     super.dispose();
   }
 
@@ -94,7 +128,7 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
     }
 
     return AnimatedSize(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 300),
       child: SizedBox(
         // height is 1.0 to avoid zero-height layout issues,
         // which cause Flutter to skip laying out the native view
@@ -169,13 +203,13 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
 
   /// Sets the element ID for the inline message view
   Future<void> _setElementId(String elementId) async {
-    await _safeInvokeMethod('setElementId', elementId);
+    await _safeInvokeMethod(_InlineMessageConstants.setElementId, elementId);
   }
 
 
   /// Gets the current element ID from the native view
   Future<String?> getElementId() async {
-    return await _safeInvokeMethod<String>('getElementId');
+    return await _safeInvokeMethod<String>(_InlineMessageConstants.getElementId);
   }
 
 

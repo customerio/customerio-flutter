@@ -4,6 +4,34 @@ import Flutter
 import Foundation
 import UIKit
 
+/// Constants for inline message platform view implementation
+private enum InlineMessageConstants {
+    static let defaultAnimationDuration = 200.0
+    static let channelNamePrefix = "customer_io_inline_view_"
+}
+
+private enum MethodNames {
+    static let setElementId = "setElementId"
+    static let getElementId = "getElementId"
+    static let cleanup = "cleanup"
+    static let onAction = "onAction"
+    static let onSizeChange = "onSizeChange"
+    static let onStateChange = "onStateChange"
+}
+
+private enum MessageState {
+    static let noMessageToDisplay = "NoMessageToDisplay"
+    static let loadingStarted = "LoadingStarted"
+    static let loadingFinished = "LoadingFinished"
+}
+
+private enum PayloadKeys {
+    static let state = "state"
+    static let height = "height"
+    static let width = "width"
+    static let duration = "duration"
+}
+
 /// Flutter wrapper for inline message display with InlineMessageBridgeView (same as React Native)
 class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
     private var _view: UIView
@@ -31,7 +59,7 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
         // Setup method channel for communication with Flutter
         if let messenger = messenger {
             methodChannel = FlutterMethodChannel(
-                name: "customer_io_inline_view_\(viewId)",
+                name: "\(InlineMessageConstants.channelNamePrefix)\(viewId)",
                 binaryMessenger: messenger
             )
             methodChannel?.setMethodCallHandler(handleMethodCall)
@@ -57,17 +85,17 @@ class InlineInAppMessagePlatformView: NSObject, FlutterPlatformView {
     
     private func handleMethodCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
-        case "setElementId":
+        case MethodNames.setElementId:
             call.native(result: result, transform: { $0 as? String }) { elementId in
                 setElementId(elementId)
             }
             
-        case "getElementId":
+        case MethodNames.getElementId:
             call.nativeNoArgs(result: result) {
                 getElementId()
             }
             
-        case "cleanup":
+        case MethodNames.cleanup:
             // dart view makes explicitly call cleanup when view goes away
             call.nativeNoArgs(result: result) {
                 cleanup()
@@ -116,41 +144,40 @@ extension InlineInAppMessagePlatformView: InlineMessageBridgeViewDelegate {
             Args.deliveryId: message.deliveryId as Any
         ]
         
-        invokeDartMethod("onAction", args)
+        invokeDartMethod(MethodNames.onAction, args)
         return true
     }
     
     func onMessageSizeChanged(width: CGFloat, height: CGFloat) {
         // Native SDK size change callback - same as React Native receives
-        let duration = 300.0
         var payload: [String: Any] = [
-            "height": height,
-            "duration": duration
+            PayloadKeys.height: height,
+            PayloadKeys.duration: InlineMessageConstants.defaultAnimationDuration
         ]
         
         // Only include positive width values as rendering requires valid width to calculate layout size
         if width > 0 {
-            payload["width"] = width
+            payload[PayloadKeys.width] = width
         }
         
-        invokeDartMethod("onSizeChange", payload)
+        invokeDartMethod(MethodNames.onSizeChange, payload)
     }
     
     func onNoMessageToDisplay() {
         // Native SDK state change callback - same as React Native receives
-        let stateArgs = ["state": "NoMessageToDisplay"]
-        invokeDartMethod("onStateChange", stateArgs)
+        let stateArgs = [PayloadKeys.state: MessageState.noMessageToDisplay]
+        invokeDartMethod(MethodNames.onStateChange, stateArgs)
     }
     
     func onStartLoading(onComplete: @escaping () -> Void) {
-        let stateArgs = ["state": "LoadingStarted"]
-        invokeDartMethod("onStateChange", stateArgs)
+        let stateArgs = [PayloadKeys.state: MessageState.loadingStarted]
+        invokeDartMethod(MethodNames.onStateChange, stateArgs)
         onComplete()
     }
     
     func onFinishLoading() {
-        let stateArgs = ["state": "LoadingFinished"]
-        invokeDartMethod("onStateChange", stateArgs)
+        let stateArgs = [PayloadKeys.state: MessageState.loadingFinished]
+        invokeDartMethod(MethodNames.onStateChange, stateArgs)
     }
 }
 
