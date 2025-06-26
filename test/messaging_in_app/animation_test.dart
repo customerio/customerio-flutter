@@ -74,9 +74,18 @@ void main() {
 
       // Verify the widget still exists and has been updated
       expect(find.byType(InlineInAppMessageView), findsOneWidget);
-      expect(find.byType(SizedBox), findsOneWidget);
+      expect(find.byType(AnimatedSize), findsOneWidget);
 
-      final updatedSizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
+      final inlineView = find.byType(InlineInAppMessageView);
+      final animatedSize = find.descendant(
+        of: inlineView,
+        matching: find.byType(AnimatedSize),
+      );
+      final sizedBoxes = find.descendant(
+        of: animatedSize,
+        matching: find.byType(SizedBox),
+      );
+      final updatedSizedBox = tester.widget<SizedBox>(sizedBoxes.first);
 
       // The height should be updated to the new size
       expect(updatedSizedBox.height, equals(200.0));
@@ -165,7 +174,16 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
+      final inlineView = find.byType(InlineInAppMessageView);
+      final animatedSize = find.descendant(
+        of: inlineView,
+        matching: find.byType(AnimatedSize),
+      );
+      final sizedBoxes = find.descendant(
+        of: animatedSize,
+        matching: find.byType(SizedBox),
+      );
+      final sizedBox = tester.widget<SizedBox>(sizedBoxes.first);
       expect(sizedBox.height, equals(100.0));
 
       debugDefaultTargetPlatformOverride = null;
@@ -206,7 +224,16 @@ void main() {
 
       // Verify widget still exists and has minimal height
       expect(find.byType(InlineInAppMessageView), findsOneWidget);
-      final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
+      final inlineView = find.byType(InlineInAppMessageView);
+      final animatedSize = find.descendant(
+        of: inlineView,
+        matching: find.byType(AnimatedSize),
+      );
+      final sizedBoxes = find.descendant(
+        of: animatedSize,
+        matching: find.byType(SizedBox),
+      );
+      final sizedBox = tester.widget<SizedBox>(sizedBoxes.first);
       expect(sizedBox.height, equals(1.0));
 
       debugDefaultTargetPlatformOverride = null;
@@ -305,7 +332,16 @@ void main() {
       // Complete the animation
       await tester.pump(const Duration(milliseconds: 250));
 
-      final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
+      final inlineView = find.byType(InlineInAppMessageView);
+      final animatedSize = find.descendant(
+        of: inlineView,
+        matching: find.byType(AnimatedSize),
+      );
+      final sizedBoxes = find.descendant(
+        of: animatedSize,
+        matching: find.byType(SizedBox),
+      );
+      final sizedBox = tester.widget<SizedBox>(sizedBoxes.first);
       expect(sizedBox.height, equals(150.0));
 
       debugDefaultTargetPlatformOverride = null;
@@ -349,7 +385,16 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200)); // Default duration
 
-      final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
+      final inlineView = find.byType(InlineInAppMessageView);
+      final animatedSize = find.descendant(
+        of: inlineView,
+        matching: find.byType(AnimatedSize),
+      );
+      final sizedBoxes = find.descendant(
+        of: animatedSize,
+        matching: find.byType(SizedBox),
+      );
+      final sizedBox = tester.widget<SizedBox>(sizedBoxes.first);
       expect(sizedBox.height, equals(120.0));
 
       debugDefaultTargetPlatformOverride = null;

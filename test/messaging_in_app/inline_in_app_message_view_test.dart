@@ -64,6 +64,8 @@ void main() {
 
         expect(find.byType(AndroidView), findsOneWidget);
         expect(find.byType(UiKitView), findsNothing);
+        
+        debugDefaultTargetPlatformOverride = null;
       });
 
       testWidgets('renders UiKitView on iOS platform',
@@ -78,6 +80,8 @@ void main() {
 
         expect(find.byType(UiKitView), findsOneWidget);
         expect(find.byType(AndroidView), findsNothing);
+        
+        debugDefaultTargetPlatformOverride = null;
       });
 
       testWidgets('renders empty widget on unsupported platforms',
@@ -93,6 +97,8 @@ void main() {
         expect(find.byType(AndroidView), findsNothing);
         expect(find.byType(UiKitView), findsNothing);
         expect(find.byType(SizedBox), findsOneWidget);
+        
+        debugDefaultTargetPlatformOverride = null;
       });
     });
 
@@ -113,6 +119,8 @@ void main() {
         expect(androidView.viewType, 'customer_io_inline_in_app_message_view');
         expect(androidView.creationParams, {'elementId': elementId});
         expect(androidView.layoutDirection, TextDirection.ltr);
+        
+        debugDefaultTargetPlatformOverride = null;
       });
 
       testWidgets('passes correct creation parameters to UiKitView',
@@ -129,6 +137,8 @@ void main() {
         final uiKitView = tester.widget<UiKitView>(find.byType(UiKitView));
         expect(uiKitView.viewType, 'customer_io_inline_in_app_message_view');
         expect(uiKitView.creationParams, {'elementId': elementId});
+        
+        debugDefaultTargetPlatformOverride = null;
       });
     });
 
@@ -152,6 +162,8 @@ void main() {
 
         // Method channel should be set up at this point
         await tester.pump();
+        
+        debugDefaultTargetPlatformOverride = null;
       });
 
       testWidgets('handles onActionClick method calls correctly',
@@ -177,6 +189,8 @@ void main() {
         final uiKitView = tester.widget<UiKitView>(find.byType(UiKitView));
         uiKitView.onPlatformViewCreated!(123);
         await tester.pump();
+        
+        debugDefaultTargetPlatformOverride = null;
 
         // Simulate native method call
         const channelName = 'customer_io_inline_view_123';
@@ -200,6 +214,8 @@ void main() {
         expect(receivedMessage?.messageId, 'test-message-id');
         expect(receivedMessage?.deliveryId, 'test-delivery-id');
         expect(receivedMessage?.elementId, 'test-element');
+        
+        debugDefaultTargetPlatformOverride = null;
       });
 
       testWidgets('handles onSizeChange method calls correctly',
@@ -215,6 +231,8 @@ void main() {
         final uiKitView = tester.widget<UiKitView>(find.byType(UiKitView));
         uiKitView.onPlatformViewCreated!(123);
         await tester.pump();
+        
+        debugDefaultTargetPlatformOverride = null;
 
         const channelName = 'customer_io_inline_view_123';
         const sizeArgs = {
@@ -231,11 +249,24 @@ void main() {
         );
 
         await tester.pump();
+        
+        debugDefaultTargetPlatformOverride = null;
 
         // Verify that the widget updated its size
-        final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
+        final inlineView = find.byType(InlineInAppMessageView);
+        final animatedSize = find.descendant(
+          of: inlineView,
+          matching: find.byType(AnimatedSize),
+        );
+        final sizedBoxes = find.descendant(
+          of: animatedSize,
+          matching: find.byType(SizedBox),
+        );
+        final sizedBox = tester.widget<SizedBox>(sizedBoxes.first);
         expect(sizedBox.height, 150.0);
         expect(sizedBox.width, 300.0);
+        
+        debugDefaultTargetPlatformOverride = null;
       });
 
       testWidgets('handles zero height in onSizeChange correctly',
@@ -251,6 +282,8 @@ void main() {
         final uiKitView = tester.widget<UiKitView>(find.byType(UiKitView));
         uiKitView.onPlatformViewCreated!(123);
         await tester.pump();
+        
+        debugDefaultTargetPlatformOverride = null;
 
         const channelName = 'customer_io_inline_view_123';
         const sizeArgs = {
@@ -267,8 +300,19 @@ void main() {
         );
 
         await tester.pump();
+        
+        debugDefaultTargetPlatformOverride = null;
 
-        final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
+        final inlineView = find.byType(InlineInAppMessageView);
+        final animatedSize = find.descendant(
+          of: inlineView,
+          matching: find.byType(AnimatedSize),
+        );
+        final sizedBoxes = find.descendant(
+          of: animatedSize,
+          matching: find.byType(SizedBox),
+        );
+        final sizedBox = tester.widget<SizedBox>(sizedBoxes.first);
         expect(sizedBox.height, 1.0); // Should be converted from 0.0 to 1.0
         expect(sizedBox.width, 300.0);
       });
@@ -286,6 +330,8 @@ void main() {
         final uiKitView = tester.widget<UiKitView>(find.byType(UiKitView));
         uiKitView.onPlatformViewCreated!(123);
         await tester.pump();
+        
+        debugDefaultTargetPlatformOverride = null;
 
         const channelName = 'customer_io_inline_view_123';
         const stateArgs = {
@@ -301,8 +347,19 @@ void main() {
         );
 
         await tester.pump();
+        
+        debugDefaultTargetPlatformOverride = null;
 
-        final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
+        final inlineView = find.byType(InlineInAppMessageView);
+        final animatedSize = find.descendant(
+          of: inlineView,
+          matching: find.byType(AnimatedSize),
+        );
+        final sizedBoxes = find.descendant(
+          of: animatedSize,
+          matching: find.byType(SizedBox),
+        );
+        final sizedBox = tester.widget<SizedBox>(sizedBoxes.first);
         expect(sizedBox.height, 1.0); // Should be set to fallback height
       });
     });
@@ -320,6 +377,8 @@ void main() {
         final uiKitView = tester.widget<UiKitView>(find.byType(UiKitView));
         uiKitView.onPlatformViewCreated!(123);
         await tester.pump();
+        
+        debugDefaultTargetPlatformOverride = null;
 
         // Track method calls to the platform
         const channelName = 'customer_io_inline_view_123';
@@ -354,6 +413,8 @@ void main() {
         final uiKitView = tester.widget<UiKitView>(find.byType(UiKitView));
         uiKitView.onPlatformViewCreated!(123);
         await tester.pump();
+        
+        debugDefaultTargetPlatformOverride = null;
 
         const channelName = 'customer_io_inline_view_123';
         String? setElementIdValue;
@@ -393,6 +454,8 @@ void main() {
         final uiKitView = tester.widget<UiKitView>(find.byType(UiKitView));
         uiKitView.onPlatformViewCreated!(123);
         await tester.pump();
+        
+        debugDefaultTargetPlatformOverride = null;
 
         const channelName = 'customer_io_inline_view_123';
 
@@ -407,6 +470,8 @@ void main() {
 
         // Should not crash
         await tester.pump();
+        
+        debugDefaultTargetPlatformOverride = null;
       });
 
       testWidgets('handles unknown method calls gracefully',
@@ -422,6 +487,8 @@ void main() {
         final uiKitView = tester.widget<UiKitView>(find.byType(UiKitView));
         uiKitView.onPlatformViewCreated!(123);
         await tester.pump();
+        
+        debugDefaultTargetPlatformOverride = null;
 
         const channelName = 'customer_io_inline_view_123';
 
@@ -436,6 +503,8 @@ void main() {
 
         // Should not crash
         await tester.pump();
+        
+        debugDefaultTargetPlatformOverride = null;
       });
 
       testWidgets('handles onAction without callback gracefully',
@@ -452,6 +521,8 @@ void main() {
         final uiKitView = tester.widget<UiKitView>(find.byType(UiKitView));
         uiKitView.onPlatformViewCreated!(123);
         await tester.pump();
+        
+        debugDefaultTargetPlatformOverride = null;
 
         const channelName = 'customer_io_inline_view_123';
         const actionArgs = {
@@ -469,6 +540,8 @@ void main() {
         );
 
         await tester.pump();
+        
+        debugDefaultTargetPlatformOverride = null;
       });
     });
 
@@ -488,6 +561,8 @@ void main() {
         final animatedSize =
             tester.widget<AnimatedSize>(find.byType(AnimatedSize));
         expect(animatedSize.duration, const Duration(milliseconds: 200));
+        
+        debugDefaultTargetPlatformOverride = null;
       });
 
       testWidgets('starts with default height of 1.0',
@@ -500,9 +575,20 @@ void main() {
           ),
         );
 
-        final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
+        final inlineView = find.byType(InlineInAppMessageView);
+        final animatedSize = find.descendant(
+          of: inlineView,
+          matching: find.byType(AnimatedSize),
+        );
+        final sizedBoxes = find.descendant(
+          of: animatedSize,
+          matching: find.byType(SizedBox),
+        );
+        final sizedBox = tester.widget<SizedBox>(sizedBoxes.first);
         expect(sizedBox.height, 1.0);
         expect(sizedBox.width, double.infinity);
+        
+        debugDefaultTargetPlatformOverride = null;
       });
     });
   });
