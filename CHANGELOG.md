@@ -1,3 +1,9 @@
+## [2.3.0](https://github.com/customerio/customerio-flutter/compare/2.2.0...2.3.0) (2025-06-26)
+
+### Features
+
+* inline in app messages ([39e7b87](https://github.com/customerio/customerio-flutter/commit/39e7b8751210056646f976aebea2c377c59156de))
+
 ## [2.2.0](https://github.com/customerio/customerio-flutter/compare/2.1.8...2.2.0) (2025-06-02)
 
 ### Features
