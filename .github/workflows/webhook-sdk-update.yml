@@ -1,0 +1,89 @@
+name: Webhook SDK Update Trigger
+
+# This workflow can be triggered by webhooks from native SDK repositories
+# for immediate updates when new releases are published
+
+on:
+  repository_dispatch:
+    types: [native-sdk-release]
+  webhook:
+    # GitHub webhook endpoint for external triggers
+
+jobs:
+  process-webhook-update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      metadata: read
+      actions: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Parse webhook payload
+        id: parse_payload
+        run: |
+          echo "Processing webhook payload..."
+          
+          # Extract information from webhook payload
+          PLATFORM="${{ github.event.client_payload.platform }}"
+          VERSION="${{ github.event.client_payload.version }}"
+          RELEASE_URL="${{ github.event.client_payload.release_url }}"
+          RELEASE_NOTES="${{ github.event.client_payload.release_notes }}"
+          
+          echo "platform=$PLATFORM" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "release_url=$RELEASE_URL" >> $GITHUB_OUTPUT
+          
+          # Validate payload
+          if [[ -z "$PLATFORM" ]] || [[ -z "$VERSION" ]]; then
+            echo "❌ Invalid webhook payload - missing required fields"
+            exit 1
+          fi
+          
+          echo "✅ Webhook payload processed:"
+          echo "  Platform: $PLATFORM"
+          echo "  Version: $VERSION"
+          echo "  Release URL: $RELEASE_URL"
+
+      - name: Trigger SDK update workflow
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PLATFORM="${{ steps.parse_payload.outputs.platform }}"
+          VERSION="${{ steps.parse_payload.outputs.version }}"
+          
+          # Trigger the main update workflow with specific parameters
+          if [[ "$PLATFORM" == "ios" ]]; then
+            gh workflow run auto-update-native-sdks.yml -f ios_version="$VERSION"
+          elif [[ "$PLATFORM" == "android" ]]; then
+            gh workflow run auto-update-native-sdks.yml -f android_version="$VERSION"
+          else
+            echo "❌ Unknown platform: $PLATFORM"
+            exit 1
+          fi
+          
+          echo "✅ Triggered main update workflow for $PLATFORM SDK $VERSION"
+
+      - name: Create tracking issue
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --title "Failed to process native SDK webhook update" \
+            --body "Webhook processing failed for ${{ steps.parse_payload.outputs.platform }} SDK ${{ steps.parse_payload.outputs.version }}
+
+          **Details:**
+          - Platform: ${{ steps.parse_payload.outputs.platform }}
+          - Version: ${{ steps.parse_payload.outputs.version }}
+          - Release URL: ${{ steps.parse_payload.outputs.release_url }}
+          - Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          Please investigate and trigger the update manually if needed." \
+            --label "bug,automation,native-sdk,webhook"
