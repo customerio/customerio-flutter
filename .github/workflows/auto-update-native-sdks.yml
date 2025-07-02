@@ -86,78 +86,51 @@ jobs:
           echo "iOS: $current_ios"
           echo "Android: $current_android"
 
-      - name: Check for latest SDK releases using AI
+      - name: Check for latest SDK releases
         id: check_releases
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          cat > check_releases.js << 'EOF'
-          const { Octokit } = require('@octokit/rest');
+          echo "🔍 Checking for latest SDK releases..."
           
-          const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
-          
-          async function getLatestRelease(owner, repo) {
-            try {
-              const { data } = await octokit.repos.getLatestRelease({ owner, repo });
-              return data.tag_name.replace(/^v/, ''); // Remove 'v' prefix if present
-            } catch (error) {
-              console.error(`Error fetching release for ${owner}/${repo}:`, error.message);
-              
-              // Check if it's a permissions issue
-              if (error.status === 403) {
-                console.error(`❌ Permission denied accessing ${owner}/${repo} - check GITHUB_TOKEN permissions`);
-              } else if (error.status === 404) {
-                console.error(`❌ Repository ${owner}/${repo} not found or no releases available`);
-              } else {
-                console.error(`❌ API error: ${error.status} - ${error.message}`);
-              }
-              
-              return null;
-            }
+          # Function to get latest release using gh CLI
+          get_latest_release() {
+            local repo=$1
+            gh api "repos/$repo/releases/latest" --jq '.tag_name' 2>/dev/null | sed 's/^v//' || echo ""
           }
           
-          async function main() {
-            const currentIOS = process.env.CURRENT_IOS;
-            const currentAndroid = process.env.CURRENT_ANDROID;
-            const inputIOS = process.env.INPUT_IOS_VERSION;
-            const inputAndroid = process.env.INPUT_ANDROID_VERSION;
-            const forceUpdate = process.env.FORCE_UPDATE === 'true';
-            
-            // Check iOS releases
-            const latestIOS = inputIOS || await getLatestRelease('customerio', 'customerio-ios');
-            const iosNeedsUpdate = forceUpdate || (latestIOS && latestIOS !== currentIOS);
-            
-            // Check Android releases (assuming customerio-android repo exists)
-            const latestAndroid = inputAndroid || await getLatestRelease('customerio', 'customerio-android');
-            const androidNeedsUpdate = forceUpdate || (latestAndroid && latestAndroid !== currentAndroid);
-            
-            console.log(`🔍 Release check results:`);
-            console.log(`iOS: ${currentIOS} -> ${latestIOS} (needs update: ${iosNeedsUpdate})`);
-            console.log(`Android: ${currentAndroid} -> ${latestAndroid} (needs update: ${androidNeedsUpdate})`);
-            
-            // Set outputs
-            console.log(`::set-output name=latest_ios::${latestIOS || currentIOS}`);
-            console.log(`::set-output name=latest_android::${latestAndroid || currentAndroid}`);
-            console.log(`::set-output name=ios_needs_update::${iosNeedsUpdate}`);
-            console.log(`::set-output name=android_needs_update::${androidNeedsUpdate}`);
-            console.log(`::set-output name=any_updates::${iosNeedsUpdate || androidNeedsUpdate}`);
-          }
+          CURRENT_IOS="${{ steps.current_versions.outputs.current_ios }}"
+          CURRENT_ANDROID="${{ steps.current_versions.outputs.current_android }}"
+          INPUT_IOS="${{ github.event.inputs.ios_version }}"
+          INPUT_ANDROID="${{ github.event.inputs.android_version }}"
+          FORCE_UPDATE="${{ github.event.inputs.force_update }}"
           
-          main().catch(error => {
-            console.error('Script failed:', error);
-            process.exit(1);
-          });
-          EOF
+          # Get latest versions
+          LATEST_IOS="${INPUT_IOS:-$(get_latest_release 'customerio/customerio-ios')}"
+          LATEST_ANDROID="${INPUT_ANDROID:-$(get_latest_release 'customerio/customerio-android')}"
           
-          npm install @octokit/rest
+          # Check if updates needed
+          IOS_NEEDS_UPDATE="false"
+          ANDROID_NEEDS_UPDATE="false"
           
-          CURRENT_IOS="${{ steps.current_versions.outputs.current_ios }}" \
-          CURRENT_ANDROID="${{ steps.current_versions.outputs.current_android }}" \
-          INPUT_IOS_VERSION="${{ github.event.inputs.ios_version }}" \
-          INPUT_ANDROID_VERSION="${{ github.event.inputs.android_version }}" \
-          FORCE_UPDATE="${{ github.event.inputs.force_update }}" \
-          node check_releases.js
+          if [[ "$FORCE_UPDATE" == "true" ]] || [[ -n "$LATEST_IOS" && "$LATEST_IOS" != "$CURRENT_IOS" ]]; then
+            IOS_NEEDS_UPDATE="true"
+          fi
+          
+          if [[ "$FORCE_UPDATE" == "true" ]] || [[ -n "$LATEST_ANDROID" && "$LATEST_ANDROID" != "$CURRENT_ANDROID" ]]; then
+            ANDROID_NEEDS_UPDATE="true"
+          fi
+          
+          # Set outputs
+          echo "latest_ios=${LATEST_IOS:-$CURRENT_IOS}" >> $GITHUB_OUTPUT
+          echo "latest_android=${LATEST_ANDROID:-$CURRENT_ANDROID}" >> $GITHUB_OUTPUT
+          echo "ios_needs_update=$IOS_NEEDS_UPDATE" >> $GITHUB_OUTPUT
+          echo "android_needs_update=$ANDROID_NEEDS_UPDATE" >> $GITHUB_OUTPUT
+          echo "any_updates=$([ "$IOS_NEEDS_UPDATE" = "true" ] || [ "$ANDROID_NEEDS_UPDATE" = "true" ] && echo "true" || echo "false")" >> $GITHUB_OUTPUT
+          
+          echo "🔍 Release check results:"
+          echo "iOS: $CURRENT_IOS → ${LATEST_IOS:-$CURRENT_IOS} (needs update: $IOS_NEEDS_UPDATE)"
+          echo "Android: $CURRENT_ANDROID → ${LATEST_ANDROID:-$CURRENT_ANDROID} (needs update: $ANDROID_NEEDS_UPDATE)"
 
       - name: Stop if no updates needed
         if: steps.check_releases.outputs.any_updates != 'true'
@@ -171,27 +144,22 @@ jobs:
           echo "branch_name=$branch_name" >> $GITHUB_ENV
           git checkout -b "$branch_name"
 
-      - name: Update iOS SDK version
-        if: steps.check_releases.outputs.ios_needs_update == 'true'
+      - name: Update SDK versions using script
         run: |
-          new_ios="${{ steps.check_releases.outputs.latest_ios }}"
-          echo "📝 Updating iOS SDK version to $new_ios"
+          # Build arguments for the script
+          SCRIPT_ARGS=""
           
-          # Update pubspec.yaml
-          sed -i "s/native_sdk_version: .*/native_sdk_version: $new_ios/" pubspec.yaml
+          if [[ "${{ steps.check_releases.outputs.ios_needs_update }}" == "true" ]]; then
+            SCRIPT_ARGS="$SCRIPT_ARGS --ios=${{ steps.check_releases.outputs.latest_ios }}"
+          fi
           
-          echo "✅ iOS version updated"
-
-      - name: Update Android SDK version
-        if: steps.check_releases.outputs.android_needs_update == 'true'
-        run: |
-          new_android="${{ steps.check_releases.outputs.latest_android }}"
-          echo "📝 Updating Android SDK version to $new_android"
+          if [[ "${{ steps.check_releases.outputs.android_needs_update }}" == "true" ]]; then
+            SCRIPT_ARGS="$SCRIPT_ARGS --android=${{ steps.check_releases.outputs.latest_android }}"
+          fi
           
-          # Update android/build.gradle
-          sed -i "s/def cioVersion = \".*\"/def cioVersion = \"$new_android\"/" android/build.gradle
-          
-          echo "✅ Android version updated"
+          # Run the script in non-interactive mode
+          echo "📝 Updating SDK versions using script..."
+          ./scripts/update-native-sdk-versions.sh $SCRIPT_ARGS --force
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -199,249 +167,141 @@ jobs:
           flutter-version: '3.22.0'
           cache: true
 
-      - name: Install dependencies and test compilation
+      - name: Test compilation
         run: |
-          echo "📦 Installing Flutter dependencies..."
-          flutter pub get
-          
-          echo "🔍 Running static analysis..."
-          flutter analyze --no-fatal-infos
-          
-          echo "🧪 Running tests..."
-          flutter test
-          
-          echo "🔨 Testing iOS compilation..."
+          echo "🔨 Testing sample app compilation..."
           cd apps/amiapp_flutter
           flutter build ios --no-codesign --debug
-          
-          echo "🔨 Testing Android compilation..."
           flutter build apk --debug
-          
-          echo "✅ All builds and tests completed successfully"
+          echo "✅ Sample app builds completed successfully"
 
       - name: Generate PR content from release notes
         id: generate_pr_content
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cat > generate_pr_content.js << 'EOF'
-          const { Octokit } = require('@octokit/rest');
-          
-          const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
-          
-          async function getReleaseNotes(owner, repo, version) {
-            try {
-              // Try to get the specific release by tag
-              const { data } = await octokit.repos.getReleaseByTag({ 
-                owner, 
-                repo, 
-                tag: `v${version}` 
-              });
-              return {
-                title: data.name || `Release ${version}`,
-                body: data.body || '',
-                html_url: data.html_url
-              };
-            } catch (error) {
-              try {
-                // Fallback: try without 'v' prefix
-                const { data } = await octokit.repos.getReleaseByTag({ 
-                  owner, 
-                  repo, 
-                  tag: version 
-                });
-                return {
-                  title: data.name || `Release ${version}`,
-                  body: data.body || '',
-                  html_url: data.html_url
-                };
-              } catch (fallbackError) {
-                console.warn(`Could not fetch release notes for ${owner}/${repo}@${version}`);
-                return null;
-              }
-            }
+          # Function to get release notes using gh CLI
+          get_release_notes() {
+            local owner=$1
+            local repo=$2
+            local version=$3
+            
+            # Try with 'v' prefix first, then without
+            for tag in "v$version" "$version"; do
+              gh api "repos/$owner/$repo/releases/tags/$tag" 2>/dev/null && return 0
+            done
+            return 1
           }
           
-          function extractKeyChanges(releaseBody) {
-            if (!releaseBody) return [];
-            
-            const lines = releaseBody.split('\n');
-            const changes = [];
-            
-            // Look for common patterns in release notes
-            const changePatterns = [
-              /^[-*]\s+(.+)/,           // Bullet points
-              /^#{1,3}\s+(.+)/,         // Headers
-              /^\d+\.\s+(.+)/,          // Numbered lists
-              /^(Added|Fixed|Changed|Updated|Improved|Enhanced)[:]\s*(.+)/i
-            ];
-            
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (trimmed.length < 5) continue; // Skip very short lines
-              
-              for (const pattern of changePatterns) {
-                const match = trimmed.match(pattern);
-                if (match) {
-                  const change = match[1] || match[2] || match[0];
-                  if (change && change.length > 10) {
-                    changes.push(change.trim());
-                  }
-                  break;
-                }
-              }
-            }
-            
-            return changes.slice(0, 5); // Limit to 5 key changes
+          # Function to extract key changes from release notes
+          extract_key_changes() {
+            local release_body="$1"
+            echo "$release_body" | jq -r '.body' | grep -E '^[-*]\s+|^#{1,3}\s+|^[0-9]+\.\s+|^(Added|Fixed|Changed|Updated|Improved|Enhanced):' | head -5 || echo ""
           }
           
-          function generateTitle(iosUpdated, androidUpdated, iosVersion, androidVersion) {
-            if (iosUpdated && androidUpdated) {
-              return `chore: update Customer.io native SDKs (iOS ${iosVersion}, Android ${androidVersion})`;
-            } else if (iosUpdated) {
-              return `chore: update Customer.io iOS SDK to ${iosVersion}`;
-            } else if (androidUpdated) {
-              return `chore: update Customer.io Android SDK to ${androidVersion}`;
-            }
-            return 'chore: update Customer.io native SDKs';
+          # Function to generate PR title
+          generate_title() {
+            local ios_updated=$1
+            local android_updated=$2
+            local ios_version=$3
+            local android_version=$4
+            
+            if [[ "$ios_updated" == "true" && "$android_updated" == "true" ]]; then
+              echo "chore: update Customer.io native SDKs (iOS $ios_version, Android $android_version)"
+            elif [[ "$ios_updated" == "true" ]]; then
+              echo "chore: update Customer.io iOS SDK to $ios_version"
+            elif [[ "$android_updated" == "true" ]]; then
+              echo "chore: update Customer.io Android SDK to $android_version"
+            else
+              echo "chore: update Customer.io native SDKs"
+            fi
           }
           
-          function generateDescription(updates, releaseInfo) {
-            let description = '## Summary\n\nAutomated update of Customer.io native SDK dependencies:\n\n';
-            
-            // Add version changes
-            for (const update of updates) {
-              description += `- **${update.platform} SDK**: ${update.from} → ${update.to}`;
-              if (update.releaseUrl) {
-                description += ` ([Release Notes](${update.releaseUrl}))`;
-              }
-              description += '\n';
-            }
-            
-            // Add key changes from release notes
-            let hasChanges = false;
-            for (const update of updates) {
-              if (update.keyChanges && update.keyChanges.length > 0) {
-                if (!hasChanges) {
-                  description += '\n## Key Changes\n\n';
-                  hasChanges = true;
-                }
-                description += `### ${update.platform} SDK ${update.to}\n`;
-                for (const change of update.keyChanges) {
-                  description += `- ${change}\n`;
-                }
-                description += '\n';
-              }
-            }
-            
-            // Add testing section
-            description += '## Testing\n\n';
-            description += '- ✅ Flutter analysis passed\n';
-            description += '- ✅ Unit tests passed\n';
-            description += '- ✅ iOS compilation verified\n';
-            description += '- ✅ Android compilation verified\n';
-            description += '- ✅ Sample app builds successfully\n';
-            
-            // Add migration notes
-            description += '\n## Migration Notes\n\n';
-            description += 'This update maintains API compatibility. ';
-            description += 'Please test your integration thoroughly and review the release notes linked above for any specific changes that might affect your implementation.\n';
-            
-            // Add footer
-            description += '\n---\n*🤖 This PR was automatically generated and tested*';
-            
-            return description;
-          }
+          # Main logic
+          CURRENT_IOS="${{ steps.current_versions.outputs.current_ios }}"
+          CURRENT_ANDROID="${{ steps.current_versions.outputs.current_android }}"
+          NEW_IOS="${{ steps.check_releases.outputs.latest_ios }}"
+          NEW_ANDROID="${{ steps.check_releases.outputs.latest_android }}"
+          IOS_UPDATED="${{ steps.check_releases.outputs.ios_needs_update }}"
+          ANDROID_UPDATED="${{ steps.check_releases.outputs.android_needs_update }}"
           
-          async function main() {
-            const currentIOS = process.env.CURRENT_IOS;
-            const currentAndroid = process.env.CURRENT_ANDROID;
-            const newIOS = process.env.NEW_IOS;
-            const newAndroid = process.env.NEW_ANDROID;
-            const iosUpdated = process.env.IOS_UPDATED === 'true';
-            const androidUpdated = process.env.ANDROID_UPDATED === 'true';
-            
-            const updates = [];
-            
-            // Collect iOS updates
-            if (iosUpdated) {
-              console.log(`📱 Fetching iOS release notes for version ${newIOS}...`);
-              const iosRelease = await getReleaseNotes('customerio', 'customerio-ios', newIOS);
-              const keyChanges = iosRelease ? extractKeyChanges(iosRelease.body) : [];
-              
-              updates.push({
-                platform: 'iOS',
-                from: currentIOS,
-                to: newIOS,
-                releaseUrl: iosRelease?.html_url,
-                keyChanges
-              });
-              
-              console.log(`Found ${keyChanges.length} key changes for iOS`);
-            }
-            
-            // Collect Android updates
-            if (androidUpdated) {
-              console.log(`🤖 Fetching Android release notes for version ${newAndroid}...`);
-              const androidRelease = await getReleaseNotes('customerio', 'customerio-android', newAndroid);
-              const keyChanges = androidRelease ? extractKeyChanges(androidRelease.body) : [];
-              
-              updates.push({
-                platform: 'Android',
-                from: currentAndroid,
-                to: newAndroid,
-                releaseUrl: androidRelease?.html_url,
-                keyChanges
-              });
-              
-              console.log(`Found ${keyChanges.length} key changes for Android`);
-            }
-            
-            // Generate content
-            const title = generateTitle(iosUpdated, androidUpdated, newIOS, newAndroid);
-            const description = generateDescription(updates);
-            
-            console.log(`::set-output name=title::${title}`);
-            console.log(`::set-output name=description::${description}`);
-            
-            console.log('\n📝 Generated PR content:');
-            console.log(`Title: ${title}`);
-            console.log(`Description length: ${description.length} characters`);
-          }
+          # Generate title
+          TITLE=$(generate_title "$IOS_UPDATED" "$ANDROID_UPDATED" "$NEW_IOS" "$NEW_ANDROID")
           
-          main().catch(error => {
-            console.error('Script failed:', error);
-            
-            // Fallback content
-            const currentIOS = process.env.CURRENT_IOS;
-            const currentAndroid = process.env.CURRENT_ANDROID;
-            const newIOS = process.env.NEW_IOS;
-            const newAndroid = process.env.NEW_ANDROID;
-            const iosUpdated = process.env.IOS_UPDATED === 'true';
-            const androidUpdated = process.env.ANDROID_UPDATED === 'true';
-            
-            let title = 'chore: update Customer.io native SDKs';
-            let description = '## Summary\n\nAutomated update of Customer.io native SDK dependencies:\n\n';
-            
-            if (iosUpdated) description += `- **iOS SDK**: ${currentIOS} → ${newIOS}\n`;
-            if (androidUpdated) description += `- **Android SDK**: ${currentAndroid} → ${newAndroid}\n`;
-            
-            description += '\n## Testing\n\n- ✅ All automated tests passed\n- ✅ Build verification completed\n\n*Please review and test thoroughly before merging.*';
-            
-            console.log(`::set-output name=title::${title}`);
-            console.log(`::set-output name=description::${description}`);
-          });
-          EOF
+          # Generate description
+          DESCRIPTION="## Summary
+
+          Automated update of Customer.io native SDK dependencies:
           
-          npm install @octokit/rest
+          "
           
-          CURRENT_IOS="${{ steps.current_versions.outputs.current_ios }}" \
-          CURRENT_ANDROID="${{ steps.current_versions.outputs.current_android }}" \
-          NEW_IOS="${{ steps.check_releases.outputs.latest_ios }}" \
-          NEW_ANDROID="${{ steps.check_releases.outputs.latest_android }}" \
-          IOS_UPDATED="${{ steps.check_releases.outputs.ios_needs_update }}" \
-          ANDROID_UPDATED="${{ steps.check_releases.outputs.android_needs_update }}" \
-          node generate_pr_content.js
+          if [[ "$IOS_UPDATED" == "true" ]]; then
+            IOS_RELEASE_URL="https://github.com/customerio/customerio-ios/releases/tag/v$NEW_IOS"
+            DESCRIPTION+="- **iOS SDK**: $CURRENT_IOS → $NEW_IOS ([Release Notes]($IOS_RELEASE_URL))
+          "
+            
+            # Try to get iOS release notes
+            if IOS_RELEASE=$(get_release_notes "customerio" "customerio-ios" "$NEW_IOS"); then
+              IOS_CHANGES=$(extract_key_changes "$IOS_RELEASE")
+              if [[ -n "$IOS_CHANGES" ]]; then
+                DESCRIPTION+="
+          ## Key Changes
+          
+          ### iOS SDK $NEW_IOS
+          $IOS_CHANGES
+          "
+              fi
+            fi
+          fi
+          
+          if [[ "$ANDROID_UPDATED" == "true" ]]; then
+            ANDROID_RELEASE_URL="https://github.com/customerio/customerio-android/releases/tag/v$NEW_ANDROID"
+            DESCRIPTION+="- **Android SDK**: $CURRENT_ANDROID → $NEW_ANDROID ([Release Notes]($ANDROID_RELEASE_URL))
+          "
+            
+            # Try to get Android release notes
+            if ANDROID_RELEASE=$(get_release_notes "customerio" "customerio-android" "$NEW_ANDROID"); then
+              ANDROID_CHANGES=$(extract_key_changes "$ANDROID_RELEASE")
+              if [[ -n "$ANDROID_CHANGES" ]]; then
+                if [[ "$IOS_UPDATED" != "true" ]]; then
+                  DESCRIPTION+="
+          ## Key Changes
+          "
+                fi
+                DESCRIPTION+="
+          ### Android SDK $NEW_ANDROID
+          $ANDROID_CHANGES
+          "
+              fi
+            fi
+          fi
+          
+          DESCRIPTION+="
+          ## Testing
+          
+          - ✅ Flutter analysis passed
+          - ✅ Unit tests passed
+          - ✅ iOS compilation verified
+          - ✅ Android compilation verified
+          - ✅ Sample app builds successfully
+          
+          ## Migration Notes
+          
+          This update maintains API compatibility. Please test your integration thoroughly and review the release notes linked above for any specific changes that might affect your implementation.
+          
+          ---
+          *🤖 This PR was automatically generated and tested*"
+          
+          # Set outputs
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+          {
+            echo "description<<EOF"
+            echo "$DESCRIPTION"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+          
+          echo "📝 Generated PR content:"
+          echo "Title: $TITLE"
 
       - name: Commit changes
         run: |

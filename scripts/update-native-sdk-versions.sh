@@ -237,8 +237,8 @@ extract_key_changes() {
 
 # Generate changelog entry from release notes
 generate_changelog_entry() {
-  local current_ios=$(get_current_ios_version)
-  local current_android=$(get_current_android_version)
+  local original_ios=$1
+  local original_android=$2
   
   log_info "Generating changelog entry from release notes..."
   
@@ -254,8 +254,8 @@ EOF
   local has_changes=false
   
   # iOS updates
-  if [[ -n "$IOS_VERSION" ]] && [[ "$IOS_VERSION" != "$current_ios" ]]; then
-    echo "- **iOS SDK**: $current_ios → $IOS_VERSION" >> "$changelog_file"
+  if [[ -n "$IOS_VERSION" ]] && [[ "$IOS_VERSION" != "$original_ios" ]]; then
+    echo "- **iOS SDK**: $original_ios → $IOS_VERSION" >> "$changelog_file"
     has_changes=true
     
     log_info "Fetching iOS release notes..."
@@ -268,8 +268,8 @@ EOF
   fi
   
   # Android updates
-  if [[ -n "$ANDROID_VERSION" ]] && [[ "$ANDROID_VERSION" != "$current_android" ]]; then
-    echo "- **Android SDK**: $current_android → $ANDROID_VERSION" >> "$changelog_file"
+  if [[ -n "$ANDROID_VERSION" ]] && [[ "$ANDROID_VERSION" != "$original_android" ]]; then
+    echo "- **Android SDK**: $original_android → $ANDROID_VERSION" >> "$changelog_file"
     has_changes=true
     
     log_info "Fetching Android release notes..."
@@ -388,7 +388,7 @@ main() {
   
   # Generate changelog if requested
   if [[ "$GENERATE_CHANGELOG" == true ]]; then
-    generate_changelog_entry
+    generate_changelog_entry "$current_ios" "$current_android"
   fi
   
   # Verify changes
