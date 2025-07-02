@@ -10,7 +10,7 @@
 #   ./scripts/update-native-sdk-versions.sh --ios=3.11.0 --android=4.7.0
 #   ./scripts/update-native-sdk-versions.sh --ios=3.11.0 --changelog # Update iOS and generate changelog
 
-set -e
+set -euo pipefail
 
 # Colors for output
 RED='\033[0;31m'
