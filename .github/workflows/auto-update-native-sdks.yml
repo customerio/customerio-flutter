@@ -462,12 +462,10 @@ jobs:
         run: |
           git push origin "$branch_name"
           
-          # Create PR with AI-generated content
+          # Create PR
           gh pr create \
             --title "${{ steps.generate_pr_content.outputs.title }}" \
             --body "${{ steps.generate_pr_content.outputs.description }}" \
-            --reviewer "customerio/mobile-team" \
-            --label "dependencies,native-sdk,automated" \
             --base main \
             --head "$branch_name"
           
