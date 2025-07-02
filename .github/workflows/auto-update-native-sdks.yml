@@ -144,30 +144,48 @@ jobs:
           echo "branch_name=$branch_name" >> $GITHUB_ENV
           git checkout -b "$branch_name"
 
-      - name: Update SDK versions using script
+      - name: Update SDK versions
         run: |
-          # Build arguments for the script
-          SCRIPT_ARGS=""
+          # Build arguments for version updates
+          IOS_VERSION=""
+          ANDROID_VERSION=""
           
           if [[ "${{ steps.check_releases.outputs.ios_needs_update }}" == "true" ]]; then
-            SCRIPT_ARGS="$SCRIPT_ARGS --ios=${{ steps.check_releases.outputs.latest_ios }}"
+            IOS_VERSION="${{ steps.check_releases.outputs.latest_ios }}"
           fi
           
           if [[ "${{ steps.check_releases.outputs.android_needs_update }}" == "true" ]]; then
-            SCRIPT_ARGS="$SCRIPT_ARGS --android=${{ steps.check_releases.outputs.latest_android }}"
+            ANDROID_VERSION="${{ steps.check_releases.outputs.latest_android }}"
           fi
           
-          # Run the script in non-interactive mode
-          echo "📝 Updating SDK versions using script..."
-          ./scripts/update-native-sdk-versions.sh $SCRIPT_ARGS --force
+          # Update iOS version if needed
+          if [[ -n "$IOS_VERSION" ]]; then
+            echo "📝 Updating iOS SDK version to $IOS_VERSION"
+            sed -i "s/native_sdk_version: .*/native_sdk_version: $IOS_VERSION/" pubspec.yaml
+            echo "✅ iOS version updated"
+          fi
+          
+          # Update Android version if needed  
+          if [[ -n "$ANDROID_VERSION" ]]; then
+            echo "📝 Updating Android SDK version to $ANDROID_VERSION"
+            sed -i "s/def cioVersion = \".*\"/def cioVersion = \"$ANDROID_VERSION\"/" android/build.gradle
+            echo "✅ Android version updated"
+          fi
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.22.0'
-          cache: true
+      - name: Setup Flutter and test
+        uses: ./.github/actions/setup-flutter
 
-      - name: Test compilation
+      - name: Run analysis and tests
+        run: |
+          echo "🔍 Running Flutter analysis..."
+          flutter analyze --no-fatal-infos
+          
+          echo "🧪 Running Flutter tests..."
+          flutter test
+          
+          echo "✅ Analysis and tests completed"
+
+      - name: Test sample app compilation
         run: |
           echo "🔨 Testing sample app compilation..."
           cd apps/amiapp_flutter
