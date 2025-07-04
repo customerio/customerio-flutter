@@ -184,14 +184,6 @@ jobs:
           
           echo "✅ Analysis and tests completed"
 
-      - name: Test sample app compilation
-        run: |
-          echo "🔨 Testing sample app compilation..."
-          cd apps/amiapp_flutter
-          flutter build ios --no-codesign --debug
-          flutter build apk --debug
-          echo "✅ Sample app builds completed successfully"
-
       - name: Generate PR content from release notes
         id: generate_pr_content
         env:
@@ -363,7 +355,8 @@ jobs:
           echo "### Verification:" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Flutter analysis passed" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Unit tests passed" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ iOS compilation verified" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Android compilation verified" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Sample app compilation will be tested after PR creation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Branch created**: \`$branch_name\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "ℹ️ Sample app builds will automatically run on the created PR" >> $GITHUB_STEP_SUMMARY
