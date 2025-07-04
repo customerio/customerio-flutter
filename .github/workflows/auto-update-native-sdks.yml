@@ -24,7 +24,6 @@ jobs:
       contents: write
       pull-requests: write
       issues: write
-      metadata: read
       actions: read
     
     steps:
@@ -37,7 +36,7 @@ jobs:
       - name: Setup Node.js for API calls
         uses: actions/setup-node@v4
         with:
-          node-js-version: '18'
+          node-version: '18'
 
       - name: Verify GitHub permissions
         env:
