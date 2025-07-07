@@ -12,19 +12,21 @@ on:
       android_version:
         description: 'Specific Android SDK version to update to (optional)'  
         required: false
-      force_update:
-        description: 'Force update even if no new versions found'
-        type: boolean
-        default: false
 
 jobs:
-  detect-and-update:
+  check-updates:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
-      issues: write
+      contents: read
       actions: read
+    outputs:
+      any_updates: ${{ steps.check_releases.outputs.any_updates }}
+      current_ios: ${{ steps.current_versions.outputs.current_ios }}
+      current_android: ${{ steps.current_versions.outputs.current_android }}
+      latest_ios: ${{ steps.check_releases.outputs.latest_ios }}
+      latest_android: ${{ steps.check_releases.outputs.latest_android }}
+      ios_needs_update: ${{ steps.check_releases.outputs.ios_needs_update }}
+      android_needs_update: ${{ steps.check_releases.outputs.android_needs_update }}
     
     steps:
       - name: Checkout code
@@ -102,7 +104,6 @@ jobs:
           CURRENT_ANDROID="${{ steps.current_versions.outputs.current_android }}"
           INPUT_IOS="${{ github.event.inputs.ios_version }}"
           INPUT_ANDROID="${{ github.event.inputs.android_version }}"
-          FORCE_UPDATE="${{ github.event.inputs.force_update }}"
           
           # Get latest versions
           LATEST_IOS="${INPUT_IOS:-$(get_latest_release 'customerio/customerio-ios')}"
@@ -112,11 +113,11 @@ jobs:
           IOS_NEEDS_UPDATE="false"
           ANDROID_NEEDS_UPDATE="false"
           
-          if [[ "$FORCE_UPDATE" == "true" ]] || [[ -n "$LATEST_IOS" && "$LATEST_IOS" != "$CURRENT_IOS" ]]; then
+          if [[ -n "$LATEST_IOS" && "$LATEST_IOS" != "$CURRENT_IOS" ]]; then
             IOS_NEEDS_UPDATE="true"
           fi
           
-          if [[ "$FORCE_UPDATE" == "true" ]] || [[ -n "$LATEST_ANDROID" && "$LATEST_ANDROID" != "$CURRENT_ANDROID" ]]; then
+          if [[ -n "$LATEST_ANDROID" && "$LATEST_ANDROID" != "$CURRENT_ANDROID" ]]; then
             ANDROID_NEEDS_UPDATE="true"
           fi
           
@@ -131,11 +132,30 @@ jobs:
           echo "iOS: $CURRENT_IOS → ${LATEST_IOS:-$CURRENT_IOS} (needs update: $IOS_NEEDS_UPDATE)"
           echo "Android: $CURRENT_ANDROID → ${LATEST_ANDROID:-$CURRENT_ANDROID} (needs update: $ANDROID_NEEDS_UPDATE)"
 
-      - name: Stop if no updates needed
-        if: steps.check_releases.outputs.any_updates != 'true'
+      - name: Show check results
         run: |
-          echo "✅ No updates needed. Current versions are up to date."
-          exit 0
+          if [[ "${{ steps.check_releases.outputs.any_updates }}" == "true" ]]; then
+            echo "✅ Updates found. Proceeding to update job."
+          else
+            echo "✅ No updates needed. Current versions are up to date."
+          fi
+
+  update-sdks:
+    needs: check-updates
+    if: needs.check-updates.outputs.any_updates == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create feature branch
         run: |
@@ -149,12 +169,12 @@ jobs:
           IOS_VERSION=""
           ANDROID_VERSION=""
           
-          if [[ "${{ steps.check_releases.outputs.ios_needs_update }}" == "true" ]]; then
-            IOS_VERSION="${{ steps.check_releases.outputs.latest_ios }}"
+          if [[ "${{ needs.check-updates.outputs.ios_needs_update }}" == "true" ]]; then
+            IOS_VERSION="${{ needs.check-updates.outputs.latest_ios }}"
           fi
           
-          if [[ "${{ steps.check_releases.outputs.android_needs_update }}" == "true" ]]; then
-            ANDROID_VERSION="${{ steps.check_releases.outputs.latest_android }}"
+          if [[ "${{ needs.check-updates.outputs.android_needs_update }}" == "true" ]]; then
+            ANDROID_VERSION="${{ needs.check-updates.outputs.latest_android }}"
           fi
           
           # Update iOS version if needed
@@ -227,12 +247,12 @@ jobs:
           }
           
           # Main logic
-          CURRENT_IOS="${{ steps.current_versions.outputs.current_ios }}"
-          CURRENT_ANDROID="${{ steps.current_versions.outputs.current_android }}"
-          NEW_IOS="${{ steps.check_releases.outputs.latest_ios }}"
-          NEW_ANDROID="${{ steps.check_releases.outputs.latest_android }}"
-          IOS_UPDATED="${{ steps.check_releases.outputs.ios_needs_update }}"
-          ANDROID_UPDATED="${{ steps.check_releases.outputs.android_needs_update }}"
+          CURRENT_IOS="${{ needs.check-updates.outputs.current_ios }}"
+          CURRENT_ANDROID="${{ needs.check-updates.outputs.current_android }}"
+          NEW_IOS="${{ needs.check-updates.outputs.latest_ios }}"
+          NEW_ANDROID="${{ needs.check-updates.outputs.latest_android }}"
+          IOS_UPDATED="${{ needs.check-updates.outputs.ios_needs_update }}"
+          ANDROID_UPDATED="${{ needs.check-updates.outputs.android_needs_update }}"
           
           # Generate title
           TITLE=$(generate_title "$IOS_UPDATED" "$ANDROID_UPDATED" "$NEW_IOS" "$NEW_ANDROID")
@@ -254,6 +274,7 @@ jobs:
               IOS_CHANGES=$(extract_key_changes "$IOS_RELEASE")
               if [[ -n "$IOS_CHANGES" ]]; then
                 DESCRIPTION+="
+
           ## Key Changes
           
           ### iOS SDK $NEW_IOS
@@ -274,10 +295,12 @@ jobs:
               if [[ -n "$ANDROID_CHANGES" ]]; then
                 if [[ "$IOS_UPDATED" != "true" ]]; then
                   DESCRIPTION+="
+
           ## Key Changes
           "
                 fi
                 DESCRIPTION+="
+
           ### Android SDK $NEW_ANDROID
           $ANDROID_CHANGES
           "
@@ -286,6 +309,7 @@ jobs:
           fi
           
           DESCRIPTION+="
+
           ## Testing
           
           - ✅ Flutter analysis passed
@@ -320,8 +344,8 @@ jobs:
           git add .
           git commit -m "chore: update Customer.io native SDK versions
 
-          - iOS: ${{ steps.current_versions.outputs.current_ios }} → ${{ steps.check_releases.outputs.latest_ios }}
-          - Android: ${{ steps.current_versions.outputs.current_android }} → ${{ steps.check_releases.outputs.latest_android }}
+          - iOS: ${{ needs.check-updates.outputs.current_ios }} → ${{ needs.check-updates.outputs.latest_ios }}
+          - Android: ${{ needs.check-updates.outputs.current_android }} → ${{ needs.check-updates.outputs.latest_android }}
           
           🤖 Automated update with compilation verification"
 
@@ -345,11 +369,11 @@ jobs:
           echo "## 🚀 Native SDK Update Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Updates Applied:" >> $GITHUB_STEP_SUMMARY
-          if [[ "${{ steps.check_releases.outputs.ios_needs_update }}" == "true" ]]; then
-            echo "- 📱 **iOS SDK**: ${{ steps.current_versions.outputs.current_ios }} → ${{ steps.check_releases.outputs.latest_ios }}" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ needs.check-updates.outputs.ios_needs_update }}" == "true" ]]; then
+            echo "- 📱 **iOS SDK**: ${{ needs.check-updates.outputs.current_ios }} → ${{ needs.check-updates.outputs.latest_ios }}" >> $GITHUB_STEP_SUMMARY
           fi
-          if [[ "${{ steps.check_releases.outputs.android_needs_update }}" == "true" ]]; then
-            echo "- 🤖 **Android SDK**: ${{ steps.current_versions.outputs.current_android }} → ${{ steps.check_releases.outputs.latest_android }}" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ needs.check-updates.outputs.android_needs_update }}" == "true" ]]; then
+            echo "- 🤖 **Android SDK**: ${{ needs.check-updates.outputs.current_android }} → ${{ needs.check-updates.outputs.latest_android }}" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Verification:" >> $GITHUB_STEP_SUMMARY
