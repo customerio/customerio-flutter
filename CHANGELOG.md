@@ -1,3 +1,9 @@
+## [2.3.1](https://github.com/customerio/customerio-flutter/compare/2.3.0...2.3.1) (2025-07-09)
+
+### Bug Fixes
+
+* Preserve numeric types when doing sanitization for JSON ([#246](https://github.com/customerio/customerio-flutter/issues/246)) ([ea94c07](https://github.com/customerio/customerio-flutter/commit/ea94c078a5003f0cca1b794be04d783291f2b06e))
+
 ## [2.3.0](https://github.com/customerio/customerio-flutter/compare/2.2.0...2.3.0) (2025-06-26)
 
 ### Features
