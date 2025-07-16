@@ -76,5 +76,15 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <meta-data
+            android:name="io.customer.notification_channel_id"
+            android:value="custom_channel_flutter" />
+        <meta-data
+            android:name="io.customer.notification_channel_name"
+            android:value="CIO Test" />
+        <meta-data
+            android:name="io.customer.notification_channel_importance"
+            android:value="4" />
     </application>
 </manifest>
