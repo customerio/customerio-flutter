@@ -1,3 +1,9 @@
+## [2.4.0](https://github.com/customerio/customerio-flutter/compare/2.3.1...2.4.0) (2025-07-17)
+
+### Features
+
+* Add ability to configure messaging channels for local notifications ([#247](https://github.com/customerio/customerio-flutter/issues/247)) ([0541919](https://github.com/customerio/customerio-flutter/commit/05419193144bd3cebcdbd732fb14091ead6fa86a))
+
 ## [2.3.1](https://github.com/customerio/customerio-flutter/compare/2.3.0...2.3.1) (2025-07-09)
 
 ### Bug Fixes
