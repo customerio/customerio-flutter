@@ -1,3 +1,9 @@
+## [2.4.1](https://github.com/customerio/customerio-flutter/compare/2.4.0...2.4.1) (2025-07-21)
+
+### Bug Fixes
+
+* update Customer.io iOS SDK to 3.10.9 ([#249](https://github.com/customerio/customerio-flutter/issues/249)) ([7313421](https://github.com/customerio/customerio-flutter/commit/731342157082e76ae846c1964ad008f53e3c1834))
+
 ## [2.4.0](https://github.com/customerio/customerio-flutter/compare/2.3.1...2.4.0) (2025-07-17)
 
 ### Features
