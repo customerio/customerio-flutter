@@ -7,8 +7,10 @@ import 'dart:convert';
 /// Usage: dart run filter_api.dart <input_file> [output_format]
 void main(List<String> arguments) async {
   if (arguments.isEmpty) {
-    print('Usage: dart run filter_api.dart <input_file> [output_format]');
-    print('Output formats: json, markdown, summary (default: summary)');
+    stderr.writeln(
+        'Usage: dart run filter_api.dart <input_file> [output_format]');
+    stderr
+        .writeln('Output formats: json, markdown, summary (default: summary)');
     exit(1);
   }
 
@@ -16,7 +18,7 @@ void main(List<String> arguments) async {
   final outputFormat = arguments.length > 1 ? arguments[1] : 'summary';
 
   if (!await File(inputFile).exists()) {
-    print('Error: File $inputFile not found');
+    stderr.writeln('Error: File $inputFile not found');
     exit(1);
   }
 
@@ -27,14 +29,14 @@ void main(List<String> arguments) async {
 
   switch (outputFormat.toLowerCase()) {
     case 'json':
-      print(jsonEncode(filtered));
+      stdout.writeln(jsonEncode(filtered));
       break;
     case 'markdown':
-      print(generateMarkdown(filtered));
+      stdout.writeln(generateMarkdown(filtered));
       break;
     case 'summary':
     default:
-      print(generateSummary(filtered));
+      stdout.writeln(generateSummary(filtered));
       break;
   }
 }
@@ -197,54 +199,6 @@ String generateSummary(Map<String, dynamic> filtered) {
 
     buffer.writeln('}');
     buffer.writeln('');
-  }
-
-  return buffer.toString();
-}
-
-String _formatMethod(
-    String methodName, String returnType, List<String> params, bool isAsync,
-    {bool isStatic = false}) {
-  final buffer = StringBuffer();
-
-  // Add static modifier if needed (static comes before public)
-  final staticPrefix = isStatic ? 'static ' : '';
-
-  // Clean up return type
-  final cleanReturnType = returnType
-      .replaceAll('Future<Unit>', 'Unit')
-      .replaceAll('Future<', '')
-      .replaceAll('>', '');
-
-  // Determine if we need to show return type
-  final hasReturnType = cleanReturnType != 'Unit' && cleanReturnType != 'void';
-  final returnTypeSuffix = hasReturnType ? ': $cleanReturnType' : '';
-
-  // Start method declaration
-  if (params.isEmpty) {
-    // No parameters
-    final asyncSuffix = isAsync ? ' async' : '';
-    buffer.write(
-        '\t${staticPrefix}public fun $methodName()$returnTypeSuffix$asyncSuffix;');
-  } else if (params.length == 1 && params[0].length < 50) {
-    // Single short parameter
-    final asyncSuffix = isAsync ? ' async' : '';
-    buffer.write(
-        '\t${staticPrefix}public fun $methodName(${params[0]})$returnTypeSuffix$asyncSuffix;');
-  } else {
-    // Multiple parameters or long parameters - format on multiple lines
-    buffer.write('\t${staticPrefix}public fun $methodName(');
-    for (int i = 0; i < params.length; i++) {
-      if (i == 0) {
-        buffer.writeln('');
-        buffer.write('\t\t${params[i]}');
-      } else {
-        buffer.writeln(',');
-        buffer.write('\t\t${params[i]}');
-      }
-    }
-    final asyncSuffix = isAsync ? ' async' : '';
-    buffer.write('\n\t)$returnTypeSuffix$asyncSuffix;');
   }
 
   return buffer.toString();
