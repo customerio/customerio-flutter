@@ -1,0 +1,21 @@
+name: Extract API
+
+on: [pull_request]
+
+# Cancel jobs and just run the last one
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  extract_api:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ./.github/actions/setup-flutter
+    
+    - name: Install dart_apitool
+      run: dart pub global activate dart_apitool
+    
+    - name: Extract API
+      run: bash ./scripts/extract_api.sh
