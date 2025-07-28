@@ -1,0 +1,235 @@
+public final class InAppMessage {
+	public fun new(
+		required String messageId,
+		String? deliveryId
+	): InAppMessage;
+	public val messageId: String;
+	public val deliveryId: String?;
+}
+
+public final class InAppEventListener {
+	public fun new(): InAppEventListener;
+	public fun messageShown(InAppMessage message);
+	public fun messageDismissed(InAppMessage message);
+	public fun errorWithMessage(InAppMessage message);
+	public fun messageActionTaken(
+		InAppMessage message,
+		String actionValue,
+		String actionName
+	);
+}
+
+public final class InAppEvent {
+	public fun new(
+		required EventType eventType,
+		required InAppMessage message,
+		String? actionValue,
+		String? actionName
+	): InAppEvent;
+	public fun fromMap(
+		EventType type,
+		Map<String?, dynamic> map
+	): InAppEvent;
+	public val message: InAppMessage;
+	public val actionValue: String?;
+	public val actionName: String?;
+	public val eventType: EventType;
+}
+
+public final class EventType {
+	static public val messageShown: EventType;
+	static public val messageDismissed: EventType;
+	static public val errorWithMessage: EventType;
+	static public val messageActionTaken: EventType;
+	static public val values: List<EventType>;
+}
+
+public final class CustomerIO {
+	static public fun createInstance(
+		CustomerIOPlatform? platform,
+		CustomerIOMessagingPushPlatform? pushMessaging,
+		CustomerIOMessagingInAppPlatform? inAppMessaging
+	): CustomerIO;
+	static public fun reset();
+	static public fun initialize(required CustomerIOConfig config): Future<void> async;
+	public fun identify(
+		required String userId,
+		Map<String, dynamic> traits
+	);
+	public fun clearIdentify();
+	public fun track(
+		required String name,
+		Map<String, dynamic> properties
+	);
+	public fun trackMetric(
+		required String deliveryID,
+		required String deviceToken,
+		required MetricEvent event
+	);
+	public fun registerDeviceToken(required String deviceToken);
+	public fun screen(
+		required String title,
+		Map<String, dynamic> properties
+	);
+	public fun setDeviceAttributes(required Map<String, dynamic> attributes);
+	public fun setProfileAttributes(required Map<String, dynamic> attributes);
+	static public val instance: CustomerIO;
+	static public val pushMessaging: CustomerIOMessagingPushPlatform;
+	static public val inAppMessaging: CustomerIOMessagingInAppPlatform;
+}
+
+public final class CustomerIOMessagingPushPlatform {
+	public fun new(): CustomerIOMessagingPushPlatform;
+	public fun getRegisteredDeviceToken(): Future<String?> async;
+	public fun onMessageReceived(
+		Map<String, dynamic> message,
+		bool handleNotificationTrigger
+	): Future<bool> async;
+	public fun onBackgroundMessageReceived(Map<String, dynamic> message): Future<bool> async;
+	static public var instance: CustomerIOMessagingPushPlatform;
+}
+
+public final class CustomerIOMessagingInAppPlatform {
+	public fun new(): CustomerIOMessagingInAppPlatform;
+	public fun dismissMessage();
+	public fun subscribeToEventsListener(void Function(InAppEvent) onEvent): StreamSubscription<dynamic>;
+	static public var instance: CustomerIOMessagingInAppPlatform;
+}
+
+public final class CustomerIOPlatform {
+	public fun new(): CustomerIOPlatform;
+	public fun initialize(required CustomerIOConfig config): Future<void> async;
+	public fun identify(
+		required String userId,
+		Map<String, dynamic> traits
+	);
+	public fun clearIdentify();
+	public fun track(
+		required String name,
+		Map<String, dynamic> properties
+	);
+	public fun trackMetric(
+		required String deliveryID,
+		required String deviceToken,
+		required MetricEvent event
+	);
+	public fun registerDeviceToken(required String deviceToken);
+	public fun screen(
+		required String title,
+		Map<String, dynamic> properties
+	);
+	public fun setDeviceAttributes(required Map<String, dynamic> attributes);
+	public fun setProfileAttributes(required Map<String, dynamic> attributes);
+	static public var instance: CustomerIOPlatform;
+}
+
+public final class CustomerIOConfig {
+	public fun new(
+		required String cdpApiKey,
+		String? migrationSiteId,
+		Region? region,
+		CioLogLevel? logLevel,
+		bool? autoTrackDeviceAttributes,
+		bool? trackApplicationLifecycleEvents,
+		String? apiHost,
+		String? cdnHost,
+		int? flushAt,
+		int? flushInterval,
+		ScreenView? screenViewUse,
+		InAppConfig? inAppConfig,
+		PushConfig? pushConfig
+	): CustomerIOConfig;
+	public fun toMap(): Map<String, dynamic>;
+	public val source: String;
+	public val version: String;
+	public val cdpApiKey: String;
+	public val migrationSiteId: String?;
+	public val region: Region?;
+	public val logLevel: CioLogLevel?;
+	public val trackApplicationLifecycleEvents: bool?;
+	public val autoTrackDeviceAttributes: bool?;
+	public val apiHost: String?;
+	public val cdnHost: String?;
+	public val flushAt: int?;
+	public val flushInterval: int?;
+	public val screenViewUse: ScreenView?;
+	public val inAppConfig: InAppConfig?;
+	public val pushConfig: PushConfig;
+}
+
+public final class Region {
+	static public val us: Region;
+	static public val eu: Region;
+	static public val values: List<Region>;
+}
+
+public final class CioLogLevel {
+	static public val none: CioLogLevel;
+	static public val error: CioLogLevel;
+	static public val info: CioLogLevel;
+	static public val debug: CioLogLevel;
+	static public val values: List<CioLogLevel>;
+}
+
+public final class ScreenView {
+	static public val all: ScreenView;
+	static public val inApp: ScreenView;
+	static public val values: List<ScreenView>;
+}
+
+public final class InAppConfig {
+	public fun new(required String siteId): InAppConfig;
+	public fun toMap(): Map<String, dynamic>;
+	public val siteId: String;
+}
+
+public final class PushConfig {
+	public fun new(PushConfigAndroid? android): PushConfig;
+	public fun toMap(): Map<String, dynamic>;
+	public var pushConfigAndroid: PushConfigAndroid;
+}
+
+public final class PushConfigAndroid {
+	public fun new(PushClickBehaviorAndroid pushClickBehavior): PushConfigAndroid;
+	public fun toMap(): Map<String, dynamic>;
+	public var pushClickBehavior: PushClickBehaviorAndroid;
+}
+
+public final class PushClickBehaviorAndroid {
+	static public val resetTaskStack: PushClickBehaviorAndroid;
+	static public val activityPreventRestart: PushClickBehaviorAndroid;
+	static public val activityNoFlags: PushClickBehaviorAndroid;
+	static public val values: List<PushClickBehaviorAndroid>;
+	public val rawValue: String;
+}
+
+public final class MetricEvent {
+	static public val delivered: MetricEvent;
+	static public val opened: MetricEvent;
+	static public val converted: MetricEvent;
+	static public val values: List<MetricEvent>;
+}
+
+public final class InAppMessage {
+	public fun new(
+		required String messageId,
+		String? deliveryId,
+		String? elementId
+	): InAppMessage;
+	public val messageId: String;
+	public val deliveryId: String?;
+	public val elementId: String?;
+	public val hashCode: int;
+}
+
+public final class InlineInAppMessageView {
+	public fun new(
+		Key? key,
+		required String elementId,
+		void Function(InAppMessage, String, String)? onActionClick
+	): InlineInAppMessageView;
+	public val elementId: String;
+	public val onActionClick: void Function(InAppMessage, String, String)?;
+}
+
+
