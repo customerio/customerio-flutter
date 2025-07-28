@@ -159,10 +159,4 @@ class CustomerIO {
     return _platform.setProfileAttributes(
         attributes: attributes.excludeNullValues());
   }
-
-  /// Test method for API change detection
-  /// This method should be detected by the API change detection script
-  String testApiChangeDetection({required String message}) {
-    return 'Test: $message';
-  }
 }
