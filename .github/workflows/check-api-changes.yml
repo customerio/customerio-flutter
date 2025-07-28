@@ -1,4 +1,4 @@
-name: Extract API
+name: Check API Changes
 
 on: [pull_request]
 
@@ -8,14 +8,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  extract_api:
+  check_api_changes:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/setup-flutter
     
-    - name: Install dart_apitool
-      run: dart pub global activate dart_apitool
-    
-    - name: Extract API
-      run: bash ./scripts/extract_api.sh
+    - name: Check for API changes
+      run: ./scripts/check_api_changes.sh
