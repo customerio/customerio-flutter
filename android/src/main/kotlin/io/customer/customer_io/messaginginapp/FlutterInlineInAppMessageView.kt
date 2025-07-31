@@ -2,7 +2,6 @@ package io.customer.customer_io.messaginginapp
 
 import android.content.Context
 import android.util.AttributeSet
-import android.util.Log
 import androidx.annotation.AttrRes
 import androidx.annotation.StyleRes
 import io.customer.messaginginapp.type.InAppMessage
@@ -52,5 +51,11 @@ class FlutterInlineInAppMessageView @JvmOverloads constructor(
         post {
             platformDelegate.dispatchEventPublic("onAction", payload)
         }
+    }
+
+    // Override onDetachedFromWindow as it is protected in base class and needs to be public
+    // to be from Flutter view lifecycle.
+    public override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
     }
 }

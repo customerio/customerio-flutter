@@ -19,6 +19,20 @@ class InlineMessagesScreen extends StatelessWidget {
           // Sticky Header Inline Message
           InlineInAppMessageView(
             elementId: 'sticky-header',
+            // Fixed height emptyStateView example
+            emptyStateView: Container(
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.blue[100],
+                border: Border.all(color: Colors.blue[300]!),
+              ),
+              child: const Center(
+                child: Text(
+                  'Element ID: sticky-header',
+                  style: TextStyle(color: Colors.blue),
+                ),
+              ),
+            ),
             onActionClick: _showInlineActionClick,
           ),
           Expanded(
@@ -29,13 +43,30 @@ class InlineMessagesScreen extends StatelessWidget {
                   _buildImageAndTextBlock(),
                   _buildFullWidthCard(),
                   _buildThreeColumnRow(),
+                  const SizedBox(height: 16),
                   InlineInAppMessageView(
                     elementId: 'inline',
+                    // Dynamic height emptyStateView example
+                    emptyStateView: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.green[100],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.green[300]!),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: const Center(
+                        child: Text(
+                          'Element ID: inline',
+                          style: TextStyle(color: Colors.green),
+                        ),
+                      ),
+                    ),
                     onActionClick: _showInlineActionClick,
                   ),
                   _buildImageAndTextBlock(),
                   _buildFullWidthCard(),
                   _buildThreeColumnRow(),
+                  const SizedBox(height: 16),
                   InlineInAppMessageView(
                     elementId: 'below-fold',
                     onActionClick: _showInlineActionClick,

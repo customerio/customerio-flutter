@@ -90,6 +90,7 @@ typedef InAppMessageActionClickCallback = void Function(
 /// ```dart
 /// InlineInAppMessageView(
 ///   elementId: 'banner-message',
+///   emptyStateView: Text('No messages available'),
 ///   onActionClick: (message, actionValue, actionName) {
 ///     print('Action clicked: $actionName with value: $actionValue');
 ///     print('Message ID: ${message.messageId}');
@@ -101,10 +102,12 @@ class InlineInAppMessageView extends StatefulWidget {
   ///
   /// [elementId] is required and identifies which message to display.
   /// [onActionClick] is an optional callback for handling message action clicks.
+  /// [emptyStateView] is an optional widget to display when no message is available.
   const InlineInAppMessageView({
     super.key,
     required this.elementId,
     this.onActionClick,
+    this.emptyStateView,
   });
 
   /// The element ID that identifies which message to display
@@ -112,6 +115,9 @@ class InlineInAppMessageView extends StatefulWidget {
 
   /// Callback function that gets called when a message action is clicked
   final InAppMessageActionClickCallback? onActionClick;
+
+  /// Optional empty state widget to display when no message is available
+  final Widget? emptyStateView;
 
   @override
   State<InlineInAppMessageView> createState() => _InlineInAppMessageViewState();
@@ -164,15 +170,39 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
       return const SizedBox.shrink();
     }
 
-    return AnimatedSize(
-      duration: _InlineMessageConstants.animationDuration,
-      child: SizedBox(
-        // height is 1.0 to avoid zero-height layout issues,
-        // which cause Flutter to skip laying out the native view
-        height: _nativeHeight ?? 1.0,
-        width: _nativeWidth ?? double.infinity,
-        child: platformView,
-      ),
+    final emptyStateView = widget.emptyStateView;
+    // Show empty state when it's provided and no message content is available
+    // (native height is null or equals the 1.0 fallback height)
+    final shouldShowEmptyState = emptyStateView != null &&
+        ((_nativeHeight ?? 0) <= _InlineMessageConstants.fallbackHeight);
+
+    return Stack(
+      children: [
+        // Always render the platform view in the background so it can be initialized
+        // and ready to receive messages when they become available
+        AnimatedSize(
+          duration: _InlineMessageConstants.animationDuration,
+          child: SizedBox(
+            // Use native height when available, fallback to 1.0 to avoid zero-height
+            // layout issues which cause Flutter to skip laying out the native view
+            height: _nativeHeight ?? 1.0,
+            width: _nativeWidth ?? double.infinity,
+            child: platformView,
+          ),
+        ),
+        // Overlay empty state on top when no message content is available
+        // Uses AnimatedOpacity for smooth transitions between states
+        AnimatedOpacity(
+          opacity: shouldShowEmptyState ? 1.0 : 0.0,
+          duration: _InlineMessageConstants.animationDuration,
+          curve: Curves.easeOut,
+          child: IgnorePointer(
+            // Disable touch events on empty state when it's not visible
+            ignoring: !shouldShowEmptyState,
+            child: emptyStateView,
+          ),
+        ),
+      ],
     );
   }
 
