@@ -103,11 +103,13 @@ class InlineInAppMessageView extends StatefulWidget {
   /// [elementId] is required and identifies which message to display.
   /// [onActionClick] is an optional callback for handling message action clicks.
   /// [emptyStateView] is an optional widget to display when no message is available.
+  /// [emptyStateViewMinHeight] sets minimum height to reserve space during animations.
   const InlineInAppMessageView({
     super.key,
     required this.elementId,
     this.onActionClick,
     this.emptyStateView,
+    this.emptyStateViewMinHeight,
   });
 
   /// The element ID that identifies which message to display
@@ -118,6 +120,10 @@ class InlineInAppMessageView extends StatefulWidget {
 
   /// Optional empty state widget to display when no message is available
   final Widget? emptyStateView;
+
+  /// Optional minimum height to maintain layout space when transitioning between
+  /// empty state and message content, preventing layout shifts during animations
+  final double? emptyStateViewMinHeight;
 
   @override
   State<InlineInAppMessageView> createState() => _InlineInAppMessageViewState();
@@ -171,6 +177,7 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
     }
 
     final emptyStateView = widget.emptyStateView;
+    final emptyStateViewMinHeight = widget.emptyStateViewMinHeight;
     // Show empty state when it's provided and no message content is available
     // (native height is null or equals the 1.0 fallback height)
     final shouldShowEmptyState = emptyStateView != null &&
@@ -192,7 +199,7 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
         ),
         // Overlay empty state on top when no message content is available
         if (emptyStateView != null)
-          // Uses animated views for smooth transitions between states
+          // Animated container for smooth transitions between empty state and content
           AnimatedSize(
             duration: _InlineMessageConstants.animationDuration,
             curve: Curves.easeOut,
@@ -203,13 +210,22 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
               transitionBuilder: (Widget child, Animation<double> animation) {
                 return FadeTransition(
                   opacity: animation,
-                  child: child,
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: child,
+                  ),
                 );
               },
-              child: shouldShowEmptyState ? KeyedSubtree(
-                key: ValueKey('emptyStateView-${widget.elementId}'),
-                child: emptyStateView!,
-              ) : const SizedBox.shrink(),
+              child: shouldShowEmptyState 
+                  // Show empty state widget when no message content available
+                  ? KeyedSubtree(
+                      key: ValueKey('emptyStateView-${widget.elementId}'),
+                      child: emptyStateView!,
+                    )
+                  // Reserve minimum height space when content is present to prevent layout shifts
+                  : emptyStateViewMinHeight != null
+                      ? SizedBox(height: emptyStateViewMinHeight)
+                      : const SizedBox.shrink(),
             ),
           )
       ],

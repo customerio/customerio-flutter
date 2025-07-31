@@ -20,6 +20,7 @@ class InlineMessagesScreen extends StatelessWidget {
           InlineInAppMessageView(
             elementId: 'sticky-header',
             // Fixed height emptyStateView example
+            emptyStateViewMinHeight: 60,
             emptyStateView: Container(
               height: 60,
               decoration: BoxDecoration(
