@@ -69,7 +69,6 @@ class InlineInAppMessagePlatformView(
     override fun getView(): View = inlineView
 
     override fun dispose() {
-        inlineView.onDetachedFromWindow()
         methodChannel.setMethodCallHandler(null)
     }
 
@@ -77,7 +76,7 @@ class InlineInAppMessagePlatformView(
         when (call.method) {
             "setElementId" -> call.native(result, { it as? String }, ::setElementId)
             "getElementId" -> call.native(result, { Unit }, { getElementId() })
-            "cleanup" -> call.native(result, { Unit }, { dispose() })
+            "cleanup" -> call.native(result, { Unit }, {  })
             else -> result.notImplemented()
         }
     }

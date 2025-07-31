@@ -191,17 +191,27 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
           ),
         ),
         // Overlay empty state on top when no message content is available
-        // Uses AnimatedOpacity for smooth transitions between states
-        AnimatedOpacity(
-          opacity: shouldShowEmptyState ? 1.0 : 0.0,
-          duration: _InlineMessageConstants.animationDuration,
-          curve: Curves.easeOut,
-          child: IgnorePointer(
-            // Disable touch events on empty state when it's not visible
-            ignoring: !shouldShowEmptyState,
-            child: emptyStateView,
-          ),
-        ),
+        if (emptyStateView != null)
+          // Uses animated views for smooth transitions between states
+          AnimatedSize(
+            duration: _InlineMessageConstants.animationDuration,
+            curve: Curves.easeOut,
+            child: AnimatedSwitcher(
+              duration: _InlineMessageConstants.animationDuration,
+              switchInCurve: Curves.easeOut,
+              switchOutCurve: Curves.easeOut,
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: child,
+                );
+              },
+              child: shouldShowEmptyState ? KeyedSubtree(
+                key: ValueKey('emptyStateView-${widget.elementId}'),
+                child: emptyStateView!,
+              ) : const SizedBox.shrink(),
+            ),
+          )
       ],
     );
   }

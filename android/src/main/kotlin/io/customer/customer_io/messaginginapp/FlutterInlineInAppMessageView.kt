@@ -52,10 +52,4 @@ class FlutterInlineInAppMessageView @JvmOverloads constructor(
             platformDelegate.dispatchEventPublic("onAction", payload)
         }
     }
-
-    // Override onDetachedFromWindow as it is protected in base class and needs to be public
-    // to be from Flutter view lifecycle.
-    public override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-    }
 }
