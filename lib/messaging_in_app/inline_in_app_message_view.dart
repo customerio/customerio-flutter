@@ -220,7 +220,7 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
                   // Show empty state widget when no message content available
                   ? KeyedSubtree(
                       key: ValueKey('emptyStateView-${widget.elementId}'),
-                      child: emptyStateView!,
+                      child: emptyStateView,
                     )
                   // Reserve minimum height space when content is present to prevent layout shifts
                   : emptyStateViewMinHeight != null
