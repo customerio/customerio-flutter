@@ -146,7 +146,15 @@ String generateSummary(Map<String, dynamic> filtered) {
   final buffer = StringBuffer();
   final classes = filtered['classes'] as List<dynamic>;
 
-  for (final cls in classes) {
+  // Sort classes alphabetically by name for deterministic output
+  final sortedClasses = List<dynamic>.from(classes);
+  sortedClasses.sort((a, b) {
+    final nameA = (a as Map<String, dynamic>)['name'] as String;
+    final nameB = (b as Map<String, dynamic>)['name'] as String;
+    return nameA.compareTo(nameB);
+  });
+
+  for (final cls in sortedClasses) {
     final clsMap = cls as Map<String, dynamic>;
     final methods = clsMap['methods'] as List<dynamic>;
     final properties = clsMap['properties'] as List<dynamic>;
@@ -158,6 +166,9 @@ String generateSummary(Map<String, dynamic> filtered) {
     // Handle constructors - keep original constructor names and types
     final constructors =
         methods.where((m) => m['type'] == 'constructor').toList();
+    // Sort constructors alphabetically
+    constructors
+        .sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
     for (final constructor in constructors) {
       final constructorName = constructor['name'];
       final returnType = constructor['returnType'];
@@ -172,6 +183,9 @@ String generateSummary(Map<String, dynamic> filtered) {
     // Handle regular methods - keep original method names and types
     final nonConstructors =
         methods.where((m) => m['type'] != 'constructor').toList();
+    // Sort methods alphabetically
+    nonConstructors
+        .sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
     for (final method in nonConstructors) {
       final methodName = method['name'];
       final returnType = method['returnType']; // Keep original type
@@ -185,7 +199,11 @@ String generateSummary(Map<String, dynamic> filtered) {
     }
 
     // Handle properties - keep original property names and types
-    for (final property in properties) {
+    // Sort properties alphabetically
+    final sortedProperties = List<dynamic>.from(properties);
+    sortedProperties
+        .sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
+    for (final property in sortedProperties) {
       final propName = property['name'];
       final propType = property['type']; // Keep original type
       final isStatic = property['isStatic'] == true;
