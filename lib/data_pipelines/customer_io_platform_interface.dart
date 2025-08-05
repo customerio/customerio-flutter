@@ -58,6 +58,10 @@ abstract class CustomerIOPlatform extends PlatformInterface {
     throw UnimplementedError('registerDeviceToken() has not been implemented.');
   }
 
+  void deleteDeviceToken() {
+    throw UnimplementedError('deleteDeviceToken() has not been implemented.');
+  }
+
   void screen(
       {required String title, Map<String, dynamic> properties = const {}}) {
     throw UnimplementedError('screen() has not been implemented.');
