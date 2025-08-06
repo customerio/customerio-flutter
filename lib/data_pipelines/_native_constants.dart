@@ -7,6 +7,7 @@ class NativeMethods {
   static const String setDeviceAttributes = "setDeviceAttributes";
   static const String setProfileAttributes = "setProfileAttributes";
   static const String registerDeviceToken = "registerDeviceToken";
+  static const String deleteDeviceToken = "deleteDeviceToken";
   static const String track = "track";
   static const String trackMetric = "trackMetric";
 }
