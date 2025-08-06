@@ -30,6 +30,9 @@ public class SwiftCustomerIOPlugin: NSObject, FlutterPlugin {
         case "clearIdentify":
             call.nativeNoArgs(result: result, handler: clearIdentify)
 
+        case "deleteDeviceToken":
+            call.nativeNoArgs(result: result, handler: deleteDeviceToken)
+
         case "identify":
             call.nativeMapArgs(result: result, handler: identify)
 
@@ -129,6 +132,10 @@ public class SwiftCustomerIOPlugin: NSObject, FlutterPlugin {
         }
 
         CustomerIO.shared.registerDeviceToken(token)
+    }
+
+    private func deleteDeviceToken() {
+        CustomerIO.shared.deleteDeviceToken()
     }
 
     private func trackMetric(params: [String: AnyHashable]) {
