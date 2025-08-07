@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
@@ -84,7 +86,8 @@ typedef InAppMessageActionClickCallback = void Function(
 ///
 /// This widget wraps the native Android InlineInAppMessageView and iOS InlineMessageUIView
 /// and provides Flutter integration. The view will automatically show and hide based on
-/// whether there are messages available for the specified element ID.
+/// whether there are messages available for the specified element ID. When no message
+/// is available, the widget is hidden using the Offstage widget to prevent layout issues.
 ///
 /// Example usage:
 /// ```dart
@@ -121,6 +124,10 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
   MethodChannel? _methodChannel;
   double? _nativeHeight;
   double? _nativeWidth;
+  // Initially hide the view until message content is available
+  bool _offstage = true;
+  // Tracks pending offstage toggle after animation delay
+  Timer? _offstageTimer;
 
   @override
   void initState() {
@@ -129,6 +136,7 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
 
   @override
   void dispose() {
+    _offstageTimer?.cancel();
     _methodChannel?.setMethodCallHandler(null);
     // Explicitly call cleanup on iOS side
     _safeInvokeMethod(_InlineMessageConstants.cleanup);
@@ -164,14 +172,19 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
       return const SizedBox.shrink();
     }
 
-    return AnimatedSize(
-      duration: _InlineMessageConstants.animationDuration,
-      child: SizedBox(
-        // height is 1.0 to avoid zero-height layout issues,
-        // which cause Flutter to skip laying out the native view
-        height: _nativeHeight ?? 1.0,
-        width: _nativeWidth ?? double.infinity,
-        child: platformView,
+    // Offstage message view when native height is missing or fallback (1.0)
+    // Prevents layout issues due to zero-height native view
+    return Offstage(
+      offstage: _offstage,
+      child: AnimatedSize(
+        duration: _InlineMessageConstants.animationDuration,
+        child: SizedBox(
+          // Use fallback height to ensure native view is laid out,
+          // as a height of 0 may cause the platform view to be skipped
+          height: _nativeHeight ?? _InlineMessageConstants.fallbackHeight,
+          width: _nativeWidth ?? double.infinity,
+          child: platformView,
+        ),
       ),
     );
   }
@@ -210,13 +223,13 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
         final width = arguments[_InlineMessageConstants.width] as double?;
         final height = arguments[_InlineMessageConstants.height] as double?;
         if (mounted) {
-          setState(() {
-            // Treat height 0.0 as "no message" state, set to 1.0 to maintain layout
-            _nativeHeight = (height == 0.0)
-                ? _InlineMessageConstants.fallbackHeight
-                : height;
-            _nativeWidth = width;
-          });
+          // Treat height 0.0 as "no message" state, set to fallback height to maintain layout
+          final newHeight = (height == 0.0)
+              ? _InlineMessageConstants.fallbackHeight : height;
+          _updateViewState(
+            width: width,
+            height: newHeight,
+          );
         }
         break;
       case _InlineMessageConstants.onStateChange:
@@ -224,15 +237,50 @@ class _InlineInAppMessageViewState extends State<InlineInAppMessageView> {
         final state = arguments[_InlineMessageConstants.state] as String;
         if (mounted) {
           if (state == _InlineMessageConstants.noMessageToDisplay) {
-            setState(() {
-              _nativeHeight = _InlineMessageConstants
-                  .fallbackHeight; // Unified no-message height
-            });
+            // Unified no-message height
+            _updateViewState(width: _nativeWidth,
+                height: _InlineMessageConstants.fallbackHeight);
           }
         }
         break;
       default:
         break;
+    }
+  }
+
+  /// Updates native view dimensions and toggles offstage state appropriately.
+  /// Makes the view visible immediately for smooth expand animations,
+  /// and delays hiding until after the animation completes.
+  void _updateViewState({required double? width, required double? height}) {
+    final shouldOffstage = (height ?? 0.0) <=
+        _InlineMessageConstants.fallbackHeight;
+
+    // If becoming visible, update offstage immediately
+    if (!shouldOffstage && _offstage) {
+      setState(() {
+        _offstage = false;
+        _nativeWidth = width;
+        _nativeHeight = height;
+      });
+      return;
+    }
+
+    // If hiding, update size now, but delay offstage toggle until after animation
+    setState(() {
+      _nativeWidth = width;
+      _nativeHeight = height;
+    });
+
+    // Schedule hide only if not already scheduled
+    if (shouldOffstage && !_offstage && _offstageTimer == null) {
+      _offstageTimer = Timer(_InlineMessageConstants.animationDuration, () {
+        if (mounted) {
+          setState(() {
+            _offstage = true;
+          });
+        }
+        _offstageTimer = null; // Clear the timer reference
+      });
     }
   }
 

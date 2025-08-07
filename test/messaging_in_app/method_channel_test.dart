@@ -36,8 +36,8 @@ void main() {
         ),
       );
 
-      // Find the AndroidView to get its method channel
-      final androidView = tester.widget<AndroidView>(find.byType(AndroidView));
+      // Find the AndroidView to get its method channel (even if offstage)
+      final androidView = tester.widget<AndroidView>(find.byType(AndroidView, skipOffstage: false));
       expect(androidView.onPlatformViewCreated, isNotNull);
 
       // Simulate platform view creation
@@ -91,7 +91,7 @@ void main() {
         ),
       );
 
-      final androidView = tester.widget<AndroidView>(find.byType(AndroidView));
+      final androidView = tester.widget<AndroidView>(find.byType(AndroidView, skipOffstage: false));
       const int platformViewId = 123;
       androidView.onPlatformViewCreated!(platformViewId);
 
@@ -132,7 +132,7 @@ void main() {
         ),
       );
 
-      final androidView = tester.widget<AndroidView>(find.byType(AndroidView));
+      final androidView = tester.widget<AndroidView>(find.byType(AndroidView, skipOffstage: false));
       const int platformViewId = 123;
       androidView.onPlatformViewCreated!(platformViewId);
 
@@ -176,7 +176,7 @@ void main() {
         ),
       );
 
-      final androidView = tester.widget<AndroidView>(find.byType(AndroidView));
+      final androidView = tester.widget<AndroidView>(find.byType(AndroidView, skipOffstage: false));
       const int platformViewId = 123;
       androidView.onPlatformViewCreated!(platformViewId);
 
@@ -224,7 +224,7 @@ void main() {
         ),
       );
 
-      final androidView = tester.widget<AndroidView>(find.byType(AndroidView));
+      final androidView = tester.widget<AndroidView>(find.byType(AndroidView, skipOffstage: false));
       const int platformViewId = 123;
       androidView.onPlatformViewCreated!(platformViewId);
 

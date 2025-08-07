@@ -40,10 +40,17 @@ void main() {
       expect(find.text('Test App'), findsOneWidget);
       expect(find.text('End of Test'), findsOneWidget);
       expect(find.byType(InlineInAppMessageView), findsOneWidget);
-      expect(find.byType(AndroidView), findsOneWidget);
 
+      // Platform view is created but initially offstage
+      // We need to trigger the platform view creation first
+      await tester.pump();
+
+      // Find AndroidView (even if offstage)
+      final androidViewFinder = find.byType(AndroidView, skipOffstage: false);
+      expect(androidViewFinder, findsOneWidget);
+      
       // Verify AndroidView has correct configuration
-      final androidView = tester.widget<AndroidView>(find.byType(AndroidView));
+      final androidView = tester.widget<AndroidView>(androidViewFinder);
       expect(androidView.viewType,
           equals('customer_io_inline_in_app_message_view'));
 
@@ -89,10 +96,16 @@ void main() {
       expect(find.text('Test App'), findsOneWidget);
       expect(find.text('End of Test'), findsOneWidget);
       expect(find.byType(InlineInAppMessageView), findsOneWidget);
-      expect(find.byType(UiKitView), findsOneWidget);
 
+      // Platform view is created but initially offstage
+      await tester.pump();
+
+      // Find UiKitView (even if offstage)
+      final uiKitViewFinder = find.byType(UiKitView, skipOffstage: false);
+      expect(uiKitViewFinder, findsOneWidget);
+      
       // Verify UiKitView has correct configuration
-      final uiKitView = tester.widget<UiKitView>(find.byType(UiKitView));
+      final uiKitView = tester.widget<UiKitView>(uiKitViewFinder);
       expect(
           uiKitView.viewType, equals('customer_io_inline_in_app_message_view'));
 
@@ -132,13 +145,13 @@ void main() {
         ),
       );
 
-      // Verify all widgets are rendered
+      // Verify all widgets are rendered (initially offstage)
       expect(find.byType(InlineInAppMessageView), findsNWidgets(3));
-      expect(find.byType(AndroidView), findsNWidgets(3));
+      expect(find.byType(AndroidView, skipOffstage: false), findsNWidgets(3));
 
       // Verify each has unique element IDs
       final androidViews =
-          tester.widgetList<AndroidView>(find.byType(AndroidView));
+          tester.widgetList<AndroidView>(find.byType(AndroidView, skipOffstage: false));
       final elementIds = androidViews.map((view) {
         final params = view.creationParams as Map<String, dynamic>;
         return params['elementId'];
@@ -164,8 +177,8 @@ void main() {
         ),
       );
 
-      expect(find.byType(AndroidView), findsOneWidget);
-      expect(find.byType(UiKitView), findsNothing);
+      expect(find.byType(AndroidView, skipOffstage: false), findsOneWidget);
+      expect(find.byType(UiKitView, skipOffstage: false), findsNothing);
 
       // Test iOS
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
@@ -180,8 +193,8 @@ void main() {
         ),
       );
 
-      expect(find.byType(AndroidView), findsNothing);
-      expect(find.byType(UiKitView), findsOneWidget);
+      expect(find.byType(AndroidView, skipOffstage: false), findsNothing);
+      expect(find.byType(UiKitView, skipOffstage: false), findsOneWidget);
 
       debugDefaultTargetPlatformOverride = null;
     });
@@ -200,7 +213,7 @@ void main() {
         ),
       );
 
-      final androidView = tester.widget<AndroidView>(find.byType(AndroidView));
+      final androidView = tester.widget<AndroidView>(find.byType(AndroidView, skipOffstage: false));
 
       // Verify that onPlatformViewCreated callback is set
       expect(androidView.onPlatformViewCreated, isNotNull);
