@@ -25,7 +25,7 @@ void main() {
         ),
       );
 
-      final androidView = tester.widget<AndroidView>(find.byType(AndroidView));
+      final androidView = tester.widget<AndroidView>(find.byType(AndroidView, skipOffstage: false));
       const int platformViewId = 123;
       androidView.onPlatformViewCreated!(platformViewId);
 
@@ -87,7 +87,7 @@ void main() {
         ),
       );
 
-      final androidView = tester.widget<AndroidView>(find.byType(AndroidView));
+      final androidView = tester.widget<AndroidView>(find.byType(AndroidView, skipOffstage: false));
       const int platformViewId = 123;
       androidView.onPlatformViewCreated!(platformViewId);
 
@@ -153,7 +153,7 @@ void main() {
         ),
       );
 
-      final androidView = tester.widget<AndroidView>(find.byType(AndroidView));
+      final androidView = tester.widget<AndroidView>(find.byType(AndroidView, skipOffstage: false));
       const int platformViewId = 123;
       androidView.onPlatformViewCreated!(platformViewId);
 
@@ -212,7 +212,7 @@ void main() {
         ),
       );
 
-      final androidView = tester.widget<AndroidView>(find.byType(AndroidView));
+      final androidView = tester.widget<AndroidView>(find.byType(AndroidView, skipOffstage: false));
       const int platformViewId = 123;
       androidView.onPlatformViewCreated!(platformViewId);
 
@@ -272,7 +272,7 @@ void main() {
       );
 
       expect(find.byType(InlineInAppMessageView), findsOneWidget);
-      expect(find.byType(AndroidView), findsOneWidget);
+      expect(find.byType(AndroidView, skipOffstage: false), findsOneWidget);
 
       // Test with very long element ID
       await tester.pumpWidget(
@@ -286,7 +286,7 @@ void main() {
       );
 
       expect(find.byType(InlineInAppMessageView), findsOneWidget);
-      expect(find.byType(AndroidView), findsOneWidget);
+      expect(find.byType(AndroidView, skipOffstage: false), findsOneWidget);
 
       // Test with special characters
       await tester.pumpWidget(
@@ -300,7 +300,7 @@ void main() {
       );
 
       expect(find.byType(InlineInAppMessageView), findsOneWidget);
-      expect(find.byType(AndroidView), findsOneWidget);
+      expect(find.byType(AndroidView, skipOffstage: false), findsOneWidget);
 
       debugDefaultTargetPlatformOverride = null;
     });
@@ -319,7 +319,7 @@ void main() {
         ),
       );
 
-      final androidView = tester.widget<AndroidView>(find.byType(AndroidView));
+      final androidView = tester.widget<AndroidView>(find.byType(AndroidView, skipOffstage: false));
 
       // Immediately remove the widget after finding it but before platform view setup
       await tester.pumpWidget(
@@ -373,7 +373,7 @@ void main() {
 
       // Widget should still be functional
       expect(find.byType(InlineInAppMessageView), findsOneWidget);
-      expect(find.byType(AndroidView), findsOneWidget);
+      expect(find.byType(AndroidView, skipOffstage: false), findsOneWidget);
 
       debugDefaultTargetPlatformOverride = null;
     });
@@ -396,7 +396,7 @@ void main() {
         ),
       );
 
-      final androidView = tester.widget<AndroidView>(find.byType(AndroidView));
+      final androidView = tester.widget<AndroidView>(find.byType(AndroidView, skipOffstage: false));
       const int platformViewId = 123;
       androidView.onPlatformViewCreated!(platformViewId);
 
