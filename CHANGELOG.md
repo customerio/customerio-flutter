@@ -1,3 +1,9 @@
+## [2.4.3](https://github.com/customerio/customerio-flutter/compare/2.4.2...2.4.3) (2025-08-11)
+
+### Bug Fixes
+
+* prevent displaying inline when no content available ([#259](https://github.com/customerio/customerio-flutter/issues/259)) ([b78cffd](https://github.com/customerio/customerio-flutter/commit/b78cffda57f2940b321a7c0e2afab9627a78ffae))
+
 ## [2.4.2](https://github.com/customerio/customerio-flutter/compare/2.4.1...2.4.2) (2025-07-24)
 
 ### Bug Fixes
