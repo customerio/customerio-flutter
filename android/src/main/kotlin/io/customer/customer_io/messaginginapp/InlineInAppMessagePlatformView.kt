@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.view.View
-import android.view.ViewGroup
 import io.customer.customer_io.bridge.native
 import io.customer.sdk.core.util.Logger
 import io.customer.sdk.core.di.SDKComponent
@@ -77,6 +76,7 @@ class InlineInAppMessagePlatformView(
         when (call.method) {
             "setElementId" -> call.native(result, { it as? String }, ::setElementId)
             "getElementId" -> call.native(result, { Unit }, { getElementId() })
+            "cleanup" -> call.native(result, { Unit }, {  })
             else -> result.notImplemented()
         }
     }

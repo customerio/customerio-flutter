@@ -29,6 +29,7 @@ class InlineMessagesScreen extends StatelessWidget {
                   _buildImageAndTextBlock(),
                   _buildFullWidthCard(),
                   _buildThreeColumnRow(),
+                  const SizedBox(height: 16),
                   InlineInAppMessageView(
                     elementId: 'inline',
                     onActionClick: _showInlineActionClick,
@@ -36,6 +37,7 @@ class InlineMessagesScreen extends StatelessWidget {
                   _buildImageAndTextBlock(),
                   _buildFullWidthCard(),
                   _buildThreeColumnRow(),
+                  const SizedBox(height: 16),
                   InlineInAppMessageView(
                     elementId: 'below-fold',
                     onActionClick: _showInlineActionClick,
