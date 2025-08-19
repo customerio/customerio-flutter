@@ -358,13 +358,25 @@ jobs:
           echo "🔍 Checking for existing open PRs with title: $EXPECTED_TITLE"
           
           # Use gh pr list with jq to find PRs with exact title match
-          EXISTING_PR=$(gh pr list --state=open --json number,title | jq -r --arg title "$EXPECTED_TITLE" '.[] | select(.title == $title) | .number')
+          MATCHING_PRS=$(gh pr list --state=open --json number,title | jq -r --arg title "$EXPECTED_TITLE" '.[] | select(.title == $title) | .number')
           
-          if [[ -n "$EXISTING_PR" ]]; then
-            echo "⚠️  Found existing open PR #$EXISTING_PR with identical title"
+          if [[ -n "$MATCHING_PRS" ]]; then
+            # Get first PR number and count total matches
+            FIRST_PR=$(echo "$MATCHING_PRS" | head -n 1)
+            PR_COUNT=$(echo "$MATCHING_PRS" | wc -l | tr -d ' ')
+            
+            if [[ "$PR_COUNT" -gt 1 ]]; then
+              echo "⚠️  Found $PR_COUNT existing open PRs with identical title"
+              echo "📋 PR numbers: $(echo "$MATCHING_PRS" | tr '\n' ' ')"
+              echo "🎯 Using first PR #$FIRST_PR as reference"
+            else
+              echo "⚠️  Found existing open PR #$FIRST_PR with identical title"
+            fi
+            
             echo "🚫 Skipping PR creation to avoid duplicates"
             echo "existing_pr_found=true" >> $GITHUB_OUTPUT
-            echo "existing_pr_number=$EXISTING_PR" >> $GITHUB_OUTPUT
+            echo "existing_pr_number=$FIRST_PR" >> $GITHUB_OUTPUT
+            echo "duplicate_pr_count=$PR_COUNT" >> $GITHUB_OUTPUT
           else
             echo "✅ No existing PR found with this title"
             echo "existing_pr_found=false" >> $GITHUB_OUTPUT
@@ -390,10 +402,15 @@ jobs:
         if: steps.check_existing_pr.outputs.existing_pr_found == 'true'
         run: |
           echo "🚫 PR creation skipped due to existing duplicate"
-          echo "📋 Existing PR: #${{ steps.check_existing_pr.outputs.existing_pr_number }}"
+          if [[ "${{ steps.check_existing_pr.outputs.duplicate_pr_count }}" -gt 1 ]]; then
+            echo "📋 Found ${{ steps.check_existing_pr.outputs.duplicate_pr_count }} existing PRs with identical title"
+            echo "🎯 Reference PR: #${{ steps.check_existing_pr.outputs.existing_pr_number }}"
+          else
+            echo "📋 Existing PR: #${{ steps.check_existing_pr.outputs.existing_pr_number }}"
+          fi
           echo "🏷️  Title: ${{ steps.generate_pr_content.outputs.title }}"
           echo ""
-          echo "ℹ️  An open PR with identical title already exists."
+          echo "ℹ️  Open PR(s) with identical title already exist."
           echo "   No new PR will be created to avoid duplicates."
 
       - name: Post workflow summary
@@ -419,11 +436,16 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           if [[ "${{ steps.check_existing_pr.outputs.existing_pr_found }}" == "true" ]]; then
             echo "### ⚠️ PR Creation Skipped" >> $GITHUB_STEP_SUMMARY
-            echo "- 🚫 Duplicate PR detected: #${{ steps.check_existing_pr.outputs.existing_pr_number }}" >> $GITHUB_STEP_SUMMARY
+            if [[ "${{ steps.check_existing_pr.outputs.duplicate_pr_count }}" -gt 1 ]]; then
+              echo "- 🚫 Found ${{ steps.check_existing_pr.outputs.duplicate_pr_count }} duplicate PRs with identical title" >> $GITHUB_STEP_SUMMARY
+              echo "- 🎯 **Reference PR**: #${{ steps.check_existing_pr.outputs.existing_pr_number }}" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- 🚫 Duplicate PR detected: #${{ steps.check_existing_pr.outputs.existing_pr_number }}" >> $GITHUB_STEP_SUMMARY
+            fi
             echo "- 🏷️ **Title**: ${{ steps.generate_pr_content.outputs.title }}" >> $GITHUB_STEP_SUMMARY
             echo "- 🌱 **Branch created**: \`$branch_name\` (not pushed)" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "ℹ️ An open PR with identical title already exists. No duplicate PR was created." >> $GITHUB_STEP_SUMMARY
+            echo "ℹ️ Open PR(s) with identical title already exist. No duplicate PR was created." >> $GITHUB_STEP_SUMMARY
           else
             echo "**Branch created**: \`$branch_name\`" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
