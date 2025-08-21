@@ -326,8 +326,13 @@ jobs:
       - name: Install flutter dependencies for sample app
         run: flutter pub get
 
-      - name: Setup iOS environment for sample app
-        uses: customerio/customerio-ios/.github/actions/setup-ios@main
+#      - name: Setup iOS environment for sample app
+#        uses: customerio/customerio-ios/.github/actions/setup-ios@main
+#        with:
+#          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Install XCode
+        uses: maxim-lobanov/setup-xcode@60606e260d2fc5762a71e64e74b2174e8ea3c8bd # v1.6.0
         with:
           xcode-version: ${{ env.XCODE_VERSION }}
 
