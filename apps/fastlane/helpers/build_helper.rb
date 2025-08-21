@@ -56,7 +56,11 @@ platform :ios do
     ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "10"
 
     # Build IPA using gym (Fastlane's built-in tool for building iOS apps)
-    gym(scheme: "Runner")
+    gym(
+      scheme: "Runner",
+      configuration: "Release",
+      export_method: "ad-hoc"
+    )
 
     are_environment_variables_set_for_build_uploading = ENV["FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64"]
 
