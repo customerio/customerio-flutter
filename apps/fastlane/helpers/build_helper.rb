@@ -55,6 +55,9 @@ platform :ios do
     # prevents builds from being flaky. As app sizes get bigger, it takes fastlane longer to initialize the build process. Increase this value to compensate for that.
     ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "10"
 
+    # Build iOS app using Flutter CLI (similar to how Android build works)
+    sh("flutter build ios --release")
+
     # Build IPA using gym (Fastlane's built-in tool for building iOS apps)
     gym(scheme: "Runner")
 
