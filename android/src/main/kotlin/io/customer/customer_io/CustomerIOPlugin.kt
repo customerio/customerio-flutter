@@ -64,6 +64,7 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
             "clearIdentify" -> call.nativeNoArgs(result, ::clearIdentify)
+            "deleteDeviceToken" -> call.nativeNoArgs(result, ::deleteDeviceToken)
             "identify" -> call.nativeMapArgs(result, ::identify)
             "initialize" -> call.nativeMapArgs(result, ::initialize)
             "registerDeviceToken" -> call.nativeMapArgs(result, ::registerDeviceToken)
@@ -116,6 +117,10 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             "Device token is missing in params: $params"
         }
         CustomerIO.instance().registerDeviceToken(token)
+    }
+
+    private fun deleteDeviceToken() {
+        CustomerIO.instance().deleteDeviceToken()
     }
 
     private fun trackMetric(params: Map<String, Any>) {

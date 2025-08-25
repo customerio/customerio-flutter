@@ -133,6 +133,11 @@ class CustomerIO {
     return _platform.registerDeviceToken(deviceToken: deviceToken);
   }
 
+  /// Delete a device token that was previously registered with Customer.io
+  void deleteDeviceToken() {
+    return _platform.deleteDeviceToken();
+  }
+
   /// Track screen events to record the screens a user visits
   ///
   /// @param name name of the screen user visited

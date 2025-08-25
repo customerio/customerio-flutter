@@ -13,6 +13,7 @@ public final class CustomerIO {
 		CustomerIOMessagingPushPlatform? pushMessaging,
 		CustomerIOMessagingInAppPlatform? inAppMessaging
 	): CustomerIO;
+	public fun deleteDeviceToken();
 	public fun identify(
 		required String userId,
 		Map<String, dynamic> traits
@@ -95,6 +96,7 @@ public final class CustomerIOMessagingPushPlatform {
 public final class CustomerIOPlatform {
 	public fun new(): CustomerIOPlatform;
 	public fun clearIdentify();
+	public fun deleteDeviceToken();
 	public fun identify(
 		required String userId,
 		Map<String, dynamic> traits
