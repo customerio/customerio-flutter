@@ -79,6 +79,13 @@ class CustomerIOMethodChannel extends CustomerIOPlatform {
     });
   }
 
+  /// Delete a device token that was previously registered with Customer.io
+  @override
+  void deleteDeviceToken() {
+    return methodChannel
+        .invokeNativeMethodVoid(NativeMethods.deleteDeviceToken);
+  }
+
   /// Call this function to stop identifying a person.
   @override
   void clearIdentify() {
