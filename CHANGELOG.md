@@ -1,3 +1,9 @@
+## [2.5.0](https://github.com/customerio/customerio-flutter/compare/2.4.3...2.5.0) (2025-08-27)
+
+### Features
+
+* Align public API with other CIO SDK platforms ([#271](https://github.com/customerio/customerio-flutter/issues/271)) ([b559742](https://github.com/customerio/customerio-flutter/commit/b559742375205a082fca820d3aa1923ef94b1741))
+
 ## [2.4.3](https://github.com/customerio/customerio-flutter/compare/2.4.2...2.4.3) (2025-08-11)
 
 ### Bug Fixes
