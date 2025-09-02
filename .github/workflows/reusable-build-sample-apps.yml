@@ -29,7 +29,7 @@ jobs:
     name: Building Android sample app ${{ matrix.sample-app.name }}
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0 # Workaround for bug https://github.com/actions/checkout/issues/1471
 
@@ -70,10 +70,10 @@ jobs:
       # CLI to replace strings in files. The CLI recommends using `cargo install` which is slow. This Action is fast because it downloads pre-built binaries.
       # If using sd on macos, "brew install" works great. for Linux, this is the recommended way.
       - name: Install sd CLI to use later in the workflow
-        uses: kenji-miyake/setup-sd@08c14e27d65a1c215342ef00c81583ae67f4c5ef # v2.0.0
+        uses: kenji-miyake/setup-sd@f4181660873fa5814708e1c0a640d8e9975a4ae5 # v2.0.0
 
       - name: Install Ruby
-        uses: ruby/setup-ruby@922ebc4c5262cd14e07bb0e1db020984b6c064fe # v1.226.0
+        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb # v1.257.0
         with:
           ruby-version: '3.1'
           bundler-cache: true # cache tools to make builds faster in future
@@ -209,7 +209,7 @@ jobs:
     name: Building iOS sample app ${{ matrix.sample-app.name }}
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0 # Workaround for bug https://github.com/actions/checkout/issues/1471
 
@@ -254,7 +254,7 @@ jobs:
           brew install xcbeautify # used by fastlane for output
 
       - name: Install Ruby
-        uses: ruby/setup-ruby@922ebc4c5262cd14e07bb0e1db020984b6c064fe # v1.226.0
+        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb # v1.257.0
         with:
           ruby-version: '3.1'
           bundler-cache: true # cache tools to make builds faster in future
