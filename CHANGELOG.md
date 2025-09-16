@@ -1,3 +1,9 @@
+## [2.6.0](https://github.com/customerio/customerio-flutter/compare/2.5.0...2.6.0) (2025-09-16)
+
+### Features
+
+* support for xcode 26 ([#280](https://github.com/customerio/customerio-flutter/issues/280)) ([70c78cc](https://github.com/customerio/customerio-flutter/commit/70c78cc7c93751f5404d580d1a466416f4466dc4))
+
 ## [2.5.0](https://github.com/customerio/customerio-flutter/compare/2.4.3...2.5.0) (2025-08-27)
 
 ### Features

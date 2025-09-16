@@ -1,2 +1,2 @@
 // Don't modify this line - it's automatically updated
-const version = "2.5.0";
+const version = "2.6.0";
