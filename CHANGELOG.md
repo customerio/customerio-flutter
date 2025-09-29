@@ -1,3 +1,9 @@
+## [2.6.1](https://github.com/customerio/customerio-flutter/compare/2.6.0...2.6.1) (2025-09-29)
+
+### Bug Fixes
+
+* Upgrade Android compileSdk to 34 ([#282](https://github.com/customerio/customerio-flutter/issues/282)) ([9a29530](https://github.com/customerio/customerio-flutter/commit/9a29530c9fb0646926429205fa7b875bc3701cdc))
+
 ## [2.6.0](https://github.com/customerio/customerio-flutter/compare/2.5.0...2.6.0) (2025-09-16)
 
 ### Features
