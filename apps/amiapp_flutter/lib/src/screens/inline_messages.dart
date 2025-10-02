@@ -5,46 +5,93 @@ import 'package:flutter/material.dart';
 
 import '../components/container.dart';
 
-class InlineMessagesScreen extends StatelessWidget {
+class InlineMessagesScreen extends StatefulWidget {
   const InlineMessagesScreen({super.key});
+
+  @override
+  State<InlineMessagesScreen> createState() => _InlineMessagesScreenState();
+}
+
+class _InlineMessagesScreenState extends State<InlineMessagesScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return AppContainer(
       appBar: AppBar(
         title: const Text('Inline Message Test'),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Single View'),
+            Tab(text: 'Multiple Views'),
+          ],
+        ),
       ),
-      body: Column(
+      body: TabBarView(
+        controller: _tabController,
         children: [
-          // Sticky Header Inline Message
+          _buildSingleViewTab(),
+          _buildMultipleViewsTab(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSingleViewTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
           InlineInAppMessageView(
-            elementId: 'sticky-header',
+            elementId: 'single-inline',
             onActionClick: _showInlineActionClick,
           ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _buildImageAndTextBlock(),
-                  _buildFullWidthCard(),
-                  _buildThreeColumnRow(),
-                  const SizedBox(height: 16),
-                  InlineInAppMessageView(
-                    elementId: 'inline',
-                    onActionClick: _showInlineActionClick,
-                  ),
-                  _buildImageAndTextBlock(),
-                  _buildFullWidthCard(),
-                  _buildThreeColumnRow(),
-                  const SizedBox(height: 16),
-                  InlineInAppMessageView(
-                    elementId: 'below-fold',
-                    onActionClick: _showInlineActionClick,
-                  ),
-                ],
-              ),
-            ),
+          const SizedBox(height: 16),
+          _buildImageAndTextBlock(),
+          _buildFullWidthCard(),
+          _buildThreeColumnRow(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMultipleViewsTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          InlineInAppMessageView(
+            elementId: 'multi-top',
+            onActionClick: _showInlineActionClick,
+          ),
+          const SizedBox(height: 16),
+          _buildImageAndTextBlock(),
+          _buildFullWidthCard(),
+          const SizedBox(height: 16),
+          InlineInAppMessageView(
+            elementId: 'multi-middle',
+            onActionClick: _showInlineActionClick,
+          ),
+          const SizedBox(height: 16),
+          _buildThreeColumnRow(),
+          const SizedBox(height: 16),
+          InlineInAppMessageView(
+            elementId: 'multi-bottom',
+            onActionClick: _showInlineActionClick,
           ),
         ],
       ),
