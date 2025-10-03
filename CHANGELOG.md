@@ -1,3 +1,9 @@
+## [2.7.0](https://github.com/customerio/customerio-flutter/compare/2.6.1...2.7.0) (2025-10-03)
+
+### Features
+
+* Upgrade Kotlin and AGP versions ([#284](https://github.com/customerio/customerio-flutter/issues/284)) ([ed9da81](https://github.com/customerio/customerio-flutter/commit/ed9da81ad05500e07224391e696f725cc75d4b76))
+
 ## [2.6.1](https://github.com/customerio/customerio-flutter/compare/2.6.0...2.6.1) (2025-09-29)
 
 ### Bug Fixes
