@@ -56,6 +56,38 @@ class _InlineMessagesScreenState extends State<InlineMessagesScreen>
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: Colors.blue[50],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.blue[200]!),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Element IDs in this tab:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[800],
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '• single-inline',
+                  style: TextStyle(
+                    color: Colors.blue[700],
+                    fontSize: 13,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ],
+            ),
+          ),
           InlineInAppMessageView(
             elementId: 'single-inline',
             onActionClick: _showInlineActionClick,
@@ -74,6 +106,38 @@ class _InlineMessagesScreenState extends State<InlineMessagesScreen>
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: Colors.green[50],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.green[200]!),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Element IDs in this tab:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green[800],
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '• multi-top\n• multi-middle\n• multi-bottom',
+                  style: TextStyle(
+                    color: Colors.green[700],
+                    fontSize: 13,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ],
+            ),
+          ),
           InlineInAppMessageView(
             elementId: 'multi-top',
             onActionClick: _showInlineActionClick,
