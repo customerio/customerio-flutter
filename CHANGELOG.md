@@ -1,3 +1,9 @@
+## [2.8.0](https://github.com/customerio/customerio-flutter/compare/2.7.0...2.8.0) (2025-10-07)
+
+### Features
+
+* Improve push notificaiton delivery receipts delay ([#287](https://github.com/customerio/customerio-flutter/issues/287)) ([4503048](https://github.com/customerio/customerio-flutter/commit/4503048d98613664888b9f60e1a4ca75690d9270))
+
 ## [2.7.0](https://github.com/customerio/customerio-flutter/compare/2.6.1...2.7.0) (2025-10-03)
 
 ### Features
