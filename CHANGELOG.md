@@ -1,3 +1,9 @@
+## [2.9.0](https://github.com/customerio/customerio-flutter/compare/2.8.0...2.9.0) (2025-10-08)
+
+### Features
+
+* in-app anonymous support  ([#289](https://github.com/customerio/customerio-flutter/issues/289)) ([47f1918](https://github.com/customerio/customerio-flutter/commit/47f1918562a498117952bd77163398f9ec529133))
+
 ## [2.8.0](https://github.com/customerio/customerio-flutter/compare/2.7.0...2.8.0) (2025-10-07)
 
 ### Features
