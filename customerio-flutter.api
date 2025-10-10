@@ -44,6 +44,7 @@ public final class CustomerIO {
 public final class CustomerIOConfig {
 	public fun new(
 		required String cdpApiKey,
+		String? jsKey,
 		String? migrationSiteId,
 		Region? region,
 		CioLogLevel? logLevel,
@@ -63,6 +64,7 @@ public final class CustomerIOConfig {
 	public val cdnHost: String?;
 	public val cdpApiKey: String;
 	public val flushAt: int?;
+	public val jsKey: String?;
 	public val flushInterval: int?;
 	public val inAppConfig: InAppConfig?;
 	public val logLevel: CioLogLevel?;
@@ -233,5 +235,4 @@ public final class ScreenView {
 	static public val inApp: ScreenView;
 	static public val values: List<ScreenView>;
 }
-
 

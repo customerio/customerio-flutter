@@ -12,6 +12,9 @@ dependencies:
   flutter:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
+  flutter_web_plugins:
+    sdk: flutter
+  js: ^0.6.5
 
 dev_dependencies:
   flutter_test:
@@ -44,3 +47,6 @@ flutter:
       ios:
         pluginClass: CustomerIOPlugin
         native_sdk_version: 3.14.0
+      web:
+        pluginClass: CustomerIOWebPlugin
+        fileName: customer_io_web.dart
