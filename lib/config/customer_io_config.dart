@@ -8,6 +8,7 @@ class CustomerIOConfig {
   final String version = plugin_info.version;
 
   final String cdpApiKey;
+  final String? jsKey;
   final String? migrationSiteId;
   final Region? region;
   final CioLogLevel? logLevel;
@@ -23,6 +24,7 @@ class CustomerIOConfig {
 
   CustomerIOConfig({
     required this.cdpApiKey,
+    this.jsKey,
     this.migrationSiteId,
     this.region,
     this.logLevel,
@@ -38,7 +40,7 @@ class CustomerIOConfig {
   }) : pushConfig = pushConfig ?? PushConfig();
 
   Map<String, dynamic> toMap() {
-    return {
+    final map = {
       'cdpApiKey': cdpApiKey,
       'migrationSiteId': migrationSiteId,
       'region': region?.name,
@@ -55,5 +57,11 @@ class CustomerIOConfig {
       'version': version,
       'source': source
     };
+
+    if (jsKey != null) {
+      map['jsKey'] = jsKey;
+    }
+
+    return map;
   }
 }

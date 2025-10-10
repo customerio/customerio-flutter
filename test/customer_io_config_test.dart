@@ -11,6 +11,7 @@ void main() {
       final config = CustomerIOConfig(cdpApiKey: 'testApiKey');
 
       expect(config.cdpApiKey, 'testApiKey');
+      expect(config.jsKey, isNull);
       expect(config.migrationSiteId, isNull);
       expect(config.region, isNull);
       expect(config.logLevel, isNull);
@@ -43,6 +44,7 @@ void main() {
 
       final config = CustomerIOConfig(
         cdpApiKey: 'testApiKey',
+        jsKey: 'webKey',
         migrationSiteId: 'testMigrationSiteId',
         region: Region.us,
         logLevel: CioLogLevel.debug,
@@ -57,6 +59,7 @@ void main() {
       );
 
       expect(config.cdpApiKey, 'testApiKey');
+      expect(config.jsKey, 'webKey');
       expect(config.migrationSiteId, 'testMigrationSiteId');
       expect(config.region, Region.us);
       expect(config.logLevel, CioLogLevel.debug);
@@ -81,6 +84,7 @@ void main() {
 
       final config = CustomerIOConfig(
         cdpApiKey: 'testApiKey',
+        jsKey: 'webKey',
         migrationSiteId: 'testMigrationSiteId',
         region: Region.eu,
         logLevel: CioLogLevel.info,
@@ -98,6 +102,7 @@ void main() {
       final expectedMap = {
         'cdpApiKey': 'testApiKey',
         'migrationSiteId': 'testMigrationSiteId',
+        'jsKey': 'webKey',
         'region': 'eu',
         'logLevel': 'info',
         'autoTrackDeviceAttributes': false,
@@ -121,6 +126,13 @@ void main() {
 
       expect(config.pushConfig.pushConfigAndroid.pushClickBehavior,
           PushClickBehaviorAndroid.activityPreventRestart);
+    });
+
+    test('toMap() omits jsKey when not provided', () {
+      final config = CustomerIOConfig(cdpApiKey: 'testApiKey');
+
+      final map = config.toMap();
+      expect(map.containsKey('jsKey'), isFalse);
     });
   });
 
