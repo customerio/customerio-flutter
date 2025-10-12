@@ -44,3 +44,4 @@ flutter:
       ios:
         pluginClass: CustomerIOPlugin
         native_sdk_version: 3.14.0
+        firebase_wrapper_version: 1.0.0

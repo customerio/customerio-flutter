@@ -7,6 +7,7 @@ require 'yaml'
 podspec_config = YAML.load_file('../pubspec.yaml')
 # The native_sdk_version is the version of iOS native SDK that the Flutter plugin is compatible with.
 native_sdk_version = podspec_config['flutter']['plugin']['platforms']['ios']['native_sdk_version']
+firebase_wrapper_version = podspec_config['flutter']['plugin']['platforms']['ios']['firebase_wrapper_version']
 
 Pod::Spec.new do |s|
   s.name        = podspec_config['name']
@@ -38,6 +39,7 @@ Pod::Spec.new do |s|
   # Note: Subspecs inherit all dependencies specified the parent spec (this file).
   s.subspec 'fcm' do |ss|
     ss.dependency "CustomerIO/MessagingPushFCM", native_sdk_version
+    ss.dependency "CioFirebaseWrapper", firebase_wrapper_version
   end
 
   # Flutter.framework does not contain a i386 slice.
