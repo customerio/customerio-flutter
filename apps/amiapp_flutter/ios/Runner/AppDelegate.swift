@@ -4,6 +4,7 @@ import CioDataPipelines
 import CioMessagingPushFCM
 import FirebaseMessaging
 import FirebaseCore
+import CioFirebaseWrapper
 
 @main
 class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}

@@ -327,7 +327,7 @@ jobs:
         run: flutter pub get
 
       - name: Setup iOS environment for sample app
-        uses: customerio/customerio-ios/.github/actions/setup-ios@main
+        uses: customerio/mobile-ci-tools/github-actions/ios/setup-ios/v1@main
         with:
           xcode-version: ${{ env.XCODE_VERSION }}
 
