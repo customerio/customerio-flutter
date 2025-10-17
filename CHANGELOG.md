@@ -1,3 +1,13 @@
+## [3.0.0](https://github.com/customerio/customerio-flutter/compare/2.9.0...3.0.0) (2025-10-17)
+
+### ⚠ BREAKING CHANGES
+
+* Add CioFirebaseWrapper to pull in Firebase specific services (#290)
+
+### Features
+
+* Add CioFirebaseWrapper to pull in Firebase specific services ([#290](https://github.com/customerio/customerio-flutter/issues/290)) ([444becb](https://github.com/customerio/customerio-flutter/commit/444becbb27ac9e49bb2f4d81dd0f75a3d50b7ad1))
+
 ## [2.9.0](https://github.com/customerio/customerio-flutter/compare/2.8.0...2.9.0) (2025-10-08)
 
 ### Features
