@@ -1,3 +1,9 @@
+## [3.0.1](https://github.com/customerio/customerio-flutter/compare/3.0.0...3.0.1) (2025-10-24)
+
+### Bug Fixes
+
+* prevent message type crash in release builds ([#291](https://github.com/customerio/customerio-flutter/issues/291)) ([44ff921](https://github.com/customerio/customerio-flutter/commit/44ff92167b4c26b42e018b1288f58e1631e6a1ce))
+
 ## [3.0.0](https://github.com/customerio/customerio-flutter/compare/2.9.0...3.0.0) (2025-10-17)
 
 ### ⚠ BREAKING CHANGES
