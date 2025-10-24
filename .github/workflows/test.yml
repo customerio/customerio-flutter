@@ -11,7 +11,7 @@ jobs:
   unit_test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: ./.github/actions/setup-flutter
     - name: Run Flutter tests
       run: flutter test
@@ -19,11 +19,11 @@ jobs:
   test_publish:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: ./.github/actions/setup-flutter
 
     - name: dry-run publishing to feel confident deployment will work after merging PR
-      uses: k-paxian/dart-package-publisher@e555d5c07a728bca4c6706ff8907a76ab53a5bf0 # master
+      uses: k-paxian/dart-package-publisher@8fdba1dbf624c712706281a6f91cb50b6bfc2eaf # master
       with:
         credentialJson: ${{ secrets.CREDENTIAL_JSON }}
         dryRunOnly: true
