@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace 'io.customer.amiapp_flutter'
-    compileSdkVersion 35
+    compileSdkVersion 36
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -73,10 +73,9 @@ flutter {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.1.21"
     // Required for flutter_local_notifications, see more:
     // https://pub.dev/packages/flutter_local_notifications#gradle-setup
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.2'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
     // Adding customer.io android sdk dependencies so we can use them in native code
     // These are not generally needed and should be avoided
     implementation "io.customer.android:datapipelines"
