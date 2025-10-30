@@ -1,3 +1,9 @@
+## [3.1.0](https://github.com/customerio/customerio-flutter/compare/3.0.1...3.1.0) (2025-10-30)
+
+### Features
+
+* support for Android 16 ([#293](https://github.com/customerio/customerio-flutter/issues/293)) ([2b235de](https://github.com/customerio/customerio-flutter/commit/2b235de04cea8b51682e2acb8021c0830686aa8f))
+
 ## [3.0.1](https://github.com/customerio/customerio-flutter/compare/3.0.0...3.0.1) (2025-10-24)
 
 ### Bug Fixes
