@@ -1,3 +1,9 @@
+## [3.1.1](https://github.com/customerio/customerio-flutter/compare/3.1.0...3.1.1) (2025-12-16)
+
+### Bug Fixes
+
+* Bump Android compileSdk to 36 for AndroidX compatibility ([#297](https://github.com/customerio/customerio-flutter/issues/297)) ([5b8f972](https://github.com/customerio/customerio-flutter/commit/5b8f9725b0a8df3d99e4b53833a0d1c2f1d4b6fb))
+
 ## [3.1.0](https://github.com/customerio/customerio-flutter/compare/3.0.1...3.1.0) (2025-10-30)
 
 ### Features
