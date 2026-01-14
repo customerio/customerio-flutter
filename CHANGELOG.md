@@ -1,3 +1,9 @@
+## [3.2.0](https://github.com/customerio/customerio-flutter/compare/3.1.1...3.2.0) (2026-01-14)
+
+### Features
+
+* In-App SSE ([#298](https://github.com/customerio/customerio-flutter/issues/298)) ([59ab310](https://github.com/customerio/customerio-flutter/commit/59ab3102e6b78f404e59bc937fa0fa783705d1bf))
+
 ## [3.1.1](https://github.com/customerio/customerio-flutter/compare/3.1.0...3.1.1) (2025-12-16)
 
 ### Bug Fixes
