@@ -18,7 +18,6 @@ rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' } // Only required for using SNAPSHOT versions of the SDK
     }
 }
 
