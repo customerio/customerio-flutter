@@ -1,3 +1,9 @@
+## [3.2.1](https://github.com/customerio/customerio-flutter/compare/3.2.0...3.2.1) (2026-02-05)
+
+### Bug Fixes
+
+* remove outdated sonatype ([#303](https://github.com/customerio/customerio-flutter/issues/303)) ([02309bf](https://github.com/customerio/customerio-flutter/commit/02309bf36a334663a9c99d86f1f4a3f1bcaa9ca9))
+
 ## [3.2.0](https://github.com/customerio/customerio-flutter/compare/3.1.1...3.2.0) (2026-01-14)
 
 ### Features
