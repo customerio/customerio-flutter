@@ -1,4 +1,5 @@
 import CioDataPipelines
+import Foundation
 
 enum SDKConfigBuilderError: Error {
     case missingCdpApiKey
