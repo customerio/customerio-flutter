@@ -1,3 +1,9 @@
+## [3.2.2](https://github.com/customerio/customerio-flutter/compare/3.2.1...3.2.2) (2026-02-16)
+
+### Bug Fixes
+
+* Downgrade okhttp version to 4.x ([#307](https://github.com/customerio/customerio-flutter/issues/307)) ([b0dff34](https://github.com/customerio/customerio-flutter/commit/b0dff34c2e5acd29f7b373820d667bafc8c63fb3))
+
 ## [3.2.1](https://github.com/customerio/customerio-flutter/compare/3.2.0...3.2.1) (2026-02-05)
 
 ### Bug Fixes
