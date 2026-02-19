@@ -202,7 +202,7 @@ jobs:
     defaults:
       run:
         working-directory: apps/${{ matrix.sample-app.name }}
-    runs-on: macos-14
+    runs-on: macos-15
     outputs:
       APP_VERSION_NAME: ${{ steps.set_output.outputs.APP_VERSION_NAME }}
       APP_VERSION_CODE: ${{ steps.set_output.outputs.APP_VERSION_CODE }}
@@ -327,7 +327,7 @@ jobs:
         run: flutter pub get
 
       - name: Setup iOS environment for sample app
-        uses: customerio/mobile-ci-tools/github-actions/ios/setup-ios/v1@main
+        uses: customerio/mobile-ci-tools/github-actions/ios/setup-ios/v1@MacOS-15+iOS-26
         with:
           xcode-version: ${{ env.XCODE_VERSION }}
 
