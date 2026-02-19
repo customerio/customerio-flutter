@@ -13,6 +13,10 @@ pluginManagement {
         google()
         mavenCentral()
         gradlePluginPortal()
+        // Only required for using locally deployed versions of the SDK
+        mavenLocal()
+        // Only required for using SNAPSHOT versions of the SDK
+        maven { url 'https://central.sonatype.com/repository/maven-snapshots/' }
     }
 }
 
