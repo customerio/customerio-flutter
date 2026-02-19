@@ -30,7 +30,7 @@ internal fun <Arguments, Result> MethodCall.native(
     result.success(
         when (unwrapped) {
             is Unit -> true
-            else -> response
+            else -> unwrapped  // Send unwrapped value, not original response
         }
     )
 }.onFailure { ex ->

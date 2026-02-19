@@ -2,17 +2,21 @@ package io.customer.customer_io.messaginginapp
 
 import android.app.Activity
 import io.customer.customer_io.bridge.NativeModuleBridge
+import io.customer.customer_io.bridge.nativeMapArgs
 import io.customer.customer_io.bridge.nativeNoArgs
-import io.customer.customer_io.messaginginapp.InlineInAppMessageViewFactory
 import io.customer.customer_io.utils.getAs
 import io.customer.messaginginapp.MessagingInAppModuleConfig
 import io.customer.messaginginapp.ModuleMessagingInApp
 import io.customer.messaginginapp.di.inAppMessaging
+import io.customer.messaginginapp.gist.data.model.InboxMessage
+import io.customer.messaginginapp.gist.data.model.response.InboxMessageFactory
+import io.customer.messaginginapp.inbox.NotificationInbox
 import io.customer.messaginginapp.type.InAppEventListener
 import io.customer.messaginginapp.type.InAppMessage
 import io.customer.sdk.CustomerIO
 import io.customer.sdk.CustomerIOBuilder
 import io.customer.sdk.core.di.SDKComponent
+import io.customer.sdk.core.util.Logger
 import io.customer.sdk.data.model.Region
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -31,13 +35,30 @@ internal class CustomerIOInAppMessaging(
     override val moduleName: String = "InAppMessaging"
     override val flutterCommunicationChannel: MethodChannel =
         MethodChannel(pluginBinding.binaryMessenger, "customer_io_messaging_in_app")
+    private val logger: Logger = SDKComponent.logger
+    private val inAppMessagingModule: ModuleMessagingInApp?
+        get() = runCatching { CustomerIO.instance().inAppMessaging() }.getOrNull()
     private var activity: WeakReference<Activity>? = null
     private val binaryMessenger = pluginBinding.binaryMessenger
     private val platformViewRegistry = pluginBinding.platformViewRegistry
 
+    // Dedicated lock for inbox listener setup to avoid blocking other operations
+    private val inboxListenerLock = Any()
+    private val inboxChangeListener = FlutterNotificationInboxChangeListener.instance
+    private var isInboxChangeListenerSetup = false
+
+    /**
+     * Returns NotificationInbox instance if available, null otherwise.
+     * Note: Notification Inbox is only available after SDK is initialized.
+     * Callers are responsible for logging/handling null case appropriately.
+     */
+    private fun requireInboxInstance(): NotificationInbox? {
+        return inAppMessagingModule?.inbox()
+    }
+
     override fun onAttachedToEngine() {
         super.onAttachedToEngine()
-        
+
         // Register the platform view factory for inline in-app messages
         platformViewRegistry.registerViewFactory(
             "customer_io_inline_in_app_message_view",
@@ -61,15 +82,26 @@ internal class CustomerIOInAppMessaging(
         this.activity = null
     }
 
+    override fun onDetachedFromEngine() {
+        clearInboxChangeListener()
+        super.onDetachedFromEngine()
+    }
+
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "dismissMessage" -> call.nativeNoArgs(result, ::dismissMessage)
+            "subscribeToInboxMessages" -> call.nativeNoArgs(result, ::setupInboxChangeListener)
+            "fetchInboxMessages" -> call.nativeMapArgs(result, ::fetchInboxMessages)
+            "markInboxMessageOpened" -> call.nativeMapArgs(result, ::markInboxMessageOpened)
+            "markInboxMessageUnopened" -> call.nativeMapArgs(result, ::markInboxMessageUnopened)
+            "markInboxMessageDeleted" -> call.nativeMapArgs(result, ::markInboxMessageDeleted)
+            "trackInboxMessageClicked" -> call.nativeMapArgs(result, ::trackInboxMessageClicked)
             else -> super.onMethodCall(call, result)
         }
     }
 
     private fun dismissMessage() {
-        CustomerIO.instance().inAppMessaging().dismissMessage()
+        inAppMessagingModule?.dismissMessage()
     }
 
     /**
@@ -101,6 +133,136 @@ internal class CustomerIOInAppMessaging(
                 .build(),
         )
         builder.addCustomerIOModule(module)
+    }
+
+    /**
+     * Sets up the inbox change listener to receive real-time updates.
+     * This method can be called multiple times safely and will only set up the listener once.
+     * Note: Inbox must be available (SDK initialized) before this can succeed.
+     */
+    private fun setupInboxChangeListener() {
+        synchronized(inboxListenerLock) {
+            // Only set up once to avoid duplicate listeners
+            if (isInboxChangeListenerSetup) {
+                return
+            }
+
+            val inbox = requireInboxInstance() ?: run {
+                logger.debug("Inbox not available yet, skipping listener setup")
+                return
+            }
+
+            inboxChangeListener.setEventEmitter(
+                emitter = { data ->
+                    activity?.get()?.runOnUiThread {
+                        flutterCommunicationChannel.invokeMethod("inboxMessagesChanged", data)
+                    }
+                }
+            )
+            inbox.addChangeListener(inboxChangeListener)
+            isInboxChangeListenerSetup = true
+            logger.debug("NotificationInboxChangeListener set up successfully")
+        }
+    }
+
+    private fun clearInboxChangeListener() {
+        synchronized(inboxListenerLock) {
+            if (!isInboxChangeListenerSetup) {
+                return
+            }
+            requireInboxInstance()?.removeChangeListener(inboxChangeListener)
+            inboxChangeListener.clearEventEmitter()
+            isInboxChangeListenerSetup = false
+        }
+    }
+
+    private fun fetchInboxMessages(params: Map<String, Any>): List<Map<String, Any?>> {
+        val inbox = requireInboxInstance() ?: run {
+            val errorMessage =
+                "Notification Inbox is not available. Ensure CustomerIO SDK is initialized."
+            logger.error(errorMessage)
+            throw IllegalStateException(errorMessage)
+        }
+
+        val topic = params.getAs<String>("topic")
+        // Setup listener if not already setup
+        setupInboxChangeListener()
+
+        // Fetch messages using callback
+        // CountDownLatch is required here because:
+        // 1. Flutter's method channel expects a synchronous return value
+        // 2. Native SDK's fetchMessages is async (callback-based)
+        // 3. We must block until the callback completes to return the result
+        var fetchedMessages: List<InboxMessage> = emptyList()
+        var fetchError: Throwable? = null
+        val latch = java.util.concurrent.CountDownLatch(1)
+
+        inbox.fetchMessages(topic) { result ->
+            result.onSuccess { messages ->
+                fetchedMessages = messages
+            }.onFailure { error ->
+                fetchError = error
+            }
+            latch.countDown()
+        }
+
+        latch.await()
+
+        fetchError?.let { throw it }
+
+        return fetchedMessages.map { it.toMap() }
+    }
+
+    private fun markInboxMessageOpened(params: Map<String, Any>) {
+        val message = params.getAs<Map<String, Any>>("message")
+
+        performInboxMessageAction(message) { inbox, inboxMessage ->
+            inbox.markMessageOpened(inboxMessage)
+        }
+    }
+
+    private fun markInboxMessageUnopened(params: Map<String, Any>) {
+        val message = params.getAs<Map<String, Any>>("message")
+
+        performInboxMessageAction(message) { inbox, inboxMessage ->
+            inbox.markMessageUnopened(inboxMessage)
+        }
+    }
+
+    private fun markInboxMessageDeleted(params: Map<String, Any>) {
+        val message = params.getAs<Map<String, Any>>("message")
+
+        performInboxMessageAction(message) { inbox, inboxMessage ->
+            inbox.markMessageDeleted(inboxMessage)
+        }
+    }
+
+    private fun trackInboxMessageClicked(params: Map<String, Any>) {
+        val message = params.getAs<Map<String, Any>>("message")
+        val actionName = params.getAs<String>("actionName")
+
+        performInboxMessageAction(message) { inbox, inboxMessage ->
+            inbox.trackMessageClicked(inboxMessage, actionName)
+        }
+    }
+
+    /**
+     * Helper to validate inbox instance and message data before performing a message action.
+     * Returns early if inbox is unavailable or message data is invalid.
+     */
+    private fun performInboxMessageAction(
+        message: Map<String, Any>?,
+        action: (NotificationInbox, InboxMessage) -> Unit,
+    ) {
+        val inbox = requireInboxInstance() ?: run {
+            logger.error("Cannot perform inbox action: Notification Inbox is not available")
+            return
+        }
+        val inboxMessage = message?.let { InboxMessageFactory.fromMap(it) } ?: run {
+            logger.error("Invalid message data: $message")
+            return
+        }
+        action(inbox, inboxMessage)
     }
 }
 
