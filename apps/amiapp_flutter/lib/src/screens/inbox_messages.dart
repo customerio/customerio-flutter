@@ -31,7 +31,6 @@ class _InboxMessagesScreenState extends State<InboxMessagesScreen> {
     _messagesSubscription = _inbox.messages().listen((messages) {
       setState(() {
         _messages = messages;
-        _isLoading = false;
       });
     });
 
@@ -42,7 +41,7 @@ class _InboxMessagesScreenState extends State<InboxMessagesScreen> {
   Future<void> _fetchMessages() async {
     setState(() => _isLoading = true);
     try {
-      final messages = await _inbox.fetchMessages();
+      final messages = await _inbox.getMessages();
       if (mounted) {
         setState(() {
           _messages = messages;
@@ -53,7 +52,7 @@ class _InboxMessagesScreenState extends State<InboxMessagesScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error fetching messages: $e')),
+          SnackBar(content: Text('Error getting messages: $e')),
         );
       }
     }
@@ -171,6 +170,7 @@ class _InboxMessagesScreenState extends State<InboxMessagesScreen> {
     }
 
     if (_messages.isEmpty) {
+      final colorScheme = Theme.of(context).colorScheme;
       return ListView(
         children: [
           SizedBox(height: MediaQuery.of(context).size.height * 0.2),
@@ -181,14 +181,14 @@ class _InboxMessagesScreenState extends State<InboxMessagesScreen> {
                 Icon(
                   Icons.inbox,
                   size: 64,
-                  color: Colors.grey[400],
+                  color: colorScheme.onSurfaceVariant.withOpacity(0.5),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'No messages in your inbox',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.grey[700],
+                    color: colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -197,7 +197,7 @@ class _InboxMessagesScreenState extends State<InboxMessagesScreen> {
                   'Pull down to refresh',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[500],
+                    color: colorScheme.onSurfaceVariant.withOpacity(0.7),
                   ),
                 ),
               ],
@@ -242,11 +242,15 @@ class _InboxMessageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final dateFormat = DateFormat('M/d/yyyy, h:mm:ss a');
+    final isDark = theme.brightness == Brightness.dark;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
-      color: message.opened ? Colors.grey[200] : Colors.white,
+      color: message.opened
+          ? colorScheme.surfaceContainerHighest
+          : colorScheme.surface,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -265,7 +269,7 @@ class _InboxMessageCard extends StatelessWidget {
                 Row(
                   children: [
                     // Priority badge (if exists)
-                    if (message.priority != null)
+                    if (message.priority != null) ...[
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -284,7 +288,8 @@ class _InboxMessageCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                    const SizedBox(width: 8),
+                      const SizedBox(width: 8),
+                    ],
                     // Read/Unread badge
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -292,13 +297,17 @@ class _InboxMessageCard extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: message.opened ? Colors.grey : Colors.blue,
+                        color: message.opened
+                            ? colorScheme.outline
+                            : colorScheme.primary,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         message.opened ? 'READ' : 'UNREAD',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: message.opened
+                              ? colorScheme.onSurface
+                              : colorScheme.onPrimary,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -314,20 +323,24 @@ class _InboxMessageCard extends StatelessWidget {
             Text(
               message.deliveryId ?? message.queueId,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: Colors.grey[600],
+                color: colorScheme.onSurfaceVariant,
                 fontFamily: 'monospace',
               ),
             ),
             const SizedBox(height: 4),
             Text(
               'Sent: ${dateFormat.format(message.sentAt)}',
-              style: theme.textTheme.bodySmall,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
             if (message.expiry != null) ...[
               const SizedBox(height: 4),
               Text(
                 'Expires: ${dateFormat.format(message.expiry!)}',
-                style: theme.textTheme.bodySmall,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
 
@@ -338,7 +351,9 @@ class _InboxMessageCard extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: message.opened ? Colors.grey[300] : Colors.grey[100],
+                  color: message.opened
+                      ? (isDark ? colorScheme.surfaceContainerHigh : colorScheme.surfaceContainerHighest)
+                      : colorScheme.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
@@ -359,8 +374,8 @@ class _InboxMessageCard extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: onToggleRead,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                       textStyle: const TextStyle(fontSize: 13),
                     ),
@@ -375,8 +390,8 @@ class _InboxMessageCard extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: onTrackClick,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                       textStyle: const TextStyle(fontSize: 13),
                     ),
@@ -391,8 +406,8 @@ class _InboxMessageCard extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: onDelete,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
+                      backgroundColor: colorScheme.error,
+                      foregroundColor: colorScheme.onError,
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                       textStyle: const TextStyle(fontSize: 13),
                     ),
