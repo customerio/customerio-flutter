@@ -6,12 +6,10 @@ import Foundation
 public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
     private var methodChannel: FlutterMethodChannel?
     private let logger: Logger = DIGraphShared.shared.logger
-    private let inboxListener = FlutterNotificationInboxChangeListener.shared
-    private var isInboxChangeListenerSetup = false
 
-    private var inbox: NotificationInbox {
-        MessagingInApp.shared.inbox
-    }
+    // Dedicated lock for inbox listener setup to prevent race conditions
+    private let inboxListenerLock = NSLock()
+    private var isInboxChangeListenerSetup = false
 
     public static func register(with _: FlutterPluginRegistrar) {}
 
@@ -79,25 +77,39 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
      * Note: Inbox must be available (SDK initialized) before this can succeed.
      */
     private func setupInboxChangeListener() {
+        inboxListenerLock.lock()
+        defer { inboxListenerLock.unlock() }
+
         // Only set up once to avoid duplicate listeners
         guard !isInboxChangeListenerSetup else {
             return
         }
 
+        // Check if SDK is initialized before attempting setup
+        guard let inbox = requireInboxInstance() else {
+            return
+        }
+
+        // Set flag immediately (before Task completes) to prevent race condition.
+        // Lock ensures this flag update is visible to concurrent calls, blocking duplicates.
+        // Task operations don't throw, so flag won't be stuck in inconsistent state.
+        isInboxChangeListenerSetup = true
+
         // All listener setup must run on MainActor
         Task { @MainActor in
-            inboxListener.setEventEmitter { [weak self] messages in
+            let listener = FlutterNotificationInboxChangeListener.shared
+            listener.setEventEmitter { [weak self] messages in
                 guard let self = self else { return }
                 self.invokeDartMethod("inboxMessagesChanged", ["messages": messages.map { $0.toDictionary() }])
             }
-            self.inbox.addChangeListener(inboxListener)
-
-            // Set flag after successful setup (allows retry if setup was called before SDK initialized)
-            self.isInboxChangeListenerSetup = true
+            inbox.addChangeListener(listener)
         }
     }
 
     private func clearInboxChangeListener() {
+        inboxListenerLock.lock()
+        defer { inboxListenerLock.unlock() }
+
         guard isInboxChangeListenerSetup else {
             return
         }
@@ -105,8 +117,11 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
 
         // All listener cleanup must run on MainActor
         Task { @MainActor in
-            self.inbox.removeChangeListener(inboxListener)
-            inboxListener.clearEventEmitter()
+            let listener = FlutterNotificationInboxChangeListener.shared
+            // Only remove if inbox available (use optional chaining)
+            requireInboxInstance()?.removeChangeListener(listener)
+            // Always clean up emitter and flag, even if inbox unavailable
+            listener.clearEventEmitter()
         }
     }
 
@@ -118,6 +133,15 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
     }
 
     private func fetchInboxMessages(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let inbox = requireInboxInstance() else {
+            result(FlutterError(
+                code: "INBOX_NOT_AVAILABLE",
+                message: "Notification Inbox is not available. Ensure CustomerIO SDK is initialized.",
+                details: nil
+            ))
+            return
+        }
+
         // Setup listener if not already setup
         setupInboxChangeListener()
 
@@ -135,48 +159,31 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
     }
 
     private func markInboxMessageOpened(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let message = parseInboxMessage(from: call) else {
-            result(FlutterError(code: "INVALID_ARGUMENTS", message: "Invalid message data", details: nil))
-            return
+        performInboxMessageAction(call: call, result: result) { inbox, message in
+            inbox.markMessageOpened(message: message)
         }
-
-        inbox.markMessageOpened(message: message)
-        result(true)
     }
 
     private func markInboxMessageUnopened(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let message = parseInboxMessage(from: call) else {
-            result(FlutterError(code: "INVALID_ARGUMENTS", message: "Invalid message data", details: nil))
-            return
+        performInboxMessageAction(call: call, result: result) { inbox, message in
+            inbox.markMessageUnopened(message: message)
         }
-
-        inbox.markMessageUnopened(message: message)
-        result(true)
     }
 
     private func markInboxMessageDeleted(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let message = parseInboxMessage(from: call) else {
-            result(FlutterError(code: "INVALID_ARGUMENTS", message: "Invalid message data", details: nil))
-            return
+        performInboxMessageAction(call: call, result: result) { inbox, message in
+            inbox.markMessageDeleted(message: message)
         }
-
-        inbox.markMessageDeleted(message: message)
-        result(true)
     }
 
     private func trackInboxMessageClicked(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let message = parseInboxMessage(from: call) else {
-            result(FlutterError(code: "INVALID_ARGUMENTS", message: "Invalid message data", details: nil))
-            return
-        }
-
         let args = call.arguments as? [String: Any]
         let actionName = args?["actionName"] as? String
-        inbox.trackMessageClicked(message: message, actionName: actionName)
-        result(true)
-    }
 
-    // MARK: - Helper Methods
+        performInboxMessageAction(call: call, result: result) { inbox, message in
+            inbox.trackMessageClicked(message: message, actionName: actionName)
+        }
+    }
 
     func configureModule(params: [String: AnyHashable]) {
         if let inAppConfig = try? MessagingInAppConfigBuilder.build(from: params) {
@@ -186,6 +193,8 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
             DIGraphShared.shared.logger.error("[InApp] Failed to initialize module: invalid config")
         }
     }
+
+    // MARK: - Helper Methods
 
     func invokeDartMethod(_ method: String, _ args: Any?) {
         // When sending messages from native code to Flutter, it's required to do it on main thread.
@@ -198,11 +207,17 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
             self.methodChannel?.invokeMethod(method, arguments: args)
         }
     }
-}
 
-// MARK: - CustomerIOInAppMessaging Extension
+    /// Returns inbox instance if available, nil otherwise with error logging
+    /// Note: Notification Inbox is only available after SDK is initialized
+    private func requireInboxInstance() -> NotificationInbox? {
+        guard MessagingInApp.shared.implementation != nil else {
+            logger.error("Notification Inbox is not available. Ensure CustomerIO SDK is initialized.")
+            return nil
+        }
+        return MessagingInApp.shared.inbox
+    }
 
-extension CustomerIOInAppMessaging {
     /// Parses FlutterMethodCall to InboxMessage with error logging
     private func parseInboxMessage(from call: FlutterMethodCall) -> InboxMessage? {
         guard let args = call.arguments as? [String: Any],
@@ -213,5 +228,30 @@ extension CustomerIOInAppMessaging {
             return nil
         }
         return inboxMessage
+    }
+
+    /// Helper to validate inbox availability and message data before performing a message action
+    /// Returns early if inbox is unavailable or message data is invalid
+    private func performInboxMessageAction(
+        call: FlutterMethodCall,
+        result: @escaping FlutterResult,
+        action: (NotificationInbox, InboxMessage) -> Void
+    ) {
+        guard let inbox = requireInboxInstance() else {
+            result(FlutterError(
+                code: "INBOX_NOT_AVAILABLE",
+                message: "Notification Inbox is not available. Ensure CustomerIO SDK is initialized.",
+                details: nil
+            ))
+            return
+        }
+
+        guard let inboxMessage = parseInboxMessage(from: call) else {
+            result(FlutterError(code: "INVALID_ARGUMENTS", message: "Invalid message data", details: nil))
+            return
+        }
+
+        action(inbox, inboxMessage)
+        result(true)
     }
 }

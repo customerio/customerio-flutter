@@ -192,13 +192,21 @@ internal class CustomerIOInAppMessaging(
         // Using async callback avoids blocking main thread (prevents ANR/deadlocks)
         inbox.fetchMessages(null) { fetchResult ->
             // Ensure result is returned on UI thread (Flutter method channels require this)
-            activity?.get()?.runOnUiThread {
+            val runnable = Runnable {
                 fetchResult.onSuccess { messages ->
                     result.success(messages.map { it.toMap() })
                 }.onFailure { error ->
                     logger.error("Failed to fetch inbox messages: ${error.message}")
                     result.error("FETCH_ERROR", error.message, null)
                 }
+            }
+
+            val currentActivity = activity?.get()
+            if (currentActivity != null) {
+                currentActivity.runOnUiThread(runnable)
+            } else {
+                // Activity is null - use main looper directly
+                android.os.Handler(android.os.Looper.getMainLooper()).post(runnable)
             }
         }
     }
