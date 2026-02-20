@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:customer_io/customer_io.dart';
 import 'package:customer_io/messaging_in_app.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../components/container.dart';
 
@@ -239,11 +238,16 @@ class _InboxMessageCard extends StatelessWidget {
     required this.onDelete,
   });
 
+  String _formatDateTime(DateTime dateTime) {
+    final hour = dateTime.hour > 12 ? dateTime.hour - 12 : (dateTime.hour == 0 ? 12 : dateTime.hour);
+    final period = dateTime.hour >= 12 ? 'PM' : 'AM';
+    return '${dateTime.month}/${dateTime.day}/${dateTime.year}, $hour:${dateTime.minute.toString().padLeft(2, '0')}:${dateTime.second.toString().padLeft(2, '0')} $period';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final dateFormat = DateFormat('M/d/yyyy, h:mm:ss a');
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -328,7 +332,7 @@ class _InboxMessageCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Sent: ${dateFormat.format(message.sentAt)}',
+              'Sent: ${_formatDateTime(message.sentAt)}',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -336,7 +340,7 @@ class _InboxMessageCard extends StatelessWidget {
             if (message.expiry != null) ...[
               const SizedBox(height: 4),
               Text(
-                'Expires: ${dateFormat.format(message.expiry!)}',
+                'Expires: ${_formatDateTime(message.expiry!)}',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
