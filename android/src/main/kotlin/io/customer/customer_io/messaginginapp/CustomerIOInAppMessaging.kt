@@ -94,7 +94,7 @@ internal class CustomerIOInAppMessaging(
         when (call.method) {
             "dismissMessage" -> call.nativeNoArgs(result, ::dismissMessage)
             "subscribeToInboxMessages" -> call.nativeNoArgs(result, ::setupInboxChangeListener)
-            "fetchInboxMessages" -> fetchInboxMessages(call, result)
+            "getInboxMessages" -> getInboxMessages(call, result)
             "markInboxMessageOpened" -> call.nativeMapArgs(result, ::markInboxMessageOpened)
             "markInboxMessageUnopened" -> call.nativeMapArgs(result, ::markInboxMessageUnopened)
             "markInboxMessageDeleted" -> call.nativeMapArgs(result, ::markInboxMessageDeleted)
@@ -179,7 +179,7 @@ internal class CustomerIOInAppMessaging(
         }
     }
 
-    private fun fetchInboxMessages(call: MethodCall, result: MethodChannel.Result) {
+    private fun getInboxMessages(call: MethodCall, result: MethodChannel.Result) {
         val inbox = requireInboxInstance() ?: run {
             result.error("INBOX_NOT_AVAILABLE", "Notification Inbox is not available. Ensure CustomerIO SDK is initialized.", null)
             return
@@ -188,14 +188,18 @@ internal class CustomerIOInAppMessaging(
         // Setup listener if not already setup
         setupInboxChangeListener()
 
-        // Fetch all messages without topic filter - filtering handled in Dart for consistency
+        // Extract topic parameter if provided
+        val args = call.arguments as? Map<String, Any>
+        val topic = args?.get("topic") as? String
+
+        // Fetch messages with topic filter
         // Using async callback avoids blocking main thread (prevents ANR/deadlocks)
-        inbox.fetchMessages(null) { fetchResult ->
+        inbox.fetchMessages(topic) { fetchResult ->
             runOnMainThread {
                 fetchResult.onSuccess { messages ->
                     result.success(messages.map { it.toMap() })
                 }.onFailure { error ->
-                    logger.error("Failed to fetch inbox messages: ${error.message}")
+                    logger.error("Failed to get inbox messages: ${error.message}")
                     result.error("FETCH_ERROR", error.message, null)
                 }
             }

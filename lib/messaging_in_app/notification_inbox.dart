@@ -13,14 +13,14 @@ class NotificationInbox {
   NotificationInbox({CustomerIOMessagingInAppPlatform? platform})
       : _platform = platform ?? CustomerIOMessagingInAppPlatform.instance;
 
-  /// Fetches inbox messages asynchronously.
+  /// Retrieves inbox messages asynchronously.
   ///
   /// @param topic Optional topic filter. If provided, only messages
   ///              that have this topic in their topics list are returned.
   ///              If null, all messages are returned.
   /// @return Future that resolves to a list of inbox messages
-  Future<List<InboxMessage>> fetchMessages({String? topic}) {
-    return _platform.fetchMessages(topic: topic);
+  Future<List<InboxMessage>> getMessages({String? topic}) {
+    return _platform.getMessages(topic: topic);
   }
 
   /// Returns a stream that emits inbox messages whenever they change.

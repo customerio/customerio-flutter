@@ -7,9 +7,9 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
     private var methodChannel: FlutterMethodChannel?
     private let logger: Logger = DIGraphShared.shared.logger
 
-    // Dedicated lock for inbox listener setup to prevent race conditions
-    private let inboxListenerLock = NSLock()
-    private var isInboxChangeListenerSetup = false
+    // Task that listens to inbox messages stream. Storing the task prevents duplicate streams
+    // and allows proper cleanup via cancellation.
+    private var messagesTask: Task<Void, Never>?
 
     public static func register(with _: FlutterPluginRegistrar) {}
 
@@ -35,7 +35,7 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
     deinit {
         methodChannel?.setMethodCallHandler(nil)
         methodChannel = nil
-        clearInboxChangeListener()
+        messagesTask?.cancel()
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -51,8 +51,8 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
                 self.subscribeToInboxMessages()
             }
 
-        case "fetchInboxMessages":
-            fetchInboxMessages(call: call, result: result)
+        case "getInboxMessages":
+            getInboxMessages(call: call, result: result)
 
         case "markInboxMessageOpened":
             markInboxMessageOpened(call: call, result: result)
@@ -71,68 +71,30 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
         }
     }
 
-    /**
-     * Sets up the inbox change listener to receive real-time updates.
-     * This method can be called multiple times safely and will only set up the listener once.
-     * Note: Inbox must be available (SDK initialized) before this can succeed.
-     */
-    private func setupInboxChangeListener() {
-        inboxListenerLock.lock()
-        defer { inboxListenerLock.unlock() }
+    /// Subscribes to inbox messages updates using AsyncStream.
+    /// This sets up a stream that emits the current messages immediately,
+    /// then emits again whenever messages change.
+    /// Cancels any existing subscription before creating a new one.
+    private func subscribeToInboxMessages() {
+        // Cancel existing task if any to prevent duplicate streams
+        messagesTask?.cancel()
 
-        // Only set up once to avoid duplicate listeners
-        guard !isInboxChangeListenerSetup else {
-            return
-        }
-
-        // Check if SDK is initialized before attempting setup
         guard let inbox = requireInboxInstance() else {
             return
         }
 
-        // Set flag immediately (before Task completes) to prevent race condition.
-        // Lock ensures this flag update is visible to concurrent calls, blocking duplicates.
-        // Task operations don't throw, so flag won't be stuck in inconsistent state.
-        isInboxChangeListenerSetup = true
-
-        // All listener setup must run on MainActor
-        Task { @MainActor in
-            let listener = FlutterNotificationInboxChangeListener.shared
-            listener.setEventEmitter { [weak self] messages in
-                guard let self = self else { return }
-                self.invokeDartMethod("inboxMessagesChanged", ["messages": messages.map { $0.toDictionary() }])
+        messagesTask = Task {
+            // Fetch all messages without topic filter - filtering handled in Dart for consistency
+            for await messages in inbox.messages(topic: nil) {
+                // Emit messages to Flutter
+                await MainActor.run {
+                    self.invokeDartMethod("inboxMessagesChanged", ["messages": messages.map { $0.toDictionary() }])
+                }
             }
-            inbox.addChangeListener(listener)
         }
     }
 
-    private func clearInboxChangeListener() {
-        inboxListenerLock.lock()
-        defer { inboxListenerLock.unlock() }
-
-        guard isInboxChangeListenerSetup else {
-            return
-        }
-        isInboxChangeListenerSetup = false
-
-        // All listener cleanup must run on MainActor
-        Task { @MainActor in
-            let listener = FlutterNotificationInboxChangeListener.shared
-            // Only remove if inbox available (use optional chaining)
-            requireInboxInstance()?.removeChangeListener(listener)
-            // Always clean up emitter and flag, even if inbox unavailable
-            listener.clearEventEmitter()
-        }
-    }
-
-    /// Subscribes to inbox messages updates.
-    /// This sets up the native listener which will emit the current messages immediately,
-    /// then emit again whenever messages change.
-    private func subscribeToInboxMessages() {
-        setupInboxChangeListener()
-    }
-
-    private func fetchInboxMessages(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    private func getInboxMessages(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let inbox = requireInboxInstance() else {
             result(FlutterError(
                 code: "INBOX_NOT_AVAILABLE",
@@ -142,13 +104,13 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
             return
         }
 
-        // Setup listener if not already setup
-        setupInboxChangeListener()
+        // Extract topic parameter if provided
+        let args = call.arguments as? [String: Any]
+        let topic = args?["topic"] as? String
 
         // Fetch messages using async/await
         Task {
-            // Fetch all messages without topic filter - filtering handled in Dart for consistency
-            let messages = await inbox.getMessages(topic: nil)
+            let messages = await inbox.getMessages(topic: topic)
             let messagesArray = messages.map { $0.toDictionary() }
 
             // Return result on main thread (Flutter method channels require this)

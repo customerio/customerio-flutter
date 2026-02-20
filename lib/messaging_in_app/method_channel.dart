@@ -40,32 +40,21 @@ class CustomerIOMessagingInAppMethodChannel
   // Inbox methods
 
   @override
-  Future<List<InboxMessage>> fetchMessages({String? topic}) async {
-    // Native fetchInboxMessages automatically sets up the listener
-    // Fetch all messages - topic filtering done in Dart for consistency
-
+  Future<List<InboxMessage>> getMessages({String? topic}) async {
+    // Native getInboxMessages automatically sets up the listener
     final result = await methodChannel.invokeMethod<List<dynamic>>(
-      NativeMethods.fetchInboxMessages,
-      null, // No topic parameter - fetch all, filter in Dart
+      NativeMethods.getInboxMessages,
+      topic != null ? {NativeMethodParams.topic: topic} : null,
     );
 
     if (result == null) {
       return [];
     }
 
-    final messages = result
+    return result
         .map((item) => InboxMessage.fromMap(
             (item as Map<Object?, Object?>).cast<String, dynamic>()))
         .toList();
-
-    // Filter by topic if provided (case-insensitive)
-    if (topic != null) {
-      return messages.where((message) {
-        return message.topics.any((t) => t.toLowerCase() == topic.toLowerCase());
-      }).toList();
-    }
-
-    return messages;
   }
 
   @override

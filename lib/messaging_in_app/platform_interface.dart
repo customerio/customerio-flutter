@@ -47,8 +47,8 @@ abstract class CustomerIOMessagingInAppPlatform extends PlatformInterface {
         'subscribeToEventsListener() has not been implemented.');
   }
 
-  Future<List<InboxMessage>> fetchMessages({String? topic}) {
-    throw UnimplementedError('fetchMessages() has not been implemented.');
+  Future<List<InboxMessage>> getMessages({String? topic}) {
+    throw UnimplementedError('getMessages() has not been implemented.');
   }
 
   Stream<List<InboxMessage>> messages({String? topic}) {

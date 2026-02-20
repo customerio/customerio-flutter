@@ -78,7 +78,7 @@ public final class CustomerIOConfig {
 public final class CustomerIOMessagingInAppPlatform {
 	public fun new(): CustomerIOMessagingInAppPlatform;
 	public fun dismissMessage();
-	public fun fetchMessages(String? topic): Future<List<InboxMessage>> async;
+	public fun getMessages(String? topic): Future<List<InboxMessage>> async;
 	public fun markInboxMessageDeleted(required InboxMessage message);
 	public fun markInboxMessageOpened(required InboxMessage message);
 	public fun markInboxMessageUnopened(required InboxMessage message);
@@ -240,7 +240,7 @@ public final class MetricEvent {
 
 public final class NotificationInbox {
 	public fun new(CustomerIOMessagingInAppPlatform? platform): NotificationInbox;
-	public fun fetchMessages(String? topic): Future<List<InboxMessage>> async;
+	public fun getMessages(String? topic): Future<List<InboxMessage>> async;
 	public fun markMessageDeleted(InboxMessage message);
 	public fun markMessageOpened(InboxMessage message);
 	public fun markMessageUnopened(InboxMessage message);
