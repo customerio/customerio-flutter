@@ -181,7 +181,7 @@ class _InboxMessagesScreenState extends State<InboxMessagesScreen> {
                 Icon(
                   Icons.inbox,
                   size: 64,
-                  color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -197,7 +197,7 @@ class _InboxMessagesScreenState extends State<InboxMessagesScreen> {
                   'Pull down to refresh',
                   style: TextStyle(
                     fontSize: 14,
-                    color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -244,7 +244,6 @@ class _InboxMessageCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final dateFormat = DateFormat('M/d/yyyy, h:mm:ss a');
-    final isDark = theme.brightness == Brightness.dark;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
