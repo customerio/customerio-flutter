@@ -157,7 +157,7 @@ internal class CustomerIOInAppMessaging(
 
             inboxChangeListener.setEventEmitter(
                 emitter = { data ->
-                    activity?.get()?.runOnUiThread {
+                    runOnMainThread {
                         flutterCommunicationChannel.invokeMethod("inboxMessagesChanged", data)
                     }
                 }
@@ -191,22 +191,13 @@ internal class CustomerIOInAppMessaging(
         // Fetch all messages without topic filter - filtering handled in Dart for consistency
         // Using async callback avoids blocking main thread (prevents ANR/deadlocks)
         inbox.fetchMessages(null) { fetchResult ->
-            // Ensure result is returned on UI thread (Flutter method channels require this)
-            val runnable = Runnable {
+            runOnMainThread {
                 fetchResult.onSuccess { messages ->
                     result.success(messages.map { it.toMap() })
                 }.onFailure { error ->
                     logger.error("Failed to fetch inbox messages: ${error.message}")
                     result.error("FETCH_ERROR", error.message, null)
                 }
-            }
-
-            val currentActivity = activity?.get()
-            if (currentActivity != null) {
-                currentActivity.runOnUiThread(runnable)
-            } else {
-                // Activity is null - use main looper directly
-                android.os.Handler(android.os.Looper.getMainLooper()).post(runnable)
             }
         }
     }
@@ -241,6 +232,20 @@ internal class CustomerIOInAppMessaging(
 
         performInboxMessageAction(message) { inbox, inboxMessage ->
             inbox.trackMessageClicked(inboxMessage, actionName)
+        }
+    }
+
+    /**
+     * Runs block on main/UI thread. Uses activity's runOnUiThread if available,
+     * otherwise falls back to Handler(Looper.getMainLooper()).post
+     */
+    private fun runOnMainThread(block: () -> Unit) {
+        val currentActivity = activity?.get()
+        if (currentActivity != null) {
+            currentActivity.runOnUiThread(block)
+        } else {
+            // Activity is null - use main looper directly
+            android.os.Handler(android.os.Looper.getMainLooper()).post(block)
         }
     }
 
