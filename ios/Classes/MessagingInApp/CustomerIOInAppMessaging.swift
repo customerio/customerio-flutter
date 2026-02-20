@@ -7,9 +7,9 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
     private var methodChannel: FlutterMethodChannel?
     private let logger: Logger = DIGraphShared.shared.logger
 
-    // Task that listens to inbox messages stream. Storing the task prevents duplicate streams
+    // Task that consumes the inbox messages stream. Storing the task prevents duplicate streams
     // and allows proper cleanup via cancellation.
-    private var messagesTask: Task<Void, Never>?
+    private var messagesStreamTask: Task<Void, Never>?
 
     public static func register(with _: FlutterPluginRegistrar) {}
 
@@ -35,7 +35,7 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
     deinit {
         methodChannel?.setMethodCallHandler(nil)
         methodChannel = nil
-        messagesTask?.cancel()
+        messagesStreamTask?.cancel()
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -74,22 +74,24 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
     /// Subscribes to inbox messages updates using AsyncStream.
     /// This sets up a stream that emits the current messages immediately,
     /// then emits again whenever messages change.
-    /// Cancels any existing subscription before creating a new one.
+    /// This method can be called multiple times safely and will only set up the stream once.
     private func subscribeToInboxMessages() {
-        // Cancel existing task if any to prevent duplicate streams
-        messagesTask?.cancel()
+        // Only set up once to avoid duplicate streams
+        guard messagesStreamTask == nil else {
+            return
+        }
 
         guard let inbox = requireInboxInstance() else {
             return
         }
 
-        messagesTask = Task {
-            // Fetch all messages without topic filter - filtering handled in Dart for consistency
+        // Consume messages stream asynchronously
+        messagesStreamTask = Task { [weak self] in
             for await messages in inbox.messages(topic: nil) {
+                guard let self = self else { return }
+
                 // Emit messages to Flutter
-                await MainActor.run {
-                    self.invokeDartMethod("inboxMessagesChanged", ["messages": messages.map { $0.toDictionary() }])
-                }
+                self.invokeDartMethod("inboxMessagesChanged", ["messages": messages.map { $0.toDictionary() }])
             }
         }
     }

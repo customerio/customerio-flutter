@@ -185,9 +185,6 @@ internal class CustomerIOInAppMessaging(
             return
         }
 
-        // Setup listener if not already setup
-        setupInboxChangeListener()
-
         // Extract topic parameter if provided
         val args = call.arguments as? Map<String, Any>
         val topic = args?.get("topic") as? String
