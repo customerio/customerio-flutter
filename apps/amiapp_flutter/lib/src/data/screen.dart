@@ -11,7 +11,8 @@ enum Screen {
   deviceAttributes(name: 'Custom Device Attribute', path: 'attributes/device'),
   profileAttributes(
       name: 'Custom Profile Attribute', path: 'attributes/profile'),
-  inlineMessages(name: 'Inline Messages Test', path: 'inline-messages');
+  inlineMessages(name: 'Inline Messages Test', path: 'inline-messages'),
+  inboxMessages(name: 'Inbox Messages', path: 'inbox-messages');
 
   const Screen({
     required this.name,

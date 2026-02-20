@@ -46,7 +46,7 @@ class MethodCallExtensionsTest {
 
         methodCall.native(mockResult, transformer, handler)
 
-        verify(mockResult).success("unwrapped success")
+        verify(mockResult).success(resultObject)
     }
 
     @Test
