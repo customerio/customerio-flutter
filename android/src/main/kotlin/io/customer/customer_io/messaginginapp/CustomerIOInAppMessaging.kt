@@ -251,17 +251,16 @@ internal class CustomerIOInAppMessaging(
 
     /**
      * Helper to validate inbox instance and message data before performing a message action.
-     * Returns early if inbox is unavailable or message data is invalid.
+     * Throws exceptions if inbox is unavailable or message data is invalid.
      */
     private fun performInboxMessageAction(
         message: Map<String, Any>?,
         action: (NotificationInbox, InboxMessage) -> Unit,
     ) {
-        val inbox = requireInboxInstance() ?: return
-        val inboxMessage = message?.let { InboxMessageFactory.fromMap(it) } ?: run {
-            logger.error("Invalid message data: $message")
-            return
-        }
+        val inbox = requireInboxInstance()
+            ?: throw IllegalStateException("Notification Inbox is not available. Ensure CustomerIO SDK is initialized.")
+        val inboxMessage = message?.let { InboxMessageFactory.fromMap(it) }
+            ?: throw IllegalArgumentException("Invalid message data: $message")
         action(inbox, inboxMessage)
     }
 }
