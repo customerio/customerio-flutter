@@ -11,7 +11,6 @@ class NativeMethods {
 
 /// Method parameters specific to In-App module.
 class NativeMethodParams {
-  static const String topic = "topic";
   static const String message = "message";
   static const String actionName = "actionName";
   static const String messages = "messages";
