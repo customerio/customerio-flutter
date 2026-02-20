@@ -47,9 +47,7 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
             }
 
         case "subscribeToInboxMessages":
-            call.nativeNoArgs(result: result) {
-                self.subscribeToInboxMessages()
-            }
+            subscribeToInboxMessages(call: call, result: result)
 
         case "getInboxMessages":
             getInboxMessages(call: call, result: result)
@@ -75,13 +73,19 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
     /// This sets up a stream that emits the current messages immediately,
     /// then emits again whenever messages change.
     /// This method can be called multiple times safely and will only set up the stream once.
-    private func subscribeToInboxMessages() {
+    private func subscribeToInboxMessages(call: FlutterMethodCall, result: @escaping FlutterResult) {
         // Only set up once to avoid duplicate streams
         guard messagesStreamTask == nil else {
+            result(true)
             return
         }
 
         guard let inbox = requireInboxInstance() else {
+            result(FlutterError(
+                code: "INBOX_NOT_AVAILABLE",
+                message: "Notification Inbox is not available. Ensure CustomerIO SDK is initialized.",
+                details: nil
+            ))
             return
         }
 
@@ -94,6 +98,7 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
                 self.invokeDartMethod("inboxMessagesChanged", ["messages": messages.map { $0.toDictionary() }])
             }
         }
+        result(true)
     }
 
     private func getInboxMessages(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -112,12 +117,22 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
 
         // Fetch messages using async/await
         Task {
-            let messages = await inbox.getMessages(topic: topic)
-            let messagesArray = messages.map { $0.toDictionary() }
+            do {
+                let messages = try await inbox.getMessages(topic: topic)
+                let messagesArray = messages.map { $0.toDictionary() }
 
-            // Return result on main thread (Flutter method channels require this)
-            await MainActor.run {
-                result(messagesArray)
+                // Return result on main thread (Flutter method channels require this)
+                await MainActor.run {
+                    result(messagesArray)
+                }
+            } catch {
+                await MainActor.run {
+                    result(FlutterError(
+                        code: "FETCH_ERROR",
+                        message: "Failed to fetch inbox messages: \(error.localizedDescription)",
+                        details: nil
+                    ))
+                }
             }
         }
     }

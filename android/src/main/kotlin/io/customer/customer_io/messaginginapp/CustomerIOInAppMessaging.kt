@@ -93,7 +93,7 @@ internal class CustomerIOInAppMessaging(
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "dismissMessage" -> call.nativeNoArgs(result, ::dismissMessage)
-            "subscribeToInboxMessages" -> call.nativeNoArgs(result, ::setupInboxChangeListener)
+            "subscribeToInboxMessages" -> setupInboxChangeListener(call, result)
             "getInboxMessages" -> getInboxMessages(call, result)
             "markInboxMessageOpened" -> call.nativeMapArgs(result, ::markInboxMessageOpened)
             "markInboxMessageUnopened" -> call.nativeMapArgs(result, ::markInboxMessageUnopened)
@@ -143,15 +143,16 @@ internal class CustomerIOInAppMessaging(
      * This method can be called multiple times safely and will only set up the listener once.
      * Note: Inbox must be available (SDK initialized) before this can succeed.
      */
-    private fun setupInboxChangeListener() {
+    private fun setupInboxChangeListener(call: MethodCall, result: MethodChannel.Result) {
         synchronized(inboxListenerLock) {
             // Only set up once to avoid duplicate listeners
             if (isInboxChangeListenerSetup) {
+                result.success(true)
                 return
             }
 
             val inbox = requireInboxInstance() ?: run {
-                logger.debug("Inbox not available yet, skipping listener setup")
+                result.error("INBOX_NOT_AVAILABLE", "Notification Inbox is not available. Ensure CustomerIO SDK is initialized.", null)
                 return
             }
 
@@ -165,6 +166,7 @@ internal class CustomerIOInAppMessaging(
             inbox.addChangeListener(inboxChangeListener)
             isInboxChangeListenerSetup = true
             logger.debug("NotificationInboxChangeListener set up successfully")
+            result.success(true)
         }
     }
 

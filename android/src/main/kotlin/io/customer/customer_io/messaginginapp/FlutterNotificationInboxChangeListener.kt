@@ -6,7 +6,7 @@ import io.customer.messaginginapp.inbox.NotificationInboxChangeListener
 class FlutterNotificationInboxChangeListener private constructor() :
     NotificationInboxChangeListener {
 
-    // Event emitter function to send events to React Native layer
+    // Event emitter function to send events to Flutter layer
     private var eventEmitter: ((Map<String, Any?>) -> Unit)? = null
 
     // Sets the event emitter function and message converter

@@ -41,7 +41,6 @@ class CustomerIOMessagingInAppMethodChannel
 
   @override
   Future<List<InboxMessage>> getMessages({String? topic}) async {
-    // Native getInboxMessages automatically sets up the listener
     final result = await methodChannel.invokeMethod<List<dynamic>>(
       NativeMethods.getInboxMessages,
       topic != null ? {NativeMethodParams.topic: topic} : null,
