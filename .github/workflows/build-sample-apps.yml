@@ -10,7 +10,7 @@ concurrency: # cancel previous workflow run if one exists.
   cancel-in-progress: true
 
 env:
-  XCODE_VERSION: "15.3"
+  XCODE_VERSION: "26.2"
 
 jobs:
   update-pr-comment:
