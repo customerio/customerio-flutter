@@ -28,7 +28,7 @@ class _InboxMessagesScreenState extends State<InboxMessagesScreen> {
 
   void _setupInbox() {
     // Listen to real-time updates
-    _messagesSubscription = _inbox.messagesStream().listen((messages) {
+    _messagesSubscription = _inbox.messages().listen((messages) {
       setState(() {
         _messages = messages;
         _isLoading = false;
@@ -43,10 +43,12 @@ class _InboxMessagesScreenState extends State<InboxMessagesScreen> {
     setState(() => _isLoading = true);
     try {
       final messages = await _inbox.fetchMessages();
-      setState(() {
-        _messages = messages;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _messages = messages;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -75,7 +77,7 @@ class _InboxMessagesScreenState extends State<InboxMessagesScreen> {
     final controller = TextEditingController();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Track Click'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -93,7 +95,7 @@ class _InboxMessagesScreenState extends State<InboxMessagesScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Cancel'),
           ),
           TextButton(
@@ -104,10 +106,12 @@ class _InboxMessagesScreenState extends State<InboxMessagesScreen> {
               } else {
                 _inbox.trackMessageClicked(message, actionName: actionName);
               }
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Click tracked successfully')),
-              );
+              Navigator.of(dialogContext).pop();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Click tracked successfully')),
+                );
+              }
             },
             child: const Text('OK'),
           ),
@@ -119,21 +123,23 @@ class _InboxMessagesScreenState extends State<InboxMessagesScreen> {
   void _showDeleteDialog(InboxMessage message) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Message'),
         content: const Text('Are you sure you want to delete this message?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
               _inbox.markMessageDeleted(message);
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Message deleted')),
-              );
+              Navigator.of(dialogContext).pop();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Message deleted')),
+                );
+              }
             },
             child: const Text('Delete'),
           ),
