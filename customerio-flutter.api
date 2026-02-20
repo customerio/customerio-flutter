@@ -78,11 +78,11 @@ public final class CustomerIOConfig {
 public final class CustomerIOMessagingInAppPlatform {
 	public fun new(): CustomerIOMessagingInAppPlatform;
 	public fun dismissMessage();
-	public fun fetchInboxMessages(String? topic): Future<List<InboxMessage>> async;
-	public fun inboxMessagesStream(String? topic): Stream<List<InboxMessage>>;
+	public fun fetchMessages(String? topic): Future<List<InboxMessage>> async;
 	public fun markInboxMessageDeleted(required InboxMessage message);
 	public fun markInboxMessageOpened(required InboxMessage message);
 	public fun markInboxMessageUnopened(required InboxMessage message);
+	public fun messages(String? topic): Stream<List<InboxMessage>>;
 	public fun subscribeToEventsListener(void Function(InAppEvent) onEvent): StreamSubscription<dynamic>;
 	public fun trackInboxMessageClicked(
 		required InboxMessage message,
@@ -244,7 +244,7 @@ public final class NotificationInbox {
 	public fun markMessageDeleted(InboxMessage message);
 	public fun markMessageOpened(InboxMessage message);
 	public fun markMessageUnopened(InboxMessage message);
-	public fun messagesStream(String? topic): Stream<List<InboxMessage>>;
+	public fun messages(String? topic): Stream<List<InboxMessage>>;
 	public fun trackMessageClicked(
 		InboxMessage message,
 		String? actionName

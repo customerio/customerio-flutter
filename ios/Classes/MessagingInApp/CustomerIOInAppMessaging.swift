@@ -83,7 +83,6 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
         guard !isInboxChangeListenerSetup else {
             return
         }
-        isInboxChangeListenerSetup = true
 
         // All listener setup must run on MainActor
         Task { @MainActor in
@@ -92,6 +91,9 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
                 self.invokeDartMethod("inboxMessagesChanged", ["messages": messages.map { $0.toDictionary() }])
             }
             self.inbox.addChangeListener(inboxListener)
+
+            // Set flag after successful setup (allows retry if setup was called before SDK initialized)
+            self.isInboxChangeListenerSetup = true
         }
     }
 
@@ -116,16 +118,13 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
     }
 
     private func fetchInboxMessages(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let args = call.arguments as? [String: Any]
-        let topic = args?["topic"] as? String
-
         // Setup listener if not already setup
         setupInboxChangeListener()
 
         // Fetch messages using async/await
         Task {
-            // Use native topic filtering - SDK handles filtering
-            let messages = await inbox.getMessages(topic: topic)
+            // Fetch all messages without topic filter - filtering handled in Dart for consistency
+            let messages = await inbox.getMessages(topic: nil)
             let messagesArray = messages.map { $0.toDictionary() }
 
             // Return result on main thread (Flutter method channels require this)

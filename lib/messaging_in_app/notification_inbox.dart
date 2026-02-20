@@ -20,7 +20,7 @@ class NotificationInbox {
   ///              If null, all messages are returned.
   /// @return Future that resolves to a list of inbox messages
   Future<List<InboxMessage>> fetchMessages({String? topic}) {
-    return _platform.fetchInboxMessages(topic: topic);
+    return _platform.fetchMessages(topic: topic);
   }
 
   /// Returns a stream that emits inbox messages whenever they change.
@@ -28,11 +28,13 @@ class NotificationInbox {
   /// The stream immediately emits the current messages when subscribed,
   /// then emits again whenever messages are added, updated, or removed.
   ///
+  /// Usage: `inbox.messages().listen((messages) { ... })`
+  ///
   /// @param topic Optional topic filter. If provided, stream only emits messages
   ///              that have this topic in their topics list. If null, all messages are emitted.
   /// @return Stream of inbox messages
-  Stream<List<InboxMessage>> messagesStream({String? topic}) {
-    return _platform.inboxMessagesStream(topic: topic);
+  Stream<List<InboxMessage>> messages({String? topic}) {
+    return _platform.messages(topic: topic);
   }
 
   /// Marks an inbox message as opened/read.

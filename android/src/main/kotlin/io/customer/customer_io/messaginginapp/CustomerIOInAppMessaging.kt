@@ -48,12 +48,15 @@ internal class CustomerIOInAppMessaging(
     private var isInboxChangeListenerSetup = false
 
     /**
-     * Returns NotificationInbox instance if available, null otherwise.
+     * Returns NotificationInbox instance if available, null otherwise, logging error on failure.
      * Note: Notification Inbox is only available after SDK is initialized.
-     * Callers are responsible for logging/handling null case appropriately.
      */
     private fun requireInboxInstance(): NotificationInbox? {
-        return inAppMessagingModule?.inbox()
+        val inbox = inAppMessagingModule?.inbox()
+        if (inbox == null) {
+            logger.error("Notification Inbox is not available. Ensure CustomerIO SDK is initialized.")
+        }
+        return inbox
     }
 
     override fun onAttachedToEngine() {
@@ -91,7 +94,7 @@ internal class CustomerIOInAppMessaging(
         when (call.method) {
             "dismissMessage" -> call.nativeNoArgs(result, ::dismissMessage)
             "subscribeToInboxMessages" -> call.nativeNoArgs(result, ::setupInboxChangeListener)
-            "fetchInboxMessages" -> call.nativeMapArgs(result, ::fetchInboxMessages)
+            "fetchInboxMessages" -> fetchInboxMessages(call, result)
             "markInboxMessageOpened" -> call.nativeMapArgs(result, ::markInboxMessageOpened)
             "markInboxMessageUnopened" -> call.nativeMapArgs(result, ::markInboxMessageUnopened)
             "markInboxMessageDeleted" -> call.nativeMapArgs(result, ::markInboxMessageDeleted)
@@ -176,41 +179,28 @@ internal class CustomerIOInAppMessaging(
         }
     }
 
-    private fun fetchInboxMessages(params: Map<String, Any>): List<Map<String, Any?>> {
+    private fun fetchInboxMessages(call: MethodCall, result: MethodChannel.Result) {
         val inbox = requireInboxInstance() ?: run {
-            val errorMessage =
-                "Notification Inbox is not available. Ensure CustomerIO SDK is initialized."
-            logger.error(errorMessage)
-            throw IllegalStateException(errorMessage)
+            result.error("INBOX_NOT_AVAILABLE", "Notification Inbox is not available. Ensure CustomerIO SDK is initialized.", null)
+            return
         }
 
-        val topic = params.getAs<String>("topic")
         // Setup listener if not already setup
         setupInboxChangeListener()
 
-        // Fetch messages using callback
-        // CountDownLatch is required here because:
-        // 1. Flutter's method channel expects a synchronous return value
-        // 2. Native SDK's fetchMessages is async (callback-based)
-        // 3. We must block until the callback completes to return the result
-        var fetchedMessages: List<InboxMessage> = emptyList()
-        var fetchError: Throwable? = null
-        val latch = java.util.concurrent.CountDownLatch(1)
-
-        inbox.fetchMessages(topic) { result ->
-            result.onSuccess { messages ->
-                fetchedMessages = messages
-            }.onFailure { error ->
-                fetchError = error
+        // Fetch all messages without topic filter - filtering handled in Dart for consistency
+        // Using async callback avoids blocking main thread (prevents ANR/deadlocks)
+        inbox.fetchMessages(null) { fetchResult ->
+            // Ensure result is returned on UI thread (Flutter method channels require this)
+            activity?.get()?.runOnUiThread {
+                fetchResult.onSuccess { messages ->
+                    result.success(messages.map { it.toMap() })
+                }.onFailure { error ->
+                    logger.error("Failed to fetch inbox messages: ${error.message}")
+                    result.error("FETCH_ERROR", error.message, null)
+                }
             }
-            latch.countDown()
         }
-
-        latch.await()
-
-        fetchError?.let { throw it }
-
-        return fetchedMessages.map { it.toMap() }
     }
 
     private fun markInboxMessageOpened(params: Map<String, Any>) {
@@ -254,10 +244,7 @@ internal class CustomerIOInAppMessaging(
         message: Map<String, Any>?,
         action: (NotificationInbox, InboxMessage) -> Unit,
     ) {
-        val inbox = requireInboxInstance() ?: run {
-            logger.error("Cannot perform inbox action: Notification Inbox is not available")
-            return
-        }
+        val inbox = requireInboxInstance() ?: return
         val inboxMessage = message?.let { InboxMessageFactory.fromMap(it) } ?: run {
             logger.error("Invalid message data: $message")
             return
