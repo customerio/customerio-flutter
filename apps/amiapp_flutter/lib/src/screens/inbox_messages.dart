@@ -352,7 +352,7 @@ class _InboxMessageCard extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: message.opened
-                      ? (isDark ? colorScheme.surfaceContainerHigh : colorScheme.surfaceContainerHighest)
+                      ? colorScheme.surfaceContainerHigh
                       : colorScheme.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(4),
                 ),
