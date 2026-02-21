@@ -1,3 +1,9 @@
+## [3.3.0](https://github.com/customerio/customerio-flutter/compare/3.2.2...3.3.0) (2026-02-21)
+
+### Features
+
+* support for notification inbox ([#313](https://github.com/customerio/customerio-flutter/issues/313)) ([b1e732b](https://github.com/customerio/customerio-flutter/commit/b1e732b7606e2f95e54d9a50f00cbbeb72b119ea))
+
 ## [3.2.2](https://github.com/customerio/customerio-flutter/compare/3.2.1...3.2.2) (2026-02-16)
 
 ### Bug Fixes
