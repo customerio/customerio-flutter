@@ -36,6 +36,7 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
         methodChannel?.setMethodCallHandler(nil)
         methodChannel = nil
         messagesStreamTask?.cancel()
+        messagesStreamTask = nil
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
