@@ -24,7 +24,7 @@ rootProject.allprojects {
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
-def cioLocationEnabled = rootProject.hasProperty("customerio_location_enabled")
+def cioLocationEnabled = rootProject.findProperty("customerio_location_enabled")?.toBoolean() ?: false
 
 android {
     namespace 'io.customer.customer_io'
