@@ -24,7 +24,6 @@ Pod::Spec.new do |s|
   # Native SDK dependencies that are required for the Flutter plugin to work.
   s.dependency "CustomerIO/DataPipelines", native_sdk_version
   s.dependency "CustomerIO/MessagingInApp", native_sdk_version
-  s.dependency "CustomerIO/Location", native_sdk_version
 
   # If we do not specify a default_subspec, then *all* dependencies inside of *all* the subspecs will be downloaded by cocoapods.
   # We want customers to opt into push dependencies especially because the FCM subpsec downloads Firebase dependencies.
@@ -41,6 +40,11 @@ Pod::Spec.new do |s|
   s.subspec 'fcm' do |ss|
     ss.dependency "CustomerIO/MessagingPushFCM", native_sdk_version
     ss.dependency "CioFirebaseWrapper", firebase_wrapper_version
+  end
+
+  # Location module is optional - customers must opt in by adding this subspec.
+  s.subspec 'location' do |ss|
+    ss.dependency "CustomerIO/Location", native_sdk_version
   end
 
   # Flutter.framework does not contain a i386 slice.

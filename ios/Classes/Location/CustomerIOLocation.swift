@@ -1,3 +1,4 @@
+#if canImport(CioLocation)
 import CioInternalCommon
 import CioLocation
 import CoreLocation
@@ -57,3 +58,4 @@ public class CustomerIOLocation: NSObject, FlutterPlugin {
         CustomerIO.location.requestLocationUpdate()
     }
 }
+#endif

@@ -1,14 +1,18 @@
 import CioDataPipelines
 import CioInternalCommon
-import CioLocation
 import CioMessagingInApp
 import Flutter
 import UIKit
+#if canImport(CioLocation)
+import CioLocation
+#endif
 
 public class SwiftCustomerIOPlugin: NSObject, FlutterPlugin {
     private var methodChannel: FlutterMethodChannel!
     private var inAppMessagingChannelHandler: CustomerIOInAppMessaging!
+    #if canImport(CioLocation)
     private var locationChannelHandler: CustomerIOLocation!
+    #endif
     private var messagingPushChannelHandler: CustomerIOMessagingPush!
 
     private let logger: CioInternalCommon.Logger = DIGraphShared.shared.logger
@@ -20,7 +24,9 @@ public class SwiftCustomerIOPlugin: NSObject, FlutterPlugin {
         registrar.addMethodCallDelegate(instance, channel: instance.methodChannel)
 
         instance.inAppMessagingChannelHandler = CustomerIOInAppMessaging(with: registrar)
+        #if canImport(CioLocation)
         instance.locationChannelHandler = CustomerIOLocation(with: registrar)
+        #endif
         instance.messagingPushChannelHandler = CustomerIOMessagingPush(with: registrar)
     }
 
@@ -160,6 +166,7 @@ public class SwiftCustomerIOPlugin: NSObject, FlutterPlugin {
             // Initialize native SDK with provided config
             let sdkConfigBuilder = try SDKConfigBuilder.create(from: params)
 
+            #if canImport(CioLocation)
             // Add location module to config builder if location config is provided
             if let locationConfig = params["location"] as? [String: AnyHashable] {
                 let trackingModeValue = locationConfig["trackingMode"] as? String
@@ -174,6 +181,7 @@ public class SwiftCustomerIOPlugin: NSObject, FlutterPlugin {
                 }
                 _ = sdkConfigBuilder.addModule(LocationModule(config: LocationConfig(mode: mode)))
             }
+            #endif
 
             CustomerIO.initialize(withConfig: sdkConfigBuilder.build())
 

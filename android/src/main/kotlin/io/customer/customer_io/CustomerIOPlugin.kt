@@ -51,11 +51,16 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         flutterCommunicationChannel.setMethodCallHandler(this)
 
         // Initialize modules
-        modules = listOf(
-            CustomerIOPushMessaging(flutterPluginBinding),
-            CustomerIOInAppMessaging(flutterPluginBinding),
-            CustomerIOLocation(flutterPluginBinding)
-        )
+        modules = buildList {
+            add(CustomerIOPushMessaging(flutterPluginBinding))
+            add(CustomerIOInAppMessaging(flutterPluginBinding))
+            // Location module is optional - only add if location dependency is available
+            try {
+                add(CustomerIOLocation(flutterPluginBinding))
+            } catch (_: NoClassDefFoundError) {
+                logger.debug("Location module not available. Add the location dependency to use location features.")
+            }
+        }
 
         // Attach modules to engine
         modules.forEach {
