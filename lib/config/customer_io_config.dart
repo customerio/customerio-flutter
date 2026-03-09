@@ -1,6 +1,7 @@
 import '../customer_io_enums.dart';
 import '../customer_io_plugin_version.dart' as plugin_info show version;
 import 'in_app_config.dart';
+import 'location_config.dart';
 import 'push_config.dart';
 
 class CustomerIOConfig {
@@ -20,6 +21,7 @@ class CustomerIOConfig {
   final ScreenView? screenViewUse;
   final InAppConfig? inAppConfig;
   final PushConfig pushConfig;
+  final LocationConfig? locationConfig;
 
   CustomerIOConfig({
     required this.cdpApiKey,
@@ -35,6 +37,7 @@ class CustomerIOConfig {
     this.screenViewUse,
     this.inAppConfig,
     PushConfig? pushConfig,
+    this.locationConfig,
   }) : pushConfig = pushConfig ?? PushConfig();
 
   Map<String, dynamic> toMap() {
@@ -52,6 +55,7 @@ class CustomerIOConfig {
       'screenViewUse': screenViewUse?.name,
       'inApp': inAppConfig?.toMap(),
       'push': pushConfig.toMap(),
+      'location': locationConfig?.toMap(),
       'version': version,
       'source': source
     };

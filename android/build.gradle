@@ -63,6 +63,7 @@ dependencies {
     implementation "io.customer.android:datapipelines:$cioVersion"
     implementation "io.customer.android:messaging-push-fcm:$cioVersion"
     implementation "io.customer.android:messaging-in-app:$cioVersion"
+    implementation "io.customer.android:location:$cioVersion"
     
     testImplementation 'junit:junit:4.13.2'
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"

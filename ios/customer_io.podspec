@@ -24,6 +24,7 @@ Pod::Spec.new do |s|
   # Native SDK dependencies that are required for the Flutter plugin to work.
   s.dependency "CustomerIO/DataPipelines", native_sdk_version
   s.dependency "CustomerIO/MessagingInApp", native_sdk_version
+  s.dependency "CustomerIO/Location", native_sdk_version
 
   # If we do not specify a default_subspec, then *all* dependencies inside of *all* the subspecs will be downloaded by cocoapods.
   # We want customers to opt into push dependencies especially because the FCM subpsec downloads Firebase dependencies.
