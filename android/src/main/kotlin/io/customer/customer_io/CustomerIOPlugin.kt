@@ -54,11 +54,9 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         modules = buildList {
             add(CustomerIOPushMessaging(flutterPluginBinding))
             add(CustomerIOInAppMessaging(flutterPluginBinding))
-            // Location module is optional - only add if location dependency is available
-            try {
+            // Location module is optional - enabled via customerio_location_enabled gradle property
+            if (BuildConfig.CIO_LOCATION_ENABLED) {
                 add(CustomerIOLocation(flutterPluginBinding))
-            } catch (_: NoClassDefFoundError) {
-                logger.debug("Location module not available. Add the location dependency to use location features.")
             }
         }
 
