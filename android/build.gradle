@@ -51,6 +51,7 @@ android {
     defaultConfig {
         minSdkVersion 21
         buildConfigField "boolean", "CIO_LOCATION_ENABLED", "$cioLocationEnabled"
+        consumerProguardFiles 'consumer-rules.pro'
     }
 
     // instruct kotlin compiler to opt in to the APIs annotated with the kotlin.RequiresOptIn
