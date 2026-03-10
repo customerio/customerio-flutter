@@ -1,5 +1,6 @@
 import 'package:customer_io/customer_io.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../components/container.dart';
 import '../components/scroll_view.dart';
@@ -43,12 +44,46 @@ class _LocationScreenState extends State<LocationScreen> {
     context.showSnackBar('Location set ($source)');
   }
 
-  void _requestSdkLocation() {
-    CustomerIO.location.requestLocationUpdate();
-    setState(() {
-      _statusText = 'Requested SDK location update...';
-    });
-    context.showSnackBar('SDK location update requested');
+  Future<void> _requestSdkLocation() async {
+    var status = await Permission.location.status;
+
+    if (status.isDenied) {
+      status = await Permission.location.request();
+    }
+
+    if (status.isPermanentlyDenied) {
+      if (!mounted) return;
+      context.showMessageDialog(
+        'Location Permission Required',
+        'Location permission is permanently denied. Please enable it from app settings.',
+        actions: [
+          TextButton(
+            child: const Text('Open Settings'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              openAppSettings();
+            },
+          ),
+          TextButton(
+            child: const Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      );
+      return;
+    }
+
+    if (status.isGranted) {
+      CustomerIO.location.requestLocationUpdate();
+      setState(() {
+        _statusText = 'Requested SDK location update...';
+      });
+      if (!mounted) return;
+      context.showSnackBar('SDK location update requested');
+    } else {
+      if (!mounted) return;
+      context.showSnackBar('Location permission denied');
+    }
   }
 
   void _setManualLocation() {
