@@ -1,6 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import '../extensions/method_channel_extensions.dart';
 import '_native_constants.dart';
 import 'platform_interface.dart';
 
@@ -8,10 +8,34 @@ class CustomerIOLocationMethodChannel extends CustomerIOLocationPlatform {
   final MethodChannel methodChannel =
       const MethodChannel('customer_io_location');
 
+  static bool _warnedNotEnabled = false;
+
+  /// Invokes a location method on the native side, handling all errors safely
+  /// for fire-and-forget calls. Logs a one-time warning if the location module
+  /// is not enabled.
+  void _invokeLocationMethod(String method,
+      [Map<String, dynamic> arguments = const {}]) async {
+    try {
+      await methodChannel.invokeMethod<void>(method, arguments);
+    } on MissingPluginException {
+      if (!_warnedNotEnabled && kDebugMode) {
+        _warnedNotEnabled = true;
+        print('Customer.io: Location module is not enabled. '
+            'To use location features, add the location subspec to your '
+            'Podfile (iOS) or set customerio_location_enabled=true in '
+            'gradle.properties (Android).');
+      }
+    } catch (ex) {
+      if (kDebugMode) {
+        print("Customer.io: Error invoking location method '$method': $ex");
+      }
+    }
+  }
+
   @override
   void setLastKnownLocation(
       {required double latitude, required double longitude}) {
-    methodChannel.invokeNativeMethodVoid(NativeMethods.setLastKnownLocation, {
+    _invokeLocationMethod(NativeMethods.setLastKnownLocation, {
       NativeMethodParams.latitude: latitude,
       NativeMethodParams.longitude: longitude,
     });
@@ -19,6 +43,6 @@ class CustomerIOLocationMethodChannel extends CustomerIOLocationPlatform {
 
   @override
   void requestLocationUpdate() {
-    methodChannel.invokeNativeMethodVoid(NativeMethods.requestLocationUpdate);
+    _invokeLocationMethod(NativeMethods.requestLocationUpdate);
   }
 }
