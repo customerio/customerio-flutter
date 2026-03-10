@@ -13,7 +13,7 @@ class CustomerIOLocationMethodChannel extends CustomerIOLocationPlatform {
   /// Invokes a location method on the native side, handling all errors safely
   /// for fire-and-forget calls. Logs a one-time warning if the location module
   /// is not enabled.
-  void _invokeLocationMethod(String method,
+  Future<void> _invokeLocationMethod(String method,
       [Map<String, dynamic> arguments = const {}]) async {
     try {
       await methodChannel.invokeMethod<void>(method, arguments);
