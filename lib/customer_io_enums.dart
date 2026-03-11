@@ -40,3 +40,19 @@ enum PushClickBehaviorAndroid {
 /// all - to send screen events to destinations for analytics purposes and to display in-app messages.
 /// inApp - to only display in-app messages and not send screen events to destinations.
 enum ScreenView { all, inApp }
+
+/// Location tracking mode for the CustomerIO Location module.
+enum LocationTrackingMode {
+  /// Location tracking is disabled. All location operations no-op.
+  off(rawValue: 'OFF'),
+
+  /// Host app controls when location is captured (default).
+  manual(rawValue: 'MANUAL'),
+
+  /// SDK auto-captures location once per app launch when the app becomes active.
+  onAppStart(rawValue: 'ON_APP_START');
+
+  const LocationTrackingMode({required this.rawValue});
+
+  final String rawValue;
+}

@@ -100,5 +100,7 @@
 	<false/>
 	<key>PermissionGroupNotification</key>
 	<string>Required to send push notifications</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app uses your location to test Customer.io location tracking features.</string>
 </dict>
 </plist>

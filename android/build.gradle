@@ -24,9 +24,15 @@ rootProject.allprojects {
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
+def cioLocationEnabled = rootProject.findProperty("customerio_location_enabled")?.toBoolean() ?: false
+
 android {
     namespace 'io.customer.customer_io'
     compileSdkVersion 36
+
+    buildFeatures {
+        buildConfig true
+    }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -44,6 +50,8 @@ android {
 
     defaultConfig {
         minSdkVersion 21
+        buildConfigField "boolean", "CIO_LOCATION_ENABLED", "$cioLocationEnabled"
+        consumerProguardFiles 'consumer-rules.pro'
     }
 
     // instruct kotlin compiler to opt in to the APIs annotated with the kotlin.RequiresOptIn
@@ -59,10 +67,17 @@ android {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     // Customer.io SDK
-    def cioVersion = "4.16.0"
+    def cioVersion = "4.17.0"
     implementation "io.customer.android:datapipelines:$cioVersion"
     implementation "io.customer.android:messaging-push-fcm:$cioVersion"
     implementation "io.customer.android:messaging-in-app:$cioVersion"
+    // Location module is optional - customers enable it by adding
+    // customerio_location_enabled=true in their gradle.properties
+    if (cioLocationEnabled) {
+        implementation "io.customer.android:location:$cioVersion"
+    } else {
+        compileOnly "io.customer.android:location:$cioVersion"
+    }
     
     testImplementation 'junit:junit:4.13.2'
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"

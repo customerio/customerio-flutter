@@ -7,6 +7,7 @@ import 'customer_io_config.dart';
 import 'customer_io_enums.dart';
 import 'data_pipelines/customer_io_platform_interface.dart';
 import 'extensions/map_extensions.dart';
+import 'location/platform_interface.dart';
 import 'messaging_in_app/platform_interface.dart';
 import 'messaging_push/platform_interface.dart';
 
@@ -16,17 +17,20 @@ class CustomerIO {
   final CustomerIOPlatform _platform;
   final CustomerIOMessagingPushPlatform _pushMessaging;
   final CustomerIOMessagingInAppPlatform _inAppMessaging;
+  final CustomerIOLocationPlatform _location;
 
   /// Private constructor to enforce singleton pattern
   CustomerIO._({
     CustomerIOPlatform? platform,
     CustomerIOMessagingPushPlatform? pushMessaging,
     CustomerIOMessagingInAppPlatform? inAppMessaging,
+    CustomerIOLocationPlatform? location,
   })  : _platform = platform ?? CustomerIOPlatform.instance,
         _pushMessaging =
             pushMessaging ?? CustomerIOMessagingPushPlatform.instance,
         _inAppMessaging =
-            inAppMessaging ?? CustomerIOMessagingInAppPlatform.instance;
+            inAppMessaging ?? CustomerIOMessagingInAppPlatform.instance,
+        _location = location ?? CustomerIOLocationPlatform.instance;
 
   /// Get the singleton instance of CustomerIO
   static CustomerIO get instance {
@@ -45,11 +49,13 @@ class CustomerIO {
     CustomerIOPlatform? platform,
     CustomerIOMessagingPushPlatform? pushMessaging,
     CustomerIOMessagingInAppPlatform? inAppMessaging,
+    CustomerIOLocationPlatform? location,
   }) {
     _instance = CustomerIO._(
       platform: platform,
       pushMessaging: pushMessaging,
       inAppMessaging: inAppMessaging,
+      location: location,
     );
     return _instance!;
   }
@@ -69,6 +75,11 @@ class CustomerIO {
   static CustomerIOMessagingInAppPlatform get inAppMessaging {
     return _instance?._inAppMessaging ??
         CustomerIOMessagingInAppPlatform.instance;
+  }
+
+  /// Access location functionality
+  static CustomerIOLocationPlatform get location {
+    return _instance?._location ?? CustomerIOLocationPlatform.instance;
   }
 
   /// To initialize the plugin

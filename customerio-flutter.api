@@ -11,7 +11,8 @@ public final class CustomerIO {
 	static public fun createInstance(
 		CustomerIOPlatform? platform,
 		CustomerIOMessagingPushPlatform? pushMessaging,
-		CustomerIOMessagingInAppPlatform? inAppMessaging
+		CustomerIOMessagingInAppPlatform? inAppMessaging,
+		CustomerIOLocationPlatform? location
 	): CustomerIO;
 	public fun deleteDeviceToken();
 	public fun identify(
@@ -38,6 +39,7 @@ public final class CustomerIO {
 	);
 	static public val inAppMessaging: CustomerIOMessagingInAppPlatform;
 	static public val instance: CustomerIO;
+	static public val location: CustomerIOLocationPlatform;
 	static public val pushMessaging: CustomerIOMessagingPushPlatform;
 }
 
@@ -55,7 +57,8 @@ public final class CustomerIOConfig {
 		int? flushInterval,
 		ScreenView? screenViewUse,
 		InAppConfig? inAppConfig,
-		PushConfig? pushConfig
+		PushConfig? pushConfig,
+		LocationConfig? locationConfig
 	): CustomerIOConfig;
 	public fun toMap(): Map<String, dynamic>;
 	public val apiHost: String?;
@@ -65,6 +68,7 @@ public final class CustomerIOConfig {
 	public val flushAt: int?;
 	public val flushInterval: int?;
 	public val inAppConfig: InAppConfig?;
+	public val locationConfig: LocationConfig?;
 	public val logLevel: CioLogLevel?;
 	public val migrationSiteId: String?;
 	public val pushConfig: PushConfig;
@@ -73,6 +77,16 @@ public final class CustomerIOConfig {
 	public val source: String;
 	public val trackApplicationLifecycleEvents: bool?;
 	public val version: String;
+}
+
+public final class CustomerIOLocationPlatform {
+	public fun new(): CustomerIOLocationPlatform;
+	public fun requestLocationUpdate();
+	public fun setLastKnownLocation(
+		required double latitude,
+		required double longitude
+	);
+	static public var instance: CustomerIOLocationPlatform;
 }
 
 public final class CustomerIOMessagingInAppPlatform {
@@ -229,6 +243,20 @@ public final class InlineInAppMessageView {
 	): InlineInAppMessageView;
 	public val elementId: String;
 	public val onActionClick: void Function(InAppMessage, String, String)?;
+}
+
+public final class LocationConfig {
+	public fun new(LocationTrackingMode trackingMode): LocationConfig;
+	public fun toMap(): Map<String, dynamic>;
+	public val trackingMode: LocationTrackingMode;
+}
+
+public final class LocationTrackingMode {
+	static public val manual: LocationTrackingMode;
+	static public val off: LocationTrackingMode;
+	static public val onAppStart: LocationTrackingMode;
+	public val rawValue: String;
+	static public val values: List<LocationTrackingMode>;
 }
 
 public final class MetricEvent {
