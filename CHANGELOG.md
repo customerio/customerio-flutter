@@ -1,3 +1,9 @@
+## [3.4.0](https://github.com/customerio/customerio-flutter/compare/3.3.0...3.4.0) (2026-03-11)
+
+### Features
+
+* Location enrichment ([#316](https://github.com/customerio/customerio-flutter/issues/316)) ([1b36d69](https://github.com/customerio/customerio-flutter/commit/1b36d6906599a15f87448859e943e8df049687e4))
+
 ## [3.3.0](https://github.com/customerio/customerio-flutter/compare/3.2.2...3.3.0) (2026-02-21)
 
 ### Features
