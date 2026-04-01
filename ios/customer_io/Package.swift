@@ -11,14 +11,15 @@ let package = Package(
         .library(name: "customer-io", targets: ["customer_io"])
     ],
     dependencies: [
-        .package(url: "https://github.com/customerio/customerio-ios.git", exact: "4.1.2")
+        .package(url: "https://github.com/customerio/customerio-ios.git", exact: "4.3.1")
     ],
     targets: [
         .target(
             name: "customer_io",
             dependencies: [
                 .product(name: "DataPipelines", package: "customerio-ios"),
-                .product(name: "MessagingInApp", package: "customerio-ios")
+                .product(name: "MessagingInApp", package: "customerio-ios"),
+                .product(name: "MessagingPushAPN", package: "customerio-ios")
             ]
         )
     ]

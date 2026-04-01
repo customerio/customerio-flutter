@@ -4,6 +4,7 @@
 //
 
 import CioMessagingPushFCM
+import UserNotifications
 
 class NotificationService: UNNotificationServiceExtension {
     
