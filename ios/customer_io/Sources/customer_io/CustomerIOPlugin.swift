@@ -3,10 +3,16 @@ import CioInternalCommon
 import CioMessagingInApp
 import Flutter
 import UIKit
+#if CIO_LOCATION_ENABLED
+import CioLocation
+#endif
 
 public class CustomerIOPlugin: NSObject, FlutterPlugin {
     private var methodChannel: FlutterMethodChannel!
     private var inAppMessagingChannelHandler: CustomerIOInAppMessaging!
+    #if CIO_LOCATION_ENABLED
+    private var locationChannelHandler: CustomerIOLocation!
+    #endif
     private var messagingPushChannelHandler: CustomerIOMessagingPush!
 
     private let logger: CioInternalCommon.Logger = DIGraphShared.shared.logger
@@ -18,6 +24,9 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
         registrar.addMethodCallDelegate(instance, channel: instance.methodChannel)
 
         instance.inAppMessagingChannelHandler = CustomerIOInAppMessaging(with: registrar)
+        #if CIO_LOCATION_ENABLED
+        instance.locationChannelHandler = CustomerIOLocation(with: registrar)
+        #endif
         instance.messagingPushChannelHandler = CustomerIOMessagingPush(with: registrar)
     }
 
@@ -156,6 +165,24 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
             CustomerIOSdkClient.configure(using: params)
             // Initialize native SDK with provided config
             let sdkConfigBuilder = try SDKConfigBuilder.create(from: params)
+
+            #if CIO_LOCATION_ENABLED
+            // Add location module to config builder if location config is provided
+            if let locationConfig = params["location"] as? [String: AnyHashable] {
+                let trackingModeValue = locationConfig["trackingMode"] as? String
+                let mode: LocationTrackingMode
+                switch trackingModeValue?.uppercased() {
+                case "OFF":
+                    mode = .off
+                case "ON_APP_START":
+                    mode = .onAppStart
+                default:
+                    mode = .manual
+                }
+                _ = sdkConfigBuilder.addModule(LocationModule(config: LocationConfig(mode: mode)))
+            }
+            #endif
+
             CustomerIO.initialize(withConfig: sdkConfigBuilder.build())
 
             // Initialize in-app messaging with provided config

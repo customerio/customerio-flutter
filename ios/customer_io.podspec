@@ -42,6 +42,14 @@ Pod::Spec.new do |s|
     ss.dependency "CioFirebaseWrapper", firebase_wrapper_version
   end
 
+  # Location module is optional - customers must opt in by adding this subspec.
+  s.subspec 'location' do |ss|
+    ss.dependency "CustomerIO/Location", native_sdk_version
+    ss.pod_target_xcconfig = {
+      'OTHER_SWIFT_FLAGS' => '$(inherited) -DCIO_LOCATION_ENABLED'
+    }
+  end
+
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
   s.swift_version = '5.0'

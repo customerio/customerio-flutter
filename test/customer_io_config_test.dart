@@ -109,6 +109,7 @@ void main() {
         'screenViewUse': 'inApp',
         'inApp': inAppConfig.toMap(),
         'push': pushConfig.toMap(),
+        'location': null,
         'version': config.version,
         'source': config.source,
       };

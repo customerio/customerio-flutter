@@ -10,7 +10,9 @@ import 'data/screen.dart';
 import 'screens/attributes.dart';
 import 'screens/dashboard.dart';
 import 'screens/events.dart';
+import 'screens/inbox_messages.dart';
 import 'screens/inline_messages.dart';
+import 'screens/location.dart';
 import 'screens/login.dart';
 import 'screens/settings.dart';
 import 'theme/sizes.dart';
@@ -143,6 +145,16 @@ class _AmiAppState extends State<AmiApp> {
               name: Screen.inlineMessages.name,
               path: Screen.inlineMessages.path,
               builder: (context, state) => const InlineMessagesScreen(),
+            ),
+            GoRoute(
+              name: Screen.inboxMessages.name,
+              path: Screen.inboxMessages.path,
+              builder: (context, state) => const InboxMessagesScreen(),
+            ),
+            GoRoute(
+              name: Screen.locationTest.name,
+              path: Screen.locationTest.path,
+              builder: (context, state) => const LocationScreen(),
             ),
           ],
         ),

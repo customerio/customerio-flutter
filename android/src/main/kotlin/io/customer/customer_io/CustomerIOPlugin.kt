@@ -6,6 +6,7 @@ import androidx.annotation.NonNull
 import io.customer.customer_io.bridge.NativeModuleBridge
 import io.customer.customer_io.bridge.nativeMapArgs
 import io.customer.customer_io.bridge.nativeNoArgs
+import io.customer.customer_io.location.CustomerIOLocation
 import io.customer.customer_io.messaginginapp.CustomerIOInAppMessaging
 import io.customer.customer_io.messagingpush.CustomerIOPushMessaging
 import io.customer.customer_io.utils.getAs
@@ -50,10 +51,14 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         flutterCommunicationChannel.setMethodCallHandler(this)
 
         // Initialize modules
-        modules = listOf(
-            CustomerIOPushMessaging(flutterPluginBinding),
-            CustomerIOInAppMessaging(flutterPluginBinding)
-        )
+        modules = buildList {
+            add(CustomerIOPushMessaging(flutterPluginBinding))
+            add(CustomerIOInAppMessaging(flutterPluginBinding))
+            // Location module is optional - enabled via customerio_location_enabled gradle property
+            if (BuildConfig.CIO_LOCATION_ENABLED) {
+                add(CustomerIOLocation(flutterPluginBinding))
+            }
+        }
 
         // Attach modules to engine
         modules.forEach {
@@ -223,6 +228,15 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     it.configureModule(
                         builder = this,
                         config = pushConfig ?: emptyMap()
+                    )
+                }
+            }
+            // Configure location module based on config provided by customer app
+            args.getAs<Map<String, Any>>(key = "location")?.let { locationConfig ->
+                modules.filterIsInstance<CustomerIOLocation>().forEach {
+                    it.configureModule(
+                        builder = this,
+                        config = locationConfig,
                     )
                 }
             }

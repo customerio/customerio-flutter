@@ -1,3 +1,21 @@
+## [3.4.0](https://github.com/customerio/customerio-flutter/compare/3.3.0...3.4.0) (2026-03-11)
+
+### Features
+
+* Location enrichment ([#316](https://github.com/customerio/customerio-flutter/issues/316)) ([1b36d69](https://github.com/customerio/customerio-flutter/commit/1b36d6906599a15f87448859e943e8df049687e4))
+
+## [3.3.0](https://github.com/customerio/customerio-flutter/compare/3.2.2...3.3.0) (2026-02-21)
+
+### Features
+
+* support for notification inbox ([#313](https://github.com/customerio/customerio-flutter/issues/313)) ([b1e732b](https://github.com/customerio/customerio-flutter/commit/b1e732b7606e2f95e54d9a50f00cbbeb72b119ea))
+
+## [3.2.2](https://github.com/customerio/customerio-flutter/compare/3.2.1...3.2.2) (2026-02-16)
+
+### Bug Fixes
+
+* Downgrade okhttp version to 4.x ([#307](https://github.com/customerio/customerio-flutter/issues/307)) ([b0dff34](https://github.com/customerio/customerio-flutter/commit/b0dff34c2e5acd29f7b373820d667bafc8c63fb3))
+
 ## [3.2.1](https://github.com/customerio/customerio-flutter/compare/3.2.0...3.2.1) (2026-02-05)
 
 ### Bug Fixes
