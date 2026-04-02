@@ -1,3 +1,9 @@
+## [3.5.0](https://github.com/customerio/customerio-flutter/compare/3.4.0...3.5.0) (2026-04-02)
+
+### Features
+
+* Push delivery reslience improvement ([#321](https://github.com/customerio/customerio-flutter/issues/321)) ([7c23a0a](https://github.com/customerio/customerio-flutter/commit/7c23a0aaa9b647cf06db2e592bd8debc73edeb96))
+
 ## [3.4.0](https://github.com/customerio/customerio-flutter/compare/3.3.0...3.4.0) (2026-03-11)
 
 ### Features
