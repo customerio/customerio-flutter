@@ -18,8 +18,7 @@ let package = Package(
             name: "customer_io",
             dependencies: [
                 .product(name: "DataPipelines", package: "customerio-ios"),
-                .product(name: "MessagingInApp", package: "customerio-ios"),
-                .product(name: "MessagingPush", package: "customerio-ios")
+                .product(name: "MessagingInApp", package: "customerio-ios")
             ]
         )
     ]
