@@ -193,13 +193,13 @@ jobs:
   # Verify the plugin compiles with Swift Package Manager (SPM).
   # This is a lightweight compilation check — no code signing, no distribution.
   build-ios-spm-verification:
-    runs-on: macos-14
+    runs-on: macos-15
     name: Verify iOS SPM build
     defaults:
       run:
         working-directory: apps/amiapp_flutter
     env:
-      XCODE_VERSION: "15.3"
+      XCODE_VERSION: "16.2"
     steps:
       - name: Check out code
         uses: actions/checkout@v4
