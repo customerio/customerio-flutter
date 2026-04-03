@@ -8,7 +8,7 @@ let package = Package(
         .iOS("13.0")
     ],
     products: [
-        .library(name: "customer-io", targets: ["customer_io"])
+        .library(name: "customer_io", targets: ["customer_io"])
     ],
     dependencies: [
         .package(url: "https://github.com/customerio/customerio-ios.git", exact: "4.4.0")
