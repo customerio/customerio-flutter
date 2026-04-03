@@ -1,4 +1,4 @@
-#if CIO_LOCATION_ENABLED
+#if canImport(CioLocation)
 import CioInternalCommon
 import CioLocation
 import CoreLocation
