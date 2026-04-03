@@ -4,6 +4,7 @@
 //
 
 import CioMessagingPushFCM
+import UserNotifications
 
 class NotificationService: UNNotificationServiceExtension {
     
@@ -16,7 +17,6 @@ class NotificationService: UNNotificationServiceExtension {
         MessagingPushFCM.initializeForExtension(
             withConfig: MessagingPushConfigBuilder(cdpApiKey: Env.cdpApiKey)
                 .logLevel(.debug)
-                .appGroupId("group.io.customer.amiapp.flutter.cio")
                 .build()
         )
         
