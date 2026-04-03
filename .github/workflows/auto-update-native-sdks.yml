@@ -181,7 +181,9 @@ jobs:
           if [[ -n "$IOS_VERSION" ]]; then
             echo "📝 Updating iOS SDK version to $IOS_VERSION"
             sed -i "s/native_sdk_version: .*/native_sdk_version: $IOS_VERSION/" pubspec.yaml
-            echo "✅ iOS version updated"
+            # Keep Package.swift in sync with pubspec.yaml native_sdk_version
+            sed -i "s/\.package(url: \"https:\/\/github.com\/customerio\/customerio-ios.git\", exact: \".*\"/.package(url: \"https:\/\/github.com\/customerio\/customerio-ios.git\", exact: \"$IOS_VERSION\"/" ios/customer_io/Package.swift
+            echo "✅ iOS version updated in pubspec.yaml and Package.swift"
           fi
           
           # Update Android version if needed  
