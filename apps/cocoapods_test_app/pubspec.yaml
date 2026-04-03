@@ -1,0 +1,25 @@
+name: cocoapods_test_app
+description: "Minimal Flutter app to validate that the customer_io plugin installs correctly via CocoaPods."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.8
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  customer_io:
+    path: ../../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
