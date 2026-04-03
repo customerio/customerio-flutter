@@ -1,5 +1,11 @@
-name: Setup 
+name: Setup
 description: Setup runner to be able to build an app with Flutter. Not specific for Android or iOS.
+
+inputs:
+  app_name:
+    description: "Sample app directory name under apps/"
+    required: false
+    default: "flutter_sample_spm"
 
 runs:
   using: "composite"
@@ -18,9 +24,9 @@ runs:
     run: flutter pub get
     shell: bash
 
-  - name: Install Flutter dependencies for example app
+  - name: Install Flutter dependencies for sample app
     run: |
-      cd apps/amiapp_flutter
+      cd apps/${{ inputs.app_name }}
       # Create a dummy .env file to prevent analysis warnings.
       # This will be replaced by the real .env file in the prepare-for-app-build action.
       touch .env

@@ -1,0 +1,4 @@
+<resources>
+    <string name="filter_view_app_link">Flutter Sample App Scheme Links</string>
+    <string name="filter_view_universal_link">Flutter Sample Universal Scheme Links</string>
+</resources>
