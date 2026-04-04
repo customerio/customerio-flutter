@@ -215,8 +215,8 @@ jobs:
       - name: Enable Swift Package Manager
         run: flutter config --enable-swift-package-manager
 
-      - name: Build iOS with SPM (no codesign)
-        run: flutter build ios --no-codesign
+      - name: Build iOS with SPM (simulator, no codesign needed)
+        run: flutter build ios --simulator --debug
 
   build-ios-sample-app:
     strategy:
