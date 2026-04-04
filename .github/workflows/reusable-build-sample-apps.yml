@@ -205,7 +205,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup iOS environment
-        uses: customerio/mobile-ci-tools/github-actions/ios/setup-ios/v1@main
+        uses: customerio/mobile-ci-tools/github-actions/ios/setup-ios/v1@MacOS-15+iOS-26
         with:
           xcode-version: ${{ env.XCODE_VERSION }}
 
