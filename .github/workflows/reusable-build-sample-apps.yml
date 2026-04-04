@@ -212,6 +212,14 @@ jobs:
       - name: Setup flutter environment and install dependencies
         uses: ./.github/actions/setup-flutter
 
+      - name: Setup sample app environment files
+        run: |
+          touch .env
+          cp ios/Env.swift.example ios/Env.swift
+
+      - name: Install flutter dependencies
+        run: flutter pub get
+
       - name: Enable Swift Package Manager
         run: flutter config --enable-swift-package-manager
 
