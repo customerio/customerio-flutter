@@ -1,0 +1,8 @@
+team_id "2YC97BQN3N"
+
+app_identifier([
+  "io.customer.testbed.flutter.spm",
+  "io.customer.testbed.flutter.spm.notification-service",
+])
+
+package_name("io.customer.testbed.flutter.spm")

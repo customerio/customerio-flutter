@@ -31,7 +31,7 @@ Update the Customer.io **iOS** and/or **Android** native SDK versions used by th
 4. **Verify**
    - From repo root:
      - `flutter pub get`
-     - `flutter pub get` in `apps/amiapp_flutter` (so the sample app uses the updated plugin)
+     - `flutter pub get` in `apps/flutter_sample_spm` (so the sample app uses the updated plugin)
      - `flutter analyze --no-fatal-infos`
      - `flutter test`
-   - Optionally build the example/sample app (e.g. `apps/amiapp_flutter`) on iOS and Android to confirm native integration.
+   - Optionally build the example/sample app (e.g. `apps/flutter_sample_spm`) on iOS and Android to confirm native integration.
