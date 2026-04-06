@@ -8,25 +8,31 @@ on:
         type: boolean
         required: false
         default: false
+      sample_app_name:
+        description: "Name of the sample app directory to build (e.g. flutter_sample_spm)"
+        type: string
+        required: true
+      cio_workspace_name:
+        description: "Customer.io workspace name for the sample app"
+        type: string
+        required: false
+        default: "Mobile: Flutter"
+      is_primary_app:
+        description: "Whether this is the primary sample app (controls distribution groups and Slack notifications)"
+        type: boolean
+        required: false
+        default: false
 
 jobs:
   build-android-sample-app:
-    strategy:
-      fail-fast: false # if one sample app fails to build, let the other sample apps continue to build and not cancel them.
-      matrix: # Use a matrix allowing us to build multiple apps in parallel. Just add an entry to the matrix and it will build!
-        sample-app:
-          # List all sample apps you want to have compiled.
-          # List item is name of directory inside of "apps" directory for the corresponding app to compile.
-          - name: "flutter_sample_spm"
-            cio-workspace-name: "Mobile: Flutter"
     defaults:
       run:
-        working-directory: apps/${{ matrix.sample-app.name }}
+        working-directory: apps/${{ inputs.sample_app_name }}
     runs-on: ubuntu-latest
     outputs:
       APP_VERSION_NAME: ${{ steps.set_output.outputs.APP_VERSION_NAME }}
       APP_VERSION_CODE: ${{ steps.set_output.outputs.APP_VERSION_CODE }}
-    name: Building Android sample app ${{ matrix.sample-app.name }}
+    name: Building Android sample app ${{ inputs.sample_app_name }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -53,15 +59,18 @@ jobs:
           # Input variables
           CURRENT_BRANCH: ${{ github.ref }}
           USE_LATEST_SDK_VERSION: ${{ inputs.use_latest_sdk_version }}
+          IS_PRIMARY_APP: ${{ inputs.is_primary_app }}
         run: |
           # Initialize with the default distribution group
           distribution_groups=("$ALL_BUILDS_GROUP")
-          
-          # Append distribution groups based on branch and context
-          [[ "$CURRENT_BRANCH" == "refs/heads/feature/"* ]] && distribution_groups+=("$FEATURE_BUILDS_GROUP")
-          [[ "$CURRENT_BRANCH" == "refs/heads/main" ]] && distribution_groups+=("$NEXT_BUILDS_GROUP")
-          [[ "$USE_LATEST_SDK_VERSION" == "true" ]] && distribution_groups+=("$PUBLIC_BUILDS_GROUP")
-          
+
+          # Only primary app gets additional distribution groups
+          if [[ "$IS_PRIMARY_APP" == "true" ]]; then
+            [[ "$CURRENT_BRANCH" == "refs/heads/feature/"* ]] && distribution_groups+=("$FEATURE_BUILDS_GROUP")
+            [[ "$CURRENT_BRANCH" == "refs/heads/main" ]] && distribution_groups+=("$NEXT_BUILDS_GROUP")
+            [[ "$USE_LATEST_SDK_VERSION" == "true" ]] && distribution_groups+=("$PUBLIC_BUILDS_GROUP")
+          fi
+
           # Export the groups as an environment variable
           echo "firebase_distribution_groups=$(IFS=','; echo "${distribution_groups[*]}")" >> $GITHUB_ENV
 
@@ -77,21 +86,21 @@ jobs:
         with:
           ruby-version: '3.1'
           bundler-cache: true # cache tools to make builds faster in future
-          working-directory: apps/${{ matrix.sample-app.name }}
+          working-directory: apps/${{ inputs.sample_app_name }}
 
       # Update version numbers and workspace credentials before building the app
 
       - name: Generate New Version
         uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0
         with:
-          subdirectory: apps/${{ matrix.sample-app.name }}
+          subdirectory: apps/${{ inputs.sample_app_name }}
           lane: "generate_new_version"
           options: '{"branch_name":"${{ github.ref_name }}", "pull_request_number":"${{ github.event.pull_request.number }}"}'
 
       - name: Update Flutter SDK Version
         uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0
         with:
-          subdirectory: apps/${{ matrix.sample-app.name }}
+          subdirectory: apps/${{ inputs.sample_app_name }}
           lane: "update_flutter_sdk_version"
         env:
           SDK_VERSION_NAME: ${{ env.SDK_VERSION_NAME }}
@@ -101,7 +110,7 @@ jobs:
       - name: Update Sample App Version
         uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0
         with:
-          subdirectory: apps/${{ matrix.sample-app.name }}
+          subdirectory: apps/${{ inputs.sample_app_name }}
           lane: "update_flutter_android_app_version"
           options: ${{ inputs.use_latest_sdk_version == true && format('{{"version_name":"{0}"}}', env.LATEST_TAG) || '' }}
         env:
@@ -114,9 +123,9 @@ jobs:
           ENV_FILE=".env"
           touch "$ENV_FILE"
           echo "BUILD_TIMESTAMP=$(date +%s)" >> "$ENV_FILE"
-          echo "CDP_API_KEY=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', matrix.sample-app.name)] }}" >> "$ENV_FILE"
-          echo "SITE_ID=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_SITE_ID', matrix.sample-app.name)] }}" >> "$ENV_FILE"
-          echo "WORKSPACE_NAME=${{ matrix.sample-app.cio-workspace-name }}" >> "$ENV_FILE"
+          echo "CDP_API_KEY=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', inputs.sample_app_name)] }}" >> "$ENV_FILE"
+          echo "SITE_ID=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_SITE_ID', inputs.sample_app_name)] }}" >> "$ENV_FILE"
+          echo "WORKSPACE_NAME=${{ inputs.cio_workspace_name }}" >> "$ENV_FILE"
           echo "BRANCH_NAME=${{ env.BRANCH_NAME }}" >> "$ENV_FILE"
           echo "COMMIT_HASH=${{ env.COMMIT_HASH }}" >> "$ENV_FILE"
           LAST_TAG="${LATEST_TAG:-untagged}"
@@ -132,12 +141,12 @@ jobs:
         uses: ./.github/actions/setup-flutter
 
       - name: Use SDK release version for sample app (if needed)
-        working-directory: apps/flutter_sample_spm
+        working-directory: apps/${{ inputs.sample_app_name }}
         run: |
-          dart run scripts/update_sample_app_sdk_version.dart
+          dart ../scripts/update_sample_app_sdk_version.dart .
           cat pubspec.lock
 
-      - name: Install flutter dependencies for sample app
+      - name: Install Flutter dependencies for app
         run: flutter pub get
 
       - name: Setup Android environment for sample app
@@ -148,7 +157,7 @@ jobs:
 
       - name: Run Android unit tests for Flutter plugin
         run: ./gradlew testDebugUnitTest
-        working-directory: apps/${{ matrix.sample-app.name }}/android
+        working-directory: apps/${{ inputs.sample_app_name }}/android
         env:
           _JAVA_OPTIONS: "-Xmx4g"
 
@@ -156,7 +165,7 @@ jobs:
         id: android_build
         uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0
         with:
-          subdirectory: apps/${{ matrix.sample-app.name }}
+          subdirectory: apps/${{ inputs.sample_app_name }}
           lane: 'android build'
           options: '{"distribution_groups": "${{ env.firebase_distribution_groups }}"}'
         env:
@@ -174,13 +183,13 @@ jobs:
           fi
 
       - name: Send Slack Notification for Sample App Builds (Android)
-        if: ${{ always() }}
+        if: ${{ always() && inputs.is_primary_app }}
         uses: customerio/mobile-ci-tools/github-actions/slack-notify-sample-app/v1@main
         with:
           build_status: ${{ steps.android_build.outcome }}
           app_icon_emoji: ":flutter:"
           app_name: "Flutter"
-          firebase_app_id: ${{ secrets[format('SAMPLE_APPS_{0}_FIREBASE_APP_ID_ANDROID', matrix.sample-app.name)] }}
+          firebase_app_id: ${{ secrets[format('SAMPLE_APPS_{0}_FIREBASE_APP_ID_ANDROID', inputs.sample_app_name)] }}
           firebase_distribution_groups: ${{ env.firebase_distribution_groups }}
           git_context: "${{ env.BRANCH_NAME }} (${{ env.COMMIT_HASH }})"
           icon_url: "https://img.icons8.com/color/512/flutter.png"
@@ -191,22 +200,14 @@ jobs:
           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   build-ios-sample-app:
-    strategy:
-      fail-fast: false # if one sample app fails to build, let the other sample apps continue to build and not cancel them.
-      matrix: # Use a matrix allowing us to build multiple apps in parallel. Just add an entry to the matrix and it will build!
-        sample-app:
-          # List all sample apps you want to have compiled.
-          # List item is name of directory inside of "apps" directory for the corresponding app to compile.
-          - name: "flutter_sample_spm"
-            cio-workspace-name: "Mobile: Flutter"
     defaults:
       run:
-        working-directory: apps/${{ matrix.sample-app.name }}
+        working-directory: apps/${{ inputs.sample_app_name }}
     runs-on: macos-15
     outputs:
       APP_VERSION_NAME: ${{ steps.set_output.outputs.APP_VERSION_NAME }}
       APP_VERSION_CODE: ${{ steps.set_output.outputs.APP_VERSION_CODE }}
-    name: Building iOS sample app ${{ matrix.sample-app.name }}
+    name: Building iOS sample app ${{ inputs.sample_app_name }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -233,15 +234,18 @@ jobs:
           # Input variables
           CURRENT_BRANCH: ${{ github.ref }}
           USE_LATEST_SDK_VERSION: ${{ inputs.use_latest_sdk_version }}
+          IS_PRIMARY_APP: ${{ inputs.is_primary_app }}
         run: |
           # Initialize with the default distribution group
           distribution_groups=("$ALL_BUILDS_GROUP")
-          
-          # Append distribution groups based on branch and context
-          [[ "$CURRENT_BRANCH" == "refs/heads/feature/"* ]] && distribution_groups+=("$FEATURE_BUILDS_GROUP")
-          [[ "$CURRENT_BRANCH" == "refs/heads/main" ]] && distribution_groups+=("$NEXT_BUILDS_GROUP")
-          [[ "$USE_LATEST_SDK_VERSION" == "true" ]] && distribution_groups+=("$PUBLIC_BUILDS_GROUP")
-          
+
+          # Only primary app gets additional distribution groups
+          if [[ "$IS_PRIMARY_APP" == "true" ]]; then
+            [[ "$CURRENT_BRANCH" == "refs/heads/feature/"* ]] && distribution_groups+=("$FEATURE_BUILDS_GROUP")
+            [[ "$CURRENT_BRANCH" == "refs/heads/main" ]] && distribution_groups+=("$NEXT_BUILDS_GROUP")
+            [[ "$USE_LATEST_SDK_VERSION" == "true" ]] && distribution_groups+=("$PUBLIC_BUILDS_GROUP")
+          fi
+
           # Export the groups as an environment variable
           echo "firebase_distribution_groups=$(IFS=','; echo "${distribution_groups[*]}")" >> $GITHUB_ENV
 
@@ -250,7 +254,7 @@ jobs:
       - name: Install CLI tools used in CI script
         shell: bash
         run: |
-          brew install sd # used in CI script as an easier to use sed CLI. Replaces text in files. 
+          brew install sd # used in CI script as an easier to use sed CLI. Replaces text in files.
           brew install xcbeautify # used by fastlane for output
 
       - name: Install Ruby
@@ -258,21 +262,21 @@ jobs:
         with:
           ruby-version: '3.1'
           bundler-cache: true # cache tools to make builds faster in future
-          working-directory: apps/${{ matrix.sample-app.name }}
+          working-directory: apps/${{ inputs.sample_app_name }}
 
       # Update version numbers and workspace credentials before building the app
 
       - name: Generate New Version
         uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0
         with:
-          subdirectory: apps/${{ matrix.sample-app.name }}
+          subdirectory: apps/${{ inputs.sample_app_name }}
           lane: "generate_new_version"
           options: '{"branch_name":"${{ github.ref_name }}", "pull_request_number":"${{ github.event.pull_request.number }}"}'
 
       - name: Update Flutter SDK Version
         uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0
         with:
-          subdirectory: apps/${{ matrix.sample-app.name }}
+          subdirectory: apps/${{ inputs.sample_app_name }}
           lane: "update_flutter_sdk_version"
         env:
           SDK_VERSION_NAME: ${{ env.SDK_VERSION_NAME }}
@@ -282,7 +286,7 @@ jobs:
       - name: Update Sample App Version
         uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0
         with:
-          subdirectory: apps/${{ matrix.sample-app.name }}
+          subdirectory: apps/${{ inputs.sample_app_name }}
           lane: "update_flutter_ios_app_version"
           options: ${{ inputs.use_latest_sdk_version == true && format('{{"version_name":"{0}"}}', env.LATEST_TAG) || '' }}
         env:
@@ -295,9 +299,9 @@ jobs:
           ENV_FILE=".env"
           touch "$ENV_FILE"
           echo "BUILD_TIMESTAMP=$(date +%s)" >> "$ENV_FILE"
-          echo "CDP_API_KEY=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', matrix.sample-app.name)] }}" >> "$ENV_FILE"
-          echo "SITE_ID=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_SITE_ID', matrix.sample-app.name)] }}" >> "$ENV_FILE"
-          echo "WORKSPACE_NAME=${{ matrix.sample-app.cio-workspace-name }}" >> "$ENV_FILE"
+          echo "CDP_API_KEY=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', inputs.sample_app_name)] }}" >> "$ENV_FILE"
+          echo "SITE_ID=${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_SITE_ID', inputs.sample_app_name)] }}" >> "$ENV_FILE"
+          echo "WORKSPACE_NAME=${{ inputs.cio_workspace_name }}" >> "$ENV_FILE"
           echo "BRANCH_NAME=${{ env.BRANCH_NAME }}" >> "$ENV_FILE"
           echo "COMMIT_HASH=${{ env.COMMIT_HASH }}" >> "$ENV_FILE"
           LAST_TAG="${LATEST_TAG:-untagged}"
@@ -310,7 +314,7 @@ jobs:
       - name: Setup workspace credentials in iOS environment files
         run: |
           cp "ios/Env.swift.example" "ios/Env.swift"
-          sd 'cdpApiKey: String = ".*"' "cdpApiKey: String = \"${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', matrix.sample-app.name)] }}\"" "ios/Env.swift"
+          sd 'cdpApiKey: String = ".*"' "cdpApiKey: String = \"${{ secrets[format('CUSTOMERIO_{0}_WORKSPACE_CDP_API_KEY', inputs.sample_app_name)] }}\"" "ios/Env.swift"
 
       # Make sure to fetch dependencies only after updating the version numbers and workspace credentials
 
@@ -318,12 +322,12 @@ jobs:
         uses: ./.github/actions/setup-flutter
 
       - name: Use SDK release version for sample app (if needed)
-        working-directory: apps/flutter_sample_spm
+        working-directory: apps/${{ inputs.sample_app_name }}
         run: |
-          dart run scripts/update_sample_app_sdk_version.dart
+          dart ../scripts/update_sample_app_sdk_version.dart .
           cat pubspec.lock
 
-      - name: Install flutter dependencies for sample app
+      - name: Install Flutter dependencies for app
         run: flutter pub get
 
       - name: Setup iOS environment for sample app
@@ -335,9 +339,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Pods
-          key: ${{ runner.os }}-${{ matrix.sample-app.name }}-Pods-${{ github.ref }}
+          key: ${{ runner.os }}-${{ inputs.sample_app_name }}-Pods-${{ github.ref }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.sample-app.name }}-Pods
+            ${{ runner.os }}-${{ inputs.sample_app_name }}-Pods
 
       - name: pod install
         run: pod install --project-directory=ios
@@ -346,7 +350,7 @@ jobs:
         id: ios_build
         uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0
         with:
-          subdirectory: apps/${{ matrix.sample-app.name }}
+          subdirectory: apps/${{ inputs.sample_app_name }}
           lane: "ios build"
           options: '{"distribution_groups": "${{ env.firebase_distribution_groups }}"}'
         env:
@@ -364,13 +368,13 @@ jobs:
           fi
 
       - name: Send Slack Notification for Sample App Builds (iOS)
-        if: ${{ always() }}
+        if: ${{ always() && inputs.is_primary_app }}
         uses: customerio/mobile-ci-tools/github-actions/slack-notify-sample-app/v1@main
         with:
           build_status: ${{ steps.ios_build.outcome }}
           app_icon_emoji: ":flutter:"
           app_name: "Flutter"
-          firebase_app_id: ${{ secrets[format('SAMPLE_APPS_{0}_FIREBASE_APP_ID_IOS', matrix.sample-app.name)] }}
+          firebase_app_id: ${{ secrets[format('SAMPLE_APPS_{0}_FIREBASE_APP_ID_IOS', inputs.sample_app_name)] }}
           firebase_distribution_groups: ${{ env.firebase_distribution_groups }}
           git_context: "${{ env.BRANCH_NAME }} (${{ env.COMMIT_HASH }})"
           icon_url: "https://img.icons8.com/color/512/flutter.png"
