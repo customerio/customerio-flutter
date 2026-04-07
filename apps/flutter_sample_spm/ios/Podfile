@@ -1,11 +1,3 @@
-# ------------- 
-# This code only used internally for Customer.io testing
-require 'open-uri'
-IO.copy_stream(URI.open('https://raw.githubusercontent.com/customerio/customerio-ios/main/scripts/cocoapods_override_sdk.rb'), "/tmp/override_cio_sdk.rb")
-load "/tmp/override_cio_sdk.rb"
-# end of internal Customer.io testing code
-# ------------- 
-
 # Uncomment this line to define a global platform for your project
 platform :ios, '15.0'
 
@@ -41,23 +33,8 @@ flutter_ios_podfile_setup
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
-  
-  # Uncomment only 1 of the lines below to install a version of the iOS SDK
-  pod 'customer_io/fcm', :path => '.symlinks/plugins/customer_io/ios' # install podspec bundled with the plugin
-  pod 'customer_io/location', :path => '.symlinks/plugins/customer_io/ios' # install location subspec for testing
-  # install_non_production_ios_sdk_local_path(local_path: '~/Development/customerio-ios/', is_app_extension: false, push_service: "fcm")
-  # install_non_production_ios_sdk_git_branch(branch_name: 'feature/wrappers-inline-support', is_app_extension: false, push_service: "fcm")
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-end
-
-target 'NotificationServiceExtension' do
-  use_frameworks!
-  # Ideally, installing non-production SDK to main target should be enough
-  # We may not need to install non-production SDK to app extension separately
-  pod 'customer_io_richpush/fcm', :path => '.symlinks/plugins/customer_io/ios' # install podspec bundled with the plugin
-  # install_non_production_ios_sdk_local_path(local_path: '~/code/customerio-ios/', is_app_extension: true, push_service: "fcm")
-  # install_non_production_ios_sdk_git_branch(branch_name: 'levi/v2-multiple-push-handlers', is_app_extension: true, push_service: "fcm")
 end
 
 post_install do |installer|
