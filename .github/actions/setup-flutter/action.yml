@@ -1,4 +1,4 @@
-name: Setup 
+name: Setup
 description: Setup runner to be able to build an app with Flutter. Not specific for Android or iOS.
 
 runs:
@@ -18,11 +18,13 @@ runs:
     run: flutter pub get
     shell: bash
 
-  - name: Install Flutter dependencies for example app
+  - name: Install Flutter dependencies for sample apps
     run: |
-      cd apps/amiapp_flutter
-      # Create a dummy .env file to prevent analysis warnings.
-      # This will be replaced by the real .env file in the prepare-for-app-build action.
-      touch .env
-      flutter pub get
+      for app_dir in apps/flutter_sample_*/; do
+        echo "Installing dependencies for $app_dir"
+        cd "$app_dir"
+        touch .env
+        flutter pub get
+        cd -
+      done
     shell: bash

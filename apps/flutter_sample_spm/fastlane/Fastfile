@@ -1,0 +1,2 @@
+# Import the Fastfile from common fastlane directory
+import "../../fastlane/Fastfile"
