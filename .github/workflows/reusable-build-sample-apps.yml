@@ -189,7 +189,6 @@ jobs:
         if: ${{ !inputs.should_distribute }}
         id: android_build_verify
         run: flutter build apk --release
-        continue-on-error: true
 
       - name: Determine SDK Version
         shell: bash
