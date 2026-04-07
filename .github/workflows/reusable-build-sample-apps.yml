@@ -22,6 +22,13 @@ on:
         type: boolean
         required: false
         default: false
+    outputs:
+      APP_VERSION_NAME:
+        description: "The version name of the built app"
+        value: ${{ jobs.build-android-sample-app.outputs.APP_VERSION_NAME }}
+      APP_VERSION_CODE:
+        description: "The version code of the built app"
+        value: ${{ jobs.build-android-sample-app.outputs.APP_VERSION_CODE }}
 
 jobs:
   build-android-sample-app:
@@ -181,6 +188,12 @@ jobs:
           else
             echo "APP_SDK_BUILD_VERSION=${{ env.SDK_VERSION_NAME }}" >> $GITHUB_ENV
           fi
+
+      - name: Set job outputs
+        id: set_output
+        run: |
+          echo "APP_VERSION_NAME=${{ env.APP_VERSION_NAME }}" >> $GITHUB_OUTPUT
+          echo "APP_VERSION_CODE=${{ env.APP_VERSION_CODE }}" >> $GITHUB_OUTPUT
 
       - name: Send Slack Notification for Sample App Builds (Android)
         if: ${{ always() && inputs.is_primary_app }}
@@ -366,6 +379,12 @@ jobs:
           else
             echo "APP_SDK_BUILD_VERSION=${{ env.SDK_VERSION_NAME }}" >> $GITHUB_ENV
           fi
+
+      - name: Set job outputs
+        id: set_output
+        run: |
+          echo "APP_VERSION_NAME=${{ env.APP_VERSION_NAME }}" >> $GITHUB_OUTPUT
+          echo "APP_VERSION_CODE=${{ env.APP_VERSION_CODE }}" >> $GITHUB_OUTPUT
 
       - name: Send Slack Notification for Sample App Builds (iOS)
         if: ${{ always() && inputs.is_primary_app }}
