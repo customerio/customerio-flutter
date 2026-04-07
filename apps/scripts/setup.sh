@@ -142,7 +142,7 @@ function run_flutter_doc() {
 # helper utilities
 
 function step() {
-	((step_idx++))
+	step_idx=$((${step_idx:-0} + 1))
 	cat <<EOF
 
 Step $step_idx: $1
