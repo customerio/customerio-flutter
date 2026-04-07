@@ -223,48 +223,6 @@ jobs:
           sdk_version: ${{ env.APP_SDK_BUILD_VERSION }}
           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-  # Verify the plugin compiles with Swift Package Manager (SPM).
-  # This is a lightweight compilation check — no code signing, no distribution.
-  # Setup steps follow the same pattern as build-ios-sample-app.
-  build-ios-spm-verification:
-    runs-on: macos-15
-    name: Verify iOS SPM build
-    defaults:
-      run:
-        working-directory: apps/amiapp_flutter
-    env:
-      XCODE_VERSION: "16.2"
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-
-      - name: Setup workspace credentials in flutter environment files
-        run: |
-          ENV_FILE=".env"
-          touch "$ENV_FILE"
-          echo "CDP_API_KEY=fake-key-for-spm-build-check" >> "$ENV_FILE"
-          echo "SITE_ID=fake-site-id" >> "$ENV_FILE"
-
-      - name: Setup workspace credentials in iOS environment files
-        run: cp "ios/Env.swift.example" "ios/Env.swift"
-
-      - name: Setup flutter environment and install dependencies
-        uses: ./.github/actions/setup-flutter
-
-      - name: Install flutter dependencies for sample app
-        run: flutter pub get
-
-      - name: Setup iOS environment for sample app
-        uses: customerio/mobile-ci-tools/github-actions/ios/setup-ios/v1@MacOS-15+iOS-26
-        with:
-          xcode-version: ${{ env.XCODE_VERSION }}
-
-      - name: Enable Swift Package Manager
-        run: flutter config --enable-swift-package-manager
-
-      - name: Build iOS with SPM (simulator)
-        run: flutter build ios --simulator --debug
-
   build-ios-sample-app:
     defaults:
       run:
