@@ -63,8 +63,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1001564516023',
     projectId: 'remote-habits',
     storageBucket: 'remote-habits.firebasestorage.app',
-    iosClientId:
-        '1001564516023-uv71nhj8ca3vo1imcsmvfl8vjmlgml92.apps.googleusercontent.com',
     iosBundleId: 'io.customer.testbed.flutter.spm',
   );
 }
