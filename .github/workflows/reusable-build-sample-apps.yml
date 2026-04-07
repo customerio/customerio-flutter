@@ -17,7 +17,7 @@ jobs:
         sample-app:
           # List all sample apps you want to have compiled.
           # List item is name of directory inside of "apps" directory for the corresponding app to compile.
-          - name: "amiapp_flutter"
+          - name: "flutter_sample_spm"
             cio-workspace-name: "Mobile: Flutter"
     defaults:
       run:
@@ -132,7 +132,7 @@ jobs:
         uses: ./.github/actions/setup-flutter
 
       - name: Use SDK release version for sample app (if needed)
-        working-directory: apps/amiapp_flutter
+        working-directory: apps/flutter_sample_spm
         run: |
           dart run scripts/update_sample_app_sdk_version.dart
           cat pubspec.lock
@@ -197,7 +197,7 @@ jobs:
         sample-app:
           # List all sample apps you want to have compiled.
           # List item is name of directory inside of "apps" directory for the corresponding app to compile.
-          - name: "amiapp_flutter"
+          - name: "flutter_sample_spm"
             cio-workspace-name: "Mobile: Flutter"
     defaults:
       run:
@@ -318,7 +318,7 @@ jobs:
         uses: ./.github/actions/setup-flutter
 
       - name: Use SDK release version for sample app (if needed)
-        working-directory: apps/amiapp_flutter
+        working-directory: apps/flutter_sample_spm
         run: |
           dart run scripts/update_sample_app_sdk_version.dart
           cat pubspec.lock

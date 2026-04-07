@@ -1,0 +1,37 @@
+# Flutter app-specific ignores (supplements root .gitignore)
+
+# Build artifacts
+**/build/
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
+
+# Flutter generated
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/ephemeral/
+**/lib/generated_plugin_registrant.dart
+**/migrate_working_dir/
+
+# Symbolication & obfuscation
+**/app.*.symbols
+**/app.*.map.json
+
+# Fastlane
+**/fastlane/report.xml
+
+# Environment files
+*.env
+**/ios/Env.swift
+
+# Android signing
+**/key.properties
+**/*.jks
+
+# Misc
+**/.swiftpm/
+**/app_store_connect_creds.json
+
+# Commit sample app pubspec.lock files since we are not generating them in the CI
+!**/pubspec.lock
