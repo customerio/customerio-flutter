@@ -41,6 +41,5 @@ For a guided interactive walkthrough:
 
 ## CI
 
-- **PRs**: only the primary (SPM) app is built
-- **Pushes to main/feature/\***: both apps are built
+- **PRs and pushes**: both apps are built to verify SPM and CocoaPods compatibility
 - **SDK releases**: only the primary app is built

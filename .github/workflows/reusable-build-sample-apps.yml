@@ -22,6 +22,11 @@ on:
         type: boolean
         required: false
         default: false
+      should_distribute:
+        description: "Whether to distribute builds to Firebase App Distribution"
+        type: boolean
+        required: false
+        default: true
     outputs:
       APP_VERSION_NAME:
         description: "The version name of the built app"
@@ -169,6 +174,7 @@ jobs:
           _JAVA_OPTIONS: "-Xmx4g"
 
       - name: Build and upload Android app via Fastlane
+        if: ${{ inputs.should_distribute }}
         id: android_build
         uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0
         with:
@@ -178,6 +184,12 @@ jobs:
         env:
           FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64: ${{ secrets.FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64 }}
         continue-on-error: true # continue to build iOS app even if Android build fails
+
+      - name: Build Android app (verification only)
+        if: ${{ !inputs.should_distribute }}
+        id: android_build_verify
+        run: flutter build apk --release
+        continue-on-error: true
 
       - name: Determine SDK Version
         shell: bash
@@ -360,6 +372,7 @@ jobs:
         run: pod install --project-directory=ios
 
       - name: Build and upload iOS app via Fastlane
+        if: ${{ inputs.should_distribute }}
         id: ios_build
         uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0
         with:
@@ -369,6 +382,11 @@ jobs:
         env:
           GOOGLE_CLOUD_MATCH_READONLY_SERVICE_ACCOUNT_B64: ${{ secrets.GOOGLE_CLOUD_MATCH_READONLY_SERVICE_ACCOUNT_B64 }}
           FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64: ${{ secrets.FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64 }}
+
+      - name: Build iOS app (verification only)
+        if: ${{ !inputs.should_distribute }}
+        id: ios_build_verify
+        run: flutter build ios --no-codesign
 
       - name: Determine SDK Version
         shell: bash
