@@ -5,7 +5,7 @@ ios/Flutter/flutter_export_environment.sh
 
 # Swift Package Manager
 **/Package.resolved
-**/swiftpm/
+**/.swiftpm/
 **/.build/
 
 # MacOS generated file
