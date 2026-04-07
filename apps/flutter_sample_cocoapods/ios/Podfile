@@ -43,11 +43,10 @@ target 'Runner' do
   use_modular_headers!
   
   # Uncomment only 1 of the lines below to install a version of the iOS SDK
-  # TODO: Switch to customer_io/apn once APN subspec is added to the SDK
   pod 'customer_io/fcm', :path => '.symlinks/plugins/customer_io/ios' # install podspec bundled with the plugin
   pod 'customer_io/location', :path => '.symlinks/plugins/customer_io/ios' # install location subspec for testing
-  # install_non_production_ios_sdk_local_path(local_path: '~/Development/customerio-ios/', is_app_extension: false, push_service: "apn")
-  # install_non_production_ios_sdk_git_branch(branch_name: 'feature/wrappers-inline-support', is_app_extension: false, push_service: "apn")
+  # install_non_production_ios_sdk_local_path(local_path: '~/code/customerio-ios/', is_app_extension: false, push_service: "fcm")
+  # install_non_production_ios_sdk_git_branch(branch_name: 'feature/wrappers-inline-support', is_app_extension: false, push_service: "fcm")
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
@@ -56,10 +55,9 @@ target 'NotificationServiceExtension' do
   use_frameworks!
   # Ideally, installing non-production SDK to main target should be enough
   # We may not need to install non-production SDK to app extension separately
-  # TODO: Switch to customer_io_richpush/apn once APN subspec is added to the SDK
   pod 'customer_io_richpush/fcm', :path => '.symlinks/plugins/customer_io/ios' # install podspec bundled with the plugin
-  # install_non_production_ios_sdk_local_path(local_path: '~/code/customerio-ios/', is_app_extension: true, push_service: "apn")
-  # install_non_production_ios_sdk_git_branch(branch_name: 'levi/v2-multiple-push-handlers', is_app_extension: true, push_service: "apn")
+  # install_non_production_ios_sdk_local_path(local_path: '~/code/customerio-ios/', is_app_extension: true, push_service: "fcm")
+  # install_non_production_ios_sdk_git_branch(branch_name: 'feature/wrappers-inline-support', is_app_extension: true, push_service: "fcm")
 end
 
 post_install do |installer|

@@ -26,7 +26,7 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
         
         MessagingPushFCM.initialize(
             withConfig: MessagingPushConfigBuilder()
-                .appGroupId("group.io.customer.amiapp.flutter.cio")
+                .appGroupId("group.io.customer.testbed.flutter.cocoapods")
                 .build()
         )
         

@@ -6,7 +6,7 @@
 	<string>development</string>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.io.customer.amiapp.flutter.cio</string>
+		<string>group.io.customer.testbed.flutter.cocoapods</string>
 	</array>
 </dict>
 </plist>
