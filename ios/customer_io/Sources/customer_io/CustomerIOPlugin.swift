@@ -3,14 +3,14 @@ import CioInternalCommon
 import CioMessagingInApp
 import Flutter
 import UIKit
-#if CIO_LOCATION_ENABLED
+#if canImport(CioLocation)
 import CioLocation
 #endif
 
-public class SwiftCustomerIOPlugin: NSObject, FlutterPlugin {
+public class CustomerIOPlugin: NSObject, FlutterPlugin {
     private var methodChannel: FlutterMethodChannel!
     private var inAppMessagingChannelHandler: CustomerIOInAppMessaging!
-    #if CIO_LOCATION_ENABLED
+    #if canImport(CioLocation)
     private var locationChannelHandler: CustomerIOLocation!
     #endif
     private var messagingPushChannelHandler: CustomerIOMessagingPush!
@@ -18,13 +18,13 @@ public class SwiftCustomerIOPlugin: NSObject, FlutterPlugin {
     private let logger: CioInternalCommon.Logger = DIGraphShared.shared.logger
 
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let instance = SwiftCustomerIOPlugin()
+        let instance = CustomerIOPlugin()
 
         instance.methodChannel = FlutterMethodChannel(name: "customer_io", binaryMessenger: registrar.messenger())
         registrar.addMethodCallDelegate(instance, channel: instance.methodChannel)
 
         instance.inAppMessagingChannelHandler = CustomerIOInAppMessaging(with: registrar)
-        #if CIO_LOCATION_ENABLED
+        #if canImport(CioLocation)
         instance.locationChannelHandler = CustomerIOLocation(with: registrar)
         #endif
         instance.messagingPushChannelHandler = CustomerIOMessagingPush(with: registrar)
@@ -166,7 +166,7 @@ public class SwiftCustomerIOPlugin: NSObject, FlutterPlugin {
             // Initialize native SDK with provided config
             let sdkConfigBuilder = try SDKConfigBuilder.create(from: params)
 
-            #if CIO_LOCATION_ENABLED
+            #if canImport(CioLocation)
             // Add location module to config builder if location config is provided
             if let locationConfig = params["location"] as? [String: AnyHashable] {
                 let trackingModeValue = locationConfig["trackingMode"] as? String

@@ -3,6 +3,11 @@ ios/Flutter/flutter_export_environment.sh
 .idea/**
 **/flutter_export_environment.sh
 
+# Swift Package Manager
+**/Package.resolved
+**/.swiftpm/
+**/.build/
+
 # MacOS generated file
 .DS_Store
 
