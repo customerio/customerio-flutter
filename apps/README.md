@@ -4,8 +4,12 @@ Two sample apps for testing the Flutter SDK, differentiated by iOS dependency ma
 
 | App | Directory | Bundle ID (iOS) | Purpose |
 |-----|-----------|----------------|---------|
-| **SPM** (primary) | `flutter_sample_spm/` | `io.customer.testbed.flutter.spm` | Primary test app. Will use SPM for iOS deps (currently CocoaPods until SDK supports SPM). |
-| **CocoaPods** (secondary) | `flutter_sample_cocoapods/` | `io.customer.testbed.flutter.cocoapods` | Secondary test app using CocoaPods. |
+| **SPM** (primary) | `flutter_sample_spm/` | `io.customer.testbed.flutter.spm` | Primary test app using SPM for iOS CIO SDK dependencies. |
+| **CocoaPods** (secondary) | `flutter_sample_cocoapods/` | `io.customer.testbed.flutter.cocoapods` | Secondary test app using CocoaPods for iOS CIO SDK dependencies. |
+
+## iOS Dependency Management
+
+SPM vs CocoaPods is controlled per-project via `enable-swift-package-manager` in each app's `pubspec.yaml`. The NSE (NotificationServiceExtension) links `FlutterGeneratedPluginSwiftPackage` in the SPM app, and `customer_io_richpush/fcm` pod in the CocoaPods app.
 
 ## Shared Code
 

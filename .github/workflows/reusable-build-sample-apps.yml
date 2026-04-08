@@ -351,6 +351,12 @@ jobs:
           dart ../scripts/update_sample_app_sdk_version.dart .
           cat pubspec.lock
 
+      # Enable SPM for the SPM sample app so pod install skips SPM-handled plugins.
+      # Per-project pubspec.yaml config may not take effect on CI without this.
+      - name: Enable Swift Package Manager
+        if: ${{ inputs.sample_app_name == 'flutter_sample_spm' }}
+        run: flutter config --enable-swift-package-manager
+
       - name: Install Flutter dependencies for app
         run: flutter pub get
 
