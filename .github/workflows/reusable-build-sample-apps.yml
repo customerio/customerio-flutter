@@ -357,11 +357,9 @@ jobs:
         if: ${{ inputs.sample_app_name == 'flutter_sample_spm' }}
         run: flutter config --enable-swift-package-manager
 
-      # Enable optional CIO Location module for the SPM sample app.
-      # This env var is read by Package.swift to conditionally include the Location dependency.
-      - name: Enable CIO Location module for SPM
-        if: ${{ inputs.sample_app_name == 'flutter_sample_spm' }}
-        run: echo "CIO_LOCATION=true" >> $GITHUB_ENV
+      # Location module is enabled via android/gradle.properties (customerio_location_enabled=true).
+      # Package.swift reads this file to conditionally include the Location SPM dependency.
+      # No extra step needed — the sample app's gradle.properties already has the flag set.
 
       - name: Install Flutter dependencies for app
         run: flutter pub get

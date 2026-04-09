@@ -106,6 +106,9 @@ jobs:
       - name: pod install
         run: pod install --project-directory=ios
 
+      - name: Disable Location module in gradle.properties
+        run: sed -i '' 's/customerio_location_enabled=true/customerio_location_enabled=false/' android/gradle.properties
+
       - name: Build WITHOUT Location module
         run: flutter build ios --no-codesign
 
@@ -130,9 +133,10 @@ jobs:
           flutter clean
           flutter pub get
 
+      - name: Enable Location module in gradle.properties
+        run: sed -i '' 's/customerio_location_enabled=false/customerio_location_enabled=true/' android/gradle.properties
+
       - name: Build WITH Location module
-        env:
-          CIO_LOCATION: "true"
         run: flutter build ios --no-codesign
 
       - name: Record size with Location and compare
@@ -156,7 +160,7 @@ jobs:
           if [ "$SIZE_WITH" -gt "$SIZE_WITHOUT_LOCATION" ] && [ "$LOCATION_SYMBOLS" -gt 0 ]; then
             echo "✅ Location module is properly optional:"
             echo "   - Excluded by default (no symbols, smaller binary)"
-            echo "   - Included with CIO_LOCATION=true ($LOCATION_SYMBOLS symbols, +$(echo "scale=2; $DIFF / 1024" | bc) KB)"
+            echo "   - Included with customerio_location_enabled=true ($LOCATION_SYMBOLS symbols, +$(echo "scale=2; $DIFF / 1024" | bc) KB)"
           else
             echo "⚠️ WARNING: Location module optional flag may not be working correctly."
             echo "   SIZE_WITH=$SIZE_WITH, SIZE_WITHOUT=$SIZE_WITHOUT_LOCATION, LOCATION_SYMBOLS=$LOCATION_SYMBOLS"
@@ -197,7 +201,7 @@ jobs:
           comment-id: ${{ needs.update-pr-comment.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            * ✅ SPM Location module optional flag verified — builds pass with and without `CIO_LOCATION`
+            * ✅ SPM Location module optional flag verified — builds pass with and without `customerio_location_enabled` in gradle.properties
           edit-mode: append
 
       - name: Update PR comment with Location module verification failure
