@@ -202,10 +202,10 @@ class _ActionList extends StatelessWidget {
       if (status == 'granted') {
         context.showMessageDialog(_pushPermissionAlertTitle,
             'Push notifications are enabled on this device');
-      } else if (status == 'notDetermined') {
-        _requestPushPermission(context);
-      } else {
+      } else if (status == 'permanentlyDenied') {
         _onPushPermissionPermanentlyDenied(context);
+      } else {
+        _requestPushPermission(context);
       }
     });
   }
