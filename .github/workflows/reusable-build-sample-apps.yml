@@ -357,9 +357,6 @@ jobs:
         if: ${{ inputs.sample_app_name == 'flutter_sample_spm' }}
         run: flutter config --enable-swift-package-manager
 
-      # Location module for SPM is controlled by customerio_location_enabled in android/gradle.properties.
-      # Package.swift reads this file to conditionally include the Location SPM dependency.
-
       - name: Install Flutter dependencies for app
         run: flutter pub get
 

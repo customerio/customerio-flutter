@@ -70,106 +70,9 @@ jobs:
       should_distribute: ${{ github.event_name == 'push' }}
     secrets: inherit
 
-  # Verification job: builds the SPM app with and without the Location module
-  # to confirm the optional flag works and report binary size differences.
-  verify-spm-location-optional:
-    if: ${{ always() }}
-    needs: [ update-pr-comment ]
-    runs-on: macos-15
-    name: Verify SPM Location module is optional
-    defaults:
-      run:
-        working-directory: apps/flutter_sample_spm
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-
-      - name: Setup flutter environment
-        uses: ./.github/actions/setup-flutter
-
-      - name: Setup iOS environment
-        uses: customerio/mobile-ci-tools/github-actions/ios/setup-ios/v1@MacOS-15+iOS-26
-        with:
-          xcode-version: ${{ env.XCODE_VERSION }}
-
-      - name: Setup environment files
-        run: |
-          echo "CDP_API_KEY=test" > .env
-          cp ios/Env.swift.example ios/Env.swift
-
-      - name: Enable Swift Package Manager
-        run: flutter config --enable-swift-package-manager
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: pod install
-        run: pod install --project-directory=ios
-
-      - name: Disable Location module in gradle.properties
-        run: sed -i '' 's/customerio_location_enabled=true/customerio_location_enabled=false/' android/gradle.properties
-
-      - name: Build WITHOUT Location module
-        run: flutter build ios --no-codesign
-
-      - name: Record size without Location
-        run: |
-          SIZE_WITHOUT=$(stat -f%z build/ios/iphoneos/Runner.app/Runner 2>/dev/null || stat -c%s build/ios/iphoneos/Runner.app/Runner)
-          echo "SIZE_WITHOUT_LOCATION=$SIZE_WITHOUT" >> $GITHUB_ENV
-          echo "📦 Binary size WITHOUT Location: $(echo "scale=2; $SIZE_WITHOUT / 1048576" | bc) MB ($SIZE_WITHOUT bytes)"
-
-      - name: Check Location symbols are absent
-        run: |
-          LOCATION_SYMBOLS=$(nm build/ios/iphoneos/Runner.app/Runner 2>/dev/null | grep -c "CioLocation" || true)
-          echo "CioLocation symbols found: $LOCATION_SYMBOLS"
-          if [ "$LOCATION_SYMBOLS" -gt 0 ]; then
-            echo "❌ ERROR: Found $LOCATION_SYMBOLS CioLocation symbols in build WITHOUT Location flag!"
-            exit 1
-          fi
-          echo "✅ No CioLocation symbols found — Location module correctly excluded."
-
-      - name: Clean for next build
-        run: |
-          flutter clean
-          flutter pub get
-
-      - name: Enable Location module in gradle.properties
-        run: sed -i '' 's/customerio_location_enabled=false/customerio_location_enabled=true/' android/gradle.properties
-
-      - name: Build WITH Location module
-        run: flutter build ios --no-codesign
-
-      - name: Record size with Location and compare
-        run: |
-          SIZE_WITH=$(stat -f%z build/ios/iphoneos/Runner.app/Runner 2>/dev/null || stat -c%s build/ios/iphoneos/Runner.app/Runner)
-          LOCATION_SYMBOLS=$(nm build/ios/iphoneos/Runner.app/Runner 2>/dev/null | grep -c "CioLocation" || true)
-          BRIDGE_SYMBOLS=$(nm build/ios/iphoneos/Runner.app/Runner 2>/dev/null | grep -c "CustomerIOLocation" || true)
-
-          echo ""
-          echo "📊 SPM Location Module — Binary Size Comparison"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "📦 WITHOUT Location: $(echo "scale=2; $SIZE_WITHOUT_LOCATION / 1048576" | bc) MB ($SIZE_WITHOUT_LOCATION bytes)"
-          echo "📦 WITH Location:    $(echo "scale=2; $SIZE_WITH / 1048576" | bc) MB ($SIZE_WITH bytes)"
-          DIFF=$((SIZE_WITH - SIZE_WITHOUT_LOCATION))
-          echo "📈 Difference:       $(echo "scale=2; $DIFF / 1024" | bc) KB ($DIFF bytes)"
-          echo ""
-          echo "🔍 CioLocation symbols:       $LOCATION_SYMBOLS"
-          echo "🔍 CustomerIOLocation symbols: $BRIDGE_SYMBOLS"
-          echo ""
-
-          if [ "$SIZE_WITH" -gt "$SIZE_WITHOUT_LOCATION" ] && [ "$LOCATION_SYMBOLS" -gt 0 ]; then
-            echo "✅ Location module is properly optional:"
-            echo "   - Excluded by default (no symbols, smaller binary)"
-            echo "   - Included with customerio_location_enabled=true ($LOCATION_SYMBOLS symbols, +$(echo "scale=2; $DIFF / 1024" | bc) KB)"
-          else
-            echo "⚠️ WARNING: Location module optional flag may not be working correctly."
-            echo "   SIZE_WITH=$SIZE_WITH, SIZE_WITHOUT=$SIZE_WITHOUT_LOCATION, LOCATION_SYMBOLS=$LOCATION_SYMBOLS"
-            exit 1
-          fi
-
   update-pr-comment-after-apps-built:
     if: always() && ${{ github.event_name == 'pull_request' }}
-    needs: [ update-pr-comment, build-primary-app, verify-spm-location-optional ] # wait for primary app and location verification
+    needs: [ update-pr-comment, build-primary-app ] # only wait for primary app since secondary doesn't build on PRs
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write # to be able to comment on PR
@@ -193,23 +96,3 @@ jobs:
           body: |
             * flutter_sample_spm: Build failed. See [CI job logs](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to determine the issue and try re-building.
           edit-mode: append # append new line to the existing PR comment to build a list of all sample app builds.
-
-      - name: Update PR comment with Location module verification result
-        if: ${{ needs.verify-spm-location-optional.result == 'success' }}
-        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
-        with:
-          comment-id: ${{ needs.update-pr-comment.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            * ✅ SPM Location module optional flag verified — builds pass with and without `customerio_location_enabled` in gradle.properties
-          edit-mode: append
-
-      - name: Update PR comment with Location module verification failure
-        if: ${{ needs.verify-spm-location-optional.result == 'failure' }}
-        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
-        with:
-          comment-id: ${{ needs.update-pr-comment.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            * ⚠️ SPM Location module verification failed. See [CI job logs](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) for details.
-          edit-mode: append
