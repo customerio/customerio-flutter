@@ -1,3 +1,13 @@
+## [4.0.0](https://github.com/customerio/customerio-flutter/compare/3.5.0...4.0.0) (2026-04-10)
+
+### ⚠ BREAKING CHANGES
+
+* add support for Swift Package Manager (SPM) (#330)
+
+### Features
+
+* add support for Swift Package Manager (SPM) ([#330](https://github.com/customerio/customerio-flutter/issues/330)) ([8abff81](https://github.com/customerio/customerio-flutter/commit/8abff815225379dab5e350cbb5b6d33af213512b))
+
 ## [3.5.0](https://github.com/customerio/customerio-flutter/compare/3.4.0...3.5.0) (2026-04-02)
 
 ### Features
