@@ -1,4 +1,4 @@
-package io.customer.testbed.flutter.spm
+package io.customer.testbed.flutter
 
 import android.Manifest
 import android.app.Activity
@@ -11,6 +11,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+
 class PermissionChannelHandler(
     private val activity: Activity
 ) : MethodChannel.MethodCallHandler {

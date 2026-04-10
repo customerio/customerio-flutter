@@ -1,5 +1,6 @@
 package io.customer.testbed.flutter.spm
 
+import io.customer.testbed.flutter.PermissionChannelHandler
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel

@@ -24,6 +24,7 @@ android {
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
+        main.java.srcDirs += '../../../shared/android'
     }
 
     // `copyFlutterAssetsRelease` task is responsible for copying the app's assets from the
