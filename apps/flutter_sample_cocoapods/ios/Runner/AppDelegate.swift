@@ -10,11 +10,16 @@ import CioFirebaseWrapper
 class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
 
 @objc class AppDelegate: FlutterAppDelegate {
+    private let permissionHandler = PermissionChannelHandler()
+
     override func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         GeneratedPluginRegistrant.register(with: self)
+
+        let controller = window?.rootViewController as! FlutterViewController
+        permissionHandler.register(with: controller.binaryMessenger)
         
         // Depending on the method you choose to install Firebase in your app,
         // you may need to add functions to this file, such as the following:

@@ -1,0 +1,1 @@
+../../../flutter_sample_spm/ios/Runner/PermissionChannelHandler.swift
