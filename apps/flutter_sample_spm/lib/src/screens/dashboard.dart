@@ -5,7 +5,7 @@ import 'package:customer_io/customer_io_inapp.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../auth.dart';
@@ -190,14 +190,19 @@ class _ActionList extends StatelessWidget {
     context.showSnackBar('Event sent successfully');
   }
 
+  static const _permissionChannel =
+      MethodChannel('io.customer.testbed/permissions');
+
   void _showPushPermissionStatus(BuildContext context) {
-    Permission.notification.status.then((status) {
-      if (!context.mounted) {
-        return;
-      } else if (status.isGranted) {
+    _permissionChannel
+        .invokeMethod<String>('getNotificationPermissionStatus')
+        .then((status) {
+      if (!context.mounted) return;
+
+      if (status == 'granted') {
         context.showMessageDialog(_pushPermissionAlertTitle,
             'Push notifications are enabled on this device');
-      } else if (status.isDenied) {
+      } else if (status == 'notDetermined') {
         _requestPushPermission(context);
       } else {
         _onPushPermissionPermanentlyDenied(context);
@@ -206,10 +211,12 @@ class _ActionList extends StatelessWidget {
   }
 
   void _requestPushPermission(BuildContext context) {
-    Permission.notification.request().then((status) {
-      if (!context.mounted) {
-        return;
-      } else if (status.isGranted) {
+    _permissionChannel
+        .invokeMethod<String>('requestNotificationPermission')
+        .then((status) {
+      if (!context.mounted) return;
+
+      if (status == 'granted') {
         context.showSnackBar('Push notifications are enabled on this device');
       } else {
         _onPushPermissionPermanentlyDenied(context);
@@ -225,7 +232,7 @@ class _ActionList extends StatelessWidget {
             child: const Text('Open Settings'),
             onPressed: () {
               Navigator.of(context).pop();
-              openAppSettings();
+              _permissionChannel.invokeMethod('openAppSettings');
             },
           ),
           TextButton(

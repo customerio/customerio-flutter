@@ -1,6 +1,6 @@
 import 'package:customer_io/customer_io.dart';
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/services.dart' show MethodChannel;
 
 import '../components/container.dart';
 import '../components/scroll_view.dart';
@@ -44,14 +44,14 @@ class _LocationScreenState extends State<LocationScreen> {
     context.showSnackBar('Location set ($source)');
   }
 
+  static const _permissionChannel =
+      MethodChannel('io.customer.testbed/permissions');
+
   Future<void> _requestSdkLocation() async {
-    var status = await Permission.location.status;
+    final status =
+        await _permissionChannel.invokeMethod<String>('requestLocationPermission');
 
-    if (status.isDenied) {
-      status = await Permission.location.request();
-    }
-
-    if (status.isPermanentlyDenied) {
+    if (status == 'permanentlyDenied') {
       if (!mounted) return;
       context.showMessageDialog(
         'Location Permission Required',
@@ -61,7 +61,7 @@ class _LocationScreenState extends State<LocationScreen> {
             child: const Text('Open Settings'),
             onPressed: () {
               Navigator.of(context).pop();
-              openAppSettings();
+              _permissionChannel.invokeMethod('openAppSettings');
             },
           ),
           TextButton(
@@ -73,7 +73,7 @@ class _LocationScreenState extends State<LocationScreen> {
       return;
     }
 
-    if (status.isGranted) {
+    if (status == 'granted') {
       CustomerIO.location.requestLocationUpdate();
       setState(() {
         _statusText = 'Requested SDK location update...';

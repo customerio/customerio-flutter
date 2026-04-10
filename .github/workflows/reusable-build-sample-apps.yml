@@ -366,6 +366,7 @@ jobs:
           xcode-version: ${{ env.XCODE_VERSION }}
 
       - name: Cache CocoaPods downloaded dependencies for faster builds in the future
+        if: ${{ inputs.sample_app_name != 'flutter_sample_spm' }}
         uses: actions/cache@v4
         with:
           path: Pods
@@ -374,6 +375,7 @@ jobs:
             ${{ runner.os }}-${{ inputs.sample_app_name }}-Pods
 
       - name: pod install
+        if: ${{ inputs.sample_app_name != 'flutter_sample_spm' }}
         run: pod install --project-directory=ios
 
       - name: Build and upload iOS app via Fastlane
