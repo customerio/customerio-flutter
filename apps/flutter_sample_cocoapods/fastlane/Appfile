@@ -1,0 +1,8 @@
+team_id "2YC97BQN3N"
+
+app_identifier([
+  "io.customer.testbed.flutter.cocoapods",
+  "io.customer.testbed.flutter.cocoapods.notification-service",
+])
+
+package_name("io.customer.testbed.flutter.cocoapods")

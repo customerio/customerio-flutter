@@ -3,6 +3,11 @@ ios/Flutter/flutter_export_environment.sh
 .idea/**
 **/flutter_export_environment.sh
 
+# Swift Package Manager
+**/Package.resolved
+**/.swiftpm/
+**/.build/
+
 # MacOS generated file
 .DS_Store
 
@@ -19,8 +24,6 @@ build/
 
 # If you're building an application, you may want to check-in your pubspec.lock
 pubspec.lock
-## Commit sample app pubspec.lock files since we are not generating them in the CI
-!apps/amiapp_flutter/pubspec.lock
 
 # Directory created by dartdoc
 # If you don't generate documentation locally you can remove this line.
@@ -604,4 +607,3 @@ MigrationBackup/
 .coverage/
 
 # End of https://www.gitignore.io/api/git,dart,flutter,intellij,webstorm,visualstudio
-apps/amiapp_flutter/app_store_connect_creds.json

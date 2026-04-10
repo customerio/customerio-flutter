@@ -17,7 +17,7 @@ Pod::Spec.new do |s|
   s.license     = { :file => '../LICENSE' }
   s.author      = { "CustomerIO Team" => "win@customer.io" }
   s.source      = { :path => '.' }
-  s.source_files = 'Classes/**/*'
+  s.source_files = 'customer_io/Sources/customer_io/**/*.swift'
   s.dependency 'Flutter'
   s.platform = :ios, '13.0'
 
@@ -45,9 +45,6 @@ Pod::Spec.new do |s|
   # Location module is optional - customers must opt in by adding this subspec.
   s.subspec 'location' do |ss|
     ss.dependency "CustomerIO/Location", native_sdk_version
-    ss.pod_target_xcconfig = {
-      'OTHER_SWIFT_FLAGS' => '$(inherited) -DCIO_LOCATION_ENABLED'
-    }
   end
 
   # Flutter.framework does not contain a i386 slice.

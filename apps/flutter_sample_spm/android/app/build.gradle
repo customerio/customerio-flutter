@@ -1,0 +1,92 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.gms.google-services"  // Google Services plugin
+}
+
+android {
+    namespace 'io.customer.testbed.flutter.spm'
+    compileSdkVersion 36
+    ndkVersion flutter.ndkVersion
+
+    compileOptions {
+        // Flag to enable support for the new language APIs
+        coreLibraryDesugaringEnabled true
+        // Sets Java compatibility to Java 17
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+        main.java.srcDirs += '../../../shared/android'
+    }
+
+    // `copyFlutterAssetsRelease` task is responsible for copying the app's assets from the
+    // Flutter project to the Android project's assets directory.
+    // The `compressReleaseAssets` task, is responsible for compressing the assets into a single archive file for release builds.
+    // By adding a dependency on `copyFlutterAssetsRelease`, the code ensures that the app's assets
+    // are copied to the correct location before they are compressed for release.
+    tasks.whenTaskAdded { task ->
+        if (task.name == 'compressReleaseAssets') {
+            task.dependsOn 'copyFlutterAssetsRelease'
+        }
+    }
+
+    defaultConfig {
+        applicationId "io.customer.testbed.flutter.spm"
+        minSdkVersion flutter.minSdkVersion
+        targetSdkVersion 36
+        versionCode 1
+        versionName "1.0"
+        multiDexEnabled true
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+        release {
+            // Caution! In production, you need to generate your own keystore file.
+            // see https://reactnative.dev/docs/signed-apk-android.
+            signingConfig signingConfigs.debug
+            minifyEnabled true
+        }
+    }
+}
+
+flutter {
+    source '../..'
+}
+
+dependencies {
+    // Required for flutter_local_notifications, see more:
+    // https://pub.dev/packages/flutter_local_notifications#gradle-setup
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+
+    // AndroidX dependencies explicitly declared to catch compileSdk compatibility issues early.
+    // These are transitive dependencies of the CIO SDK; keeping them up-to-date ensures
+    // our SDK's compileSdk stays compatible with the latest AndroidX requirements.
+    implementation 'androidx.core:core-ktx:1.17.0'
+    implementation 'androidx.work:work-runtime-ktx:2.10.0'
+
+    // Adding customer.io android sdk dependencies so we can use them in native code
+    // These are not generally needed and should be avoided
+    implementation "io.customer.android:datapipelines"
+    implementation "io.customer.android:messaging-push-fcm"
+    implementation "io.customer.android:messaging-in-app"
+}

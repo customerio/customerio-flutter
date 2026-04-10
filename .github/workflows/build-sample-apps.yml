@@ -36,48 +36,63 @@ jobs:
           comment-id: ${{ steps.existing-comment.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            <!-- sample app builds --> 
+            <!-- sample app builds -->
             # Sample app builds 📱
-            
-            Below you will find the list of the latest versions of the sample apps. It's recommended to always download the latest builds of the sample apps to accurately test the pull request. 
-            
+
+            Below you will find the list of the latest versions of the sample apps. It's recommended to always download the latest builds of the sample apps to accurately test the pull request.
+
             ---
             ${{ steps.build.outputs.build-log }}
           edit-mode: replace # replace the existing comment with new content since we are creating new builds
 
-
-  build-sample-apps:
+  # Primary app (SPM) - builds on all PRs and pushes
+  build-primary-app:
     if: ${{ always() }} # do not skip running this step if update-pr-comment does not run
     needs: [ update-pr-comment ] # wait for PR comment to be created saying new builds are being made.
     uses: ./.github/workflows/reusable-build-sample-apps.yml
     with:
       use_latest_sdk_version: false
+      sample_app_name: flutter_sample_spm
+      cio_workspace_name: "Mobile: Flutter"
+      is_primary_app: true
+    secrets: inherit
+
+  # Secondary app (CocoaPods) - builds on all PRs and pushes to verify CocoaPods compatibility
+  # Only distributes to Firebase on pushes, not on PRs
+  build-secondary-app:
+    if: ${{ always() }}
+    needs: [ update-pr-comment ]
+    uses: ./.github/workflows/reusable-build-sample-apps.yml
+    with:
+      use_latest_sdk_version: false
+      sample_app_name: flutter_sample_cocoapods
+      cio_workspace_name: "Mobile: Flutter"
+      should_distribute: ${{ github.event_name == 'push' }}
     secrets: inherit
 
   update-pr-comment-after-apps-built:
     if: always() && ${{ github.event_name == 'pull_request' }}
-    needs: [ update-pr-comment, build-sample-apps ] # wait for PR comment to be created saying new builds are being made.
+    needs: [ update-pr-comment, build-primary-app ] # only wait for primary app since secondary doesn't build on PRs
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write # to be able to comment on PR
     steps:
       - name: Update sample builds PR comment with build information
-        if: ${{ needs.build-sample-apps.result == 'success' }}
+        if: ${{ needs.build-primary-app.result == 'success' }}
         uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
         with:
           comment-id: ${{ needs.update-pr-comment.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
-          # the variables APP_VERSION_NAME, APP_VERSION_CODE are created when fastlane runs "build".
           body: |
-            * amiapp_flutter: `${{ needs.build-sample-apps.outputs.APP_VERSION_NAME }} (${{ needs.build-sample-apps.outputs.APP_VERSION_CODE }})`
+            * flutter_sample_spm: `${{ needs.build-primary-app.outputs.APP_VERSION_NAME }} (${{ needs.build-primary-app.outputs.APP_VERSION_CODE }})`
           edit-mode: append # append new line to the existing PR comment to build a list of all sample app builds.
 
       - name: Update sample builds PR comment with build failure message
-        if: ${{ needs.build-sample-apps.result == 'failure' }}
+        if: ${{ needs.build-primary-app.result == 'failure' }}
         uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
         with:
           comment-id: ${{ needs.update-pr-comment.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            * amiapp_flutter: Build failed. See [CI job logs](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to determine the issue and try re-building.
+            * flutter_sample_spm: Build failed. See [CI job logs](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to determine the issue and try re-building.
           edit-mode: append # append new line to the existing PR comment to build a list of all sample app builds.

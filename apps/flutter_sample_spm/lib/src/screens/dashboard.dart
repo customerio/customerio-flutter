@@ -1,0 +1,395 @@
+import 'dart:async';
+
+import 'package:customer_io/customer_io.dart';
+import 'package:customer_io/customer_io_inapp.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart' show MethodChannel;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+import '../auth.dart';
+import '../components/container.dart';
+import '../components/scroll_view.dart';
+import '../customer_io.dart';
+import '../data/screen.dart';
+import '../random.dart';
+import '../theme/sizes.dart';
+import '../utils/extensions.dart';
+import '../utils/logs.dart';
+import '../widgets/app_footer.dart';
+
+class DashboardScreen extends StatefulWidget {
+  final AmiAppAuth auth;
+
+  const DashboardScreen({
+    required this.auth,
+    super.key,
+  });
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  String? _email;
+  String? _buildInfo;
+  late StreamSubscription inAppMessageStreamSubscription;
+
+  @override
+  void dispose() {
+    /// Stop listening to streams
+    inAppMessageStreamSubscription.cancel();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    final customerIOSDK = CustomerIOSDKInstance.get();
+    widget.auth
+        .fetchUserState()
+        .then((value) => setState(() => _email = value?.email));
+    customerIOSDK
+        .getBuildInfo()
+        .then((value) => setState(() => _buildInfo = value));
+
+    inAppMessageStreamSubscription =
+        CustomerIO.inAppMessaging.subscribeToEventsListener(handleInAppEvent);
+
+    // Setup 3rd party SDK, flutter-fire.
+    // We install this SDK into sample app to make sure the CIO SDK behaves as expected when there is another SDK installed that handles push notifications.
+    FirebaseMessaging.instance.getInitialMessage().then((initialMessage) {
+      CustomerIO.instance.track(name: "push clicked", properties: {
+        "push": initialMessage?.notification?.title,
+        "app-state": "killed"
+      });
+    });
+
+    // ...while app was in the background (but not killed).
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      CustomerIO.instance.track(name: "push clicked", properties: {
+        "push": message.notification?.title,
+        "app-state": "background"
+      });
+    });
+
+    // Important that a 3rd party SDK can receive callbacks when a push is received while app in background.
+    //
+    // Note: A push will not be shown on the device while app is in foreground. This is a FCM behavior, not a CIO SDK behavior.
+    // If you send a push using Customer.io with the FCM service setup in Customer.io, the push will be shown on the device.
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      CustomerIO.instance.track(name: "push received", properties: {
+        "push": message.notification?.title,
+        "app-state": "foreground"
+      });
+    });
+
+    super.initState();
+  }
+
+  void handleInAppEvent(InAppEvent event) {
+    switch (event.eventType) {
+      case EventType.messageShown:
+        trackInAppEvent('message_shown', event.message);
+        debugLog("messageShown: ${event.message}");
+        break;
+      case EventType.messageDismissed:
+        trackInAppEvent('message_dismissed', event.message);
+        debugLog("messageDismissed: ${event.message}");
+        break;
+      case EventType.errorWithMessage:
+        trackInAppEvent('errorWithMessage', event.message);
+        debugLog("errorWithMessage: ${event.message}");
+        break;
+      case EventType.messageActionTaken:
+        trackInAppEvent('messageActionTaken', event.message, arguments: {
+          'actionName': event.actionName,
+          'actionValue': event.actionValue,
+        });
+        debugLog("messageActionTaken: ${event.message}");
+        break;
+    }
+  }
+
+  void trackInAppEvent(String eventName, InAppMessage message,
+      {Map<String, dynamic> arguments = const {}}) {
+    Map<String, dynamic> attributes = {
+      'event_name': eventName,
+      'message_id': message.messageId,
+      'delivery_id': message.deliveryId ?? 'NULL',
+    };
+    attributes.addAll(arguments);
+
+    CustomerIO.instance.track(
+      name: 'In-App Event',
+      properties: attributes,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AppContainer(
+      appBar: AppBar(
+        actions: <Widget>[
+          IconButton(
+            icon: Semantics(
+              label: 'Settings',
+              child: const Icon(Icons.settings),
+            ),
+            tooltip: 'Open SDK Configurations',
+            onPressed: () {
+              context.push(Screen.settings.location);
+            },
+          ),
+        ],
+      ),
+      body: FullScreenScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            const Spacer(),
+            Center(
+              child: Text(
+                _email ?? '',
+                semanticsLabel: 'Email ID Text',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: Text(
+                'What would you like to test?',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            const _ActionList(),
+            const Spacer(),
+            TextFooter(text: _buildInfo ?? ''),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionList extends StatelessWidget {
+  const _ActionList();
+
+  final String _pushPermissionAlertTitle = 'Push Permission';
+
+  void _sendRandomEvent(BuildContext context) {
+    final randomValues = RandomValues();
+    final event = randomValues.trackingEvent();
+    final eventName = event.key;
+    final attributes = event.value;
+    if (attributes == null) {
+      CustomerIO.instance.track(name: eventName);
+    } else {
+      CustomerIO.instance.track(name: eventName, properties: attributes);
+    }
+    context.showSnackBar('Event sent successfully');
+  }
+
+  static const _permissionChannel =
+      MethodChannel('io.customer.testbed/permissions');
+
+  void _showPushPermissionStatus(BuildContext context) {
+    _permissionChannel
+        .invokeMethod<String>('getNotificationPermissionStatus')
+        .then((status) {
+      if (!context.mounted) return;
+
+      if (status == 'granted') {
+        context.showMessageDialog(_pushPermissionAlertTitle,
+            'Push notifications are enabled on this device');
+      } else if (status == 'permanentlyDenied') {
+        _onPushPermissionPermanentlyDenied(context);
+      } else {
+        _requestPushPermission(context);
+      }
+    });
+  }
+
+  void _requestPushPermission(BuildContext context) {
+    _permissionChannel
+        .invokeMethod<String>('requestNotificationPermission')
+        .then((status) {
+      if (!context.mounted) return;
+
+      if (status == 'granted') {
+        context.showSnackBar('Push notifications are enabled on this device');
+      } else {
+        _onPushPermissionPermanentlyDenied(context);
+      }
+    });
+  }
+
+  void _onPushPermissionPermanentlyDenied(BuildContext context) {
+    context.showMessageDialog(_pushPermissionAlertTitle,
+        'Push notifications are denied on this device. Please allow notification permission from settings to receive push on this device.',
+        actions: [
+          TextButton(
+            child: const Text('Open Settings'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              _permissionChannel.invokeMethod('openAppSettings');
+            },
+          ),
+          TextButton(
+            child: const Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authState = AmiAppAuthScope.of(context);
+    final Sizes sizes = Theme.of(context).extension<Sizes>()!;
+    const actionItems = _ActionItem.values;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 32.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: actionItems
+            .map((item) => Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      minimumSize: sizes.buttonDefault(),
+                    ),
+                    onPressed: () async {
+                      switch (item) {
+                        case _ActionItem.randomEvent:
+                          _sendRandomEvent(context);
+                          break;
+                        case _ActionItem.showPushPrompt:
+                          _showPushPermissionStatus(context);
+                          break;
+                        case _ActionItem.signOut:
+                          authState.signOut();
+                          break;
+                        case _ActionItem.showLocalPush:
+                          const NotificationDetails notificationDetails =
+                              NotificationDetails();
+                          FlutterLocalNotificationsPlugin
+                              flutterLocalNotificationsPlugin =
+                              FlutterLocalNotificationsPlugin();
+                          await flutterLocalNotificationsPlugin.show(
+                              0,
+                              'Show Local Push',
+                              'Show Local Push Button',
+                              notificationDetails,
+                              payload: 'item x');
+                          break;
+                        default:
+                          final Screen? screen = item.targetScreen();
+                          if (screen != null) {
+                            context.push(screen.location);
+                          }
+                          break;
+                      }
+                    },
+                    child: Text(
+                      item.buildText(),
+                      semanticsLabel: item.semanticsLabel(),
+                    ),
+                  ),
+                ))
+            .toList(growable: false),
+      ),
+    );
+  }
+}
+
+/// Enum that contains actions to perform on SDK.
+enum _ActionItem {
+  randomEvent,
+  customEvent,
+  deviceAttributes,
+  profileAttributes,
+  inlineMessages,
+  inboxMessages,
+  location,
+  showPushPrompt,
+  showLocalPush,
+  signOut,
+}
+
+extension _ActionNames on _ActionItem {
+  String buildText() {
+    switch (this) {
+      case _ActionItem.randomEvent:
+        return 'Send Random Event';
+      case _ActionItem.customEvent:
+        return 'Send Custom Event';
+      case _ActionItem.deviceAttributes:
+        return 'Set Device Attribute';
+      case _ActionItem.profileAttributes:
+        return 'Set Profile Attribute';
+      case _ActionItem.inlineMessages:
+        return 'Test Inline Messages';
+      case _ActionItem.inboxMessages:
+        return 'Inbox Messages';
+      case _ActionItem.location:
+        return 'Test Location';
+      case _ActionItem.showPushPrompt:
+        return 'Show Push Prompt';
+      case _ActionItem.showLocalPush:
+        return 'Show local push';
+      case _ActionItem.signOut:
+        return 'Log Out';
+    }
+  }
+
+  String semanticsLabel() {
+    switch (this) {
+      case _ActionItem.randomEvent:
+        return 'Random Event Button';
+      case _ActionItem.customEvent:
+        return 'Custom Event Button';
+      case _ActionItem.deviceAttributes:
+        return 'Device Attribute Button';
+      case _ActionItem.profileAttributes:
+        return 'Profile Attribute Button';
+      case _ActionItem.inlineMessages:
+        return 'Inline Messages Button';
+      case _ActionItem.inboxMessages:
+        return 'Inbox Messages Button';
+      case _ActionItem.location:
+        return 'Location Button';
+      case _ActionItem.showPushPrompt:
+        return 'Show Push Prompt Button';
+      case _ActionItem.showLocalPush:
+        return 'Show Local Push Button';
+      case _ActionItem.signOut:
+        return 'Log Out Button';
+    }
+  }
+
+  Screen? targetScreen() {
+    switch (this) {
+      case _ActionItem.randomEvent:
+        return null;
+      case _ActionItem.customEvent:
+        return Screen.customEvents;
+      case _ActionItem.deviceAttributes:
+        return Screen.deviceAttributes;
+      case _ActionItem.profileAttributes:
+        return Screen.profileAttributes;
+      case _ActionItem.inlineMessages:
+        return Screen.inlineMessages;
+      case _ActionItem.inboxMessages:
+        return Screen.inboxMessages;
+      case _ActionItem.location:
+        return Screen.locationTest;
+      case _ActionItem.showPushPrompt:
+        return null;
+      case _ActionItem.showLocalPush:
+        return null;
+      case _ActionItem.signOut:
+        return null;
+    }
+  }
+}
