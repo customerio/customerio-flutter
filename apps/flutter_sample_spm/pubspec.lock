@@ -103,7 +103,7 @@ packages:
       path: "../.."
       relative: true
     source: path
-    version: "3.5.0"
+    version: "4.0.0"
   dbus:
     dependency: transitive
     description:

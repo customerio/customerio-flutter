@@ -95,7 +95,7 @@ let package = Package(
         .library(name: "customer-io", targets: ["customer_io"])
     ],
     dependencies: [
-        .package(url: "https://github.com/customerio/customerio-ios.git", exact: "4.4.0"),
+        .package(url: "https://github.com/customerio/customerio-ios.git", exact: "4.4.1"),
         .package(url: "https://github.com/customerio/customerio-ios-fcm.git", from: "1.0.0")
     ],
     targets: [
