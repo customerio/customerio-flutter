@@ -1,3 +1,9 @@
+## [4.0.1](https://github.com/customerio/customerio-flutter/compare/4.0.0...4.0.1) (2026-04-24)
+
+### Bug Fixes
+
+* bump flutter_lints to ^6.0.0 ([#335](https://github.com/customerio/customerio-flutter/issues/335)) ([73a1f67](https://github.com/customerio/customerio-flutter/commit/73a1f670a8f2584552e162350d075a851b5b7d94))
+
 ## [4.0.0](https://github.com/customerio/customerio-flutter/compare/3.5.0...4.0.0) (2026-04-10)
 
 ### ⚠ BREAKING CHANGES
