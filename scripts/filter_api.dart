@@ -4,7 +4,7 @@ import 'dart:io';
 import 'dart:convert';
 
 /// Filters dart_apitool JSON output to show only classes and methods
-/// Usage: dart run filter_api.dart <input_file> [output_format]
+/// Usage: `dart run filter_api.dart <input_file> [output_format]`
 void main(List<String> arguments) async {
   if (arguments.isEmpty) {
     stderr.writeln(

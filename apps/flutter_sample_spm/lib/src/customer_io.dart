@@ -109,7 +109,7 @@ class CustomerIOSDKInstance {
     return CustomerIOSDKInstance._get().sdk;
   }
 
-  static dispose() => _instance = null;
+  static void dispose() => _instance = null;
 }
 
 /// Ami App extensions to communicate directly with Customer.io SDK.
