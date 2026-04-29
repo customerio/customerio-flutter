@@ -261,7 +261,7 @@ GEM
     mini_mime (1.1.5)
     minitest (5.27.0)
     molinillo (0.8.0)
-    multi_json (1.20.1)
+    multi_json (1.19.1)
     multipart-post (2.4.1)
     mutex_m (0.3.0)
     nanaimo (0.4.0)
@@ -347,6 +347,7 @@ DEPENDENCIES
   fastlane-plugin-versioning_android
   fastlane-plugin-versioning_ios
   json (= 2.10.2)
+  multi_json (< 1.20)
   rexml (= 3.4.2)
 
 BUNDLED WITH
