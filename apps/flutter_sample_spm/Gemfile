@@ -9,6 +9,8 @@ gem 'addressable', '2.9.0'
 gem 'faraday', '1.10.5'
 gem 'aws-sdk-s3', '1.208.0'
 gem 'rexml', '3.4.2'
+# CI uses Ruby 3.1.6; pin connection_pool to its 2.x line (3.0+ requires Ruby 3.2)
+gem 'connection_pool', '< 3.0'
 
 gem 'fastlane'
 gem 'cocoapods'
