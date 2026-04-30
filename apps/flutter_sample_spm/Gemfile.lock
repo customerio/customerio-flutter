@@ -182,10 +182,9 @@ GEM
       xcpretty (~> 0.4.1)
       xcpretty-travis-formatter (>= 0.0.3, < 2.0.0)
     fastlane-plugin-find_firebase_app_id (0.1.2)
-    fastlane-plugin-firebase_app_distribution (1.0.0)
-      fastlane (>= 2.232.0)
-      google-apis-firebaseappdistribution_v1 (>= 0.9.0)
-      google-apis-firebaseappdistribution_v1alpha (>= 0.12.0)
+    fastlane-plugin-firebase_app_distribution (0.10.1)
+      google-apis-firebaseappdistribution_v1 (~> 0.3.0)
+      google-apis-firebaseappdistribution_v1alpha (~> 0.2.0)
     fastlane-plugin-versioning_android (0.1.1)
     fastlane-plugin-versioning_ios (0.1.0)
     fastlane-sirp (1.1.0)
@@ -213,10 +212,10 @@ GEM
       mutex_m
       representable (~> 3.0)
       retriable (>= 2.0, < 4.a)
-    google-apis-firebaseappdistribution_v1 (0.18.0)
-      google-apis-core (>= 0.15.0, < 2.a)
-    google-apis-firebaseappdistribution_v1alpha (0.26.0)
-      google-apis-core (>= 0.15.0, < 2.a)
+    google-apis-firebaseappdistribution_v1 (0.3.0)
+      google-apis-core (>= 0.11.0, < 2.a)
+    google-apis-firebaseappdistribution_v1alpha (0.2.0)
+      google-apis-core (>= 0.11.0, < 2.a)
     google-apis-iamcredentials_v1 (0.27.0)
       google-apis-core (>= 0.15.0, < 2.a)
     google-apis-playcustomapp_v1 (0.17.0)
@@ -343,7 +342,7 @@ DEPENDENCIES
   faraday (= 1.10.5)
   fastlane
   fastlane-plugin-find_firebase_app_id
-  fastlane-plugin-firebase_app_distribution
+  fastlane-plugin-firebase_app_distribution (< 1.0)
   fastlane-plugin-versioning_android
   fastlane-plugin-versioning_ios
   json (= 2.10.2)
