@@ -1,4 +1,4 @@
-name: Build AGP 9 test app
+name: Build AGP 8 minimal test app
 
 on:
   pull_request:
@@ -10,8 +10,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-android-agp9:
-    name: Build Android APK under AGP 9 / Gradle 9
+  build-android-agp8:
+    name: Build Android APK under AGP 8 / Gradle 8
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,5 +26,5 @@ jobs:
         run: echo "org.gradle.jvmargs=-Xmx4g" >> ~/.gradle/gradle.properties
 
       - name: Build debug APK
-        working-directory: apps/flutter_sample_agp9_test
+        working-directory: apps/flutter_sample_agp8_min
         run: flutter build apk --debug

@@ -11,18 +11,18 @@ void main() {
       region: Region.us,
     ),
   );
-  runApp(const Agp9TestApp());
+  runApp(const Agp8MinApp());
 }
 
-class Agp9TestApp extends StatelessWidget {
-  const Agp9TestApp({super.key});
+class Agp8MinApp extends StatelessWidget {
+  const Agp8MinApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'AGP 9 Test',
+      title: 'AGP 8 Min',
       home: Scaffold(
-        body: Center(child: Text('CIO Flutter AGP 9 build smoke test')),
+        body: Center(child: Text('CIO Flutter AGP 8 build smoke test')),
       ),
     );
   }
