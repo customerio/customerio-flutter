@@ -33,10 +33,6 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = '17'
-    }
-
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
         test.java.srcDirs += 'src/test/kotlin'
@@ -47,14 +43,18 @@ android {
         buildConfigField "boolean", "CIO_LOCATION_ENABLED", "$cioLocationEnabled"
         consumerProguardFiles 'consumer-rules.pro'
     }
+}
 
-    // instruct kotlin compiler to opt in to the APIs annotated with the kotlin.RequiresOptIn
-    // and io.customer.base.internal.InternalCustomerIOApi annotations
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-        kotlinOptions {
-            freeCompilerArgs += ['-opt-in=kotlin.RequiresOptIn',
-                                 '-opt-in=io.customer.base.internal.InternalCustomerIOApi',]
-        }
+// AGP 9+ built-in Kotlin removes the `android.kotlinOptions` DSL; this
+// top-level block is the KGP 2.x equivalent and works under both branches
+// of the AGP-version check above.
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+        freeCompilerArgs.addAll(
+            '-opt-in=kotlin.RequiresOptIn',
+            '-opt-in=io.customer.base.internal.InternalCustomerIOApi'
+        )
     }
 }
 
