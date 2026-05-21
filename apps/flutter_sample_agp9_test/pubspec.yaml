@@ -1,0 +1,21 @@
+name: flutter_sample_agp9_test
+description: Minimal sample app used only by CI to verify the Customer.io Flutter plugin builds under AGP 9 / Gradle 9 with Flutter's built-in Kotlin support.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.44.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  customer_io:
+    path: ../..
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

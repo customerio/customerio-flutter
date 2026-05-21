@@ -1,0 +1,30 @@
+name: Build AGP 9 test app
+
+on:
+  pull_request:
+  push:
+    branches: [ main, feature/* ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-android-agp9:
+    name: Build Android APK under AGP 9 / Gradle 9
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: ./.github/actions/setup-flutter
+
+      - name: Setup Android environment
+        uses: customerio/customerio-android/.github/actions/setup-android@main
+
+      - name: Increase Gradle memory limit
+        run: echo "org.gradle.jvmargs=-Xmx4g" >> ~/.gradle/gradle.properties
+
+      - name: Build debug APK
+        working-directory: apps/flutter_sample_agp9_test
+        run: flutter build apk --debug
