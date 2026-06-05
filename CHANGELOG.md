@@ -1,3 +1,9 @@
+## [4.1.0](https://github.com/customerio/customerio-flutter/compare/4.0.2...4.1.0) (2026-06-05)
+
+### Features
+
+* update native SDKs to iOS 4.5.0 and Android 4.18.0 ([#346](https://github.com/customerio/customerio-flutter/issues/346)) ([b17dcb0](https://github.com/customerio/customerio-flutter/commit/b17dcb0f3e4a23f2705b02d173fc2123571a152f))
+
 ## [4.0.2](https://github.com/customerio/customerio-flutter/compare/4.0.1...4.0.2) (2026-05-21)
 
 ### Bug Fixes
