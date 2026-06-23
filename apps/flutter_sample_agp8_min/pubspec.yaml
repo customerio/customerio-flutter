@@ -1,0 +1,20 @@
+name: flutter_sample_agp8_min
+description: Minimal Flutter app used by CI to verify the Customer.io Flutter plugin still builds under AGP 8 / KGP 2.1.21 after the AGP 9 dynamic-check migration. The two real sample apps cover AGP 9; this one is the AGP 8 smoke target.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=2.18.6 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  customer_io:
+    path: ../..
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

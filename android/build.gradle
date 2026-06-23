@@ -1,19 +1,6 @@
 group 'io.customer.customer_io'
 version '1.0-SNAPSHOT'
 
-buildscript {
-    ext.kotlin_version = '2.1.21'
-    repositories {
-        google()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.6.1'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
-
 rootProject.allprojects {
     repositories {
         google()
@@ -22,7 +9,14 @@ rootProject.allprojects {
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+
+// AGP 9.0+ applies the Kotlin plugin automatically (built-in Kotlin).
+// For AGP < 9 the plugin still needs to be applied explicitly.
+// https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
+def agpMajor = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')[0] as int
+if (agpMajor < 9) {
+    apply plugin: 'kotlin-android'
+}
 
 def cioLocationEnabled = rootProject.findProperty("customerio_location_enabled")?.toBoolean() ?: false
 
@@ -39,10 +33,6 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = '17'
-    }
-
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
         test.java.srcDirs += 'src/test/kotlin'
@@ -53,19 +43,22 @@ android {
         buildConfigField "boolean", "CIO_LOCATION_ENABLED", "$cioLocationEnabled"
         consumerProguardFiles 'consumer-rules.pro'
     }
+}
 
-    // instruct kotlin compiler to opt in to the APIs annotated with the kotlin.RequiresOptIn
-    // and io.customer.base.internal.InternalCustomerIOApi annotations
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-        kotlinOptions {
-            freeCompilerArgs += ['-Xopt-in=kotlin.RequiresOptIn',
-                                 '-Xopt-in=io.customer.base.internal.InternalCustomerIOApi',]
-        }
+// AGP 9+ built-in Kotlin removes the `android.kotlinOptions` DSL; this
+// top-level block is the KGP 2.x equivalent and works under both branches
+// of the AGP-version check above.
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+        freeCompilerArgs.addAll(
+            '-opt-in=kotlin.RequiresOptIn',
+            '-opt-in=io.customer.base.internal.InternalCustomerIOApi'
+        )
     }
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     // Customer.io SDK
     def cioVersion = "4.18.2"
     implementation "io.customer.android:datapipelines:$cioVersion"
@@ -78,9 +71,9 @@ dependencies {
     } else {
         compileOnly "io.customer.android:location:$cioVersion"
     }
-    
+
     testImplementation 'junit:junit:4.13.2'
-    testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit:2.1.21'
     testImplementation 'org.mockito:mockito-core:4.11.0'
     testImplementation 'org.mockito.kotlin:mockito-kotlin:3.2.0'
 }
