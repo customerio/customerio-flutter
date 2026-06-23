@@ -1,3 +1,9 @@
+## [4.1.2](https://github.com/customerio/customerio-flutter/compare/4.1.1...4.1.2) (2026-06-23)
+
+### Bug Fixes
+
+* update native SDKs — iOS 4.5.3 (resolve duplicate event delivery bugs) and Android 4.18.2 (scope in-app polling to process lifecycle) ([#352](https://github.com/customerio/customerio-flutter/issues/352)) ([852d9bf](https://github.com/customerio/customerio-flutter/commit/852d9bfb12c27abdbeb2dad94d1e26439576787b))
+
 ## [4.1.1](https://github.com/customerio/customerio-flutter/compare/4.1.0...4.1.1) (2026-06-16)
 
 ### Bug Fixes
