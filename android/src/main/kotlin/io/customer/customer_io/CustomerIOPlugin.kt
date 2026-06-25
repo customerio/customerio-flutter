@@ -6,6 +6,7 @@ import androidx.annotation.NonNull
 import io.customer.customer_io.bridge.NativeModuleBridge
 import io.customer.customer_io.bridge.nativeMapArgs
 import io.customer.customer_io.bridge.nativeNoArgs
+import io.customer.customer_io.geofence.CustomerIOGeofence
 import io.customer.customer_io.location.CustomerIOLocation
 import io.customer.customer_io.messaginginapp.CustomerIOInAppMessaging
 import io.customer.customer_io.messagingpush.CustomerIOPushMessaging
@@ -54,9 +55,14 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         modules = buildList {
             add(CustomerIOPushMessaging(flutterPluginBinding))
             add(CustomerIOInAppMessaging(flutterPluginBinding))
-            // Location module is optional - enabled via customerio_location_enabled gradle property
+            // Location module is optional - enabled via customerio_location_enabled gradle
+            // property. CIO_LOCATION_ENABLED also covers geofence (geofence implies location).
             if (BuildConfig.CIO_LOCATION_ENABLED) {
                 add(CustomerIOLocation(flutterPluginBinding))
+            }
+            // Geofence module is optional - enabled via customerio_geofence_enabled gradle property
+            if (BuildConfig.CIO_GEOFENCE_ENABLED) {
+                add(CustomerIOGeofence(flutterPluginBinding))
             }
         }
 
@@ -231,13 +237,30 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     )
                 }
             }
-            // Configure location module based on config provided by customer app
-            args.getAs<Map<String, Any>>(key = "location")?.let { locationConfig ->
+            // Configure location module. Geofence implies location, so register location
+            // (with the app's config if given, otherwise defaults) whenever location or
+            // geofence is configured, since geofence relies on its location fixes. The build
+            // flags guard each block so the optional bridge classes (which reference native
+            // artifacts that are only linked when enabled) are never touched otherwise.
+            val locationConfig = args.getAs<Map<String, Any>>(key = "location")
+            val geofenceConfig = args.getAs<Map<String, Any>>(key = "geofence")
+            if (BuildConfig.CIO_LOCATION_ENABLED && (locationConfig != null || geofenceConfig != null)) {
                 modules.filterIsInstance<CustomerIOLocation>().forEach {
                     it.configureModule(
                         builder = this,
-                        config = locationConfig,
+                        config = locationConfig ?: emptyMap(),
                     )
+                }
+            }
+            // Configure geofence module (runs automatically once registered)
+            if (BuildConfig.CIO_GEOFENCE_ENABLED) {
+                geofenceConfig?.let { config ->
+                    modules.filterIsInstance<CustomerIOGeofence>().forEach {
+                        it.configureModule(
+                            builder = this,
+                            config = config,
+                        )
+                    }
                 }
             }
         }.build()
