@@ -47,6 +47,12 @@ Pod::Spec.new do |s|
     ss.dependency "CustomerIO/Location", native_sdk_version
   end
 
+  # Geofence module is optional - customers must opt in by adding this subspec.
+  # It pulls in Location transitively (CustomerIO/LocationGeofence depends on it).
+  s.subspec 'geofence' do |ss|
+    ss.dependency "CustomerIO/LocationGeofence", native_sdk_version
+  end
+
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
   s.swift_version = '5.0'

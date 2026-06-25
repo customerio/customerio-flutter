@@ -110,6 +110,7 @@ void main() {
         'inApp': inAppConfig.toMap(),
         'push': pushConfig.toMap(),
         'location': null,
+        'geofence': null,
         'version': config.version,
         'source': config.source,
       };
