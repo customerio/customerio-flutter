@@ -102,5 +102,7 @@
 	<string>Required to send push notifications</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app uses your location to test Customer.io location tracking features.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app uses your location in the background to test Customer.io geofence features.</string>
 </dict>
 </plist>

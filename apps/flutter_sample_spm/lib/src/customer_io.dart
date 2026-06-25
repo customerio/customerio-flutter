@@ -74,6 +74,7 @@ class CustomerIOSDK extends ChangeNotifier {
           screenViewUse: _sdkConfig?.screenViewUse,
           inAppConfig: inAppConfig,
           locationConfig: LocationConfig(),
+          geofenceConfig: GeofenceConfig(),
         ),
       );
     } catch (ex) {
