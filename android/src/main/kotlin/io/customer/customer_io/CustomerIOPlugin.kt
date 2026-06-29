@@ -244,7 +244,9 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             // artifacts that are only linked when enabled) are never touched otherwise.
             val locationConfig = args.getAs<Map<String, Any>>(key = "location")
             val geofenceConfig = args.getAs<Map<String, Any>>(key = "geofence")
-            if (BuildConfig.CIO_LOCATION_ENABLED && (locationConfig != null || geofenceConfig != null)) {
+            if (BuildConfig.CIO_LOCATION_ENABLED &&
+                (locationConfig != null || (BuildConfig.CIO_GEOFENCE_ENABLED && geofenceConfig != null))
+            ) {
                 modules.filterIsInstance<CustomerIOLocation>().forEach {
                     it.configureModule(
                         builder = this,
