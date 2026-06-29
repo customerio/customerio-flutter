@@ -111,6 +111,7 @@ void main() {
         'push': pushConfig.toMap(),
         'location': null,
         'geofence': null,
+        'ios': null,
         'version': config.version,
         'source': config.source,
       };
