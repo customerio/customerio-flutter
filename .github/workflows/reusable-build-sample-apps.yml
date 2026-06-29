@@ -47,7 +47,7 @@ jobs:
     name: Building Android sample app ${{ inputs.sample_app_name }}
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0 # Workaround for bug https://github.com/actions/checkout/issues/1471
 
@@ -91,10 +91,10 @@ jobs:
       # CLI to replace strings in files. The CLI recommends using `cargo install` which is slow. This Action is fast because it downloads pre-built binaries.
       # If using sd on macos, "brew install" works great. for Linux, this is the recommended way.
       - name: Install sd CLI to use later in the workflow
-        uses: kenji-miyake/setup-sd@08c14e27d65a1c215342ef00c81583ae67f4c5ef # v2.0.0
+        uses: kenji-miyake/setup-sd@f4181660873fa5814708e1c0a640d8e9975a4ae5 # v2.0.0
 
       - name: Install Ruby
-        uses: ruby/setup-ruby@922ebc4c5262cd14e07bb0e1db020984b6c064fe # v1.226.0
+        uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1.314.0
         with:
           ruby-version: '3.1'
           bundler-cache: true # cache tools to make builds faster in future
@@ -103,14 +103,14 @@ jobs:
       # Update version numbers and workspace credentials before building the app
 
       - name: Generate New Version
-        uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0
+        uses: maierj/fastlane-action@182983d8f94bad9884001c03c1c2786f4c7165ed # v3.2.0
         with:
           subdirectory: apps/${{ inputs.sample_app_name }}
           lane: "generate_new_version"
           options: '{"branch_name":"${{ github.ref_name }}", "pull_request_number":"${{ github.event.pull_request.number }}"}'
 
       - name: Update Flutter SDK Version
-        uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0
+        uses: maierj/fastlane-action@182983d8f94bad9884001c03c1c2786f4c7165ed # v3.2.0
         with:
           subdirectory: apps/${{ inputs.sample_app_name }}
           lane: "update_flutter_sdk_version"
@@ -120,7 +120,7 @@ jobs:
           APP_VERSION_CODE: ${{ env.APP_VERSION_CODE }}
 
       - name: Update Sample App Version
-        uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0
+        uses: maierj/fastlane-action@182983d8f94bad9884001c03c1c2786f4c7165ed # v3.2.0
         with:
           subdirectory: apps/${{ inputs.sample_app_name }}
           lane: "update_flutter_android_app_version"
@@ -176,7 +176,7 @@ jobs:
       - name: Build and upload Android app via Fastlane
         if: ${{ inputs.should_distribute }}
         id: android_build
-        uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0
+        uses: maierj/fastlane-action@182983d8f94bad9884001c03c1c2786f4c7165ed # v3.2.0
         with:
           subdirectory: apps/${{ inputs.sample_app_name }}
           lane: 'android build'
@@ -234,7 +234,7 @@ jobs:
     name: Building iOS sample app ${{ inputs.sample_app_name }}
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0 # Workaround for bug https://github.com/actions/checkout/issues/1471
 
@@ -282,7 +282,7 @@ jobs:
           brew install xcbeautify # used by fastlane for output
 
       - name: Install Ruby
-        uses: ruby/setup-ruby@922ebc4c5262cd14e07bb0e1db020984b6c064fe # v1.226.0
+        uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1.314.0
         with:
           ruby-version: '3.1'
           bundler-cache: true # cache tools to make builds faster in future
@@ -291,14 +291,14 @@ jobs:
       # Update version numbers and workspace credentials before building the app
 
       - name: Generate New Version
-        uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0
+        uses: maierj/fastlane-action@182983d8f94bad9884001c03c1c2786f4c7165ed # v3.2.0
         with:
           subdirectory: apps/${{ inputs.sample_app_name }}
           lane: "generate_new_version"
           options: '{"branch_name":"${{ github.ref_name }}", "pull_request_number":"${{ github.event.pull_request.number }}"}'
 
       - name: Update Flutter SDK Version
-        uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0
+        uses: maierj/fastlane-action@182983d8f94bad9884001c03c1c2786f4c7165ed # v3.2.0
         with:
           subdirectory: apps/${{ inputs.sample_app_name }}
           lane: "update_flutter_sdk_version"
@@ -308,7 +308,7 @@ jobs:
           APP_VERSION_CODE: ${{ env.APP_VERSION_CODE }}
 
       - name: Update Sample App Version
-        uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0
+        uses: maierj/fastlane-action@182983d8f94bad9884001c03c1c2786f4c7165ed # v3.2.0
         with:
           subdirectory: apps/${{ inputs.sample_app_name }}
           lane: "update_flutter_ios_app_version"
@@ -367,7 +367,7 @@ jobs:
 
       - name: Cache CocoaPods downloaded dependencies for faster builds in the future
         if: ${{ inputs.sample_app_name != 'flutter_sample_spm' }}
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: Pods
           key: ${{ runner.os }}-${{ inputs.sample_app_name }}-Pods-${{ github.ref }}
@@ -381,7 +381,7 @@ jobs:
       - name: Build and upload iOS app via Fastlane
         if: ${{ inputs.should_distribute }}
         id: ios_build
-        uses: maierj/fastlane-action@5a3b971aaa26776459bb26894d6c1a1a84a311a7 # v3.1.0
+        uses: maierj/fastlane-action@182983d8f94bad9884001c03c1c2786f4c7165ed # v3.2.0
         with:
           subdirectory: apps/${{ inputs.sample_app_name }}
           lane: "ios build"
