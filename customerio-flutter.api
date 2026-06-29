@@ -59,7 +59,8 @@ public final class CustomerIOConfig {
 		InAppConfig? inAppConfig,
 		PushConfig? pushConfig,
 		LocationConfig? locationConfig,
-		GeofenceConfig? geofenceConfig
+		GeofenceConfig? geofenceConfig,
+		CustomerIOConfigIos? iosConfig
 	): CustomerIOConfig;
 	public fun toMap(): Map<String, dynamic>;
 	public val apiHost: String?;
@@ -70,6 +71,7 @@ public final class CustomerIOConfig {
 	public val flushInterval: int?;
 	public val geofenceConfig: GeofenceConfig?;
 	public val inAppConfig: InAppConfig?;
+	public val iosConfig: CustomerIOConfigIos?;
 	public val locationConfig: LocationConfig?;
 	public val logLevel: CioLogLevel?;
 	public val migrationSiteId: String?;
@@ -79,6 +81,12 @@ public final class CustomerIOConfig {
 	public val source: String;
 	public val trackApplicationLifecycleEvents: bool?;
 	public val version: String;
+}
+
+public final class CustomerIOConfigIos {
+	public fun new(bool? allowBackgroundDelivery): CustomerIOConfigIos;
+	public fun toMap(): Map<String, dynamic>;
+	public val allowBackgroundDelivery: bool?;
 }
 
 public final class CustomerIOLocationPlatform {
