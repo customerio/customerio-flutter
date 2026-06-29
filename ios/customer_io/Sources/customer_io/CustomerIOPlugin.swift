@@ -6,6 +6,9 @@ import UIKit
 #if canImport(CioLocation)
 import CioLocation
 #endif
+#if canImport(CioLocationGeofence)
+import CioLocationGeofence
+#endif
 
 public class CustomerIOPlugin: NSObject, FlutterPlugin {
     private var methodChannel: FlutterMethodChannel!
@@ -167,9 +170,18 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
             let sdkConfigBuilder = try SDKConfigBuilder.create(from: params)
 
             #if canImport(CioLocation)
-            // Add location module to config builder if location config is provided
-            if let locationConfig = params["location"] as? [String: AnyHashable] {
-                let trackingModeValue = locationConfig["trackingMode"] as? String
+            let locationConfig = params["location"] as? [String: AnyHashable]
+            #if canImport(CioLocationGeofence)
+            let geofenceConfigured = params["geofence"] as? [String: AnyHashable] != nil
+            #else
+            let geofenceConfigured = false
+            #endif
+
+            // Add location module when location or geofence is configured. Geofence implies
+            // location: it relies on the location module's fixes, so register location (with
+            // the app's config if given, otherwise defaults) whenever geofence is enabled.
+            if locationConfig != nil || geofenceConfigured {
+                let trackingModeValue = locationConfig?["trackingMode"] as? String
                 let mode: LocationTrackingMode
                 switch trackingModeValue?.uppercased() {
                 case "OFF":
@@ -181,6 +193,13 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
                 }
                 _ = sdkConfigBuilder.addModule(LocationModule(config: LocationConfig(mode: mode)))
             }
+
+            #if canImport(CioLocationGeofence)
+            // Geofence runs automatically once registered; relies on the location module above.
+            if geofenceConfigured {
+                _ = sdkConfigBuilder.addModule(GeofenceModule())
+            }
+            #endif
             #endif
 
             CustomerIO.initialize(withConfig: sdkConfigBuilder.build())
