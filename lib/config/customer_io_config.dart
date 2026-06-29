@@ -2,6 +2,7 @@ import '../customer_io_enums.dart';
 import '../customer_io_plugin_version.dart' as plugin_info show version;
 import 'geofence_config.dart';
 import 'in_app_config.dart';
+import 'ios_config.dart';
 import 'location_config.dart';
 import 'push_config.dart';
 
@@ -24,6 +25,7 @@ class CustomerIOConfig {
   final PushConfig pushConfig;
   final LocationConfig? locationConfig;
   final GeofenceConfig? geofenceConfig;
+  final CustomerIOConfigIos? iosConfig;
 
   CustomerIOConfig({
     required this.cdpApiKey,
@@ -41,6 +43,7 @@ class CustomerIOConfig {
     PushConfig? pushConfig,
     this.locationConfig,
     this.geofenceConfig,
+    this.iosConfig,
   }) : pushConfig = pushConfig ?? PushConfig();
 
   Map<String, dynamic> toMap() {
@@ -60,6 +63,7 @@ class CustomerIOConfig {
       'push': pushConfig.toMap(),
       'location': locationConfig?.toMap(),
       'geofence': geofenceConfig?.toMap(),
+      'ios': iosConfig?.toMap(),
       'version': version,
       'source': source
     };

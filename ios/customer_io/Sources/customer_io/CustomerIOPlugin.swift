@@ -202,6 +202,15 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
             #endif
             #endif
 
+            // Customer value wins; otherwise on when the geofence module is added, off otherwise.
+            #if canImport(CioLocationGeofence)
+            let geofenceAdded = params["geofence"] as? [String: AnyHashable] != nil
+            #else
+            let geofenceAdded = false
+            #endif
+            let allowBackgroundDelivery = (params["ios"] as? [String: AnyHashable])?["allowBackgroundDelivery"] as? Bool
+            _ = sdkConfigBuilder.allowBackgroundDelivery(allowBackgroundDelivery ?? geofenceAdded)
+
             CustomerIO.initialize(withConfig: sdkConfigBuilder.build())
 
             // Initialize in-app messaging with provided config
