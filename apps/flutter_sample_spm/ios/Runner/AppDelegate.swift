@@ -5,6 +5,9 @@ import CioMessagingPushFCM
 import FirebaseMessaging
 import FirebaseCore
 import CioFirebaseWrapper
+#if canImport(CioLocationGeofence)
+import CioLocationGeofence
+#endif
 
 @main
 class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
@@ -17,7 +20,13 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         GeneratedPluginRegistrant.register(with: self)
-        
+
+        #if canImport(CioLocationGeofence)
+        // iOS can cold-wake the app for a geofence transition before the Dart runtime
+        // starts, so bootstrap here rather than relying on CustomerIO.initialize.
+        GeofenceModule.bootstrapForBackgroundDelivery(launchOptions: launchOptions)
+        #endif
+
         let controller = window?.rootViewController as! FlutterViewController
         permissionHandler.register(with: controller.binaryMessenger)
 

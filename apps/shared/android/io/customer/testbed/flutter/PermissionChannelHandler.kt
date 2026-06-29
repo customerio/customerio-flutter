@@ -19,6 +19,7 @@ class PermissionChannelHandler(
     companion object {
         private const val REQUEST_NOTIFICATION = 1001
         private const val REQUEST_LOCATION = 1002
+        private const val REQUEST_BACKGROUND_LOCATION = 1003
     }
 
     private var pendingResult: MethodChannel.Result? = null
@@ -32,6 +33,8 @@ class PermissionChannelHandler(
             "requestNotificationPermission" -> requestNotificationPermission(result)
             "getNotificationPermissionStatus" -> getNotificationPermissionStatus(result)
             "requestLocationPermission" -> requestLocationPermission(result)
+            "requestBackgroundLocationPermission" -> requestBackgroundLocationPermission(result)
+            "getLocationAuthorizationStatus" -> getLocationAuthorizationStatus(result)
             "openAppSettings" -> {
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                     data = Uri.fromParts("package", activity.packageName, null)
@@ -41,6 +44,22 @@ class PermissionChannelHandler(
             }
             else -> result.notImplemented()
         }
+    }
+
+    // Drives the state-aware "Background Location" button, mirroring the native sample apps.
+    private fun getLocationAuthorizationStatus(result: MethodChannel.Result) {
+        val fineGranted = ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+        if (!fineGranted) {
+            val permanentlyDenied = !ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.ACCESS_FINE_LOCATION) &&
+                hasRequestedPermissionBefore(Manifest.permission.ACCESS_FINE_LOCATION)
+            result.success(if (permanentlyDenied) "denied" else "notDetermined")
+            return
+        }
+        val backgroundGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
+            ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_BACKGROUND_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+        result.success(if (backgroundGranted) "backgroundGranted" else "foregroundOnly")
     }
 
     private fun getNotificationPermissionStatus(result: MethodChannel.Result) {
@@ -67,7 +86,7 @@ class PermissionChannelHandler(
             result.success("granted")
             return
         }
-        pendingResult = result
+        if (!claimPendingResult(result)) return
         ActivityCompat.requestPermissions(
             activity,
             arrayOf(Manifest.permission.POST_NOTIFICATIONS),
@@ -86,7 +105,7 @@ class PermissionChannelHandler(
             result.success("permanentlyDenied")
             return
         }
-        pendingResult = result
+        if (!claimPendingResult(result)) return
         markPermissionRequested(Manifest.permission.ACCESS_FINE_LOCATION)
         ActivityCompat.requestPermissions(
             activity,
@@ -95,8 +114,43 @@ class PermissionChannelHandler(
         )
     }
 
+    // Background location is a separate, escalated grant required for geofence transition
+    // delivery while the app is backgrounded. It only exists as its own permission on
+    // API 29+, and on API 30+ the OS requires fine location to be granted first.
+    private fun requestBackgroundLocationPermission(result: MethodChannel.Result) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            result.success("granted")
+            return
+        }
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+            result.success("fineLocationRequired")
+            return
+        }
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+            == PackageManager.PERMISSION_GRANTED) {
+            result.success("granted")
+            return
+        }
+        if (!ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+            && hasRequestedPermissionBefore(Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
+            result.success("permanentlyDenied")
+            return
+        }
+        if (!claimPendingResult(result)) return
+        markPermissionRequested(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        ActivityCompat.requestPermissions(
+            activity,
+            arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+            REQUEST_BACKGROUND_LOCATION
+        )
+    }
+
     fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray): Boolean {
-        if (requestCode != REQUEST_NOTIFICATION && requestCode != REQUEST_LOCATION) return false
+        if (requestCode != REQUEST_NOTIFICATION &&
+            requestCode != REQUEST_LOCATION &&
+            requestCode != REQUEST_BACKGROUND_LOCATION
+        ) return false
 
         val result = pendingResult ?: return false
         pendingResult = null
@@ -111,6 +165,17 @@ class PermissionChannelHandler(
                 result.success("denied")
             }
         }
+        return true
+    }
+
+    // Only one permission request can be in flight at a time (single result slot).
+    // Reject a second concurrent request instead of clobbering the first's callback.
+    private fun claimPendingResult(result: MethodChannel.Result): Boolean {
+        if (pendingResult != null) {
+            result.success("denied")
+            return false
+        }
+        pendingResult = result
         return true
     }
 
