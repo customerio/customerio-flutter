@@ -109,7 +109,8 @@ let package = Package(
         .library(name: "customer-io", targets: ["customer_io"])
     ],
     dependencies: [
-        .package(url: "https://github.com/customerio/customerio-ios.git", exact: "4.5.3"),
+        // TESTING SCAFFOLD: pull the unreleased geofence build from branch. Revert with this commit.
+        .package(url: "https://github.com/customerio/customerio-ios.git", branch: "feature/geofence-on-device"),
         .package(url: "https://github.com/customerio/customerio-ios-fcm.git", from: "1.0.0")
     ],
     targets: [
