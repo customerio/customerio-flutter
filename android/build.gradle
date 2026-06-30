@@ -18,6 +18,8 @@ rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
+        // TESTING SCAFFOLD: resolve the unreleased geofence snapshot. Revert with this commit.
+        maven { url 'https://central.sonatype.com/repository/maven-snapshots/' }
     }
 }
 
@@ -71,7 +73,7 @@ android {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     // Customer.io SDK
-    def cioVersion = "4.19.0"
+    def cioVersion = "feature-geofence-on-device-SNAPSHOT"
     implementation "io.customer.android:datapipelines:$cioVersion"
     implementation "io.customer.android:messaging-push-fcm:$cioVersion"
     implementation "io.customer.android:messaging-in-app:$cioVersion"
