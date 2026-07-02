@@ -16,6 +16,7 @@ class CustomerIOSDKConfig {
   final int? flushAt;
   final int? flushInterval;
   final ScreenView? screenViewUse;
+  final LocationTrackingMode? locationTrackingMode;
   final InAppConfig? inAppConfig;
   final PushConfig pushConfig;
 
@@ -31,6 +32,7 @@ class CustomerIOSDKConfig {
     this.flushAt,
     this.flushInterval,
     this.screenViewUse,
+    this.locationTrackingMode,
     this.inAppConfig,
     PushConfig? pushConfig,
   }) : pushConfig = pushConfig ?? PushConfig();
@@ -51,6 +53,8 @@ class CustomerIOSDKConfig {
         prefs.getEnumValueFromPrefs(_PreferencesKey.region, Region.values);
     final screenViewUse = prefs.getEnumValueFromPrefs(
         _PreferencesKey.screenViewUse, ScreenView.values);
+    final locationTrackingMode = prefs.getEnumValueFromPrefs(
+        _PreferencesKey.locationTrackingMode, LocationTrackingMode.values);
 
     return CustomerIOSDKConfig(
       cdpApiKey: cdpApiKey,
@@ -67,6 +71,7 @@ class CustomerIOSDKConfig {
       flushAt: prefs.getInt(_PreferencesKey.flushAt),
       flushInterval: prefs.getInt(_PreferencesKey.flushInterval),
       screenViewUse: screenViewUse,
+      locationTrackingMode: locationTrackingMode,
       inAppConfig: InAppConfig(
           siteId: prefs.getString(_PreferencesKey.migrationSiteId) ?? ""),
     );
@@ -118,6 +123,9 @@ extension ConfigurationPreferencesExtensions on SharedPreferences {
     result = result &&
         await setOrRemoveString(
             _PreferencesKey.screenViewUse, config.screenViewUse?.name);
+    result = result &&
+        await setOrRemoveString(_PreferencesKey.locationTrackingMode,
+            config.locationTrackingMode?.name);
     return result;
   }
 
@@ -141,4 +149,5 @@ class _PreferencesKey {
   static const flushAt = 'FLUSH_AT';
   static const flushInterval = 'FLUSH_INTERVAL';
   static const screenViewUse = 'SCREEN_VIEW_USE';
+  static const locationTrackingMode = 'LOCATION_TRACKING_MODE';
 }
