@@ -7,6 +7,7 @@ import 'customer_io_config.dart';
 import 'customer_io_enums.dart';
 import 'data_pipelines/customer_io_platform_interface.dart';
 import 'extensions/map_extensions.dart';
+import 'geofence/platform_interface.dart';
 import 'location/platform_interface.dart';
 import 'messaging_in_app/platform_interface.dart';
 import 'messaging_push/platform_interface.dart';
@@ -18,6 +19,7 @@ class CustomerIO {
   final CustomerIOMessagingPushPlatform _pushMessaging;
   final CustomerIOMessagingInAppPlatform _inAppMessaging;
   final CustomerIOLocationPlatform _location;
+  final CustomerIOGeofencePlatform _geofence;
 
   /// Private constructor to enforce singleton pattern
   CustomerIO._({
@@ -25,12 +27,14 @@ class CustomerIO {
     CustomerIOMessagingPushPlatform? pushMessaging,
     CustomerIOMessagingInAppPlatform? inAppMessaging,
     CustomerIOLocationPlatform? location,
+    CustomerIOGeofencePlatform? geofence,
   })  : _platform = platform ?? CustomerIOPlatform.instance,
         _pushMessaging =
             pushMessaging ?? CustomerIOMessagingPushPlatform.instance,
         _inAppMessaging =
             inAppMessaging ?? CustomerIOMessagingInAppPlatform.instance,
-        _location = location ?? CustomerIOLocationPlatform.instance;
+        _location = location ?? CustomerIOLocationPlatform.instance,
+        _geofence = geofence ?? CustomerIOGeofencePlatform.instance;
 
   /// Get the singleton instance of CustomerIO
   static CustomerIO get instance {
@@ -50,12 +54,14 @@ class CustomerIO {
     CustomerIOMessagingPushPlatform? pushMessaging,
     CustomerIOMessagingInAppPlatform? inAppMessaging,
     CustomerIOLocationPlatform? location,
+    CustomerIOGeofencePlatform? geofence,
   }) {
     _instance = CustomerIO._(
       platform: platform,
       pushMessaging: pushMessaging,
       inAppMessaging: inAppMessaging,
       location: location,
+      geofence: geofence,
     );
     return _instance!;
   }
@@ -80,6 +86,11 @@ class CustomerIO {
   /// Access location functionality
   static CustomerIOLocationPlatform get location {
     return _instance?._location ?? CustomerIOLocationPlatform.instance;
+  }
+
+  /// Access geofence functionality
+  static CustomerIOGeofencePlatform get geofence {
+    return _instance?._geofence ?? CustomerIOGeofencePlatform.instance;
   }
 
   /// To initialize the plugin

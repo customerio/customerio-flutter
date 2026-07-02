@@ -1,20 +1,26 @@
 package io.customer.customer_io.geofence
 
 import io.customer.customer_io.bridge.NativeModuleBridge
+import io.customer.customer_io.bridge.nativeNoArgs
+import io.customer.customer_io.utils.getAs
+import io.customer.geofence.GeofenceLocationMode
 import io.customer.geofence.GeofenceModuleConfig
 import io.customer.geofence.ModuleGeofence
 import io.customer.sdk.CustomerIOBuilder
+import io.customer.sdk.core.di.SDKComponent
+import io.customer.sdk.core.util.Logger
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
 /**
- * Flutter bridge for the geofence module. Geofence has no Flutter-facing methods —
- * it runs automatically once registered — so this only wires the native module into
- * the SDK builder. The reference to [ModuleGeofence] is isolated here so it is loaded
- * only when the geofence dependency is bundled.
+ * Flutter bridge for the geofence module. Wires the native module into the SDK
+ * builder and exposes its Flutter-facing methods. The references to
+ * [ModuleGeofence] are isolated here so they are loaded only when the geofence
+ * dependency is bundled.
  *
- * Geofence depends on the location module; registration of location is handled by the
- * plugin when geofence is configured.
+ * Geofence depends on the location module; registration of location is handled by
+ * the plugin when geofence is configured.
  */
 internal class CustomerIOGeofence(
     pluginBinding: FlutterPlugin.FlutterPluginBinding,
@@ -22,8 +28,37 @@ internal class CustomerIOGeofence(
     override val moduleName: String = "Geofence"
     override val flutterCommunicationChannel: MethodChannel =
         MethodChannel(pluginBinding.binaryMessenger, "customer_io_geofence")
+    private val logger: Logger = SDKComponent.logger
+
+    private fun getModuleGeofence() = runCatching {
+        ModuleGeofence.instance()
+    }.onFailure {
+        logger.error("Geofence module is not initialized. Ensure geofence config is provided during SDK initialization.")
+    }.getOrNull()
+
+    override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
+        when (call.method) {
+            "refreshFromCurrentLocation" -> call.nativeNoArgs(result, ::refreshFromCurrentLocation)
+            else -> super.onMethodCall(call, result)
+        }
+    }
+
+    private fun refreshFromCurrentLocation() {
+        getModuleGeofence()?.refreshFromCurrentLocation()
+    }
 
     override fun configureModule(builder: CustomerIOBuilder, config: Map<String, Any>) {
-        builder.addCustomerIOModule(ModuleGeofence(GeofenceModuleConfig.Builder().build()))
+        val locationModeValue = config.getAs<String>("locationMode")
+        val locationMode = locationModeValue?.let { value ->
+            runCatching { enumValueOf<GeofenceLocationMode>(value) }.getOrNull()
+        } ?: GeofenceLocationMode.AUTOMATIC
+
+        builder.addCustomerIOModule(
+            ModuleGeofence(
+                GeofenceModuleConfig.Builder()
+                    .setLocationMode(locationMode)
+                    .build()
+            )
+        )
     }
 }

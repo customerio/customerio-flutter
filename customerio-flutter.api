@@ -12,7 +12,8 @@ public final class CustomerIO {
 		CustomerIOPlatform? platform,
 		CustomerIOMessagingPushPlatform? pushMessaging,
 		CustomerIOMessagingInAppPlatform? inAppMessaging,
-		CustomerIOLocationPlatform? location
+		CustomerIOLocationPlatform? location,
+		CustomerIOGeofencePlatform? geofence
 	): CustomerIO;
 	public fun deleteDeviceToken();
 	public fun identify(
@@ -37,6 +38,7 @@ public final class CustomerIO {
 		required String deviceToken,
 		required MetricEvent event
 	);
+	static public val geofence: CustomerIOGeofencePlatform;
 	static public val inAppMessaging: CustomerIOMessagingInAppPlatform;
 	static public val instance: CustomerIO;
 	static public val location: CustomerIOLocationPlatform;
@@ -87,6 +89,12 @@ public final class CustomerIOConfigIos {
 	public fun new(bool? allowBackgroundDelivery): CustomerIOConfigIos;
 	public fun toMap(): Map<String, dynamic>;
 	public val allowBackgroundDelivery: bool?;
+}
+
+public final class CustomerIOGeofencePlatform {
+	public fun new(): CustomerIOGeofencePlatform;
+	public fun refreshFromCurrentLocation();
+	static public var instance: CustomerIOGeofencePlatform;
 }
 
 public final class CustomerIOLocationPlatform {
@@ -164,8 +172,16 @@ public final class EventType {
 }
 
 public final class GeofenceConfig {
-	public fun new(): GeofenceConfig;
+	public fun new(GeofenceLocationMode locationMode): GeofenceConfig;
 	public fun toMap(): Map<String, dynamic>;
+	public val locationMode: GeofenceLocationMode;
+}
+
+public final class GeofenceLocationMode {
+	static public val automatic: GeofenceLocationMode;
+	static public val manual: GeofenceLocationMode;
+	public val rawValue: String;
+	static public val values: List<GeofenceLocationMode>;
 }
 
 public final class InAppConfig {
