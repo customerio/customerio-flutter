@@ -73,7 +73,9 @@ class CustomerIOSDK extends ChangeNotifier {
           flushInterval: _sdkConfig?.flushInterval?.toInt(),
           screenViewUse: _sdkConfig?.screenViewUse,
           inAppConfig: inAppConfig,
-          locationConfig: LocationConfig(),
+          locationConfig: LocationConfig(
+              trackingMode: _sdkConfig?.locationTrackingMode ??
+                  LocationTrackingMode.onAppStart),
           geofenceConfig: GeofenceConfig(),
         ),
       );
