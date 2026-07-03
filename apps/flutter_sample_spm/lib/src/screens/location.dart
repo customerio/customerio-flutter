@@ -51,12 +51,13 @@ class _LocationScreenState extends State<LocationScreen>
     final previous = _locationStatus;
     setState(() => _locationStatus = status);
     // On any new grant — including one made in Settings and picked up on resume —
-    // fetch so geofences register. The SDK's auto-fetch hook runs once per process,
-    // so a runtime grant needs an explicit request (matches the native sample apps).
+    // refresh geofences from the current location. This is silent (no location
+    // analytics event) and forces an immediate refresh once permission is granted
+    // at runtime (matches the native sample apps).
     if (previous != null &&
         status != previous &&
         _grantedStatuses.contains(status)) {
-      CustomerIO.location.requestLocationUpdate();
+      CustomerIO.geofence.refreshFromCurrentLocation();
     }
   }
 

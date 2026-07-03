@@ -16,6 +16,9 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
     #if canImport(CioLocation)
     private var locationChannelHandler: CustomerIOLocation!
     #endif
+    #if canImport(CioLocationGeofence)
+    private var geofenceChannelHandler: CustomerIOGeofence!
+    #endif
     private var messagingPushChannelHandler: CustomerIOMessagingPush!
 
     private let logger: CioInternalCommon.Logger = DIGraphShared.shared.logger
@@ -29,6 +32,9 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
         instance.inAppMessagingChannelHandler = CustomerIOInAppMessaging(with: registrar)
         #if canImport(CioLocation)
         instance.locationChannelHandler = CustomerIOLocation(with: registrar)
+        #endif
+        #if canImport(CioLocationGeofence)
+        instance.geofenceChannelHandler = CustomerIOGeofence(with: registrar)
         #endif
         instance.messagingPushChannelHandler = CustomerIOMessagingPush(with: registrar)
     }
@@ -195,9 +201,16 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
             }
 
             #if canImport(CioLocationGeofence)
-            // Geofence runs automatically once registered; relies on the location module above.
-            if geofenceConfigured {
-                _ = sdkConfigBuilder.addModule(GeofenceModule())
+            // Geofence relies on the location module above.
+            if let geofenceConfig = params["geofence"] as? [String: AnyHashable] {
+                let locationMode: GeofenceLocationMode
+                switch (geofenceConfig["locationMode"] as? String)?.uppercased() {
+                case "MANUAL":
+                    locationMode = .manual
+                default:
+                    locationMode = .automatic
+                }
+                _ = sdkConfigBuilder.addModule(GeofenceModule(config: GeofenceModuleConfig(locationMode: locationMode)))
             }
             #endif
             #endif

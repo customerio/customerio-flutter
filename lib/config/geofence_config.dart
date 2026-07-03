@@ -1,12 +1,19 @@
+import '../customer_io_enums.dart';
+
 /// Configuration for the optional Geofence module.
 ///
-/// Geofence runs automatically once enabled and has no options yet. Providing a
-/// [GeofenceConfig] opts the app into geofence monitoring; this also enables the
-/// Location module, which geofence depends on.
+/// Providing a [GeofenceConfig] opts the app into geofence monitoring; this also
+/// enables the Location module, which geofence depends on.
 class GeofenceConfig {
-  GeofenceConfig();
+  /// How the module acquires the device location it needs for geofencing.
+  /// Defaults to [GeofenceLocationMode.automatic].
+  final GeofenceLocationMode locationMode;
+
+  GeofenceConfig({this.locationMode = GeofenceLocationMode.automatic});
 
   Map<String, dynamic> toMap() {
-    return {};
+    return {
+      'locationMode': locationMode.rawValue,
+    };
   }
 }
