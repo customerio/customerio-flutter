@@ -46,6 +46,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController _flushIntervalValueController;
 
   late ScreenView _screenViewUse;
+  late LocationTrackingMode _locationTrackingMode;
   late bool _featureTrackScreens;
   late bool _featureTrackDeviceAttributes;
   late bool _featureDebugMode;
@@ -68,6 +69,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _flushIntervalValueController =
         TextEditingController(text: cioConfig?.flushInterval?.toString());
     _screenViewUse = cioConfig?.screenViewUse ?? ScreenView.all;
+    _locationTrackingMode =
+        cioConfig?.locationTrackingMode ?? LocationTrackingMode.onAppStart;
     _featureTrackScreens = cioConfig?.screenTrackingEnabled ?? true;
     _featureTrackDeviceAttributes =
         cioConfig?.autoTrackDeviceAttributes ?? true;
@@ -89,6 +92,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         flushAt: _flushAtValueController.text.trim().toIntOrNull(),
         flushInterval: _flushIntervalValueController.text.trim().toIntOrNull(),
         screenViewUse: _screenViewUse,
+        locationTrackingMode: _locationTrackingMode,
         screenTrackingEnabled: _featureTrackScreens,
         autoTrackDeviceAttributes: _featureTrackDeviceAttributes,
         debugModeEnabled: _featureDebugMode,
@@ -123,6 +127,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _flushIntervalValueController.text =
           defaultConfig.flushInterval?.toString() ?? '';
       _screenViewUse = defaultConfig.screenViewUse ?? ScreenView.all;
+      _locationTrackingMode =
+          defaultConfig.locationTrackingMode ?? LocationTrackingMode.onAppStart;
       _featureTrackScreens = defaultConfig.screenTrackingEnabled;
       _featureTrackDeviceAttributes =
           defaultConfig.autoTrackDeviceAttributes ?? true;
@@ -300,6 +306,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             updateState: (ScreenView selected) {
                               setState(() {
                                 _screenViewUse = selected;
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          ChoiceSettingsFormField<LocationTrackingMode>(
+                            labelText: 'Location Tracking Mode',
+                            semanticsLabel: 'Location tracking mode options',
+                            value: _locationTrackingMode,
+                            options: LocationTrackingMode.values,
+                            updateState: (LocationTrackingMode selected) {
+                              setState(() {
+                                _locationTrackingMode = selected;
                               });
                             },
                           ),
