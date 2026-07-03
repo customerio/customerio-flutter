@@ -49,8 +49,10 @@ internal class CustomerIOGeofence(
 
     override fun configureModule(builder: CustomerIOBuilder, config: Map<String, Any>) {
         val locationModeValue = config.getAs<String>("locationMode")
+        // Uppercase before matching so casing can't diverge from iOS (which uppercases too);
+        // enumValueOf is case-sensitive. Unknown values fall back to the SDK default.
         val locationMode = locationModeValue?.let { value ->
-            runCatching { enumValueOf<GeofenceLocationMode>(value) }.getOrNull()
+            runCatching { enumValueOf<GeofenceLocationMode>(value.uppercase()) }.getOrNull()
         } ?: GeofenceLocationMode.AUTOMATIC
 
         builder.addCustomerIOModule(
