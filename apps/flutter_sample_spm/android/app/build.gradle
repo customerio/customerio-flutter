@@ -32,10 +32,8 @@ android {
     // The `compressReleaseAssets` task, is responsible for compressing the assets into a single archive file for release builds.
     // By adding a dependency on `copyFlutterAssetsRelease`, the code ensures that the app's assets
     // are copied to the correct location before they are compressed for release.
-    tasks.whenTaskAdded { task ->
-        if (task.name == 'compressReleaseAssets') {
-            task.dependsOn 'copyFlutterAssetsRelease'
-        }
+    tasks.matching { it.name == 'compressReleaseAssets' }.configureEach {
+        dependsOn 'copyFlutterAssetsRelease'
     }
 
     defaultConfig {
