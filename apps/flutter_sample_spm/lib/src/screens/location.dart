@@ -173,18 +173,11 @@ class _LocationScreenState extends State<LocationScreen>
     context.showMessageDialog(
       'Allow background location?',
       'Geofence transitions only fire while the app is backgrounded if you grant '
-          '"Always"/"Allow all the time". If no prompt appears, use Open Settings.',
+          '"Always"/"Allow all the time".',
       actions: [
         TextButton(
           child: const Text('Cancel'),
           onPressed: () => Navigator.of(context).pop(),
-        ),
-        TextButton(
-          child: const Text('Open Settings'),
-          onPressed: () {
-            Navigator.of(context).pop();
-            _permissionChannel.invokeMethod('openAppSettings');
-          },
         ),
         TextButton(
           child: const Text('Continue'),
