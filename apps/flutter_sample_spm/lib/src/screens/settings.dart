@@ -70,7 +70,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         TextEditingController(text: cioConfig?.flushInterval?.toString());
     _screenViewUse = cioConfig?.screenViewUse ?? ScreenView.all;
     _locationTrackingMode =
-        cioConfig?.locationTrackingMode ?? LocationTrackingMode.onAppStart;
+        cioConfig?.locationTrackingMode ?? LocationTrackingMode.manual;
     _featureTrackScreens = cioConfig?.screenTrackingEnabled ?? true;
     _featureTrackDeviceAttributes =
         cioConfig?.autoTrackDeviceAttributes ?? true;
@@ -128,7 +128,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           defaultConfig.flushInterval?.toString() ?? '';
       _screenViewUse = defaultConfig.screenViewUse ?? ScreenView.all;
       _locationTrackingMode =
-          defaultConfig.locationTrackingMode ?? LocationTrackingMode.onAppStart;
+          defaultConfig.locationTrackingMode ?? LocationTrackingMode.manual;
       _featureTrackScreens = defaultConfig.screenTrackingEnabled;
       _featureTrackDeviceAttributes =
           defaultConfig.autoTrackDeviceAttributes ?? true;

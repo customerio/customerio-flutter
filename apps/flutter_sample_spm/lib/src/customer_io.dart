@@ -75,7 +75,7 @@ class CustomerIOSDK extends ChangeNotifier {
           inAppConfig: inAppConfig,
           locationConfig: LocationConfig(
               trackingMode: _sdkConfig?.locationTrackingMode ??
-                  LocationTrackingMode.onAppStart),
+                  LocationTrackingMode.manual),
           geofenceConfig: GeofenceConfig(),
         ),
       );
