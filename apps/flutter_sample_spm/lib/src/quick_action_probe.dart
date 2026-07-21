@@ -1,14 +1,9 @@
 import 'package:flutter/foundation.dart';
-import 'package:quick_actions/quick_actions.dart';
+import 'package:quick_actions_ios/quick_actions_ios.dart';
 
 /// Exercises Flutter plugins that register an iOS application delegate.
 class QuickActionProbe extends ChangeNotifier {
   static const shortcutType = 'lifecycle_probe';
-
-  final QuickActions _quickActions;
-
-  QuickActionProbe({QuickActions quickActions = const QuickActions()})
-      : _quickActions = quickActions;
 
   String? _lastAction;
   int _callbackCount = 0;
@@ -17,8 +12,13 @@ class QuickActionProbe extends ChangeNotifier {
   int get callbackCount => _callbackCount;
 
   Future<void> initialize() async {
-    await _quickActions.initialize(_handleAction);
-    await _quickActions.setShortcutItems(const [
+    if (defaultTargetPlatform != TargetPlatform.iOS) {
+      return;
+    }
+
+    final quickActions = QuickActionsIos();
+    await quickActions.initialize(_handleAction);
+    await quickActions.setShortcutItems(const [
       ShortcutItem(
         type: shortcutType,
         localizedTitle: 'Test Flutter lifecycle',
