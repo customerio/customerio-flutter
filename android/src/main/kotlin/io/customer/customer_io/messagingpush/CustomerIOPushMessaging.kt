@@ -4,6 +4,7 @@ import android.content.Context
 import io.customer.customer_io.bridge.NativeModuleBridge
 import io.customer.customer_io.bridge.nativeMapArgs
 import io.customer.customer_io.bridge.nativeNoArgs
+import io.customer.customer_io.liveactivities.CustomerIOLiveActivities
 import io.customer.customer_io.utils.getAs
 import io.customer.customer_io.utils.takeIfNotBlank
 import io.customer.messagingpush.CustomerIOFirebaseMessagingService
@@ -98,6 +99,14 @@ internal class CustomerIOPushMessaging(
         val module = ModuleMessagingPushFCM(
             moduleConfig = MessagingPushModuleConfig.Builder().apply {
                 setPushClickBehavior(pushClickBehavior = pushClickBehavior)
+                // Live Notifications are hosted by the FCM push module, so their config is applied
+                // onto the same MessagingPushModuleConfig.
+                config.getAs<Map<String, Any>>(key = "liveActivities")?.let { liveActivitiesConfig ->
+                    CustomerIOLiveActivities.applyLiveActivitiesConfig(
+                        builder = this,
+                        config = liveActivitiesConfig,
+                    )
+                }
             }.build(),
         )
         builder.addCustomerIOModule(module)

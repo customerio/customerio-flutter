@@ -41,6 +41,22 @@ enum PushClickBehaviorAndroid {
 /// inApp - to only display in-app messages and not send screen events to destinations.
 enum ScreenView { all, inApp }
 
+/// Built-in Live Activity (iOS) / Live Notification (Android) templates.
+///
+/// The raw values are the string keys shared verbatim by both native SDKs and
+/// used inside [LiveActivityPayload] maps.
+enum LiveActivityTemplate {
+  /// Segmented progress template (header, status, substatus, segment counts).
+  segments(rawValue: 'segments'),
+
+  /// Countdown timer template (header, title, status message, end time).
+  countdownTimer(rawValue: 'countdownTimer');
+
+  const LiveActivityTemplate({required this.rawValue});
+
+  final String rawValue;
+}
+
 /// Location tracking mode for the CustomerIO Location module.
 enum LocationTrackingMode {
   /// Location tracking is disabled. All location operations no-op.
