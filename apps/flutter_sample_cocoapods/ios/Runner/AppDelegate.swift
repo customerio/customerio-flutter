@@ -5,12 +5,16 @@ import CioMessagingPushFCM
 import FirebaseMessaging
 import FirebaseCore
 import CioFirebaseWrapper
+import customer_io
 
 @main
 class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
 
 @objc class AppDelegate: FlutterAppDelegate {
     private let permissionHandler = PermissionChannelHandler()
+    // App-owned handler for the custom "rideshare" Live Activity (custom iOS types are not driven
+    // through the Customer.io wrapper — the app owns the widget + ActivityKit calls).
+    private let customLiveActivity = SampleCustomLiveActivity()
 
     override func application(
         _ application: UIApplication,
@@ -20,6 +24,7 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
 
         let controller = window?.rootViewController as! FlutterViewController
         permissionHandler.register(with: controller.binaryMessenger)
+        customLiveActivity.register(with: controller.binaryMessenger)
         
         // Depending on the method you choose to install Firebase in your app,
         // you may need to add functions to this file, such as the following:
@@ -62,6 +67,17 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
     override func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
         super.application(application, continue: userActivity, restorationHandler: restorationHandler)
         return false
+    }
+
+    // Reference pattern: report a Live Activity deep-link tap so Customer.io attributes an `opened`
+    // metric. A Live Activity tap arrives here through the normal openURL path; the wrapper's static
+    // accessor forwards the URL to the held Live Activities module. Reporting does NOT consume the
+    // URL, so we still hand it to the rest of the app's URL handling.
+    override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+        if #available(iOS 16.2, *) {
+            _ = CustomerIOLiveActivities.reportDeepLinkOpen(url)
+        }
+        return super.application(app, open: url, options: options)
     }
 }
 
