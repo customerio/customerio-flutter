@@ -58,9 +58,14 @@ private class RideshareLiveNotificationCallback : CustomerIOPushNotificationCall
         val extras = payload.extras
         if (extras.getString("notification_type") != RIDESHARE_TYPE) return null
 
+        // The SDK re-invokes this callback on the "end" event. Return a terminal, non-ongoing
+        // notification then so it can be dismissed instead of sticking around forever.
+        val ended = extras.getString("event") == "end"
+
         val driverName = extras.getString("driverName") ?: "Your driver"
         val status = extras.getString("status") ?: ""
-        val etaMinutes = extras.getString("etaMinutes")
+        // Numeric fields cross the bridge as doubles and are stored as strings ("5.0"); render as int.
+        val etaMinutes = extras.getString("etaMinutes")?.toDoubleOrNull()?.toInt()
 
         val body = if (etaMinutes != null) {
             "$status • ETA $etaMinutes min"
@@ -71,9 +76,9 @@ private class RideshareLiveNotificationCallback : CustomerIOPushNotificationCall
         ensureChannel(context)
         return NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(context.applicationInfo.icon)
-            .setContentTitle("$driverName is on the way")
+            .setContentTitle(if (ended) "$driverName has arrived" else "$driverName is on the way")
             .setContentText(body)
-            .setOngoing(true)
+            .setOngoing(!ended)
             .setOnlyAlertOnce(true)
             .build()
     }

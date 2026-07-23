@@ -206,8 +206,10 @@ class _LiveActivitiesScreenState extends State<LiveActivitiesScreen> {
         });
       } else {
         // The wrapper exposes startCustom (which mints a fresh activity id) but
-        // no stable-id custom update, so on Android we re-issue startCustom and
-        // track the new id. End then targets the latest notification.
+        // no stable-id custom update. End the current notification first, then
+        // re-issue startCustom and track the new id, so we replace it in place
+        // instead of stacking a second notification and orphaning the previous one.
+        await CustomerIO.liveActivities.end(id);
         currentId = await CustomerIO.liveActivities.startCustom(_rideshareType, {
           'driverName': 'Alex',
           'status': 'Arriving now',
@@ -425,14 +427,15 @@ class _SectionCard extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 12),
-          ...children,
+          const SizedBox(height: 4),
           Text(
             description,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
+          const SizedBox(height: 12),
+          ...children,
         ],
       ),
     );
