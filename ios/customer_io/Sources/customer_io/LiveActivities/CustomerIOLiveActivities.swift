@@ -161,9 +161,13 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
         Task {
             do {
                 try await box.update(map)
-                result(true)
+                // FlutterResult must be invoked on the platform (main) thread; the Task
+                // resumes off-main after the await, so hop back before replying.
+                await MainActor.run { result(true) }
             } catch {
-                result(FlutterError(code: "live_activity_update_failed", message: error.localizedDescription, details: nil))
+                await MainActor.run {
+                    result(FlutterError(code: "live_activity_update_failed", message: error.localizedDescription, details: nil))
+                }
             }
         }
         #else
@@ -183,7 +187,9 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
         guard let box = box else { return result(true) }
         Task {
             await box.end()
-            result(true)
+            // FlutterResult must be invoked on the platform (main) thread; the Task
+            // resumes off-main after the await, so hop back before replying.
+            await MainActor.run { result(true) }
         }
         #else
         result(Self.unavailableError())
