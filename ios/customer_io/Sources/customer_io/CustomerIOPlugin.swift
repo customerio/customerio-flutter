@@ -14,6 +14,7 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
     private var locationChannelHandler: CustomerIOLocation!
     #endif
     private var messagingPushChannelHandler: CustomerIOMessagingPush!
+    private var liveActivitiesChannelHandler: CustomerIOLiveActivities!
 
     private let logger: CioInternalCommon.Logger = DIGraphShared.shared.logger
 
@@ -28,6 +29,7 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
         instance.locationChannelHandler = CustomerIOLocation(with: registrar)
         #endif
         instance.messagingPushChannelHandler = CustomerIOMessagingPush(with: registrar)
+        instance.liveActivitiesChannelHandler = CustomerIOLiveActivities(with: registrar)
     }
 
     deinit {
@@ -187,6 +189,9 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
 
             // Initialize in-app messaging with provided config
             inAppMessagingChannelHandler.configureModule(params: params)
+
+            // Initialize Live Activities module from the `liveActivities` config (iOS 16.2+).
+            liveActivitiesChannelHandler.initializeModule(params: params)
 
             logger.debug("Customer.io SDK initialized with config: \(params)")
         } catch {

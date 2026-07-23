@@ -79,7 +79,12 @@ var targetDependencies: [Target.Dependency] = [
     .product(name: "DataPipelines", package: "customerio-ios"),
     .product(name: "MessagingInApp", package: "customerio-ios"),
     .product(name: "MessagingPushFCM", package: "customerio-ios"),
-    .product(name: "CioFirebaseWrapper", package: "customerio-ios-fcm")
+    .product(name: "CioFirebaseWrapper", package: "customerio-ios-fcm"),
+    // Live Activities (iOS) native rendering + built-in templates.
+    // NOTE: requires the customerio-ios pin below to include Live Activities (>= the LA release).
+    .product(name: "LiveActivities", package: "customerio-ios"),
+    .product(name: "LiveActivities_Attributes", package: "customerio-ios"),
+    .product(name: "LiveActivities_Templates", package: "customerio-ios")
 ]
 
 if useLocation {
