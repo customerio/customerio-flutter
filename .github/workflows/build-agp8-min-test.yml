@@ -1,0 +1,30 @@
+name: Build AGP 8 minimal test app
+
+on:
+  pull_request:
+  push:
+    branches: [ main, feature/* ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-android-agp8:
+    name: Build Android APK under AGP 8 / Gradle 8
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: ./.github/actions/setup-flutter
+
+      - name: Setup Android environment
+        uses: customerio/customerio-android/.github/actions/setup-android@main
+
+      - name: Increase Gradle memory limit
+        run: echo "org.gradle.jvmargs=-Xmx4g" >> ~/.gradle/gradle.properties
+
+      - name: Build debug APK
+        working-directory: apps/flutter_sample_agp8_min
+        run: flutter build apk --debug
