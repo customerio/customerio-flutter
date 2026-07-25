@@ -47,3 +47,19 @@ For a guided interactive walkthrough:
 
 - **PRs and pushes**: both apps are built to verify SPM and CocoaPods compatibility
 - **SDK releases**: only the primary app is built
+
+## iOS App Delegate Regression Check
+
+Both samples register a `quick_actions` lifecycle delegate to verify that the
+Customer.io app delegate wrapper preserves the wrapped Flutter app delegate's
+Objective-C protocol conformance and forwarding behavior.
+
+1. Launch the sample once so it registers the **Test Flutter lifecycle** Home
+   Screen quick action.
+2. Terminate the app, long-press its Home Screen icon, and select the action.
+   Confirm the banner ends in `(1)`.
+3. Press Home without terminating the app, select the action again, and confirm
+   the same banner ends in `(2)`.
+
+Run the check on both the SPM and CocoaPods samples whenever the native iOS SDK
+pin or app delegate integration changes.
