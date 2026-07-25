@@ -47,7 +47,12 @@ target 'Runner' do
   pod 'customer_io/location', :path => '.symlinks/plugins/customer_io/ios' # install location subspec for testing
   pod 'customer_io/geofence', :path => '.symlinks/plugins/customer_io/ios' # install geofence subspec for testing (pulls in location)
   # install_non_production_ios_sdk_local_path(local_path: '~/code/customerio-ios/', is_app_extension: false, push_service: "fcm")
-  # install_non_production_ios_sdk_git_branch(branch_name: 'feature/wrappers-inline-support', is_app_extension: false, push_service: "fcm")
+  # TESTING SCAFFOLD: build against an unreleased native SDK branch. To retarget to the next
+  # feature, change cio_test_branch below (single source for both refs). Revert with this commit.
+  cio_test_branch = 'main'
+  install_non_production_ios_sdk_git_branch(branch_name: cio_test_branch, is_app_extension: false, push_service: "fcm")
+  # Umbrella geofence subspec isn't on the released trunk spec yet, so pull it from the branch too.
+  pod 'CustomerIO/LocationGeofence', :git => 'https://github.com/customerio/customerio-ios.git', :branch => cio_test_branch
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end

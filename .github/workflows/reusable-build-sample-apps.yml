@@ -70,6 +70,7 @@ jobs:
           PUBLIC_BUILDS_GROUP: public
           # Input variables
           CURRENT_BRANCH: ${{ github.ref }}
+          PR_HEAD_BRANCH: ${{ github.head_ref }}
           USE_LATEST_SDK_VERSION: ${{ inputs.use_latest_sdk_version }}
           IS_PRIMARY_APP: ${{ inputs.is_primary_app }}
         run: |
@@ -79,6 +80,10 @@ jobs:
           # Only primary app gets additional distribution groups
           if [[ "$IS_PRIMARY_APP" == "true" ]]; then
             [[ "$CURRENT_BRANCH" == "refs/heads/feature/"* ]] && distribution_groups+=("$FEATURE_BUILDS_GROUP")
+            # TEMP (geofence pre-release): also publish this PR's builds to the feature-branch
+            # channel so peers can test geofence before native Android 4.20.0 / iOS 4.7.0 ship.
+            # Reverted with the rest of the geofence test wiring once native goes live.
+            [[ "$PR_HEAD_BRANCH" == "mbl-1783-geofence-release" ]] && distribution_groups+=("$FEATURE_BUILDS_GROUP")
             [[ "$CURRENT_BRANCH" == "refs/heads/main" ]] && distribution_groups+=("$NEXT_BUILDS_GROUP")
             [[ "$USE_LATEST_SDK_VERSION" == "true" ]] && distribution_groups+=("$PUBLIC_BUILDS_GROUP")
           fi
@@ -257,6 +262,7 @@ jobs:
           PUBLIC_BUILDS_GROUP: public
           # Input variables
           CURRENT_BRANCH: ${{ github.ref }}
+          PR_HEAD_BRANCH: ${{ github.head_ref }}
           USE_LATEST_SDK_VERSION: ${{ inputs.use_latest_sdk_version }}
           IS_PRIMARY_APP: ${{ inputs.is_primary_app }}
         run: |
@@ -266,6 +272,10 @@ jobs:
           # Only primary app gets additional distribution groups
           if [[ "$IS_PRIMARY_APP" == "true" ]]; then
             [[ "$CURRENT_BRANCH" == "refs/heads/feature/"* ]] && distribution_groups+=("$FEATURE_BUILDS_GROUP")
+            # TEMP (geofence pre-release): also publish this PR's builds to the feature-branch
+            # channel so peers can test geofence before native Android 4.20.0 / iOS 4.7.0 ship.
+            # Reverted with the rest of the geofence test wiring once native goes live.
+            [[ "$PR_HEAD_BRANCH" == "mbl-1783-geofence-release" ]] && distribution_groups+=("$FEATURE_BUILDS_GROUP")
             [[ "$CURRENT_BRANCH" == "refs/heads/main" ]] && distribution_groups+=("$NEXT_BUILDS_GROUP")
             [[ "$USE_LATEST_SDK_VERSION" == "true" ]] && distribution_groups+=("$PUBLIC_BUILDS_GROUP")
           fi

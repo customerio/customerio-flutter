@@ -109,7 +109,9 @@ let package = Package(
         .library(name: "customer-io", targets: ["customer_io"])
     ],
     dependencies: [
-        .package(url: "https://github.com/customerio/customerio-ios.git", exact: "4.7.0"),
+        // TESTING SCAFFOLD: build against an unreleased native SDK branch. To retarget to the
+        // next feature, change the branch name below. Revert with this commit.
+        .package(url: "https://github.com/customerio/customerio-ios.git", branch: "main"),
         .package(url: "https://github.com/customerio/customerio-ios-fcm.git", from: "1.0.0")
     ],
     targets: [
