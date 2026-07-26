@@ -227,13 +227,13 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 }
             }
             // Configure push messaging module based on config provided by customer app.
-            // Live Notifications are hosted by the push module, so the `liveActivities` config is
+            // Live Notifications are hosted by the push module, so the `liveNotifications` config is
             // merged into the push config and applied onto the same MessagingPushModuleConfig.
             args.getAs<Map<String, Any>>(key = "push").let { pushConfig ->
-                val liveActivitiesConfig = args.getAs<Map<String, Any>>(key = "liveActivities")
+                val liveActivitiesConfig = args.getAs<Map<String, Any>>(key = "liveNotifications")
                 val mergedConfig = (pushConfig ?: emptyMap()).let { base ->
                     if (liveActivitiesConfig != null) {
-                        base + ("liveActivities" to liveActivitiesConfig)
+                        base + ("liveNotifications" to liveActivitiesConfig)
                     } else {
                         base
                     }

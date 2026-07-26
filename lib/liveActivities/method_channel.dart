@@ -68,8 +68,8 @@ class CustomerIOLiveActivitiesMethodChannel
   }
 
   StateError _notEnabled() => StateError(
-        'Customer.io: Live Activities module is not enabled. Enable live '
-        'activity templates in the SDK config (liveActivities) before using '
-        'this feature.',
+        'Customer.io: Live Activities module is not enabled. Enable activity '
+        'types in the SDK config (liveNotifications.types) before using this '
+        'feature.',
       );
 }

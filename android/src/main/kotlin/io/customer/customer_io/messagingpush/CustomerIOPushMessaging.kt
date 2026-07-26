@@ -101,7 +101,7 @@ internal class CustomerIOPushMessaging(
                 setPushClickBehavior(pushClickBehavior = pushClickBehavior)
                 // Live Notifications are hosted by the FCM push module, so their config is applied
                 // onto the same MessagingPushModuleConfig.
-                config.getAs<Map<String, Any>>(key = "liveActivities")?.let { liveActivitiesConfig ->
+                config.getAs<Map<String, Any>>(key = "liveNotifications")?.let { liveActivitiesConfig ->
                     CustomerIOLiveActivities.applyLiveActivitiesConfig(
                         builder = this,
                         config = liveActivitiesConfig,

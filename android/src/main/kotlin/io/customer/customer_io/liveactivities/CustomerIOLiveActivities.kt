@@ -92,7 +92,7 @@ class CustomerIOLiveActivities internal constructor(
 
     private fun parseData(payload: Map<String, Any>): LiveNotificationData {
         return when (val type = payload.getAs<String>("type")) {
-            "segments" -> LiveNotificationData.Segments(
+            LiveNotificationType.SEGMENTS.identifier -> LiveNotificationData.Segments(
                 header = payload.requireString("header"),
                 status = payload.requireString("status"),
                 substatus = payload.getAs<String>("substatus"),
@@ -101,14 +101,16 @@ class CustomerIOLiveActivities internal constructor(
                 trailingText = payload.getAs<String>("trailingText"),
             )
 
-            "countdownTimer" -> LiveNotificationData.CountdownTimer(
+            LiveNotificationType.COUNTDOWN_TIMER.identifier -> LiveNotificationData.CountdownTimer(
                 header = payload.requireString("header"),
                 title = payload.requireString("title"),
                 statusMessage = payload.getAs<String>("statusMessage"),
                 endTime = payload.getAs<Number>("endTime")?.toLong(),
             )
 
-            else -> throw IllegalArgumentException("Unknown live activity template type: $type")
+            // A newer native SDK may know this type even though this wrapper build doesn't.
+            // Reject softly (the caller turns this into a FlutterError) rather than crash.
+            else -> throw IllegalArgumentException("Unsupported Live Activity template: $type")
         }
     }
 
@@ -137,7 +139,7 @@ class CustomerIOLiveActivities internal constructor(
          */
         @Volatile
         private var liveNotificationCallback:
-            io.customer.messagingpush.data.communication.CustomerIOPushNotificationCallback? = null
+            io.customer.messagingpush.data.communication.CustomerIOLiveNotificationsCallback? = null
 
         /**
          * Registers the callback used to render custom Live Notifications. Must be called before the
@@ -145,7 +147,7 @@ class CustomerIOLiveActivities internal constructor(
          */
         @JvmStatic
         fun setLiveNotificationCallback(
-            callback: io.customer.messagingpush.data.communication.CustomerIOPushNotificationCallback,
+            callback: io.customer.messagingpush.data.communication.CustomerIOLiveNotificationsCallback,
         ) {
             liveNotificationCallback = callback
         }
@@ -156,7 +158,7 @@ class CustomerIOLiveActivities internal constructor(
          * custom types, branding) is set on the same [MessagingPushModuleConfig].
          *
          * @param builder the push module's config builder.
-         * @param config the `liveActivities` config map from the customer app.
+         * @param config the `liveNotifications` config map from the customer app.
          */
         internal fun applyLiveActivitiesConfig(
             builder: MessagingPushModuleConfig.Builder,
@@ -164,16 +166,14 @@ class CustomerIOLiveActivities internal constructor(
         ) {
             // Custom live notifications require the host app to render them; apply the callback the
             // app registered before SDK init (see [setLiveNotificationCallback]).
-            liveNotificationCallback?.let { builder.setNotificationCallback(it) }
+            liveNotificationCallback?.let { builder.setLiveNotificationCallback(it) }
 
-            val templateTypes = config.getAs<List<*>>("templates")
+            // Unrecognized identifiers are ignored: a newer native SDK may ship types this
+            // wrapper build doesn't know, and that must never break the ones it does know.
+            val templateTypes = config.getAs<List<*>>("types")
                 ?.mapNotNull { it as? String }
-                ?.mapNotNull { name ->
-                    when (name) {
-                        "segments" -> LiveNotificationType.SEGMENTS
-                        "countdownTimer" -> LiveNotificationType.COUNTDOWN_TIMER
-                        else -> null
-                    }
+                ?.mapNotNull { identifier ->
+                    LiveNotificationType.entries.firstOrNull { it.identifier == identifier }
                 }
                 .orEmpty()
             if (templateTypes.isNotEmpty()) {
@@ -192,23 +192,33 @@ class CustomerIOLiveActivities internal constructor(
                 val accentColor = branding.getAs<String>("accentColorHex")
                     ?.let { runCatching { Color.parseColor(it) }.getOrNull() }
                     ?: Color.TRANSPARENT
-                val logoUrl = branding.getAs<String>("logoUrl")
+                // A bundled drawable is preferred over a remote URL: it renders without a network
+                // round-trip, so the logo is present on the very first frame.
+                val logo = branding.getAs<String>("logoResource")
+                    ?.let { name -> drawableResId(name)?.let(LiveNotificationAsset::Drawable) }
+                    ?: branding.getAs<String>("logoUrl")?.let(LiveNotificationAsset::RemoteUrl)
                 val smallIcon = branding.getAs<String>("smallIconResource")
-                    ?.let { name ->
-                        val context = SDKComponent.android().applicationContext
-                        context.resources
-                            .getIdentifier(name, "drawable", context.packageName)
-                            .takeIf { it != 0 }
-                    }
+                    ?.let { name -> drawableResId(name) }
                 builder.setLiveNotificationBranding(
                     LiveNotificationBranding(
                         companyName = branding.getAs<String>("companyName").orEmpty(),
                         accentColor = accentColor,
                         smallIcon = smallIcon,
-                        logo = logoUrl?.let { LiveNotificationAsset.RemoteUrl(it) },
+                        logo = logo,
                     ),
                 )
             }
+        }
+
+        /**
+         * Resolve a bundled drawable by name, or `null` when the host app doesn't ship one under
+         * that name — a missing asset must degrade to "no image", never crash rendering.
+         */
+        private fun drawableResId(name: String): Int? {
+            val context = SDKComponent.android().applicationContext
+            return context.resources
+                .getIdentifier(name, "drawable", context.packageName)
+                .takeIf { it != 0 }
         }
     }
 }

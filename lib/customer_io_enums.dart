@@ -43,14 +43,17 @@ enum ScreenView { all, inApp }
 
 /// Built-in Live Activity (iOS) / Live Notification (Android) templates.
 ///
-/// The raw values are the string keys shared verbatim by both native SDKs and
-/// used inside [LiveActivityPayload] maps.
+/// The raw values are the reverse-DNS identifiers Customer.io uses everywhere —
+/// the `notificationType` on the wire, Android's `LiveNotificationType`, and
+/// iOS's `CIOSegmentsAttributes.identifier` — so Dart, both native SDKs, and the
+/// backend share one vocabulary. They are also the `type` inside
+/// [LiveActivityPayload] maps.
 enum LiveActivityTemplate {
   /// Segmented progress template (header, status, substatus, segment counts).
-  segments(rawValue: 'segments'),
+  segments(rawValue: 'io.customer.livenotifications.segments'),
 
   /// Countdown timer template (header, title, status message, end time).
-  countdownTimer(rawValue: 'countdownTimer');
+  countdownTimer(rawValue: 'io.customer.livenotifications.countdowntimer');
 
   const LiveActivityTemplate({required this.rawValue});
 

@@ -111,7 +111,7 @@ void main() {
         'inApp': inAppConfig.toMap(),
         'push': pushConfig.toMap(),
         'location': null,
-        'liveActivities': null,
+        'liveNotifications': null,
         'version': config.version,
         'source': config.source,
       };
@@ -174,22 +174,22 @@ void main() {
   });
 
   group('LiveActivitiesConfig', () {
-    test('should default to empty templates/customTypes and null branding', () {
+    test('should default to empty types/customTypes and null branding', () {
       final config = LiveActivitiesConfig();
 
-      expect(config.templates, isEmpty);
+      expect(config.types, isEmpty);
       expect(config.customTypes, isEmpty);
       expect(config.branding, isNull);
 
       final map = config.toMap();
-      expect(map['templates'], isEmpty);
+      expect(map['types'], isEmpty);
       expect(map['customTypes'], isEmpty);
       expect(map['branding'], isNull);
     });
 
-    test('should serialize templates to their raw string values', () {
+    test('should serialize types to their reverse-DNS identifiers', () {
       final config = LiveActivitiesConfig(
-        templates: [
+        types: [
           LiveActivityTemplate.segments,
           LiveActivityTemplate.countdownTimer,
         ],
@@ -197,13 +197,16 @@ void main() {
       );
 
       final map = config.toMap();
-      expect(map['templates'], ['segments', 'countdownTimer']);
+      expect(map['types'], [
+        'io.customer.livenotifications.segments',
+        'io.customer.livenotifications.countdowntimer',
+      ]);
       expect(map['customTypes'], ['rideStatus']);
     });
 
     test('should serialize branding fields', () {
       final config = LiveActivitiesConfig(
-        templates: [LiveActivityTemplate.segments],
+        types: [LiveActivityTemplate.segments],
         branding: LiveActivitiesBranding(
           companyName: 'Acme',
           accentColorHex: '#FF0000',
@@ -219,17 +222,19 @@ void main() {
       expect(branding['smallIconResource'], 'ic_notification');
     });
 
-    test('CustomerIOConfig includes liveActivities in toMap()', () {
+    test('CustomerIOConfig includes liveNotifications in toMap()', () {
       final config = CustomerIOConfig(
         cdpApiKey: 'testApiKey',
         liveActivitiesConfig: LiveActivitiesConfig(
-          templates: [LiveActivityTemplate.countdownTimer],
+          types: [LiveActivityTemplate.countdownTimer],
         ),
       );
 
       final map = config.toMap();
-      expect(map['liveActivities'], isNotNull);
-      expect((map['liveActivities'] as Map)['templates'], ['countdownTimer']);
+      expect(map['liveNotifications'], isNotNull);
+      expect((map['liveNotifications'] as Map)['types'], [
+        'io.customer.livenotifications.countdowntimer',
+      ]);
     });
   });
 

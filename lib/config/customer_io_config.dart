@@ -59,7 +59,7 @@ class CustomerIOConfig {
       'inApp': inAppConfig?.toMap(),
       'push': pushConfig.toMap(),
       'location': locationConfig?.toMap(),
-      'liveActivities': liveActivitiesConfig?.toMap(),
+      'liveNotifications': liveActivitiesConfig?.toMap(),
       'version': version,
       'source': source
     };

@@ -1,3 +1,4 @@
+import CioDataPipelines
 import Flutter
 import Foundation
 #if canImport(CioLiveActivities)
@@ -16,12 +17,13 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
     private var methodChannel: FlutterMethodChannel?
 
     #if canImport(CioLiveActivities)
-    /// The held Live Activities module (not a singleton in the native SDK), created during SDK init.
-    private var module: LiveActivitiesModule?
-
-    /// Weak reference to the live instance so app code can reach the instance-scoped `module` from a
-    /// static context (e.g. reporting a Live Activity deep-link open from the AppDelegate).
-    private static weak var current: CustomerIOLiveActivities?
+    /// Reverse-DNS activity type identifiers for the SDK's built-in templates. These are the same
+    /// strings the backend sends as `notificationType` and that Android's `LiveNotificationType`
+    /// exposes, so Dart, both native SDKs, and the wire format share one vocabulary.
+    enum TypeIdentifier {
+        static let segments = "io.customer.livenotifications.segments"
+        static let countdownTimer = "io.customer.livenotifications.countdowntimer"
+    }
 
     /// Type-erased handles keyed by activity id. The native `start` returns a generic
     /// `CIOLiveActivity<Attributes>` that can't be stored in a homogeneous map, so we keep closures
@@ -37,17 +39,19 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
 
     public static func register(with _: FlutterPluginRegistrar) {}
 
-    /// Reports an `opened` metric for a Live Activity deep link, reaching the instance-scoped module
-    /// through the static `current` reference. Call this from the app's `openURL` entry point so a
-    /// Live Activity tap is attributed. Returns `true` if the SDK matched and reported the open.
+    /// Reports an `opened` metric for a tapped Live Activity and returns the deep link to route to.
+    /// Call this from the app's `openURL` entry point so a Live Activity tap is attributed.
+    ///
+    /// - Returns: the customer's redirect URL for a Customer.io widget URL (`nil` when it carries
+    ///   none), or `url` unchanged when it isn't a Customer.io URL — so existing routing still
+    ///   handles non-CIO links.
     #if canImport(CioLiveActivities)
-    @available(iOS 16.2, *)
-    public static func reportDeepLinkOpen(_ url: URL) -> Bool {
-        guard let module = current?.module else { return false }
-        return module.handleDeepLinkOpen(url)
+    @discardableResult
+    public static func handleWidgetUrl(_ url: URL) -> URL? {
+        CustomerIO.liveActivities.handleWidgetUrl(url)
     }
     #else
-    public static func reportDeepLinkOpen(_: URL) -> Bool { false }
+    public static func handleWidgetUrl(_ url: URL) -> URL? { url }
     #endif
 
     init(with registrar: FlutterPluginRegistrar) {
@@ -56,10 +60,6 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
         let channel = FlutterMethodChannel(name: "customer_io_live_activities", binaryMessenger: registrar.messenger())
         methodChannel = channel
         registrar.addMethodCallDelegate(self, channel: channel)
-
-        #if canImport(CioLiveActivities)
-        Self.current = self
-        #endif
     }
 
     deinit {
@@ -67,23 +67,32 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
         methodChannel = nil
     }
 
-    /// Initialize the Live Activities module from the SDK config's `liveActivities` key. Registers
-    /// the enabled built-in template attribute types so `start` can request them.
-    func initializeModule(params: [String: AnyHashable]) {
-        #if canImport(CioLiveActivities)
-        guard let laConfig = params["liveActivities"] as? [String: AnyHashable] else { return }
-        guard #available(iOS 16.2, *) else { return }
-        let templates = (laConfig["templates"] as? [String]) ?? []
+    #if canImport(CioLiveActivities)
+    /// Build the Live Activities module from the SDK config's `liveNotifications` key, for
+    /// registration on the SDK config builder at init. Registers the enabled built-in template
+    /// attribute types so `CustomerIO.liveActivities.start` can request them, and so push-to-start
+    /// tokens register for them at SDK init.
+    ///
+    /// Unrecognized type identifiers are ignored: a newer native SDK may ship templates this
+    /// wrapper build doesn't know, and that must never break registration of the ones it does.
+    static func module(from params: [String: AnyHashable]) -> LiveActivitiesModule? {
+        guard let liveConfig = params["liveNotifications"] as? [String: AnyHashable] else { return nil }
+        guard #available(iOS 16.2, *) else { return nil }
+        let types = (liveConfig["types"] as? [String]) ?? []
         var builder = LiveActivityConfigBuilder()
-        if templates.contains("segments") {
-            builder = builder.register(CIOSegmentsAttributes.self)
+        for type in types {
+            switch type {
+            case TypeIdentifier.segments:
+                builder = builder.register(CIOSegmentsAttributes.self)
+            case TypeIdentifier.countdownTimer:
+                builder = builder.register(CIOCountdownTimerAttributes.self)
+            default:
+                continue
+            }
         }
-        if templates.contains("countdownTimer") {
-            builder = builder.register(CIOCountdownTimerAttributes.self)
-        }
-        module = LiveActivitiesModule.initialize(builder.build())
-        #endif
+        return LiveActivitiesModule(config: builder.build())
     }
+    #endif
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args = call.arguments as? [String: Any] ?? [:]
@@ -109,31 +118,44 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
 
     private func start(_ args: [String: Any], result: @escaping FlutterResult) {
         #if canImport(CioLiveActivities)
-        guard #available(iOS 16.2, *), let module = module else {
+        guard #available(iOS 16.2, *) else {
             return result(Self.unavailableError())
         }
         guard let map = args["payload"] as? [String: Any], let type = map["type"] as? String else {
             return result(FlutterError(code: "live_activity_start_failed", message: "payload.type is required", details: nil))
         }
         do {
+            // A nil handle means the module isn't registered or this type wasn't enabled. The
+            // native SDK logs and returns nil rather than throwing, so surface it as a
+            // FlutterError — never a crash.
             let id: String
             switch type {
-            case "segments":
-                let handle = try module.start(
+            case TypeIdentifier.segments:
+                guard let handle = try CustomerIO.liveActivities.start(
                     CIOSegmentsAttributes(header: map["header"] as? String ?? ""),
                     contentState: try Self.segmentsState(from: map)
-                )
+                ) else {
+                    return result(Self.notRegisteredError(type))
+                }
                 store(handle: handle, contentBuilder: Self.segmentsState)
                 id = handle.id
-            case "countdownTimer":
-                let handle = try module.start(
+            case TypeIdentifier.countdownTimer:
+                guard let handle = try CustomerIO.liveActivities.start(
                     CIOCountdownTimerAttributes(header: map["header"] as? String ?? ""),
                     contentState: try Self.countdownState(from: map)
-                )
+                ) else {
+                    return result(Self.notRegisteredError(type))
+                }
                 store(handle: handle, contentBuilder: Self.countdownState)
                 id = handle.id
             default:
-                return result(FlutterError(code: "live_activity_start_failed", message: "Unknown live activity template type: \(type)", details: nil))
+                // A newer native SDK may know this type even though this wrapper build doesn't.
+                // Fail softly so an unrecognized template can never crash the host app.
+                return result(FlutterError(
+                    code: "live_activity_type_unsupported",
+                    message: "Unsupported Live Activity template: \(type)",
+                    details: nil
+                ))
             }
             result(id)
         } catch {
@@ -255,7 +277,16 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
     private static func unavailableError() -> FlutterError {
         FlutterError(
             code: "live_activity_module_unavailable",
-            message: "Live Activities are unavailable. Enable live activity templates in the SDK config and add the widget extension.",
+            message: "Live Activities require iOS 16.2 or later.",
+            details: nil
+        )
+    }
+
+    private static func notRegisteredError(_ type: String) -> FlutterError {
+        FlutterError(
+            code: "live_activity_type_not_registered",
+            message: "Live Activity type '\(type)' is not registered. Add it to `liveNotifications.types` " +
+                "in your Customer.io SDK config, and make sure your widget extension renders it.",
             details: nil
         )
     }

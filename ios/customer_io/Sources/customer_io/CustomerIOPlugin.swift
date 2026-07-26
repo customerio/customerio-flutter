@@ -185,13 +185,19 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
             }
             #endif
 
+            #if canImport(CioLiveActivities)
+            // Register Live Activities from the `liveNotifications` config (iOS 16.2+). Adding it
+            // to the config builder — rather than initializing after the fact — is what enables
+            // push-to-start, since token registration happens during SDK init.
+            if let liveActivitiesModule = CustomerIOLiveActivities.module(from: params) {
+                _ = sdkConfigBuilder.addModule(liveActivitiesModule)
+            }
+            #endif
+
             CustomerIO.initialize(withConfig: sdkConfigBuilder.build())
 
             // Initialize in-app messaging with provided config
             inAppMessagingChannelHandler.configureModule(params: params)
-
-            // Initialize Live Activities module from the `liveActivities` config (iOS 16.2+).
-            liveActivitiesChannelHandler.initializeModule(params: params)
 
             logger.debug("Customer.io SDK initialized with config: \(params)")
         } catch {

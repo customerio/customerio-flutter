@@ -11,6 +11,12 @@ class LiveActivitiesBranding {
   /// Accent color as a `#RRGGBB` hex string.
   final String? accentColorHex;
 
+  /// Name of a bundled drawable resource used as the logo.
+  ///
+  /// Preferred over [logoUrl] when both are set — it renders without a network
+  /// round-trip, so the logo is present on the very first frame.
+  final String? logoResource;
+
   /// Remote URL for a logo asset.
   final String? logoUrl;
 
@@ -20,6 +26,7 @@ class LiveActivitiesBranding {
   LiveActivitiesBranding({
     this.companyName,
     this.accentColorHex,
+    this.logoResource,
     this.logoUrl,
     this.smallIconResource,
   });
@@ -28,6 +35,7 @@ class LiveActivitiesBranding {
     return {
       'companyName': companyName,
       'accentColorHex': accentColorHex,
+      'logoResource': logoResource,
       'logoUrl': logoUrl,
       'smallIconResource': smallIconResource,
     };
@@ -36,8 +44,11 @@ class LiveActivitiesBranding {
 
 /// Configuration for the Live Activities (iOS) / Live Notifications (Android) module.
 class LiveActivitiesConfig {
-  /// Built-in templates to enable.
-  final List<LiveActivityTemplate> templates;
+  /// Built-in activity types to enable.
+  ///
+  /// Unrecognized identifiers are ignored, so a newer native template can't
+  /// break an older wrapper build.
+  final List<LiveActivityTemplate> types;
 
   /// Custom (app-defined) live activity type identifiers to enable.
   ///
@@ -49,14 +60,14 @@ class LiveActivitiesConfig {
   final LiveActivitiesBranding? branding;
 
   LiveActivitiesConfig({
-    this.templates = const [],
+    this.types = const [],
     this.customTypes = const [],
     this.branding,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'templates': templates.map((template) => template.rawValue).toList(),
+      'types': types.map((type) => type.rawValue).toList(),
       'customTypes': customTypes,
       'branding': branding?.toMap(),
     };
