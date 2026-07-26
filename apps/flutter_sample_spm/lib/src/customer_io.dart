@@ -75,7 +75,7 @@ class CustomerIOSDK extends ChangeNotifier {
           inAppConfig: inAppConfig,
           locationConfig: LocationConfig(),
           liveActivitiesConfig: LiveActivitiesConfig(
-            templates: [
+            types: [
               LiveActivityTemplate.segments,
               LiveActivityTemplate.countdownTimer,
             ],

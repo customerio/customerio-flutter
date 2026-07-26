@@ -8,7 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.core.app.NotificationCompat
 import io.customer.customer_io.liveactivities.CustomerIOLiveActivities
-import io.customer.messagingpush.data.communication.CustomerIOPushNotificationCallback
+import io.customer.messagingpush.data.communication.CustomerIOLiveNotificationsCallback
 import io.customer.messagingpush.data.model.CustomerIOParsedPushPayload
 import io.customer.testbed.flutter.PermissionChannelHandler
 import io.flutter.embedding.android.FlutterActivity
@@ -50,7 +50,7 @@ class MainActivity : FlutterActivity() {
  * Payload fields sent from Dart (`startCustom(..., data)`) arrive flattened as strings in
  * [CustomerIOParsedPushPayload.extras].
  */
-private class RideshareLiveNotificationCallback : CustomerIOPushNotificationCallback {
+private class RideshareLiveNotificationCallback : CustomerIOLiveNotificationsCallback {
     override fun createLiveNotification(
         payload: CustomerIOParsedPushPayload,
         context: Context,

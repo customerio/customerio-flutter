@@ -69,15 +69,13 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
         return false
     }
 
-    // Reference pattern: report a Live Activity deep-link tap so Customer.io attributes an `opened`
-    // metric. A Live Activity tap arrives here through the normal openURL path; the wrapper's static
-    // accessor forwards the URL to the held Live Activities module. Reporting does NOT consume the
-    // URL, so we still hand it to the rest of the app's URL handling.
+    // Reference pattern: report a Live Activity tap so Customer.io attributes an `opened` metric.
+    // A tap arrives here through the normal openURL path; the wrapper forwards the URL to the SDK.
+    // For a Customer.io widget URL this returns the customer's redirect target to route to (nil
+    // when it carries none); any other URL comes back unchanged, so existing deep links still work.
     override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        if #available(iOS 16.2, *) {
-            _ = CustomerIOLiveActivities.reportDeepLinkOpen(url)
-        }
-        return super.application(app, open: url, options: options)
+        guard let routableUrl = CustomerIOLiveActivities.handleWidgetUrl(url) else { return true }
+        return super.application(app, open: routableUrl, options: options)
     }
 }
 
