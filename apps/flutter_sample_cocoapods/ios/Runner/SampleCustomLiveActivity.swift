@@ -2,6 +2,7 @@ import Flutter
 import Foundation
 #if canImport(CioLiveActivities)
 import ActivityKit
+import CioDataPipelines
 import CioLiveActivities
 #endif
 
@@ -17,7 +18,6 @@ class SampleCustomLiveActivity: NSObject {
     private var methodChannel: FlutterMethodChannel?
 
     #if canImport(CioLiveActivities)
-    private var module: LiveActivitiesModule?
     // id -> CIOLiveActivity<RideshareAttributes>, stored as Any to avoid annotating the property.
     private var activities: [String: Any] = [:]
     #endif
@@ -28,16 +28,6 @@ class SampleCustomLiveActivity: NSObject {
         channel.setMethodCallHandler { [weak self] call, result in
             self?.handle(call, result: result)
         }
-
-        #if canImport(CioLiveActivities)
-        if #available(iOS 16.2, *) {
-            module = LiveActivitiesModule.initialize(
-                LiveActivityConfigBuilder()
-                    .register(RideshareAttributes.self, identifier: RideshareAttributes.identifier)
-                    .build()
-            )
-        }
-        #endif
     }
 
     private func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -56,7 +46,7 @@ class SampleCustomLiveActivity: NSObject {
 
     private func startRideshare(_ args: [String: Any], result: @escaping FlutterResult) {
         #if canImport(CioLiveActivities)
-        guard #available(iOS 16.2, *), let module = module else {
+        guard #available(iOS 16.2, *) else {
             return result(Self.unavailableError())
         }
         let attributes = RideshareAttributes(driverName: args["driverName"] as? String ?? "Your driver")
@@ -65,7 +55,18 @@ class SampleCustomLiveActivity: NSObject {
             etaMinutes: Self.intValue(args["etaMinutes"])
         )
         do {
-            let handle = try module.start(attributes, contentState: state)
+            // The app owns custom activity types: it requests the activity itself and adopts it so
+            // update/end report through Customer.io. `adopt` does not report a `start` event —
+            // that needs the type registered on the SDK module, which only a Swift metatype can do
+            // and so can't be driven from Dart.
+            let activity = try Activity.request(
+                attributes: attributes,
+                content: ActivityContent(state: state, staleDate: nil),
+                pushType: nil
+            )
+            guard let handle = CustomerIO.liveActivities.adopt(activity) else {
+                return result(Self.unavailableError())
+            }
             activities[handle.id] = handle
             result(handle.id)
         } catch {
