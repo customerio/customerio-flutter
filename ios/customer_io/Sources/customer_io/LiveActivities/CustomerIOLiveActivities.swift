@@ -11,9 +11,10 @@ import CioLiveActivities_Templates
 
 /// Flutter plugin sub-handler for Live Activities.
 ///
-/// Gated on `canImport(CioLiveActivities)` and iOS 16.2+. Custom activity types are rejected on
-/// iOS because they require a native Widget Extension and an `adopt(_:)` call and cannot be
-/// data-driven from Dart.
+/// Gated on `canImport(CioLiveActivities)` and iOS 16.2+. Custom activity types work from Dart
+/// through the SDK-owned `CIOCustomAttributes`: ActivityKit needs a concrete Swift type to register
+/// an activity and observe its push-to-start token, and a metatype can't cross a method channel, so
+/// the SDK owns the type and Dart supplies its values.
 public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
     private var methodChannel: FlutterMethodChannel?
 
@@ -24,6 +25,9 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
     enum TypeIdentifier {
         static let segments = "io.customer.livenotifications.segments"
         static let countdownTimer = "io.customer.livenotifications.countdowntimer"
+        /// Discriminator Dart sends for the custom template. Not a wire identifier — the activity is
+        /// reported under the app's own `liveNotifications.customType`.
+        static let custom = "custom"
     }
 
     /// Type-erased handles keyed by activity id. The native `start` returns a generic
@@ -101,6 +105,18 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
                 continue
             }
         }
+        // The custom template registers one SDK-owned Swift type under the app's own identifier.
+        // That indirection is what lets a Dart app have a custom activity at all: the SDK needs a
+        // metatype to register and to observe push-to-start for, and a metatype can't cross a
+        // method channel.
+        //
+        // Nothing is cached from this: `start` learns that a custom activity isn't registered from
+        // the nil handle the SDK returns, which stays correct if the type was registered elsewhere.
+        if let customType = (liveConfig["customType"] as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+            !customType.isEmpty {
+            builder = builder.register(CIOCustomAttributes.self, identifier: customType)
+        }
         return LiveActivitiesModule(config: builder.build())
     }
     #endif
@@ -116,9 +132,6 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
 
         case "end":
             end(args, result: result)
-
-        case "startCustom":
-            startCustom(args, result: result)
 
         default:
             result(FlutterMethodNotImplemented)
@@ -143,7 +156,7 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
             switch type {
             case TypeIdentifier.segments:
                 guard let handle = try CustomerIO.liveActivities.start(
-                    CIOSegmentsAttributes(header: map["header"] as? String ?? ""),
+                    CIOSegmentsAttributes(header: try Self.requireString(map, "header")),
                     contentState: try Self.segmentsState(from: map)
                 ) else {
                     return result(Self.notRegisteredError(type))
@@ -152,12 +165,24 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
                 id = handle.id
             case TypeIdentifier.countdownTimer:
                 guard let handle = try CustomerIO.liveActivities.start(
-                    CIOCountdownTimerAttributes(header: map["header"] as? String ?? ""),
+                    CIOCountdownTimerAttributes(header: try Self.requireString(map, "header")),
                     contentState: try Self.countdownState(from: map)
                 ) else {
                     return result(Self.notRegisteredError(type))
                 }
                 store(handle: handle, contentBuilder: Self.countdownState)
+                id = handle.id
+            case TypeIdentifier.custom:
+                // No pre-check on the configured identifier: an unregistered type already comes back
+                // as a nil handle, and that path is correct however the SDK was initialized — a
+                // check against wrapper-captured config would refuse a type registered elsewhere.
+                guard let handle = try CustomerIO.liveActivities.start(
+                    CIOCustomAttributes(),
+                    contentState: try Self.customState(from: map)
+                ) else {
+                    return result(Self.customNotRegisteredError())
+                }
+                store(handle: handle, contentBuilder: Self.customState)
                 id = handle.id
             default:
                 // A newer native SDK may know this type even though this wrapper build doesn't.
@@ -185,13 +210,19 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
         lock.lock()
         let box = activities[activityId]
         lock.unlock()
-        // An id this process didn't start resolves rather than erroring, matching `end` here and both
-        // methods on Android (which routes the id to the native SDK and never learns it was unknown).
-        // "Unknown" is not proof of caller error: the map is process-local, so an activity started
-        // before an app restart, or started by a push, legitimately isn't in it. Logged, not thrown.
+        // An unknown id means the update did not happen, so it must not report success. Unlike `end`
+        // — where re-ending an already-ended activity is a legitimate no-op — there is nothing
+        // idempotent about an update that never applied. Android *does* perform it (it routes the id
+        // straight to the native SDK), so resolving here would make the same call report success on
+        // both platforms while only one of them did anything.
         guard let box = box else {
             Self.logUnknownActivity(activityId, method: "update")
-            return result(true)
+            return result(FlutterError(
+                code: "live_activity_update_failed",
+                message: "No live activity found for id \(activityId). On iOS only activities started " +
+                    "in this app session can be updated.",
+                details: nil
+            ))
         }
         guard let map = args["payload"] as? [String: Any] else {
             return result(FlutterError(code: "live_activity_update_failed", message: "payload is required", details: nil))
@@ -219,7 +250,7 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
             return result(FlutterError(code: "live_activity_end_failed", message: "activityId is required", details: nil))
         }
         lock.lock()
-        let box = activities.removeValue(forKey: activityId)
+        let box = activities[activityId]
         lock.unlock()
         // Unknown/already-ended id is treated as success (idempotent end). See `update` for why an
         // unknown id is not an error.
@@ -233,6 +264,10 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
             // resumes off-main after the await, so hop back before replying.
             do {
                 try await box.end(map)
+                // Dropped only once the end succeeded. Removing up front would lose the handle on a
+                // throw, and the retry would then take the unknown-id path above and report success
+                // for an activity still on screen.
+                self.forget(activityId)
                 await MainActor.run { result(true) }
             } catch {
                 await MainActor.run {
@@ -243,16 +278,6 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
         #else
         result(Self.unavailableError())
         #endif
-    }
-
-    private func startCustom(_: [String: Any], result: @escaping FlutterResult) {
-        // Custom activity types on iOS require a native Widget Extension + ActivityAttributes and an
-        // `adopt(_:)` call; they cannot be data-driven from Dart.
-        result(FlutterError(
-            code: "live_activity_custom_unsupported_ios",
-            message: "Custom live activity types are not supported from Dart on iOS. Use a native Widget Extension and adopt().",
-            details: nil
-        ))
     }
 
     // MARK: - Helpers
@@ -275,13 +300,38 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
         lock.unlock()
     }
 
+    private func forget(_ activityId: String) {
+        lock.lock()
+        activities.removeValue(forKey: activityId)
+        lock.unlock()
+    }
+
+    /// Thrown for a missing required field so the caller sees an error naming it, rather than an
+    /// activity rendering with a blank line. Matches Android, whose `requireString` / `requireInt`
+    /// already throw — the same call must not produce a silent half-rendered card on one platform
+    /// and an error on the other.
+    private struct MissingFieldError: LocalizedError {
+        let field: String
+        var errorDescription: String? { "\(field) is required" }
+    }
+
+    private static func requireString(_ map: [String: Any], _ key: String) throws -> String {
+        guard let value = map[key] as? String else { throw MissingFieldError(field: key) }
+        return value
+    }
+
+    private static func requireInt(_ map: [String: Any], _ key: String) throws -> Int {
+        guard let value = map[key] as? NSNumber else { throw MissingFieldError(field: key) }
+        return value.intValue
+    }
+
     @available(iOS 16.2, *)
     private static func segmentsState(from map: [String: Any]) throws -> CIOSegmentsAttributes.ContentState {
         CIOSegmentsAttributes.ContentState(
-            status: map["status"] as? String ?? "",
+            status: try requireString(map, "status"),
             substatus: map["substatus"] as? String,
-            segmentsTotal: intValue(map["segmentsTotal"]),
-            segmentsComplete: intValue(map["segmentsComplete"]),
+            segmentsTotal: try requireInt(map, "segmentsTotal"),
+            segmentsComplete: try requireInt(map, "segmentsComplete"),
             trailingText: map["trailingText"] as? String
         )
     }
@@ -293,14 +343,29 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
             endTime = EpochSecondsDate(Date(timeIntervalSince1970: seconds.doubleValue))
         }
         return CIOCountdownTimerAttributes.ContentState(
-            title: map["title"] as? String ?? "",
+            title: try requireString(map, "title"),
             statusMessage: map["statusMessage"] as? String,
             endTime: endTime
         )
     }
 
-    private static func intValue(_ any: Any?) -> Int {
-        (any as? NSNumber)?.intValue ?? 0
+    /// Builds the custom template's content-state from the payload's `data` map.
+    ///
+    /// Values are coerced to strings rather than rejected: a Dart `int`/`double`/`bool` arrives as
+    /// `NSNumber`, and refusing them would make `{'eta': 5}` fail for no reason a caller can see.
+    /// Anything without a sensible text form is dropped instead of stringifying as gibberish.
+    @available(iOS 16.2, *)
+    private static func customState(from map: [String: Any]) throws -> CIOCustomAttributes.ContentState {
+        let raw = map["data"] as? [String: Any] ?? [:]
+        var data: [String: String] = [:]
+        for (key, value) in raw {
+            switch value {
+            case let string as String: data[key] = string
+            case let number as NSNumber: data[key] = number.stringValue
+            default: continue
+            }
+        }
+        return CIOCustomAttributes.ContentState(data: data)
     }
     #endif
 
@@ -317,6 +382,18 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
             code: "live_activity_type_not_registered",
             message: "Live Activity type '\(type)' is not registered. Add it to `liveNotifications.types` " +
                 "in your Customer.io SDK config, and make sure your widget extension renders it.",
+            details: nil
+        )
+    }
+
+    /// The custom template's version of [notRegisteredError]: `type` is only the discriminator, so
+    /// naming it would tell the caller nothing about what to fix.
+    private static func customNotRegisteredError() -> FlutterError {
+        FlutterError(
+            code: "live_activity_type_not_registered",
+            message: "No custom Live Activity type is registered. Set `liveNotifications.customType` " +
+                "in your Customer.io SDK config to your own reverse-DNS identifier, and render " +
+                "CIOCustomAttributes in your Widget Extension.",
             details: nil
         )
     }

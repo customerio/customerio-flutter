@@ -18,7 +18,6 @@ void main() {
       methodInvocations[methodCall.method] = methodCall.arguments;
       switch (methodCall.method) {
         case 'start':
-        case 'startCustom':
           return 'activity-123';
         case 'update':
         case 'end':
@@ -114,15 +113,41 @@ void main() {
     expect(args['activityId'], 'activity-123');
   });
 
-  test('startCustom() sends activityType and data, returns id', () async {
+  /// The custom template goes through the same `start` as the built-ins. `type` carries the
+  /// discriminator, not the app's identifier — the native side names the activity from the
+  /// configured `customType`, so the payload never repeats it.
+  test('start() sends a custom payload and returns the activity id', () async {
     final platform = CustomerIOLiveActivitiesMethodChannel();
 
-    final id = await platform.startCustom('rideStatus', {'driver': 'Alex'});
+    final id = await platform.start(
+      const LiveActivityPayload.custom(
+        data: {'driverName': 'Alex', 'status': 'On the way', 'etaMinutes': '5'},
+      ),
+    );
 
     expect(id, 'activity-123');
-    final args = methodInvocations['startCustom'] as Map;
-    expect(args['activityType'], 'rideStatus');
-    expect((args['data'] as Map)['driver'], 'Alex');
+    final args = methodInvocations['start'] as Map;
+    final payload = args['payload'] as Map;
+    expect(payload['type'], 'custom');
+    final data = payload['data'] as Map;
+    expect(data['driverName'], 'Alex');
+    expect(data['status'], 'On the way');
+    expect(data['etaMinutes'], '5');
+  });
+
+  test('update() sends a custom payload for the same activity id', () async {
+    final platform = CustomerIOLiveActivitiesMethodChannel();
+
+    await platform.update(
+      'activity-123',
+      const LiveActivityPayload.custom(data: {'status': 'Arriving now'}),
+    );
+
+    final args = methodInvocations['update'] as Map;
+    expect(args['activityId'], 'activity-123');
+    final payload = args['payload'] as Map;
+    expect(payload['type'], 'custom');
+    expect((payload['data'] as Map)['status'], 'Arriving now');
   });
 
   group('resilience', () {

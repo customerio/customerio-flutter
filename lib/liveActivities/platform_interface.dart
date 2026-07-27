@@ -22,7 +22,10 @@ abstract class CustomerIOLiveActivitiesPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  /// Starts a Live Activity for a built-in template and returns its activity id.
+  /// Starts a Live Activity and returns its activity id.
+  ///
+  /// [payload] selects the template: a built-in one, or your own type named by
+  /// `LiveActivitiesConfig.customType` via [LiveActivityPayload.custom].
   Future<String> start(LiveActivityPayload payload) {
     throw UnimplementedError('start() has not been implemented.');
   }
@@ -31,6 +34,9 @@ abstract class CustomerIOLiveActivitiesPlatform extends PlatformInterface {
   ///
   /// ActivityKit replaces content-state wholesale, so [payload] must contain the
   /// complete desired state, not a partial diff.
+  ///
+  /// On iOS this fails for an id this app session didn't start: the handle needed to
+  /// update an activity is process-local, so the update genuinely did not happen.
   Future<void> update(String activityId, LiveActivityPayload payload) {
     throw UnimplementedError('update() has not been implemented.');
   }
@@ -38,14 +44,5 @@ abstract class CustomerIOLiveActivitiesPlatform extends PlatformInterface {
   /// Ends a running Live Activity. Ending an unknown/already-ended id is a no-op.
   Future<void> end(String activityId, {LiveActivityPayload? payload}) {
     throw UnimplementedError('end() has not been implemented.');
-  }
-
-  /// Starts a custom (app-defined) Live Activity type and returns its activity id.
-  ///
-  /// On Android the app renders the activity via its registered callback. On iOS
-  /// custom types are rejected because they require a native Widget Extension and
-  /// an `adopt(_:)` call; the returned future completes with an error.
-  Future<String> startCustom(String activityType, Map<String, dynamic> data) {
-    throw UnimplementedError('startCustom() has not been implemented.');
   }
 }

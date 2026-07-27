@@ -6,6 +6,7 @@ import io.customer.customer_io.bridge.nativeMapArgs
 import io.customer.customer_io.utils.getAs
 import io.customer.messagingpush.MessagingPushModuleConfig
 import io.customer.messagingpush.ModuleMessagingPushFCM
+import io.customer.messagingpush.di.pushModuleConfig
 import io.customer.messagingpush.livenotification.LiveNotificationAsset
 import io.customer.messagingpush.livenotification.LiveNotificationBranding
 import io.customer.messagingpush.livenotification.LiveNotificationData
@@ -51,20 +52,57 @@ class CustomerIOLiveActivities internal constructor(
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
-            "start" -> call.nativeMapArgs(result, ::start)
+            // `start` is handled with the raw result rather than [nativeMapArgs] so it can report a
+            // type that isn't enabled under the same error code iOS uses; see [start].
+            "start" -> start(call, result)
             "update" -> call.nativeMapArgs(result, ::update)
             "end" -> call.nativeMapArgs(result, ::end)
-            "startCustom" -> call.nativeMapArgs(result, ::startCustom)
             else -> super.onMethodCall(call, result)
         }
     }
 
-    private fun start(args: Map<String, Any>): String {
-        val module = requireNotNull(getPushModule()) { MODULE_UNAVAILABLE }
-        val payload = requireNotNull(args.getAs<Map<String, Any>>("payload")) {
-            "payload is required"
+    /**
+     * Starts a live notification and returns its id.
+     *
+     * Takes [result] directly because [nativeMapArgs] reports every failure under the method name:
+     * a type that isn't enabled has to arrive as [TYPE_NOT_REGISTERED_CODE] so the same mistake
+     * reads the same way on iOS and Android. That check is not optional — the native
+     * `startLiveNotification` mints an id whether or not the type is enabled, and
+     * `LiveNotificationHandler` then drops the notification at debug level, so without it the caller
+     * gets a real id and nothing ever renders.
+     */
+    @Suppress("UNCHECKED_CAST")
+    private fun start(call: MethodCall, result: MethodChannel.Result) {
+        val args = call.arguments as? Map<String, Any> ?: emptyMap()
+        try {
+            val module = requireNotNull(getPushModule()) { MODULE_UNAVAILABLE }
+            val payload = requireNotNull(args.getAs<Map<String, Any>>("payload")) {
+                "payload is required"
+            }
+            // Custom types have no built-in template, so they take the SDK's untyped map path and are
+            // rendered by the app's own callback. Built-ins keep the typed path.
+            val isCustom = payload.getAs<String>("type") == CUSTOM_TYPE_DISCRIMINATOR
+            val activityType = if (isCustom) {
+                requireCustomActivityType()
+            } else {
+                payload.requireString("type")
+            }
+            if (activityType !in enabledActivityTypes()) {
+                return result.error(
+                    TYPE_NOT_REGISTERED_CODE,
+                    notRegisteredMessage(activityType),
+                    null,
+                )
+            }
+            val id = if (isCustom) {
+                module.startLiveNotification(activityType, customData(payload))
+            } else {
+                module.startLiveNotification(parseData(payload))
+            }
+            result.success(id)
+        } catch (ex: Throwable) {
+            result.error(call.method, ex.localizedMessage, ex)
         }
-        return module.startLiveNotification(parseData(payload))
     }
 
     private fun update(args: Map<String, Any>) {
@@ -75,7 +113,11 @@ class CustomerIOLiveActivities internal constructor(
         val payload = requireNotNull(args.getAs<Map<String, Any>>("payload")) {
             "payload is required"
         }
-        module.updateLiveNotification(activityId, parseData(payload))
+        if (payload.getAs<String>("type") == CUSTOM_TYPE_DISCRIMINATOR) {
+            module.updateLiveNotification(activityId, requireCustomActivityType(), customData(payload))
+        } else {
+            module.updateLiveNotification(activityId, parseData(payload))
+        }
     }
 
     /**
@@ -91,14 +133,37 @@ class CustomerIOLiveActivities internal constructor(
         module.endLiveNotification(activityId)
     }
 
-    private fun startCustom(args: Map<String, Any>): String {
-        val module = requireNotNull(getPushModule()) { MODULE_UNAVAILABLE }
-        val activityType = requireNotNull(args.getAs<String>("activityType")) {
-            "activityType is required"
-        }
-        val data = args.getAs<Map<String, Any>>("data") ?: emptyMap()
-        return module.startLiveNotification(activityType, data)
+    /**
+     * Identifiers the SDK will actually render, read from the live push module config rather than
+     * cached at init. The wrapper is not the only thing that can enable a type — an app (or a
+     * generated config plugin) may call `enableLiveNotificationTypes` on its own builder — and a
+     * cached copy would then be empty and refuse every start.
+     */
+    private fun enabledActivityTypes(): Set<String> =
+        SDKComponent.pushModuleConfig.liveNotificationTypes
+
+    /**
+     * The app's own identifier for the custom template. Absent means the app sent a custom payload
+     * without configuring `liveNotifications.customType` — say so, rather than starting a
+     * notification the allowlist would silently drop.
+     *
+     * Falls back to the live config for the same reason [enabledActivityTypes] reads it: the custom
+     * type may have been enabled without going through this wrapper. It is the one enabled
+     * identifier that isn't a built-in template, and there is only ever one.
+     */
+    private fun requireCustomActivityType(): String = requireNotNull(
+        customActivityType ?: enabledActivityTypes().firstOrNull { identifier ->
+            LiveNotificationType.entries.none { it.identifier == identifier }
+        },
+    ) {
+        "No custom Live Activity type is configured. Set `liveNotifications.customType` in your " +
+            "Customer.io SDK config to your own reverse-DNS identifier, and render it from your " +
+            "CustomerIOLiveNotificationsCallback."
     }
+
+    /** Flattens the payload's `data` map. Android stringifies every value downstream anyway. */
+    private fun customData(payload: Map<String, Any>): Map<String, Any> =
+        payload.getAs<Map<String, Any>>("data") ?: emptyMap()
 
     private fun parseData(payload: Map<String, Any>): LiveNotificationData {
         return when (val type = payload.getAs<String>("type")) {
@@ -140,6 +205,24 @@ class CustomerIOLiveActivities internal constructor(
         private const val PUSH_FCM_MODULE_NAME = "MessagingPushFCM"
         private const val MODULE_UNAVAILABLE =
             "Live Notifications are unavailable. Enable live activity templates in the SDK config."
+
+        // Discriminator Dart sends for the custom template. Not a wire identifier — the notification
+        // is started under the app's own `liveNotifications.customType`.
+        private const val CUSTOM_TYPE_DISCRIMINATOR = "custom"
+
+        // Mirrors the iOS handler's code so the same mistake reads the same way on both platforms.
+        private const val TYPE_NOT_REGISTERED_CODE = "live_activity_type_not_registered"
+
+        private fun notRegisteredMessage(activityType: String): String =
+            "Live Activity type '$activityType' is not registered. Add it to " +
+                "`liveNotifications.types` in your Customer.io SDK config (or set " +
+                "`liveNotifications.customType` for a custom type), and make sure your app renders it."
+
+        // The app's own identifier for the custom template, captured from config at SDK init. Only a
+        // hint: `requireCustomActivityType` falls back to the live config, which is authoritative
+        // however the type was enabled.
+        @Volatile
+        private var customActivityType: String? = null
 
         /**
          * App-provided callback used to render custom (app-defined) Live Notifications. The native
@@ -190,11 +273,17 @@ class CustomerIOLiveActivities internal constructor(
                 builder.enableLiveNotificationTypes(*templateTypes.toTypedArray())
             }
 
-            val customTypes = config.getAs<List<*>>("customTypes")
-                ?.mapNotNull { it as? String }
-                .orEmpty()
-            if (customTypes.isNotEmpty()) {
-                builder.enableCustomLiveNotificationTypes(*customTypes.toTypedArray())
+            // The custom template. Allowlisting the identifier is both necessary and sufficient:
+            // LiveNotificationHandler drops any push whose activityType isn't in this set, and a type
+            // with no built-in template falls through to the host app's render callback.
+            //
+            // Assigned unconditionally: a re-initialize that drops `customType` must clear it, or
+            // `start` would keep minting notifications under an identifier no longer allowlisted —
+            // which the handler then discards, leaving the caller with an id and nothing on screen.
+            val customType = config.getAs<String>("customType")?.trim()?.takeIf { it.isNotEmpty() }
+            customActivityType = customType
+            if (customType != null) {
+                builder.enableCustomLiveNotificationTypes(customType)
             }
 
             val branding = config.getAs<Map<String, Any>>("branding")

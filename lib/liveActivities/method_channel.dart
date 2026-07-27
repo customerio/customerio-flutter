@@ -56,23 +56,6 @@ class CustomerIOLiveActivitiesMethodChannel
     }
   }
 
-  @override
-  Future<String> startCustom(
-      String activityType, Map<String, dynamic> data) async {
-    try {
-      final result = await methodChannel.invokeMethod<String>(
-        NativeMethods.startCustom,
-        {
-          NativeMethodParams.activityType: activityType,
-          NativeMethodParams.data: data,
-        },
-      );
-      return result ?? (throw _noActivityId(NativeMethods.startCustom));
-    } on MissingPluginException {
-      throw _notEnabled();
-    }
-  }
-
   StateError _noActivityId(String method) => StateError(
         'Customer.io: Live Activity `$method` returned no activity id. The '
         'activity was not started, so there is nothing to update or end.',

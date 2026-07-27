@@ -21,6 +21,13 @@ public final class CountdownTimerLiveActivityPayload {
 	public val type: LiveActivityTemplate;
 }
 
+public final class CustomLiveActivityPayload {
+	public fun new(required Map<String, String> data): CustomLiveActivityPayload;
+	public fun toMap(): Map<String, dynamic>;
+	public val data: Map<String, String>;
+	public val type: LiveActivityTemplate;
+}
+
 public final class CustomerIO {
 	public fun clearIdentify();
 	static public fun createInstance(
@@ -105,10 +112,6 @@ public final class CustomerIOLiveActivitiesPlatform {
 		LiveActivityPayload? payload
 	): Future<void> async;
 	public fun start(LiveActivityPayload payload): Future<String> async;
-	public fun startCustom(
-		String activityType,
-		Map<String, dynamic> data
-	): Future<String> async;
 	public fun update(
 		String activityId,
 		LiveActivityPayload payload
@@ -301,12 +304,12 @@ public final class LiveActivitiesBranding {
 public final class LiveActivitiesConfig {
 	public fun new(
 		List<LiveActivityTemplate> types,
-		List<String> customTypes,
+		String? customType,
 		LiveActivitiesBranding? branding
 	): LiveActivitiesConfig;
 	public fun toMap(): Map<String, dynamic>;
 	public val branding: LiveActivitiesBranding?;
-	public val customTypes: List<String>;
+	public val customType: String?;
 	public val types: List<LiveActivityTemplate>;
 }
 
@@ -317,6 +320,7 @@ public final class LiveActivityPayload {
 		String? statusMessage,
 		int? endTime
 	): LiveActivityPayload;
+	public fun custom(required Map<String, String> data): LiveActivityPayload;
 	public fun new(LiveActivityTemplate type): LiveActivityPayload;
 	public fun segments(
 		required String header,
@@ -332,6 +336,7 @@ public final class LiveActivityPayload {
 
 public final class LiveActivityTemplate {
 	static public val countdownTimer: LiveActivityTemplate;
+	static public val custom: LiveActivityTemplate;
 	public val rawValue: String;
 	static public val segments: LiveActivityTemplate;
 	static public val values: List<LiveActivityTemplate>;

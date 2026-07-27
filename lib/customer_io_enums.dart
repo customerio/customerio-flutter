@@ -53,7 +53,15 @@ enum LiveActivityTemplate {
   segments(rawValue: 'io.customer.livenotifications.segments'),
 
   /// Countdown timer template (header, title, status message, end time).
-  countdownTimer(rawValue: 'io.customer.livenotifications.countdowntimer');
+  countdownTimer(rawValue: 'io.customer.livenotifications.countdowntimer'),
+
+  /// Your own activity type, rendered by SwiftUI you write (iOS) and your
+  /// `createLiveNotification` callback (Android).
+  ///
+  /// Unlike the members above this raw value is a marker, not an identifier — the
+  /// activity is named by `LiveActivitiesConfig.customType` and reported under that
+  /// name. It belongs in a payload's type, never in `LiveActivitiesConfig.types`.
+  custom(rawValue: 'custom');
 
   const LiveActivityTemplate({required this.rawValue});
 

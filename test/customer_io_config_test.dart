@@ -174,16 +174,16 @@ void main() {
   });
 
   group('LiveActivitiesConfig', () {
-    test('should default to empty types/customTypes and null branding', () {
+    test('should default to empty types and null customType/branding', () {
       final config = LiveActivitiesConfig();
 
       expect(config.types, isEmpty);
-      expect(config.customTypes, isEmpty);
+      expect(config.customType, isNull);
       expect(config.branding, isNull);
 
       final map = config.toMap();
       expect(map['types'], isEmpty);
-      expect(map['customTypes'], isEmpty);
+      expect(map['customType'], isNull);
       expect(map['branding'], isNull);
     });
 
@@ -193,7 +193,7 @@ void main() {
           LiveActivityTemplate.segments,
           LiveActivityTemplate.countdownTimer,
         ],
-        customTypes: ['rideStatus'],
+        customType: 'com.example.rideshare',
       );
 
       final map = config.toMap();
@@ -201,7 +201,7 @@ void main() {
         'io.customer.livenotifications.segments',
         'io.customer.livenotifications.countdowntimer',
       ]);
-      expect(map['customTypes'], ['rideStatus']);
+      expect(map['customType'], 'com.example.rideshare');
     });
 
     test('should serialize branding fields', () {

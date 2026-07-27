@@ -36,6 +36,12 @@ abstract class LiveActivityPayload {
     String? statusMessage,
     int? endTime,
   }) = CountdownTimerLiveActivityPayload;
+
+  /// Creates a payload for your own activity type, named by
+  /// `LiveActivitiesConfig.customType`.
+  const factory LiveActivityPayload.custom({
+    required Map<String, String> data,
+  }) = CustomLiveActivityPayload;
 }
 
 /// Payload for the segmented progress template.
@@ -110,6 +116,32 @@ class CountdownTimerLiveActivityPayload extends LiveActivityPayload {
       'title': title,
       'statusMessage': statusMessage,
       'endTime': endTime,
+    };
+  }
+}
+
+/// Payload for your own activity type.
+///
+/// Unlike the built-in templates there is no schema: the SDK owns the iOS attributes
+/// type (`CIOCustomAttributes`) and carries these values through untouched, so you
+/// render them yourself. Requires `LiveActivitiesConfig.customType` to be set.
+class CustomLiveActivityPayload extends LiveActivityPayload {
+  /// The full content-state, re-sent in its entirety on every update — neither
+  /// platform keeps a static/dynamic split for custom types.
+  ///
+  /// Values must be strings. Nested objects and arrays are unsupported and the
+  /// platforms disagree on them (iOS drops them, Android stringifies them), so
+  /// flatten anything structured before sending it.
+  final Map<String, String> data;
+
+  const CustomLiveActivityPayload({required this.data})
+      : super(LiveActivityTemplate.custom);
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {
+      'type': type.rawValue,
+      'data': data,
     };
   }
 }
