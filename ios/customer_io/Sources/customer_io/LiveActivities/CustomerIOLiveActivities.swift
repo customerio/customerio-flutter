@@ -1,4 +1,5 @@
 import CioDataPipelines
+import CioInternalCommon
 import Flutter
 import Foundation
 #if canImport(CioLiveActivities)
@@ -35,6 +36,16 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
 
     private var activities: [String: ActivityBox] = [:]
     private let lock = NSLock()
+
+    /// Records an `update`/`end` aimed at an activity this process never started. Not surfaced to
+    /// Dart — see the call sites — but worth a log, because the same message covers both a genuine
+    /// caller mistake and the expected post-restart / push-started cases.
+    private static func logUnknownActivity(_ activityId: String, method: String) {
+        DIGraphShared.shared.logger.info(
+            "Live Activities: \(method) ignored — no activity with id \(activityId) was started by this app session. " +
+                "Activities started before an app restart, or started by a push, are not tracked in-process."
+        )
+    }
     #endif
 
     public static func register(with _: FlutterPluginRegistrar) {}
@@ -174,8 +185,13 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
         lock.lock()
         let box = activities[activityId]
         lock.unlock()
+        // An id this process didn't start resolves rather than erroring, matching `end` here and both
+        // methods on Android (which routes the id to the native SDK and never learns it was unknown).
+        // "Unknown" is not proof of caller error: the map is process-local, so an activity started
+        // before an app restart, or started by a push, legitimately isn't in it. Logged, not thrown.
         guard let box = box else {
-            return result(FlutterError(code: "live_activity_update_failed", message: "No live activity found for id \(activityId)", details: nil))
+            Self.logUnknownActivity(activityId, method: "update")
+            return result(true)
         }
         guard let map = args["payload"] as? [String: Any] else {
             return result(FlutterError(code: "live_activity_update_failed", message: "payload is required", details: nil))
@@ -205,8 +221,12 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
         lock.lock()
         let box = activities.removeValue(forKey: activityId)
         lock.unlock()
-        // Unknown/already-ended id is treated as success (idempotent end).
-        guard let box = box else { return result(true) }
+        // Unknown/already-ended id is treated as success (idempotent end). See `update` for why an
+        // unknown id is not an error.
+        guard let box = box else {
+            Self.logUnknownActivity(activityId, method: "end")
+            return result(true)
+        }
         let map = args["payload"] as? [String: Any]
         Task {
             // FlutterResult must be invoked on the platform (main) thread; the Task

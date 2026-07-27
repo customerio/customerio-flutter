@@ -17,7 +17,10 @@ class CustomerIOLiveActivitiesMethodChannel
         NativeMethods.start,
         {NativeMethodParams.payload: payload.toMap()},
       );
-      return result ?? '';
+      // A null id means the platform reported success without starting anything. Returning '' would
+      // hand back an id that looks usable and only fails later, on an update or end that silently
+      // matches nothing — fail here instead, where the cause is still visible.
+      return result ?? (throw _noActivityId(NativeMethods.start));
     } on MissingPluginException {
       throw _notEnabled();
     }
@@ -64,11 +67,16 @@ class CustomerIOLiveActivitiesMethodChannel
           NativeMethodParams.data: data,
         },
       );
-      return result ?? '';
+      return result ?? (throw _noActivityId(NativeMethods.startCustom));
     } on MissingPluginException {
       throw _notEnabled();
     }
   }
+
+  StateError _noActivityId(String method) => StateError(
+        'Customer.io: Live Activity `$method` returned no activity id. The '
+        'activity was not started, so there is nothing to update or end.',
+      );
 
   StateError _notEnabled() => StateError(
         'Customer.io: Live Activities module is not enabled. Enable activity '

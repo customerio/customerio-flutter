@@ -23,7 +23,7 @@ class CustomerIOConfig {
   final InAppConfig? inAppConfig;
   final PushConfig pushConfig;
   final LocationConfig? locationConfig;
-  final LiveActivitiesConfig? liveActivitiesConfig;
+  final LiveActivitiesConfig? liveNotificationsConfig;
 
   CustomerIOConfig({
     required this.cdpApiKey,
@@ -40,7 +40,7 @@ class CustomerIOConfig {
     this.inAppConfig,
     PushConfig? pushConfig,
     this.locationConfig,
-    this.liveActivitiesConfig,
+    this.liveNotificationsConfig,
   }) : pushConfig = pushConfig ?? PushConfig();
 
   Map<String, dynamic> toMap() {
@@ -59,7 +59,7 @@ class CustomerIOConfig {
       'inApp': inAppConfig?.toMap(),
       'push': pushConfig.toMap(),
       'location': locationConfig?.toMap(),
-      'liveNotifications': liveActivitiesConfig?.toMap(),
+      'liveNotifications': liveNotificationsConfig?.toMap(),
       'version': version,
       'source': source
     };

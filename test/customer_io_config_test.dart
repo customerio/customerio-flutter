@@ -225,7 +225,7 @@ void main() {
     test('CustomerIOConfig includes liveNotifications in toMap()', () {
       final config = CustomerIOConfig(
         cdpApiKey: 'testApiKey',
-        liveActivitiesConfig: LiveActivitiesConfig(
+        liveNotificationsConfig: LiveActivitiesConfig(
           types: [LiveActivityTemplate.countdownTimer],
         ),
       );

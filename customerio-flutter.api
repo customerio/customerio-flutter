@@ -76,7 +76,7 @@ public final class CustomerIOConfig {
 		InAppConfig? inAppConfig,
 		PushConfig? pushConfig,
 		LocationConfig? locationConfig,
-		LiveActivitiesConfig? liveActivitiesConfig
+		LiveActivitiesConfig? liveNotificationsConfig
 	): CustomerIOConfig;
 	public fun toMap(): Map<String, dynamic>;
 	public val apiHost: String?;
@@ -86,7 +86,7 @@ public final class CustomerIOConfig {
 	public val flushAt: int?;
 	public val flushInterval: int?;
 	public val inAppConfig: InAppConfig?;
-	public val liveActivitiesConfig: LiveActivitiesConfig?;
+	public val liveNotificationsConfig: LiveActivitiesConfig?;
 	public val locationConfig: LocationConfig?;
 	public val logLevel: CioLogLevel?;
 	public val migrationSiteId: String?;

@@ -199,22 +199,24 @@ void main() {
       );
     });
 
-    /// Native returns only an id; an unexpected null must not crash the caller.
-    test('start() tolerates a null id from native', () async {
+    /// A null id means nothing was started. Failing here surfaces the cause; returning '' would hand
+    /// back an id that only fails later, on an update or end that silently matches nothing.
+    test('start() throws when native returns a null id', () async {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (MethodCall methodCall) async => null);
       final platform = CustomerIOLiveActivitiesMethodChannel();
 
-      final id = await platform.start(
-        const LiveActivityPayload.segments(
-          header: 'Order #123',
-          status: 'Preparing',
-          segmentsTotal: 4,
-          segmentsComplete: 1,
+      expect(
+        () => platform.start(
+          const LiveActivityPayload.segments(
+            header: 'Order #123',
+            status: 'Preparing',
+            segmentsTotal: 4,
+            segmentsComplete: 1,
+          ),
         ),
+        throwsA(isA<StateError>()),
       );
-
-      expect(id, '');
     });
   });
 }
