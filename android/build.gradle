@@ -18,6 +18,8 @@ rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
+        // TEMPORARY (REL-1): Live Notifications only exist in an unreleased branch snapshot.
+        maven { url 'https://central.sonatype.com/repository/maven-snapshots/' }
     }
 }
 
@@ -70,7 +72,8 @@ dependencies {
     // Version can be overridden for local/CI verification via -PcioVersion=<version>
     // (e.g. -PcioVersion=local to build against a mavenLocal build). The committed default
     // tracks the intended published release.
-    def cioVersion = rootProject.findProperty("cioVersion") ?: "4.18.2"
+    // TEMPORARY (REL-1): defaults to the unreleased Live Notifications branch snapshot.
+    def cioVersion = rootProject.findProperty("cioVersion") ?: "live-notifications-review-fixes-SNAPSHOT"
     implementation "io.customer.android:datapipelines:$cioVersion"
     implementation "io.customer.android:messaging-push-fcm:$cioVersion"
     implementation "io.customer.android:messaging-in-app:$cioVersion"
