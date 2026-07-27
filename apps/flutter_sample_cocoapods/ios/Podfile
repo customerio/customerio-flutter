@@ -45,6 +45,7 @@ target 'Runner' do
   # Uncomment only 1 of the lines below to install a version of the iOS SDK
   pod 'customer_io/fcm', :path => '.symlinks/plugins/customer_io/ios' # install podspec bundled with the plugin
   pod 'customer_io/location', :path => '.symlinks/plugins/customer_io/ios' # install location subspec for testing
+  pod 'customer_io/liveactivities', :path => '.symlinks/plugins/customer_io/ios' # opt in to Live Activities
 
   # TEMPORARY (REL-1): the Live Activities pods are not on CocoaPods trunk yet, so pull the whole
   # Customer.io iOS SDK from the branch that carries their podspecs. Remove once they ship.
