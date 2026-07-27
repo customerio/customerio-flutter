@@ -47,8 +47,8 @@ class MainActivity : FlutterActivity() {
  * built-in SDK template, so the app fully renders them here. Returning null for any other type lets
  * the SDK fall back to its built-in templates.
  *
- * Payload fields sent from Dart (`startCustom(..., data)`) arrive flattened as strings in
- * [CustomerIOParsedPushPayload.extras].
+ * The `data` map Dart sends with `LiveActivityPayload.custom` arrives flattened in
+ * [CustomerIOParsedPushPayload.extras], keyed the same way.
  */
 private class RideshareLiveNotificationCallback : CustomerIOLiveNotificationsCallback {
     override fun createLiveNotification(
@@ -64,7 +64,7 @@ private class RideshareLiveNotificationCallback : CustomerIOLiveNotificationsCal
 
         val driverName = extras.getString("driverName") ?: "Your driver"
         val status = extras.getString("status") ?: ""
-        // Numeric fields cross the bridge as doubles and are stored as strings ("5.0"); render as int.
+        // Every custom value is a string, here and in the pushed content-state; parse what you need.
         val etaMinutes = extras.getString("etaMinutes")?.toDoubleOrNull()?.toInt()
 
         val body = if (etaMinutes != null) {

@@ -12,9 +12,6 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
 
 @objc class AppDelegate: FlutterAppDelegate {
     private let permissionHandler = PermissionChannelHandler()
-    // App-owned handler for the custom "rideshare" Live Activity (custom iOS types are not driven
-    // through the Customer.io wrapper — the app owns the widget + ActivityKit calls).
-    private let customLiveActivity = SampleCustomLiveActivity()
 
     override func application(
         _ application: UIApplication,
@@ -24,8 +21,7 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
 
         let controller = window?.rootViewController as! FlutterViewController
         permissionHandler.register(with: controller.binaryMessenger)
-        customLiveActivity.register(with: controller.binaryMessenger)
-        
+
         // Depending on the method you choose to install Firebase in your app,
         // you may need to add functions to this file, such as the following:
         // FirebaseApp.configure()

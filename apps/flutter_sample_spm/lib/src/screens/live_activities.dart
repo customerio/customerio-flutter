@@ -1,25 +1,27 @@
-import 'dart:io' show Platform;
-
 import 'package:customer_io/customer_io.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show MethodChannel;
 
 import '../components/container.dart';
 import '../components/scroll_view.dart';
 import '../theme/sizes.dart';
 import '../utils/extensions.dart';
 
-/// Identifier of the custom (app-defined) live activity type demonstrated here.
-/// Matches the type registered in the SDK config (`customTypes`), the Android
-/// sample's `createLiveNotification` callback, and the iOS sample's native
-/// widget/handler.
-const String _rideshareType = 'io.customer.livenotifications.custom.rideshare';
-
-/// Channel to the iOS sample's app-owned custom Live Activity handler
-/// (see `Runner/SampleCustomLiveActivity.swift`). Custom types on iOS require a
-/// native Widget Extension and are owned by the app, not the wrapper SDK.
-const MethodChannel _customIosChannel =
-    MethodChannel('sample_custom_live_activity');
+/// Content-state for the custom "rideshare" activity demonstrated here.
+///
+/// One code path on both platforms. The SDK owns the attributes type, so the payload is
+/// just a map of strings: iOS renders it from `CIOCustomAttributes` in the Widget
+/// Extension, Android from the app's `createLiveNotification` callback (registered in
+/// MainActivity). The activity is named by `customType` in the SDK config, not here.
+LiveActivityPayload _rideshare(String status, int etaMinutes) =>
+    LiveActivityPayload.custom(
+      // Values are strings — a bridge payload carries no schema, so the renderer parses
+      // whatever it needs.
+      data: {
+        'driverName': 'Alex',
+        'status': status,
+        'etaMinutes': '$etaMinutes',
+      },
+    );
 
 class LiveActivitiesScreen extends StatefulWidget {
   const LiveActivitiesScreen({super.key});
@@ -180,24 +182,9 @@ class _LiveActivitiesScreenState extends State<LiveActivitiesScreen> {
 
   Future<void> _startCustom() async {
     try {
-      final String id;
-      if (Platform.isIOS) {
-        // Custom types on iOS are owned by the app's native Widget Extension.
-        id = await _customIosChannel.invokeMethod<String>('startRideshare', {
-              'driverName': 'Alex',
-              'status': 'On the way',
-              'etaMinutes': 5,
-            }) ??
-            '';
-      } else {
-        // Android renders custom live notifications via the app's
-        // createLiveNotification callback (registered before SDK init).
-        id = await CustomerIO.liveActivities.startCustom(_rideshareType, {
-          'driverName': 'Alex',
-          'status': 'On the way',
-          'etaMinutes': 5,
-        });
-      }
+      final id = await CustomerIO.liveActivities.start(
+        _rideshare('On the way', 5),
+      );
       setState(() {
         _customId = id;
         _statusText = 'Started custom rideshare activity: $id';
@@ -216,28 +203,9 @@ class _LiveActivitiesScreenState extends State<LiveActivitiesScreen> {
       return;
     }
     try {
-      String currentId = id;
-      if (Platform.isIOS) {
-        await _customIosChannel.invokeMethod<void>('updateRideshare', {
-          'activityId': id,
-          'status': 'Arriving now',
-          'etaMinutes': 1,
-        });
-      } else {
-        // The wrapper exposes startCustom (which mints a fresh activity id) but
-        // no stable-id custom update. End the current notification first, then
-        // re-issue startCustom and track the new id, so we replace it in place
-        // instead of stacking a second notification and orphaning the previous one.
-        await CustomerIO.liveActivities.end(id);
-        currentId = await CustomerIO.liveActivities.startCustom(_rideshareType, {
-          'driverName': 'Alex',
-          'status': 'Arriving now',
-          'etaMinutes': 1,
-        });
-      }
+      await CustomerIO.liveActivities.update(id, _rideshare('Arriving now', 1));
       setState(() {
-        _customId = currentId;
-        _statusText = 'Updated custom rideshare activity: $currentId';
+        _statusText = 'Updated custom rideshare activity: $id';
       });
       if (!mounted) return;
       context.showSnackBar('Updated custom rideshare activity');
@@ -253,13 +221,11 @@ class _LiveActivitiesScreenState extends State<LiveActivitiesScreen> {
       return;
     }
     try {
-      if (Platform.isIOS) {
-        await _customIosChannel.invokeMethod<void>('endRideshare', {
-          'activityId': id,
-        });
-      } else {
-        await CustomerIO.liveActivities.end(id);
-      }
+      // A final content-state so the card reads as finished rather than freezing mid-trip.
+      await CustomerIO.liveActivities.end(
+        id,
+        payload: _rideshare('Arrived', 0),
+      );
       setState(() {
         _statusText = 'Ended custom rideshare activity: $id';
         _customId = null;
@@ -345,8 +311,9 @@ class _LiveActivitiesScreenState extends State<LiveActivitiesScreen> {
               _SectionCard(
                 title: 'Custom (Rideshare)',
                 description:
-                    'App-defined type rendered by the app: a NotificationCompat '
-                    'callback on Android, a native Widget Extension on iOS.',
+                    'Your own type, started the same way on both platforms. The SDK '
+                    'owns the attributes type; the app supplies the view — a '
+                    'NotificationCompat callback on Android, a Widget Extension on iOS.',
                 children: [
                   _SectionButton(
                     label: 'Start',
