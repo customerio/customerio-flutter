@@ -73,7 +73,7 @@ dependencies {
     // (e.g. -PcioVersion=local to build against a mavenLocal build). The committed default
     // tracks the intended published release.
     // TEMPORARY (REL-1): defaults to the unreleased Live Notifications branch snapshot.
-    def cioVersion = rootProject.findProperty("cioVersion") ?: "live-notifications-review-fixes-SNAPSHOT"
+    def cioVersion = rootProject.findProperty("cioVersion") ?: "feature-live-notifications-SNAPSHOT"
     implementation "io.customer.android:datapipelines:$cioVersion"
     implementation "io.customer.android:messaging-push-fcm:$cioVersion"
     implementation "io.customer.android:messaging-in-app:$cioVersion"
