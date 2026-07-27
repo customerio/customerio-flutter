@@ -30,7 +30,7 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
     /// that capture the concrete handle and rebuild its content-state from a Dart map on update.
     private struct ActivityBox {
         let update: ([String: Any]) async throws -> Void
-        let end: () async -> Void
+        let end: ([String: Any]?) async throws -> Void
     }
 
     private var activities: [String: ActivityBox] = [:]
@@ -207,11 +207,18 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
         lock.unlock()
         // Unknown/already-ended id is treated as success (idempotent end).
         guard let box = box else { return result(true) }
+        let map = args["payload"] as? [String: Any]
         Task {
-            await box.end()
             // FlutterResult must be invoked on the platform (main) thread; the Task
             // resumes off-main after the await, so hop back before replying.
-            await MainActor.run { result(true) }
+            do {
+                try await box.end(map)
+                await MainActor.run { result(true) }
+            } catch {
+                await MainActor.run {
+                    result(FlutterError(code: "live_activity_end_failed", message: error.localizedDescription, details: nil))
+                }
+            }
         }
         #else
         result(Self.unavailableError())
@@ -237,8 +244,11 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
         contentBuilder: @escaping ([String: Any]) throws -> A.ContentState
     ) {
         let box = ActivityBox(
+            // ActivityKit keeps the last content-state on screen when `end` is given none, so a
+            // final payload is what lets the activity show a terminal state rather than freezing
+            // mid-progress.
             update: { map in await handle.update(try contentBuilder(map)) },
-            end: { await handle.end() }
+            end: { map in await handle.end(try map.map(contentBuilder)) }
         )
         lock.lock()
         activities[handle.id] = box

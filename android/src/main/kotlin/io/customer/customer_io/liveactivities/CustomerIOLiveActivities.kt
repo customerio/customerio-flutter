@@ -73,6 +73,11 @@ class CustomerIOLiveActivities internal constructor(
         module.updateLiveNotification(activityId, parseData(payload))
     }
 
+    /**
+     * Ends a live notification. Dart may send a `payload` for iOS, where a final content-state is
+     * what makes ActivityKit render a terminal state; Android renders its own terminal state (the
+     * notification simply stops being ongoing), so the key is ignored here.
+     */
     private fun end(args: Map<String, Any>) {
         val module = requireNotNull(getPushModule()) { MODULE_UNAVAILABLE }
         val activityId = requireNotNull(args.getAs<String>("activityId")) {

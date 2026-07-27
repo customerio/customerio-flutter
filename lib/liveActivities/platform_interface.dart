@@ -36,7 +36,7 @@ abstract class CustomerIOLiveActivitiesPlatform extends PlatformInterface {
   }
 
   /// Ends a running Live Activity. Ending an unknown/already-ended id is a no-op.
-  Future<void> end(String activityId) {
+  Future<void> end(String activityId, {LiveActivityPayload? payload}) {
     throw UnimplementedError('end() has not been implemented.');
   }
 

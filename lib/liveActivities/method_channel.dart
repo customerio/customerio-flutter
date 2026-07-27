@@ -39,11 +39,14 @@ class CustomerIOLiveActivitiesMethodChannel
   }
 
   @override
-  Future<void> end(String activityId) async {
+  Future<void> end(String activityId, {LiveActivityPayload? payload}) async {
     try {
       await methodChannel.invokeMethod<void>(
         NativeMethods.end,
-        {NativeMethodParams.activityId: activityId},
+        {
+          NativeMethodParams.activityId: activityId,
+          if (payload != null) NativeMethodParams.payload: payload.toMap(),
+        },
       );
     } on MissingPluginException {
       throw _notEnabled();
