@@ -120,7 +120,7 @@ let package = Package(
     dependencies: [
         // TEMPORARY (REL-1): Live Activities products only exist on this branch. Restore an
         // exact released version once they ship.
-        .package(url: "https://github.com/customerio/customerio-ios.git", branch: "live-activities-sdk-managed-module"),
+        .package(url: "https://github.com/customerio/customerio-ios.git", branch: "feat/live-activities"),
         .package(url: "https://github.com/customerio/customerio-ios-fcm.git", from: "1.0.0")
     ],
     targets: [
