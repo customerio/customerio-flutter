@@ -51,11 +51,11 @@ class _LiveActivitiesScreenState extends State<LiveActivitiesScreen> {
           trailingText: 'ETA 20 min',
         ),
       );
+      if (!mounted) return;
       setState(() {
         _segmentsId = id;
         _statusText = 'Started segments activity: $id';
       });
-      if (!mounted) return;
       context.showSnackBar('Started segments activity');
     } catch (ex) {
       _onError(ex);
@@ -83,11 +83,11 @@ class _LiveActivitiesScreenState extends State<LiveActivitiesScreen> {
           trailingText: complete >= 4 ? 'Done' : 'ETA 5 min',
         ),
       );
+      if (!mounted) return;
       setState(() {
         _segmentsComplete = complete;
         _statusText = 'Advanced segments activity ($complete/4): $id';
       });
-      if (!mounted) return;
       context.showSnackBar('Advanced segments activity');
     } catch (ex) {
       _onError(ex);
@@ -113,12 +113,12 @@ class _LiveActivitiesScreenState extends State<LiveActivitiesScreen> {
           segmentsComplete: 4,
         ),
       );
+      if (!mounted) return;
       setState(() {
         _statusText = 'Ended segments activity: $id';
         _segmentsId = null;
         _segmentsComplete = 1;
       });
-      if (!mounted) return;
       context.showSnackBar('Ended segments activity');
     } catch (ex) {
       _onError(ex);
@@ -140,11 +140,11 @@ class _LiveActivitiesScreenState extends State<LiveActivitiesScreen> {
           endTime: endTime,
         ),
       );
+      if (!mounted) return;
       setState(() {
         _countdownId = id;
         _statusText = 'Started countdown activity: $id';
       });
-      if (!mounted) return;
       context.showSnackBar('Started countdown activity');
     } catch (ex) {
       _onError(ex);
@@ -167,11 +167,11 @@ class _LiveActivitiesScreenState extends State<LiveActivitiesScreen> {
           statusMessage: 'Thanks for shopping',
         ),
       );
+      if (!mounted) return;
       setState(() {
         _statusText = 'Ended countdown activity: $id';
         _countdownId = null;
       });
-      if (!mounted) return;
       context.showSnackBar('Ended countdown activity');
     } catch (ex) {
       _onError(ex);
@@ -185,11 +185,11 @@ class _LiveActivitiesScreenState extends State<LiveActivitiesScreen> {
       final id = await CustomerIO.liveActivities.start(
         _rideshare('On the way', 5),
       );
+      if (!mounted) return;
       setState(() {
         _customId = id;
         _statusText = 'Started custom rideshare activity: $id';
       });
-      if (!mounted) return;
       context.showSnackBar('Started custom rideshare activity');
     } catch (ex) {
       _onError(ex);
@@ -204,10 +204,10 @@ class _LiveActivitiesScreenState extends State<LiveActivitiesScreen> {
     }
     try {
       await CustomerIO.liveActivities.update(id, _rideshare('Arriving now', 1));
+      if (!mounted) return;
       setState(() {
         _statusText = 'Updated custom rideshare activity: $id';
       });
-      if (!mounted) return;
       context.showSnackBar('Updated custom rideshare activity');
     } catch (ex) {
       _onError(ex);
@@ -226,11 +226,11 @@ class _LiveActivitiesScreenState extends State<LiveActivitiesScreen> {
         id,
         payload: _rideshare('Arrived', 0),
       );
+      if (!mounted) return;
       setState(() {
         _statusText = 'Ended custom rideshare activity: $id';
         _customId = null;
       });
-      if (!mounted) return;
       context.showSnackBar('Ended custom rideshare activity');
     } catch (ex) {
       _onError(ex);
@@ -238,10 +238,10 @@ class _LiveActivitiesScreenState extends State<LiveActivitiesScreen> {
   }
 
   void _onError(Object ex) {
+    if (!mounted) return;
     setState(() {
       _statusText = 'Error: $ex';
     });
-    if (!mounted) return;
     context.showSnackBar('Error: $ex');
   }
 

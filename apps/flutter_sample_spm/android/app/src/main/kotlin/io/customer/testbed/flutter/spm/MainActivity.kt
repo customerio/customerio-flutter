@@ -67,16 +67,20 @@ private class RideshareLiveNotificationCallback : CustomerIOLiveNotificationsCal
         // Every custom value is a string, here and in the pushed content-state; parse what you need.
         val etaMinutes = extras.getString("etaMinutes")?.toDoubleOrNull()?.toInt()
 
-        val body = if (etaMinutes != null) {
-            "$status • ETA $etaMinutes min"
-        } else {
-            status
-        }
+        // Mirrors the iOS widget's layout: status leads (as the title below), then the driver, then
+        // the ETA. `status` is not repeated here since it is already the title.
+        val body = listOfNotNull(
+            driverName,
+            etaMinutes?.let { "ETA $it min" },
+        ).joinToString(" • ")
 
         ensureChannel(context)
         return NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(context.applicationInfo.icon)
-            .setContentTitle(if (ended) "$driverName has arrived" else "$driverName is on the way")
+            // Title follows `status`, matching the iOS widget's headline. Hardcoding "is on the way"
+            // left Android showing stale copy after an update that changed the status, while the
+            // body below already reflected the new state.
+            .setContentTitle(status.ifEmpty { if (ended) "Arrived" else "Rideshare" })
             .setContentText(body)
             .setOngoing(!ended)
             .setOnlyAlertOnce(true)
