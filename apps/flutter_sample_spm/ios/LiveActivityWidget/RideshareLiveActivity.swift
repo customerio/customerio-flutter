@@ -29,6 +29,10 @@ struct RideshareLiveActivity: Widget {
                     .foregroundColor(.secondary)
             }
             .padding()
+            // Required on any custom template: this is what carries the tap URL the SDK
+            // reports `opened` from and routes the deep link with. The bundled templates do
+            // the same on both their lock screen and Dynamic Island.
+            .cioWidgetUrl(context.state.cioMetadata)
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
@@ -47,6 +51,7 @@ struct RideshareLiveActivity: Widget {
             } minimal: {
                 Image(systemName: "car.fill")
             }
+            .cioWidgetUrl(context.state.cioMetadata)
         }
     }
 }
