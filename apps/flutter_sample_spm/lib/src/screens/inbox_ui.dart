@@ -7,14 +7,13 @@ import 'package:flutter/material.dart';
 
 import '../components/container.dart';
 
-/// Demonstrates the three native Visual Notification Inbox UI components exposed
-/// via PlatformView:
-///   1. NotificationInboxOverlay (drop-in bell + slide-out panel)
-///   2. NotificationInboxBell    (bell only; host opens its own UI)
-///   3. NotificationInboxView    (the Jist-rendered message list)
+/// Demonstrates the two native Visual Notification Inbox UI components exposed via
+/// PlatformView:
+///   1. NotificationInboxBell — the branded bell; tapping it opens the SDK's own panel
+///   2. NotificationInboxView — the Jist-rendered message list
 ///
 /// Message actions are handled by the global InboxEventListener (bridged
-/// separately); these widgets only render UI and surface widget-level callbacks.
+/// separately); these widgets only render UI.
 class InboxUiScreen extends StatefulWidget {
   const InboxUiScreen({super.key});
 
@@ -32,7 +31,7 @@ class _InboxUiScreenState extends State<InboxUiScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
 
     // Register a global inbox event listener. While registered, the Flutter host
     // owns inbox action navigation (the SDK suppresses its default handling).
@@ -68,7 +67,6 @@ class _InboxUiScreenState extends State<InboxUiScreen>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: 'Overlay'),
             Tab(text: 'Bell'),
             Tab(text: 'List'),
           ],
@@ -77,7 +75,6 @@ class _InboxUiScreenState extends State<InboxUiScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildOverlayTab(),
           _buildBellTab(),
           _buildListTab(),
         ],
@@ -85,47 +82,8 @@ class _InboxUiScreenState extends State<InboxUiScreen>
     );
   }
 
-  // 1. Drop-in overlay (bell + slide-out panel). The overlay paints itself over
-  // the whole area, so we let it fill a Stack on top of placeholder content.
-  Widget _buildOverlayTab() {
-    return Stack(
-      children: [
-        const Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              'NotificationInboxOverlay renders a floating bell and a slide-out '
-              'panel on top of your content. Tap the bell to open the panel.',
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-        // The overlay manages its own layout; give it the full area.
-        const Positioned.fill(
-          child: NotificationInboxOverlay(),
-        ),
-        // Readout LAST, so it paints above the overlay. Native platform views draw over earlier
-        // Flutter siblings in a Stack (notably on Android), so ordering this before the overlay hid
-        // the very callbacks this screen exists to show.
-        Positioned(
-          top: 8,
-          left: 8,
-          right: 8,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'last inbox event: $_lastInboxEvent',
-                style: const TextStyle(fontSize: 12),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // 2. Bell only — host opens its own UI on tap (here we push the list screen).
+  // 1. The branded bell. Tapping it opens the SDK's own panel — the host presents
+  // nothing. `onTap` is observational only.
   Widget _buildBellTab() {
     return Center(
       child: Column(
@@ -134,22 +92,29 @@ class _InboxUiScreenState extends State<InboxUiScreen>
           const Padding(
             padding: EdgeInsets.all(24),
             child: Text(
-              'NotificationInboxBell renders only the bell. On tap, the host '
-              'decides what to show.',
+              'Tapping the bell opens the inbox panel the SDK owns. Remote branding '
+              'styles the bell; this screen decides where it sits.',
               textAlign: TextAlign.center,
             ),
           ),
+          // 88 not 64: the native composition insets its 56 bell by 16 per side, so a
+          // smaller box squeezes the circle onto the glyph.
           SizedBox(
-            width: 64,
-            height: 64,
+            width: 88,
+            height: 88,
             child: NotificationInboxBell(
               onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const _InboxListPage(),
-                  ),
-                );
+                if (mounted) {
+                  setState(() => _lastInboxEvent = 'bell tapped');
+                }
               },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'last inbox event: $_lastInboxEvent',
+              style: const TextStyle(fontSize: 12),
             ),
           ),
         ],
@@ -157,7 +122,7 @@ class _InboxUiScreenState extends State<InboxUiScreen>
     );
   }
 
-  // 3. The Jist-rendered message list, embedded directly.
+  // 2. The Jist-rendered message list, embedded directly.
   Widget _buildListTab() {
     return const NotificationInboxView();
   }
@@ -191,25 +156,5 @@ class _DemoInboxEventListener implements InboxEventListener {
   @override
   void messageDismissed(InboxMessage message) {
     onEvent('dismissed queueId=${message.queueId}');
-  }
-}
-
-/// A simple screen hosting just the [NotificationInboxView], used to demonstrate
-/// the host-opens-its-own-UI flow from [NotificationInboxBell].
-class _InboxListPage extends StatelessWidget {
-  const _InboxListPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return AppContainer(
-      appBar: AppBar(
-        title: const Text('Notification Inbox'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: const NotificationInboxView(),
-    );
   }
 }
