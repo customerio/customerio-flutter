@@ -2,6 +2,9 @@ package io.customer.customer_io.messaginginapp
 
 import android.app.Activity
 import io.customer.customer_io.bridge.NativeModuleBridge
+import io.customer.customer_io.messaginginbox.InboxComponent
+import io.customer.customer_io.messaginginbox.InboxViewTypes
+import io.customer.customer_io.messaginginbox.NotificationInboxViewFactory
 import io.customer.customer_io.bridge.nativeMapArgs
 import io.customer.customer_io.bridge.nativeNoArgs
 import io.customer.customer_io.utils.getAs
@@ -13,6 +16,7 @@ import io.customer.messaginginapp.gist.data.model.response.InboxMessageFactory
 import io.customer.messaginginapp.inbox.NotificationInbox
 import io.customer.messaginginapp.type.InAppEventListener
 import io.customer.messaginginapp.type.InAppMessage
+import io.customer.messaginginapp.type.InboxEventListener
 import io.customer.sdk.CustomerIO
 import io.customer.sdk.CustomerIOBuilder
 import io.customer.sdk.core.di.SDKComponent
@@ -67,6 +71,20 @@ internal class CustomerIOInAppMessaging(
             "customer_io_inline_in_app_message_view",
             InlineInAppMessageViewFactory(binaryMessenger)
         )
+
+        // Register the platform view factories for the Visual Notification Inbox UI components.
+        platformViewRegistry.registerViewFactory(
+            InboxViewTypes.OVERLAY,
+            NotificationInboxViewFactory(binaryMessenger, InboxComponent.OVERLAY)
+        )
+        platformViewRegistry.registerViewFactory(
+            InboxViewTypes.BELL,
+            NotificationInboxViewFactory(binaryMessenger, InboxComponent.BELL)
+        )
+        platformViewRegistry.registerViewFactory(
+            InboxViewTypes.VIEW,
+            NotificationInboxViewFactory(binaryMessenger, InboxComponent.VIEW)
+        )
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
@@ -99,12 +117,47 @@ internal class CustomerIOInAppMessaging(
             "markInboxMessageUnopened" -> call.nativeMapArgs(result, ::markInboxMessageUnopened)
             "markInboxMessageDeleted" -> call.nativeMapArgs(result, ::markInboxMessageDeleted)
             "trackInboxMessageClicked" -> call.nativeMapArgs(result, ::trackInboxMessageClicked)
+            "registerInboxEventListener" -> registerInboxEventListener(result)
+            "unregisterInboxEventListener" -> unregisterInboxEventListener(result)
             else -> super.onMethodCall(call, result)
         }
     }
 
     private fun dismissMessage() {
         inAppMessagingModule?.dismissMessage()
+    }
+
+    /**
+     * Registers the inbox event forwarder on the SDK while a Dart listener is set.
+     * Because the Flutter MethodChannel is async we cannot round-trip a Dart bool
+     * back to the SDK's calling thread, so the forwarder reports actions as
+     * host-handled (returns true) which suppresses the SDK's default navigation.
+     */
+    private fun registerInboxEventListener(result: MethodChannel.Result) {
+        val module = inAppMessagingModule ?: run {
+            result.error(
+                "INBOX_NOT_AVAILABLE",
+                "In-app messaging module is not available. Ensure CustomerIO SDK is initialized.",
+                null
+            )
+            return
+        }
+        module.setInboxEventListener(CustomerIOInboxEventListener { method, args ->
+            runOnMainThread {
+                flutterCommunicationChannel.invokeMethod(method, args)
+            }
+        })
+        result.success(null)
+    }
+
+    /**
+     * Clears the Dart-backed inbox forwarder by installing a no-op listener whose
+     * [InboxEventListener.messageActionTaken] returns false, restoring the SDK's
+     * default action handling. (The native API takes a non-null listener.)
+     */
+    private fun unregisterInboxEventListener(result: MethodChannel.Result) {
+        inAppMessagingModule?.setInboxEventListener(NoOpInboxEventListener)
+        result.success(null)
     }
 
     /**
@@ -306,4 +359,49 @@ class CustomerIOInAppEventListener(private val invokeMethod: (String, Any?) -> U
             )
         )
     }
+}
+
+/**
+ * Forwards Visual Notification Inbox events to Flutter. Registered on the SDK only while a Dart
+ * listener is set. `messageActionTaken` forwards fire-and-forget and returns true (host-handled) so
+ * the SDK suppresses its default navigation while the Flutter host owns action handling.
+ * Uses distinct method names so they don't collide with the in-app callbacks on the shared channel.
+ */
+class CustomerIOInboxEventListener(private val invokeMethod: (String, Any?) -> Unit) :
+    InboxEventListener {
+    override fun messageActionTaken(
+        message: InboxMessage, actionName: String, actionValue: String
+    ): Boolean {
+        invokeMethod(
+            "inboxMessageActionTaken", mapOf(
+                "message" to message.toMap(),
+                "actionName" to actionName,
+                "actionValue" to actionValue
+            )
+        )
+        // Host (Flutter) owns action handling while a listener is registered.
+        return true
+    }
+
+    override fun messageShown(message: InboxMessage) {
+        invokeMethod("inboxMessageShown", mapOf("message" to message.toMap()))
+    }
+
+    override fun messageOpened(message: InboxMessage) {
+        invokeMethod("inboxMessageOpened", mapOf("message" to message.toMap()))
+    }
+
+    override fun messageDismissed(message: InboxMessage) {
+        invokeMethod("inboxMessageDismissed", mapOf("message" to message.toMap()))
+    }
+}
+
+/**
+ * No-op inbox listener used to clear the Dart forwarder. Returning false from
+ * [messageActionTaken] restores the SDK's default action handling.
+ */
+private object NoOpInboxEventListener : InboxEventListener {
+    override fun messageActionTaken(
+        message: InboxMessage, actionName: String, actionValue: String
+    ): Boolean = false
 }

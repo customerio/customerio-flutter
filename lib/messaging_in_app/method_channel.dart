@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../customer_io_inapp.dart';
 import '../extensions/method_channel_extensions.dart';
 import '_native_constants.dart';
+import 'inbox_event_listener.dart';
 import 'inbox_message.dart';
 import 'platform_interface.dart';
 
@@ -19,6 +20,12 @@ class CustomerIOMessagingInAppMethodChannel
   final _inAppEventStreamController = StreamController<InAppEvent>.broadcast();
   final _inboxMessagesStreamController =
       StreamController<List<InboxMessage>>.broadcast();
+  final _inboxEventStreamController =
+      StreamController<_InboxEvent>.broadcast();
+
+  /// Active subscription that dispatches inbox events to the registered
+  /// [InboxEventListener]. Null when no listener is registered.
+  StreamSubscription<_InboxEvent>? _inboxEventSubscription;
 
   @override
   void dismissMessage() {
@@ -35,6 +42,49 @@ class CustomerIOMessagingInAppMethodChannel
     StreamSubscription subscription =
         _inAppEventStreamController.stream.listen(onEvent);
     return subscription;
+  }
+
+  /// Registers (or clears) the global inbox event listener.
+  ///
+  /// Passing a non-null [listener] wires a subscription that dispatches inbox
+  /// events to it and tells the native SDK to start forwarding events (the
+  /// native forwarder reports actions as host-handled, so the SDK suppresses
+  /// its default navigation while a listener is registered). Passing `null`
+  /// cancels the subscription and tells the native SDK to restore its default
+  /// behavior.
+  @override
+  void setInboxEventListener(InboxEventListener? listener) {
+    // Always tear down any existing subscription first.
+    _inboxEventSubscription?.cancel();
+    _inboxEventSubscription = null;
+
+    if (listener == null) {
+      methodChannel
+          .invokeNativeMethodVoid(NativeMethods.unregisterInboxEventListener);
+      return;
+    }
+
+    _inboxEventSubscription =
+        _inboxEventStreamController.stream.listen((event) {
+      switch (event.type) {
+        case _InboxEventType.messageActionTaken:
+          listener.messageActionTaken(
+              event.message, event.actionName ?? '', event.actionValue ?? '');
+          break;
+        case _InboxEventType.messageShown:
+          listener.messageShown(event.message);
+          break;
+        case _InboxEventType.messageOpened:
+          listener.messageOpened(event.message);
+          break;
+        case _InboxEventType.messageDismissed:
+          listener.messageDismissed(event.message);
+          break;
+      }
+    });
+
+    methodChannel
+        .invokeNativeMethodVoid(NativeMethods.registerInboxEventListener);
   }
 
   // Inbox methods
@@ -146,6 +196,65 @@ class CustomerIOMessagingInAppMethodChannel
             [];
         _inboxMessagesStreamController.add(messagesList);
         break;
+      case NativeMethods.inboxMessageActionTaken:
+        _inboxEventStreamController.add(_InboxEvent(
+          type: _InboxEventType.messageActionTaken,
+          message: _inboxMessageFromArgs(arguments),
+          actionName: arguments[NativeMethodParams.actionName] as String?,
+          actionValue: arguments['actionValue'] as String?,
+        ));
+        break;
+      case NativeMethods.inboxMessageShown:
+        _inboxEventStreamController.add(_InboxEvent(
+          type: _InboxEventType.messageShown,
+          message: _inboxMessageFromArgs(arguments),
+        ));
+        break;
+      case NativeMethods.inboxMessageOpened:
+        _inboxEventStreamController.add(_InboxEvent(
+          type: _InboxEventType.messageOpened,
+          message: _inboxMessageFromArgs(arguments),
+        ));
+        break;
+      case NativeMethods.inboxMessageDismissed:
+        _inboxEventStreamController.add(_InboxEvent(
+          type: _InboxEventType.messageDismissed,
+          message: _inboxMessageFromArgs(arguments),
+        ));
+        break;
     }
   }
+
+  /// Parses the `message` map that native sends alongside inbox events into an
+  /// [InboxMessage], using the same serialization shape as `inboxMessagesChanged`.
+  InboxMessage _inboxMessageFromArgs(Map<String, dynamic> arguments) {
+    final messageMap = (arguments[NativeMethodParams.message]
+            as Map<Object?, Object?>)
+        .cast<String, dynamic>();
+    return InboxMessage.fromMap(messageMap);
+  }
+}
+
+/// Type of inbox event forwarded from native.
+enum _InboxEventType {
+  messageActionTaken,
+  messageShown,
+  messageOpened,
+  messageDismissed,
+}
+
+/// Internal carrier for an inbox event flowing through the broadcast stream to
+/// the registered [InboxEventListener].
+class _InboxEvent {
+  final _InboxEventType type;
+  final InboxMessage message;
+  final String? actionName;
+  final String? actionValue;
+
+  _InboxEvent({
+    required this.type,
+    required this.message,
+    this.actionName,
+    this.actionValue,
+  });
 }

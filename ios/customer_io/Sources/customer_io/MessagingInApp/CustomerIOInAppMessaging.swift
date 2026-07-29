@@ -30,6 +30,20 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
             InlineInAppMessageViewFactory(messenger: registrar.messenger()),
             withId: "customer_io_inline_in_app_message_view"
         )
+
+        // Register the platform view factories for the Visual Notification Inbox UI components.
+        registrar.register(
+            NotificationInboxOverlayViewFactory(messenger: registrar.messenger()),
+            withId: "customer_io_notification_inbox_overlay_view"
+        )
+        registrar.register(
+            NotificationInboxBellViewFactory(messenger: registrar.messenger()),
+            withId: "customer_io_notification_inbox_bell_view"
+        )
+        registrar.register(
+            NotificationInboxViewFactory(messenger: registrar.messenger()),
+            withId: "customer_io_notification_inbox_view"
+        )
     }
 
     deinit {
@@ -64,6 +78,14 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
 
         case "trackInboxMessageClicked":
             trackInboxMessageClicked(call: call, result: result)
+
+        case "registerInboxEventListener":
+            MessagingInApp.shared.setInboxEventListener(CustomerIOInboxEventListener(invokeDartMethod: invokeDartMethod))
+            result(nil)
+
+        case "unregisterInboxEventListener":
+            MessagingInApp.shared.setInboxEventListener(nil)
+            result(nil)
 
         default:
             result(FlutterMethodNotImplemented)
