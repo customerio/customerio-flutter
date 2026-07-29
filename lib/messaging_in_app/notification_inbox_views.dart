@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart' show PlatformViewHitTestBehavior;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -36,14 +38,50 @@ class _InboxViewConstants {
 Widget _buildPlatformView({
   required String viewType,
   required ValueChanged<int> onPlatformViewCreated,
+  bool claimsDragGestures = false,
 }) {
+  // Flutter only forwards gestures a platform view wins in the gesture arena. Taps get through by
+  // default, which is all the bell needs, but vertical drags stay with Flutter — so the message
+  // list could not scroll at all. An eager recognizer makes the platform view claim the sequence
+  // immediately, which is right for a view that scrolls its own content.
+  final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers =
+      claimsDragGestures
+          ? <Factory<OneSequenceGestureRecognizer>>{
+              Factory<OneSequenceGestureRecognizer>(
+                EagerGestureRecognizer.new,
+              ),
+            }
+          : const <Factory<OneSequenceGestureRecognizer>>{};
+
   if (defaultTargetPlatform == TargetPlatform.android) {
-    return AndroidView(
+    // Hybrid composition (`initExpensiveAndroidView`) rather than `AndroidView`, which uses virtual
+    // display mode. Under virtual display the native view renders into a texture that only refreshes
+    // on some invalidations: Compose consumed drag events on the message list (verified on device —
+    // DOWN plus a stream of MOVEs, all handled) while the visible frame never changed, so the list
+    // appeared frozen. Hybrid composition puts the real view in the hierarchy and it repaints.
+    return PlatformViewLink(
       viewType: viewType,
-      layoutDirection: TextDirection.ltr,
-      creationParams: const <String, dynamic>{},
-      creationParamsCodec: const StandardMessageCodec(),
-      onPlatformViewCreated: onPlatformViewCreated,
+      surfaceFactory: (context, controller) => AndroidViewSurface(
+        controller: controller as AndroidViewController,
+        gestureRecognizers: gestureRecognizers,
+        hitTestBehavior: PlatformViewHitTestBehavior.opaque,
+      ),
+      onCreatePlatformView: (PlatformViewCreationParams params) {
+        final AndroidViewController controller =
+            PlatformViewsService.initExpensiveAndroidView(
+          id: params.id,
+          viewType: viewType,
+          layoutDirection: TextDirection.ltr,
+          creationParams: const <String, dynamic>{},
+          creationParamsCodec: const StandardMessageCodec(),
+          onFocus: () => params.onFocusChanged(true),
+        );
+        controller
+          ..addOnPlatformViewCreatedListener(params.onPlatformViewCreated)
+          ..addOnPlatformViewCreatedListener(onPlatformViewCreated)
+          ..create();
+        return controller;
+      },
     );
   } else if (defaultTargetPlatform == TargetPlatform.iOS) {
     return UiKitView(
@@ -51,6 +89,7 @@ Widget _buildPlatformView({
       creationParams: const <String, dynamic>{},
       creationParamsCodec: const StandardMessageCodec(),
       onPlatformViewCreated: onPlatformViewCreated,
+      gestureRecognizers: gestureRecognizers,
     );
   }
   return const SizedBox.shrink();
@@ -170,6 +209,7 @@ class _NotificationInboxViewState extends State<NotificationInboxView> {
     return _buildPlatformView(
       viewType: _InboxViewConstants.listViewType,
       onPlatformViewCreated: _onPlatformViewCreated,
+      claimsDragGestures: true,
     );
   }
 }
