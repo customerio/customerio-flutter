@@ -59,8 +59,19 @@ class CustomerIOMessagingInAppMethodChannel
     _inboxEventSubscription = null;
 
     if (listener == null) {
+      // Raw channel for the same reason as registration below: `invokeNativeMethodVoid` swallows
+      // PlatformException, so success and failure are indistinguishable. The Dart subscription is
+      // already gone by this point, so a failed unregister leaves the native forwarder installed —
+      // still reporting every action as host-handled — with nothing on the Dart side left to act on
+      // it. There is nothing to roll back (the caller asked for no listener), so log it instead of
+      // letting the desync pass silently.
       methodChannel
-          .invokeNativeMethodVoid(NativeMethods.unregisterInboxEventListener);
+          .invokeMethod<void>(NativeMethods.unregisterInboxEventListener)
+          .catchError((Object error) {
+        if (kDebugMode) {
+          print('Failed to unregister inbox event listener natively: $error');
+        }
+      });
       return;
     }
 

@@ -126,6 +126,33 @@ void main() {
     expect(listener.lastMessage?.queueId, 'queue-123');
   });
 
+  test(
+      'native register failure tears down the Dart subscription instead of leaving it attached',
+      () async {
+    // Native rejects the registration. Dart must not stay subscribed: the app would otherwise
+    // believe a listener is live while native never installed the forwarder.
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(platform.methodChannel, (call) async {
+      nativeCalls.add(call);
+      if (call.method == 'registerInboxEventListener') {
+        throw PlatformException(
+          code: 'INBOX_NOT_AVAILABLE',
+          message: 'In-app messaging module is not available.',
+        );
+      }
+      return null;
+    });
+
+    final listener = _RecordingInboxEventListener();
+    platform.setInboxEventListener(listener);
+
+    // Let the rejected invokeMethod future settle so the error handler can run.
+    await pumpEventQueue();
+
+    await simulateNativeCall('inboxMessageShown', {'message': messageMap});
+    expect(listener.events, isEmpty);
+  });
+
   test('setInboxEventListener(null) unregisters and stops dispatching',
       () async {
     final listener = _RecordingInboxEventListener();

@@ -50,6 +50,7 @@ internal class CustomerIOInAppMessaging(
     private val inboxListenerLock = Any()
     private val inboxChangeListener = FlutterNotificationInboxChangeListener.instance
     private var isInboxChangeListenerSetup = false
+    private var isInboxEventListenerRegistered = false
 
     /**
      * Returns NotificationInbox instance if available, null otherwise, logging error on failure.
@@ -105,6 +106,7 @@ internal class CustomerIOInAppMessaging(
 
     override fun onDetachedFromEngine() {
         clearInboxChangeListener()
+        clearInboxEventListener()
         super.onDetachedFromEngine()
     }
 
@@ -147,6 +149,7 @@ internal class CustomerIOInAppMessaging(
                 flutterCommunicationChannel.invokeMethod(method, args)
             }
         })
+        synchronized(inboxListenerLock) { isInboxEventListenerRegistered = true }
         result.success(null)
     }
 
@@ -156,8 +159,26 @@ internal class CustomerIOInAppMessaging(
      * default action handling. (The native API takes a non-null listener.)
      */
     private fun unregisterInboxEventListener(result: MethodChannel.Result) {
-        inAppMessagingModule?.setInboxEventListener(NoOpInboxEventListener)
+        clearInboxEventListener()
         result.success(null)
+    }
+
+    /**
+     * Restores the SDK's default inbox action handling by installing the no-op listener.
+     *
+     * Also called on engine detach: the Dart-backed forwarder reports every action as host-handled,
+     * so leaving it installed once the engine is gone would suppress the SDK's own navigation with
+     * nothing on the Flutter side left to replace it. Only clears a forwarder this plugin instance
+     * installed, so an engine that never used the inbox cannot disable another engine's listener.
+     */
+    private fun clearInboxEventListener() {
+        synchronized(inboxListenerLock) {
+            if (!isInboxEventListenerRegistered) {
+                return
+            }
+            inAppMessagingModule?.setInboxEventListener(NoOpInboxEventListener)
+            isInboxEventListenerRegistered = false
+        }
     }
 
     /**
