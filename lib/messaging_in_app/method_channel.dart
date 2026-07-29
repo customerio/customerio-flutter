@@ -83,8 +83,20 @@ class CustomerIOMessagingInAppMethodChannel
       }
     });
 
+    // Registered through the raw channel rather than `invokeNativeMethodVoid`, which swallows
+    // PlatformException and returns null for both success and failure — indistinguishable. A failed
+    // registration would otherwise leave the Dart subscription above attached while native never
+    // installed the forwarder, so the app believes a listener is live and inbox callbacks never
+    // arrive. On failure the Dart side is undone so the two stay in agreement.
     methodChannel
-        .invokeNativeMethodVoid(NativeMethods.registerInboxEventListener);
+        .invokeMethod<void>(NativeMethods.registerInboxEventListener)
+        .catchError((Object error) {
+      if (kDebugMode) {
+        print('Failed to register inbox event listener natively: $error');
+      }
+      _inboxEventSubscription?.cancel();
+      _inboxEventSubscription = null;
+    });
   }
 
   // Inbox methods
