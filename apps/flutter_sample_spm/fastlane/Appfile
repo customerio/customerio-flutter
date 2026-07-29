@@ -3,9 +3,9 @@ team_id "2YC97BQN3N"
 app_identifier([
   "io.customer.testbed.flutter.spm",
   "io.customer.testbed.flutter.spm.notification-service",
-  # CI builds this app with `flutter build ios --no-codesign`, so this identifier is not needed for
-  # CI to pass. It is here for the same reason the notification-service one is: running the sample
-  # on a device needs a development profile for every embedded extension.
+  # Required, for the same reason the notification-service one is: this app is the primary sample, so
+  # CI builds it signed via the `ios build` lane. Every embedded extension needs its own profile, or
+  # the widget is signed with a different certificate than the host app and the build fails.
   "io.customer.testbed.flutter.spm.LiveActivityWidget",
 ])
 
