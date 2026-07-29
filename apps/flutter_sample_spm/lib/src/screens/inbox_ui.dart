@@ -28,6 +28,10 @@ class _InboxUiScreenState extends State<InboxUiScreen>
   /// Last inbox event surfaced by the global [InboxEventListener], shown on-screen.
   String _lastInboxEvent = 'No inbox events yet';
 
+  /// Last observational bell tap. Kept separate from [_lastInboxEvent]: the listener's
+  /// `shown` events fire as soon as the panel renders and would otherwise overwrite it.
+  String _lastBellTap = 'No bell taps yet';
+
   @override
   void initState() {
     super.initState();
@@ -104,17 +108,26 @@ class _InboxUiScreenState extends State<InboxUiScreen>
             height: 88,
             child: NotificationInboxBell(
               onTap: () {
+                log('[NotificationInboxBell] onTap (observational)');
                 if (mounted) {
-                  setState(() => _lastInboxEvent = 'bell tapped');
+                  setState(() => _lastBellTap = 'bell tapped');
                 }
               },
             ),
           ),
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Text(
-              'last inbox event: $_lastInboxEvent',
-              style: const TextStyle(fontSize: 12),
+            child: Column(
+              children: [
+                Text(
+                  'last bell tap: $_lastBellTap',
+                  style: const TextStyle(fontSize: 12),
+                ),
+                Text(
+                  'last inbox event: $_lastInboxEvent',
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ],
             ),
           ),
         ],
