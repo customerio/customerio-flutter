@@ -18,6 +18,13 @@ You'll find our complete [SDK documentation here](https://customer.io/docs/sdk/f
 
 Enable the activity types you use via `liveNotificationsConfig` in your `CustomerIOConfig`. On iOS, Live Activities are opt-in: add the `liveactivities` pod subspec (CocoaPods) or set `customerio_live_activities_enabled=true` in `android/gradle.properties` (Swift Package Manager), plus a Widget Extension that renders the SDK's built-in templates.
 
+iOS also requires `NSSupportsLiveActivities` in `ios/Runner/Info.plist`. Without it the system refuses to start any activity, so nothing appears even when everything else is configured:
+
+```xml
+<key>NSSupportsLiveActivities</key>
+<true/>
+```
+
 For an activity of your own, set `customType` to your reverse-DNS identifier and start it with `LiveActivityPayload.custom(data: {...})`. You supply the view: `CIOCustomAttributes` in your iOS Widget Extension, and the `createLiveNotification` callback on Android.
 
 **One manual step is required on iOS.** Forward every opened URL to the SDK from your `AppDelegate`, or taps on a Live Activity are not attributed. `CustomerIOLiveActivities` comes from the plugin, so import it — and note this only compiles once Live Activities are opted in above:
