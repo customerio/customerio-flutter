@@ -153,6 +153,44 @@ void main() {
     expect(listener.events, isEmpty);
   });
 
+  test(
+      'a failed earlier registration does not cancel a later successful one',
+      () async {
+    // First register fails, second succeeds — the shape produced by registering before
+    // CustomerIO.initialize() and again after. The stale failure must not tear down the live
+    // subscription, or native keeps forwarding host-handled actions to nobody.
+    var registerCalls = 0;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(platform.methodChannel, (call) async {
+      nativeCalls.add(call);
+      if (call.method == 'registerInboxEventListener') {
+        registerCalls += 1;
+        if (registerCalls == 1) {
+          throw PlatformException(
+            code: 'INBOX_NOT_AVAILABLE',
+            message: 'In-app messaging module is not available.',
+          );
+        }
+      }
+      return null;
+    });
+
+    final staleListener = _RecordingInboxEventListener();
+    final liveListener = _RecordingInboxEventListener();
+
+    // Both calls happen before either future settles, so the first failure lands after the second
+    // registration has already replaced the subscription.
+    platform.setInboxEventListener(staleListener);
+    platform.setInboxEventListener(liveListener);
+
+    await pumpEventQueue();
+
+    await simulateNativeCall('inboxMessageShown', {'message': messageMap});
+
+    expect(liveListener.events, ['shown']);
+    expect(staleListener.events, isEmpty);
+  });
+
   test('setInboxEventListener(null) unregisters and stops dispatching',
       () async {
     final listener = _RecordingInboxEventListener();

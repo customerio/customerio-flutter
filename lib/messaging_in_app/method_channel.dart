@@ -75,8 +75,7 @@ class CustomerIOMessagingInAppMethodChannel
       return;
     }
 
-    _inboxEventSubscription =
-        _inboxEventStreamController.stream.listen((event) {
+    final subscription = _inboxEventStreamController.stream.listen((event) {
       switch (event.type) {
         case _InboxEventType.messageActionTaken:
           listener.messageActionTaken(
@@ -93,6 +92,7 @@ class CustomerIOMessagingInAppMethodChannel
           break;
       }
     });
+    _inboxEventSubscription = subscription;
 
     // Registered through the raw channel rather than `invokeNativeMethodVoid`, which swallows
     // PlatformException and returns null for both success and failure — indistinguishable. A failed
@@ -105,7 +105,14 @@ class CustomerIOMessagingInAppMethodChannel
       if (kDebugMode) {
         print('Failed to register inbox event listener natively: $error');
       }
-      _inboxEventSubscription?.cancel();
+      // Undo only this attempt. Registration fails while the SDK is not yet initialized, so an early
+      // call can still be in flight when a later one succeeds — and clearing the field blindly would
+      // cancel the newer, live subscription, leaving the native forwarder installed with nothing in
+      // Dart to receive from it. Our own subscription was already cancelled by that later call.
+      if (!identical(_inboxEventSubscription, subscription)) {
+        return;
+      }
+      subscription.cancel();
       _inboxEventSubscription = null;
     });
   }
