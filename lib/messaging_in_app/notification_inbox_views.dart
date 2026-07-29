@@ -8,16 +8,14 @@ import 'package:flutter/widgets.dart';
 ///
 /// The headless inbox data API (`getInboxMessages`/`subscribe`/`mark`/`track`) and the global
 /// action `InboxEventListener` (`setInboxEventListener`) are bridged separately. These widgets
-/// only render the native UI components and surface per-view callbacks:
-///  - [NotificationInboxOverlay] surfaces panel presentation changes (iOS only — see note).
-///  - [NotificationInboxBell] surfaces taps.
+/// only render the native UI components:
+///  - [NotificationInboxBell] is the branded bell that opens the SDK's own panel; its `onTap` is
+///    observational.
 ///  - [NotificationInboxView] is the message list (no per-view callbacks).
 class _InboxViewConstants {
   _InboxViewConstants._();
 
   // Platform view type ids — must match the native factory registrations.
-  static const String overlayViewType =
-      'customer_io_notification_inbox_overlay_view';
   static const String bellViewType =
       'customer_io_notification_inbox_bell_view';
   static const String listViewType = 'customer_io_notification_inbox_view';
@@ -65,47 +63,21 @@ Future<void> _safeSetHandler(
   channel.setMethodCallHandler(handler);
 }
 
-/// Drop-in Visual Notification Inbox overlay: a floating bell plus a slide-out
-/// panel containing the Jist-rendered message list. The host does not need to
-/// build any inbox UI of its own.
+/// The Visual Notification Inbox bell. Tapping it opens the SDK's own inbox panel
+/// — the host builds no inbox UI.
 ///
-/// Message taps/actions are handled by the global `InboxEventListener`
-/// (`CustomerIO.inAppMessaging.setInboxEventListener`), which is bridged separately.
+/// Place it wherever the app's layout calls for it. Remote branding still styles the
+/// bell (colors, icon); branding's *position* is not applied, because the host owns
+/// placement. Give it at least 88 logical pixels square: the native composition
+/// insets its 56 bell by 16 per side, so a smaller box squeezes the circle onto the
+/// glyph.
 ///
-/// The overlay owns panel presentation natively (on iOS it presents a sheet with
-/// system detents), so it takes no callbacks and reports no presentation state to
-/// Dart.
-///
-/// Platform note: on iOS this requires iOS 16+ and renders nothing on earlier
-/// versions. [NotificationInboxBell] and [NotificationInboxView] have no such floor,
-/// so compose those two if you need to support iOS 15.
+/// Platform note: iOS 16+ (the panel is a sheet with system detents); renders nothing
+/// on earlier versions.
 ///
 /// Example:
 /// ```dart
-/// NotificationInboxOverlay()
-/// ```
-class NotificationInboxOverlay extends StatelessWidget {
-  const NotificationInboxOverlay({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return _buildPlatformView(
-      viewType: _InboxViewConstants.overlayViewType,
-      // No per-view channel: nothing flows back from the native overlay.
-      onPlatformViewCreated: (_) {},
-    );
-  }
-}
-
-/// The Visual Notification Inbox bell only. The host opens its own inbox UI in
-/// response to [onTap] (for example by navigating to a screen containing a
-/// [NotificationInboxView]).
-///
-/// Example:
-/// ```dart
-/// NotificationInboxBell(
-///   onTap: () => Navigator.of(context).pushNamed('/inbox'),
-/// )
+/// const SizedBox(width: 88, height: 88, child: NotificationInboxBell())
 /// ```
 class NotificationInboxBell extends StatefulWidget {
   const NotificationInboxBell({
@@ -114,6 +86,9 @@ class NotificationInboxBell extends StatefulWidget {
   });
 
   /// Called when the user taps the bell.
+  ///
+  /// Observational only — the SDK opens the panel itself, so there is nothing the
+  /// host has to do in response.
   final VoidCallback? onTap;
 
   @override

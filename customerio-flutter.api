@@ -300,10 +300,6 @@ public final class NotificationInboxBell {
 	public val onTap: void Function()?;
 }
 
-public final class NotificationInboxOverlay {
-	public fun new(Key? key): NotificationInboxOverlay;
-}
-
 public final class NotificationInboxView {
 	public fun new(Key? key): NotificationInboxView;
 }

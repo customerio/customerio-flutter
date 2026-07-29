@@ -75,10 +75,6 @@ internal class CustomerIOInAppMessaging(
 
         // Register the platform view factories for the Visual Notification Inbox UI components.
         platformViewRegistry.registerViewFactory(
-            InboxViewTypes.OVERLAY,
-            NotificationInboxViewFactory(binaryMessenger, InboxComponent.OVERLAY)
-        )
-        platformViewRegistry.registerViewFactory(
             InboxViewTypes.BELL,
             NotificationInboxViewFactory(binaryMessenger, InboxComponent.BELL)
         )

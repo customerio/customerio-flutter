@@ -37,10 +37,6 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
 
         // Register the platform view factories for the Visual Notification Inbox UI components.
         registrar.register(
-            NotificationInboxOverlayViewFactory(messenger: registrar.messenger()),
-            withId: "customer_io_notification_inbox_overlay_view"
-        )
-        registrar.register(
             NotificationInboxBellViewFactory(messenger: registrar.messenger()),
             withId: "customer_io_notification_inbox_bell_view"
         )

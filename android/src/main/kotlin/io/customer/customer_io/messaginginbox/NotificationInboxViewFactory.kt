@@ -12,7 +12,6 @@ import io.flutter.plugin.platform.PlatformViewFactory
  * and with the Dart widgets.
  */
 internal object InboxViewTypes {
-    const val OVERLAY = "customer_io_notification_inbox_overlay_view"
     const val BELL = "customer_io_notification_inbox_bell_view"
     const val VIEW = "customer_io_notification_inbox_view"
 }
@@ -21,14 +20,13 @@ internal object InboxViewTypes {
  * Which native inbox Compose component a platform view should host.
  */
 internal enum class InboxComponent {
-    OVERLAY,
     BELL,
     VIEW,
 }
 
 /**
- * Factory for the Visual Notification Inbox platform views. A single factory class handles all
- * three components, distinguished by [component]. Mirrors [InlineInAppMessageViewFactory].
+ * Factory for the Visual Notification Inbox platform views. A single factory class handles both
+ * components, distinguished by [component]. Mirrors [InlineInAppMessageViewFactory].
  */
 internal class NotificationInboxViewFactory(
     private val messenger: BinaryMessenger,
