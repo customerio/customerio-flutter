@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import '../customer_io_inapp.dart';
+import 'inbox_event_listener.dart';
 import 'inbox_message.dart';
 import 'method_channel.dart';
 import 'notification_inbox.dart';
@@ -45,6 +46,17 @@ abstract class CustomerIOMessagingInAppPlatform extends PlatformInterface {
       void Function(InAppEvent) onEvent) {
     throw UnimplementedError(
         'subscribeToEventsListener() has not been implemented.');
+  }
+
+  /// Registers a global [InboxEventListener] notified of Visual Notification
+  /// Inbox events, or clears it when [listener] is `null`.
+  ///
+  /// While a listener is registered the Flutter host owns inbox action
+  /// navigation (the SDK suppresses its default handling). See
+  /// [InboxEventListener] for details.
+  void setInboxEventListener(InboxEventListener? listener) {
+    throw UnimplementedError(
+        'setInboxEventListener() has not been implemented.');
   }
 
   Future<List<InboxMessage>> getMessages({String? topic}) {

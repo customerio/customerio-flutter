@@ -2,6 +2,9 @@ package io.customer.customer_io.messaginginapp
 
 import android.app.Activity
 import io.customer.customer_io.bridge.NativeModuleBridge
+import io.customer.customer_io.messaginginbox.InboxComponent
+import io.customer.customer_io.messaginginbox.InboxViewTypes
+import io.customer.customer_io.messaginginbox.NotificationInboxViewFactory
 import io.customer.customer_io.bridge.nativeMapArgs
 import io.customer.customer_io.bridge.nativeNoArgs
 import io.customer.customer_io.utils.getAs
@@ -13,6 +16,7 @@ import io.customer.messaginginapp.gist.data.model.response.InboxMessageFactory
 import io.customer.messaginginapp.inbox.NotificationInbox
 import io.customer.messaginginapp.type.InAppEventListener
 import io.customer.messaginginapp.type.InAppMessage
+import io.customer.messaginginapp.type.InboxEventListener
 import io.customer.sdk.CustomerIO
 import io.customer.sdk.CustomerIOBuilder
 import io.customer.sdk.core.di.SDKComponent
@@ -47,6 +51,14 @@ internal class CustomerIOInAppMessaging(
     private val inboxChangeListener = FlutterNotificationInboxChangeListener.instance
     private var isInboxChangeListenerSetup = false
 
+    // The forwarder THIS plugin instance installed on the SDK, or null if it has none installed.
+    // Compared by identity against [InstalledInboxForwarder.current] so teardown only clears a
+    // forwarder that is both ours and still the one the SDK holds. A plain "did I register" boolean
+    // cannot express that: the SDK keeps a single process-wide listener, so a second engine
+    // registering silently replaces the first engine's forwarder while the first engine's flag stays
+    // set — and its later detach would then wipe the live listener out from under the second engine.
+    private var myInboxForwarder: CustomerIOInboxEventListener? = null
+
     /**
      * Returns NotificationInbox instance if available, null otherwise, logging error on failure.
      * Note: Notification Inbox is only available after SDK is initialized.
@@ -66,6 +78,16 @@ internal class CustomerIOInAppMessaging(
         platformViewRegistry.registerViewFactory(
             "customer_io_inline_in_app_message_view",
             InlineInAppMessageViewFactory(binaryMessenger)
+        )
+
+        // Register the platform view factories for the Visual Notification Inbox UI components.
+        platformViewRegistry.registerViewFactory(
+            InboxViewTypes.BELL,
+            NotificationInboxViewFactory(binaryMessenger, InboxComponent.BELL)
+        )
+        platformViewRegistry.registerViewFactory(
+            InboxViewTypes.VIEW,
+            NotificationInboxViewFactory(binaryMessenger, InboxComponent.VIEW)
         )
     }
 
@@ -87,6 +109,7 @@ internal class CustomerIOInAppMessaging(
 
     override fun onDetachedFromEngine() {
         clearInboxChangeListener()
+        clearInboxEventListener()
         super.onDetachedFromEngine()
     }
 
@@ -99,12 +122,77 @@ internal class CustomerIOInAppMessaging(
             "markInboxMessageUnopened" -> call.nativeMapArgs(result, ::markInboxMessageUnopened)
             "markInboxMessageDeleted" -> call.nativeMapArgs(result, ::markInboxMessageDeleted)
             "trackInboxMessageClicked" -> call.nativeMapArgs(result, ::trackInboxMessageClicked)
+            "registerInboxEventListener" -> registerInboxEventListener(result)
+            "unregisterInboxEventListener" -> unregisterInboxEventListener(result)
             else -> super.onMethodCall(call, result)
         }
     }
 
     private fun dismissMessage() {
         inAppMessagingModule?.dismissMessage()
+    }
+
+    /**
+     * Registers the inbox event forwarder on the SDK while a Dart listener is set.
+     * Because the Flutter MethodChannel is async we cannot round-trip a Dart bool
+     * back to the SDK's calling thread, so the forwarder reports actions as
+     * host-handled (returns true) which suppresses the SDK's default navigation.
+     */
+    private fun registerInboxEventListener(result: MethodChannel.Result) {
+        val module = inAppMessagingModule ?: run {
+            result.error(
+                "INBOX_NOT_AVAILABLE",
+                "In-app messaging module is not available. Ensure CustomerIO SDK is initialized.",
+                null
+            )
+            return
+        }
+        val forwarder = CustomerIOInboxEventListener { method, args ->
+            runOnMainThread {
+                flutterCommunicationChannel.invokeMethod(method, args)
+            }
+        }
+        synchronized(InstalledInboxForwarder.lock) {
+            module.setInboxEventListener(forwarder)
+            InstalledInboxForwarder.current = forwarder
+            myInboxForwarder = forwarder
+        }
+        result.success(null)
+    }
+
+    /**
+     * Clears the Dart-backed inbox forwarder by installing a no-op listener whose
+     * [InboxEventListener.messageActionTaken] returns false, restoring the SDK's
+     * default action handling. (The native API takes a non-null listener.)
+     */
+    private fun unregisterInboxEventListener(result: MethodChannel.Result) {
+        clearInboxEventListener()
+        result.success(null)
+    }
+
+    /**
+     * Restores the SDK's default inbox action handling by installing the no-op listener.
+     *
+     * Also called on engine detach: the Dart-backed forwarder reports every action as host-handled,
+     * so leaving it installed once the engine is gone would suppress the SDK's own navigation with
+     * nothing on the Flutter side left to replace it.
+     *
+     * Clears only when this instance's forwarder is the one the SDK currently holds, which keeps two
+     * cases from stepping on a working listener: an engine that never registered cannot restore
+     * default handling for an engine that did, and an engine whose forwarder was already superseded
+     * cannot uninstall its replacement on the way out.
+     */
+    private fun clearInboxEventListener() {
+        synchronized(InstalledInboxForwarder.lock) {
+            val mine = myInboxForwarder ?: return
+            myInboxForwarder = null
+            // Superseded by another engine's forwarder: that engine still owns action handling.
+            if (InstalledInboxForwarder.current !== mine) {
+                return
+            }
+            inAppMessagingModule?.setInboxEventListener(NoOpInboxEventListener)
+            InstalledInboxForwarder.current = null
+        }
     }
 
     /**
@@ -306,4 +394,68 @@ class CustomerIOInAppEventListener(private val invokeMethod: (String, Any?) -> U
             )
         )
     }
+}
+
+/**
+ * Forwards Visual Notification Inbox events to Flutter. Registered on the SDK only while a Dart
+ * listener is set. `messageActionTaken` forwards fire-and-forget and returns true (host-handled) so
+ * the SDK suppresses its default navigation while the Flutter host owns action handling.
+ * Uses distinct method names so they don't collide with the in-app callbacks on the shared channel.
+ */
+class CustomerIOInboxEventListener(private val invokeMethod: (String, Any?) -> Unit) :
+    InboxEventListener {
+    override fun messageActionTaken(
+        message: InboxMessage, actionName: String, actionValue: String
+    ): Boolean {
+        invokeMethod(
+            "inboxMessageActionTaken", mapOf(
+                "message" to message.toMap(),
+                "actionName" to actionName,
+                "actionValue" to actionValue
+            )
+        )
+        // Host (Flutter) owns action handling while a listener is registered.
+        return true
+    }
+
+    override fun messageShown(message: InboxMessage) {
+        invokeMethod("inboxMessageShown", mapOf("message" to message.toMap()))
+    }
+
+    override fun messageOpened(message: InboxMessage) {
+        invokeMethod("inboxMessageOpened", mapOf("message" to message.toMap()))
+    }
+
+    override fun messageDismissed(message: InboxMessage) {
+        invokeMethod("inboxMessageDismissed", mapOf("message" to message.toMap()))
+    }
+}
+
+/**
+ * Process-wide record of the inbox forwarder currently installed on the SDK, or null when the SDK
+ * has its own default action handling.
+ *
+ * Deliberately file-scoped rather than per-plugin-instance state: `ModuleMessagingInApp` holds one
+ * listener for the whole process, so ownership of that single slot has to be tracked somewhere every
+ * Flutter engine can see. The SDK exposes only a setter — there is no way to ask it which listener
+ * is installed — so the wrapper keeps the record itself.
+ *
+ * [lock] guards both the record and the SDK setter call, since engines can register from different
+ * threads. [current] holds the forwarder strongly, and the forwarder in turn captures the plugin
+ * instance that created it — but that is the retention the SDK already creates by holding the
+ * listener itself, and engine detach clears this record, so it adds no lifetime of its own.
+ */
+private object InstalledInboxForwarder {
+    val lock = Any()
+    var current: CustomerIOInboxEventListener? = null
+}
+
+/**
+ * No-op inbox listener used to clear the Dart forwarder. Returning false from
+ * [messageActionTaken] restores the SDK's default action handling.
+ */
+private object NoOpInboxEventListener : InboxEventListener {
+    override fun messageActionTaken(
+        message: InboxMessage, actionName: String, actionValue: String
+    ): Boolean = false
 }

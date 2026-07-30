@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../customer_io_inapp.dart';
 import '../extensions/method_channel_extensions.dart';
 import '_native_constants.dart';
+import 'inbox_event_listener.dart';
 import 'inbox_message.dart';
 import 'platform_interface.dart';
 
@@ -19,6 +20,12 @@ class CustomerIOMessagingInAppMethodChannel
   final _inAppEventStreamController = StreamController<InAppEvent>.broadcast();
   final _inboxMessagesStreamController =
       StreamController<List<InboxMessage>>.broadcast();
+  final _inboxEventStreamController =
+      StreamController<_InboxEvent>.broadcast();
+
+  /// Active subscription that dispatches inbox events to the registered
+  /// [InboxEventListener]. Null when no listener is registered.
+  StreamSubscription<_InboxEvent>? _inboxEventSubscription;
 
   @override
   void dismissMessage() {
@@ -35,6 +42,79 @@ class CustomerIOMessagingInAppMethodChannel
     StreamSubscription subscription =
         _inAppEventStreamController.stream.listen(onEvent);
     return subscription;
+  }
+
+  /// Registers (or clears) the global inbox event listener.
+  ///
+  /// Passing a non-null [listener] wires a subscription that dispatches inbox
+  /// events to it and tells the native SDK to start forwarding events (the
+  /// native forwarder reports actions as host-handled, so the SDK suppresses
+  /// its default navigation while a listener is registered). Passing `null`
+  /// cancels the subscription and tells the native SDK to restore its default
+  /// behavior.
+  @override
+  void setInboxEventListener(InboxEventListener? listener) {
+    // Always tear down any existing subscription first.
+    _inboxEventSubscription?.cancel();
+    _inboxEventSubscription = null;
+
+    if (listener == null) {
+      // Raw channel for the same reason as registration below: `invokeNativeMethodVoid` swallows
+      // PlatformException, so success and failure are indistinguishable. The Dart subscription is
+      // already gone by this point, so a failed unregister leaves the native forwarder installed —
+      // still reporting every action as host-handled — with nothing on the Dart side left to act on
+      // it. There is nothing to roll back (the caller asked for no listener), so log it instead of
+      // letting the desync pass silently.
+      methodChannel
+          .invokeMethod<void>(NativeMethods.unregisterInboxEventListener)
+          .catchError((Object error) {
+        if (kDebugMode) {
+          print('Failed to unregister inbox event listener natively: $error');
+        }
+      });
+      return;
+    }
+
+    final subscription = _inboxEventStreamController.stream.listen((event) {
+      switch (event.type) {
+        case _InboxEventType.messageActionTaken:
+          listener.messageActionTaken(
+              event.message, event.actionName ?? '', event.actionValue ?? '');
+          break;
+        case _InboxEventType.messageShown:
+          listener.messageShown(event.message);
+          break;
+        case _InboxEventType.messageOpened:
+          listener.messageOpened(event.message);
+          break;
+        case _InboxEventType.messageDismissed:
+          listener.messageDismissed(event.message);
+          break;
+      }
+    });
+    _inboxEventSubscription = subscription;
+
+    // Registered through the raw channel rather than `invokeNativeMethodVoid`, which swallows
+    // PlatformException and returns null for both success and failure — indistinguishable. A failed
+    // registration would otherwise leave the Dart subscription above attached while native never
+    // installed the forwarder, so the app believes a listener is live and inbox callbacks never
+    // arrive. On failure the Dart side is undone so the two stay in agreement.
+    methodChannel
+        .invokeMethod<void>(NativeMethods.registerInboxEventListener)
+        .catchError((Object error) {
+      if (kDebugMode) {
+        print('Failed to register inbox event listener natively: $error');
+      }
+      // Undo only this attempt. Registration fails while the SDK is not yet initialized, so an early
+      // call can still be in flight when a later one succeeds — and clearing the field blindly would
+      // cancel the newer, live subscription, leaving the native forwarder installed with nothing in
+      // Dart to receive from it. Our own subscription was already cancelled by that later call.
+      if (!identical(_inboxEventSubscription, subscription)) {
+        return;
+      }
+      subscription.cancel();
+      _inboxEventSubscription = null;
+    });
   }
 
   // Inbox methods
@@ -146,6 +226,65 @@ class CustomerIOMessagingInAppMethodChannel
             [];
         _inboxMessagesStreamController.add(messagesList);
         break;
+      case NativeMethods.inboxMessageActionTaken:
+        _inboxEventStreamController.add(_InboxEvent(
+          type: _InboxEventType.messageActionTaken,
+          message: _inboxMessageFromArgs(arguments),
+          actionName: arguments[NativeMethodParams.actionName] as String?,
+          actionValue: arguments['actionValue'] as String?,
+        ));
+        break;
+      case NativeMethods.inboxMessageShown:
+        _inboxEventStreamController.add(_InboxEvent(
+          type: _InboxEventType.messageShown,
+          message: _inboxMessageFromArgs(arguments),
+        ));
+        break;
+      case NativeMethods.inboxMessageOpened:
+        _inboxEventStreamController.add(_InboxEvent(
+          type: _InboxEventType.messageOpened,
+          message: _inboxMessageFromArgs(arguments),
+        ));
+        break;
+      case NativeMethods.inboxMessageDismissed:
+        _inboxEventStreamController.add(_InboxEvent(
+          type: _InboxEventType.messageDismissed,
+          message: _inboxMessageFromArgs(arguments),
+        ));
+        break;
     }
   }
+
+  /// Parses the `message` map that native sends alongside inbox events into an
+  /// [InboxMessage], using the same serialization shape as `inboxMessagesChanged`.
+  InboxMessage _inboxMessageFromArgs(Map<String, dynamic> arguments) {
+    final messageMap = (arguments[NativeMethodParams.message]
+            as Map<Object?, Object?>)
+        .cast<String, dynamic>();
+    return InboxMessage.fromMap(messageMap);
+  }
+}
+
+/// Type of inbox event forwarded from native.
+enum _InboxEventType {
+  messageActionTaken,
+  messageShown,
+  messageOpened,
+  messageDismissed,
+}
+
+/// Internal carrier for an inbox event flowing through the broadcast stream to
+/// the registered [InboxEventListener].
+class _InboxEvent {
+  final _InboxEventType type;
+  final InboxMessage message;
+  final String? actionName;
+  final String? actionValue;
+
+  _InboxEvent({
+    required this.type,
+    required this.message,
+    this.actionName,
+    this.actionValue,
+  });
 }

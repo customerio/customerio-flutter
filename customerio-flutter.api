@@ -97,6 +97,7 @@ public final class CustomerIOMessagingInAppPlatform {
 	public fun markInboxMessageOpened(required InboxMessage message);
 	public fun markInboxMessageUnopened(required InboxMessage message);
 	public fun messages(String? topic): Stream<List<InboxMessage>>;
+	public fun setInboxEventListener(InboxEventListener? listener);
 	public fun subscribeToEventsListener(void Function(InAppEvent) onEvent): StreamSubscription<dynamic>;
 	public fun trackInboxMessageClicked(
 		required InboxMessage message,
@@ -209,6 +210,18 @@ public final class InAppMessage {
 	public val messageId: String;
 }
 
+public final class InboxEventListener {
+	public fun new(): InboxEventListener;
+	public fun messageActionTaken(
+		InboxMessage message,
+		String actionName,
+		String actionValue
+	);
+	public fun messageDismissed(InboxMessage message);
+	public fun messageOpened(InboxMessage message);
+	public fun messageShown(InboxMessage message);
+}
+
 public final class InboxMessage {
 	public fun fromMap(Map<String, dynamic> map): InboxMessage;
 	public fun new(
@@ -277,6 +290,18 @@ public final class NotificationInbox {
 		InboxMessage message,
 		String? actionName
 	);
+}
+
+public final class NotificationInboxBell {
+	public fun new(
+		Key? key,
+		void Function()? onTap
+	): NotificationInboxBell;
+	public val onTap: void Function()?;
+}
+
+public final class NotificationInboxView {
+	public fun new(Key? key): NotificationInboxView;
 }
 
 public final class PushClickBehaviorAndroid {
