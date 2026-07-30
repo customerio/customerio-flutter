@@ -74,6 +74,13 @@ class CustomerIOSDK extends ChangeNotifier {
           screenViewUse: _sdkConfig?.screenViewUse,
           inAppConfig: inAppConfig,
           locationConfig: LocationConfig(),
+          liveNotificationsConfig: LiveActivitiesConfig(
+            types: [
+              LiveActivityTemplate.segments,
+              LiveActivityTemplate.countdownTimer,
+            ],
+            customType: 'io.customer.livenotifications.custom.rideshare',
+          ),
         ),
       );
     } catch (ex) {

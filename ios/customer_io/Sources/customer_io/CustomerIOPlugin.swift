@@ -14,6 +14,7 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
     private var locationChannelHandler: CustomerIOLocation!
     #endif
     private var messagingPushChannelHandler: CustomerIOMessagingPush!
+    private var liveActivitiesChannelHandler: CustomerIOLiveActivities!
 
     private let logger: CioInternalCommon.Logger = DIGraphShared.shared.logger
 
@@ -28,6 +29,7 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
         instance.locationChannelHandler = CustomerIOLocation(with: registrar)
         #endif
         instance.messagingPushChannelHandler = CustomerIOMessagingPush(with: registrar)
+        instance.liveActivitiesChannelHandler = CustomerIOLiveActivities(with: registrar)
     }
 
     deinit {
@@ -180,6 +182,15 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
                     mode = .manual
                 }
                 _ = sdkConfigBuilder.addModule(LocationModule(config: LocationConfig(mode: mode)))
+            }
+            #endif
+
+            #if canImport(CioLiveActivities)
+            // Register Live Activities from the `liveNotifications` config (iOS 16.2+). Adding it
+            // to the config builder — rather than initializing after the fact — is what enables
+            // push-to-start, since token registration happens during SDK init.
+            if let liveActivitiesModule = CustomerIOLiveActivities.module(from: params) {
+                _ = sdkConfigBuilder.addModule(liveActivitiesModule)
             }
             #endif
 

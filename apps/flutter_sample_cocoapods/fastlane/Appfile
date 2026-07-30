@@ -3,6 +3,10 @@ team_id "2YC97BQN3N"
 app_identifier([
   "io.customer.testbed.flutter.cocoapods",
   "io.customer.testbed.flutter.cocoapods.notification-service",
+  # CI builds this app with `flutter build ios --no-codesign`, so this identifier is not needed for
+  # CI to pass. It is here for the same reason the notification-service one is: running the sample
+  # on a device needs a development profile for every embedded extension.
+  "io.customer.testbed.flutter.cocoapods.LiveActivityWidget",
 ])
 
 package_name("io.customer.testbed.flutter.cocoapods")
