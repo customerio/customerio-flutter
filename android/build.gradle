@@ -30,6 +30,9 @@ apply plugin: 'kotlin-android'
 apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 
 def cioLocationEnabled = rootProject.findProperty("customerio_location_enabled")?.toBoolean() ?: false
+def cioGeofenceEnabled = rootProject.findProperty("customerio_geofence_enabled")?.toBoolean() ?: false
+// Geofence depends on the location module, so location is linked/enabled whenever either is on.
+def cioLocationLinked = cioLocationEnabled || cioGeofenceEnabled
 
 android {
     namespace 'io.customer.customer_io'
@@ -57,7 +60,8 @@ android {
 
     defaultConfig {
         minSdkVersion 21
-        buildConfigField "boolean", "CIO_LOCATION_ENABLED", "$cioLocationEnabled"
+        buildConfigField "boolean", "CIO_LOCATION_ENABLED", "$cioLocationLinked"
+        buildConfigField "boolean", "CIO_GEOFENCE_ENABLED", "$cioGeofenceEnabled"
         consumerProguardFiles 'consumer-rules.pro'
     }
 
@@ -91,11 +95,19 @@ dependencies {
     implementation "androidx.compose.runtime:runtime"
     implementation "androidx.activity:activity-compose:1.9.3"
     // Location module is optional - customers enable it by adding
-    // customerio_location_enabled=true in their gradle.properties
-    if (cioLocationEnabled) {
+    // customerio_location_enabled=true in their gradle.properties.
+    // Geofence implies Location: enabling geofence pulls in location too.
+    if (cioLocationLinked) {
         implementation "io.customer.android:location:$cioVersion"
     } else {
         compileOnly "io.customer.android:location:$cioVersion"
+    }
+    // Geofence module is optional - customers enable it by adding
+    // customerio_geofence_enabled=true in their gradle.properties
+    if (cioGeofenceEnabled) {
+        implementation "io.customer.android:geofence:$cioVersion"
+    } else {
+        compileOnly "io.customer.android:geofence:$cioVersion"
     }
     
     testImplementation 'junit:junit:4.13.2'

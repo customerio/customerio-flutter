@@ -111,6 +111,8 @@ void main() {
         'inApp': inAppConfig.toMap(),
         'push': pushConfig.toMap(),
         'location': null,
+        'geofence': null,
+        'ios': null,
         'liveNotifications': null,
         'version': config.version,
         'source': config.source,

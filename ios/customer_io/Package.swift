@@ -5,16 +5,21 @@ import Foundation
 
 // MARK: - Optional Module Configuration
 //
-// The Location and Live Activities modules are optional and excluded by default.
+// The Location, Geofence and Live Activities modules are optional and excluded by default.
 // To enable one, use ONE of these approaches (checked in this order):
 //
 // 1. Set in your Flutter app's android/gradle.properties (recommended, works for both platforms):
 //      customerio_location_enabled=true
+//      customerio_geofence_enabled=true
 //      customerio_live_activities_enabled=true
 //
 // 2. Set an environment variable (required for Flutter add-to-app modules or custom project structures):
 //      CIO_LOCATION=true flutter build ios
+//      CIO_GEOFENCE=true flutter build ios
 //      CIO_LIVE_ACTIVITIES=true flutter build ios
+//
+// Geofence implies Location: enabling geofence also pulls in the Location
+// module, since geofence reacts to location fixes published by it.
 //
 
 /// Reads a value for the given key from a Java-style .properties file.
@@ -76,10 +81,18 @@ func isModuleEnabled(propertyKey: String, envKey: String) -> Bool {
     return env[envKey]?.lowercased() == "true"
 }
 
+/// Whether the Geofence module should be included (opt-in).
+let useGeofence = isModuleEnabled(
+    propertyKey: "customerio_geofence_enabled",
+    envKey: "CIO_GEOFENCE"
+)
+
+/// Whether the Location module should be included. Opt-in, and also implied by
+/// geofence, which depends on it.
 let useLocation = isModuleEnabled(
     propertyKey: "customerio_location_enabled",
     envKey: "CIO_LOCATION"
-)
+) || useGeofence
 
 let useLiveActivities = isModuleEnabled(
     propertyKey: "customerio_live_activities_enabled",
@@ -97,6 +110,10 @@ var targetDependencies: [Target.Dependency] = [
 
 if useLocation {
     targetDependencies.append(.product(name: "Location", package: "customerio-ios"))
+}
+
+if useGeofence {
+    targetDependencies.append(.product(name: "LocationGeofence", package: "customerio-ios"))
 }
 
 // Live Activities (iOS) native rendering + built-in templates. Opt-in: the Templates product ships

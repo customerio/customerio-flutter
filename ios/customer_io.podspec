@@ -49,6 +49,12 @@ Pod::Spec.new do |s|
     ss.dependency "CustomerIO/Location", native_sdk_version
   end
 
+  # Geofence module is optional - customers must opt in by adding this subspec.
+  # It pulls in Location transitively (CustomerIO/LocationGeofence depends on it).
+  s.subspec 'geofence' do |ss|
+    ss.dependency "CustomerIO/LocationGeofence", native_sdk_version
+  end
+
   # Live Activities are optional - customers must opt in by adding this subspec. Kept out of the
   # parent spec on purpose: the Templates pod ships SwiftUI widget UI, which is dead weight for the
   # majority of apps that never run a Live Activity. The plugin's Swift is guarded by

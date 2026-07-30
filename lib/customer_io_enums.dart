@@ -83,3 +83,18 @@ enum LocationTrackingMode {
 
   final String rawValue;
 }
+
+/// How the geofence module acquires the device location it needs for
+/// geofencing. Location acquired for geofencing is never sent to analytics.
+enum GeofenceLocationMode {
+  /// SDK acquires a fix itself when geofencing needs one and none is available
+  /// (default).
+  automatic(rawValue: 'AUTOMATIC'),
+
+  /// Host drives it via `CustomerIO.geofence.refreshFromCurrentLocation()`.
+  manual(rawValue: 'MANUAL');
+
+  const GeofenceLocationMode({required this.rawValue});
+
+  final String rawValue;
+}
