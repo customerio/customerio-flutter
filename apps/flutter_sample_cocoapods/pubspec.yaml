@@ -50,9 +50,6 @@ dependencies:
   dotenv: ^4.2.0
   path: ^1.9.0
   quick_actions_ios: ^1.2.4
-  # Needed here as well as in flutter_sample_spm: lib/src is a symlink to that app's sources, so the
-  # shared inbox screen is analyzed and built as part of this package too.
-  url_launcher: ^6.3.0
 
 dev_dependencies:
   flutter_test:

@@ -1,10 +1,7 @@
 import 'dart:developer';
 
-import 'package:customer_io/customer_io.dart';
 import 'package:customer_io/customer_io_widgets.dart';
-import 'package:customer_io/messaging_in_app.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../components/container.dart';
 
@@ -13,8 +10,16 @@ import '../components/container.dart';
 ///   1. NotificationInboxBell — the branded bell; tapping it opens the SDK's own panel
 ///   2. NotificationInboxView — the Jist-rendered message list
 ///
-/// Message actions are handled by the global InboxEventListener (bridged
-/// separately); these widgets only render UI.
+/// This screen deliberately does NOT register an `InboxEventListener`. Doing so transfers inbox
+/// action navigation to the host: the MethodChannel is async, so the native bridge cannot round-trip
+/// a bool back to the SDK's calling thread and instead reports every action as host-handled, which
+/// suppresses the SDK's own url and deeplink handling. Left unregistered, tapping a message action
+/// exercises the SDK's built-in navigation — which is what most integrators want and what this
+/// screen is here to show.
+///
+/// Apps that do want to own navigation should register a listener and act on `actionValue` in
+/// `messageActionTaken`; see the docs on `InboxEventListener`. The bridge itself is covered by
+/// `test/messaging_in_app/inbox_event_listener_test.dart`.
 class InboxUiScreen extends StatefulWidget {
   const InboxUiScreen({super.key});
 
@@ -26,73 +31,17 @@ class _InboxUiScreenState extends State<InboxUiScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  /// Last inbox event surfaced by the global [InboxEventListener], shown on-screen.
-  String _lastInboxEvent = 'No inbox events yet';
-
-  /// Last observational bell tap. Kept separate from [_lastInboxEvent]: the listener's
-  /// `shown` events fire as soon as the panel renders and would otherwise overwrite it.
+  /// Last observational bell tap, shown on-screen.
   String _lastBellTap = 'No bell taps yet';
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-
-    // Register a global inbox event listener. While registered, the Flutter host
-    // owns inbox action navigation (the SDK suppresses its default handling).
-    CustomerIO.inAppMessaging.setInboxEventListener(
-      _DemoInboxEventListener(
-        onEvent: (summary) {
-          log('[InboxEventListener] $summary');
-          if (mounted) {
-            setState(() => _lastInboxEvent = summary);
-          }
-        },
-        onAction: _openInboxAction,
-      ),
-    );
-  }
-
-  /// Navigates for a tapped inbox action.
-  ///
-  /// Registering a listener makes this app the owner of inbox action navigation — the native
-  /// forwarder reports every action as host-handled, so the SDK opens nothing and a listener that
-  /// only logs would make inbox taps look broken. Hand the value to the OS the way the SDK would:
-  /// this app's own `flutter-spm` scheme round-trips back through its deep-link handling, anything
-  /// else opens externally.
-  Future<void> _openInboxAction(String actionValue) async {
-    if (actionValue.isEmpty) {
-      return;
-    }
-
-    final uri = Uri.tryParse(actionValue);
-    if (uri == null) {
-      log('[InboxEventListener] unparseable action value: $actionValue');
-      if (mounted) {
-        setState(() => _lastInboxEvent = 'could not parse $actionValue');
-      }
-      return;
-    }
-
-    // Deliberately no `canLaunchUrl` precheck: on iOS it reports false for any scheme missing from
-    // LSApplicationQueriesSchemes even when launching would succeed, so it would refuse valid links.
-    try {
-      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-      if (!launched && mounted) {
-        setState(() => _lastInboxEvent = 'could not open $actionValue');
-      }
-    } catch (error) {
-      log('[InboxEventListener] failed to open $actionValue: $error');
-      if (mounted) {
-        setState(() => _lastInboxEvent = 'could not open $actionValue');
-      }
-    }
   }
 
   @override
   void dispose() {
-    // Clear the listener so the SDK restores its default action handling.
-    CustomerIO.inAppMessaging.setInboxEventListener(null);
     _tabController.dispose();
     super.dispose();
   }
@@ -135,7 +84,8 @@ class _InboxUiScreenState extends State<InboxUiScreen>
             padding: EdgeInsets.all(24),
             child: Text(
               'Tapping the bell opens the inbox panel the SDK owns. Remote branding '
-              'styles the bell; this screen decides where it sits.',
+              'styles the bell; this screen decides where it sits. Message actions are '
+              'navigated by the SDK, because no InboxEventListener is registered here.',
               textAlign: TextAlign.center,
             ),
           ),
@@ -155,17 +105,9 @@ class _InboxUiScreenState extends State<InboxUiScreen>
           ),
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Text(
-                  'last bell tap: $_lastBellTap',
-                  style: const TextStyle(fontSize: 12),
-                ),
-                Text(
-                  'last inbox event: $_lastInboxEvent',
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ],
+            child: Text(
+              'last bell tap: $_lastBellTap',
+              style: const TextStyle(fontSize: 12),
             ),
           ),
         ],
@@ -176,40 +118,5 @@ class _InboxUiScreenState extends State<InboxUiScreen>
   // 2. The Jist-rendered message list, embedded directly.
   Widget _buildListTab() {
     return const NotificationInboxView();
-  }
-}
-
-/// Demo [InboxEventListener] that reports each callback as a short summary
-/// string. Because a listener is registered, the host owns inbox action navigation — the SDK does
-/// not open urls itself — so [onAction] carries the tapped action's value out to be navigated.
-class _DemoInboxEventListener implements InboxEventListener {
-  _DemoInboxEventListener({required this.onEvent, required this.onAction});
-
-  final void Function(String summary) onEvent;
-
-  /// Called with the action's resolved value (typically its url) so the host can navigate.
-  final void Function(String actionValue) onAction;
-
-  @override
-  void messageActionTaken(
-      InboxMessage message, String actionName, String actionValue) {
-    onEvent(
-        'actionTaken queueId=${message.queueId} action=$actionName value=$actionValue');
-    onAction(actionValue);
-  }
-
-  @override
-  void messageShown(InboxMessage message) {
-    onEvent('shown queueId=${message.queueId}');
-  }
-
-  @override
-  void messageOpened(InboxMessage message) {
-    onEvent('opened queueId=${message.queueId}');
-  }
-
-  @override
-  void messageDismissed(InboxMessage message) {
-    onEvent('dismissed queueId=${message.queueId}');
   }
 }
