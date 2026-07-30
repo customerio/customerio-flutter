@@ -14,13 +14,17 @@
 		302D7E34295BEE78005CBB29 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 302D7E33295BEE78005CBB29 /* NotificationService.swift */; };
 		302D7E38295BEE78005CBB29 /* NotificationServiceExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 302D7E31295BEE78005CBB29 /* NotificationServiceExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
+		5AE1C3437204E2D906BF49A6 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DC59BBB23D6A532BD30539D /* Foundation.framework */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
-		A7F5CCB42F87000000000001 /* PermissionChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F5CCB52F87000000000001 /* PermissionChannelHandler.swift */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		A6B668154ECC2EF165DCC2E3 /* RideshareLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91C513D11E43CFE11285240E /* RideshareLiveActivity.swift */; };
 		A7F5CCB32F85A5EE00654DD4 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = A7F5CCB22F85A5EE00654DD4 /* FlutterGeneratedPluginSwiftPackage */; };
+		A7F5CCB42F87000000000001 /* PermissionChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F5CCB52F87000000000001 /* PermissionChannelHandler.swift */; };
+		DAAC844099026EF69C0A2F66 /* LiveActivityWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D135D93A5C195F10CDB42963 /* LiveActivityWidget.appex */; };
+		F4B0C28DAFBE7E24C89AE3B0 /* LiveActivityWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C1798AA60F5079C5C86451C /* LiveActivityWidgetBundle.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -30,6 +34,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 302D7E30295BEE78005CBB29;
 			remoteInfo = NotificationServiceExtension;
+		};
+		C16F2D5B76DBB5642F3614A0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0DC4DBB0DDE07D562465E823;
+			remoteInfo = LiveActivityWidget;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -41,6 +52,7 @@
 			dstSubfolderSpec = 13;
 			files = (
 				302D7E38295BEE78005CBB29 /* NotificationServiceExtension.appex in Embed Foundation Extensions */,
+				DAAC844099026EF69C0A2F66 /* LiveActivityWidget.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -60,6 +72,7 @@
 /* Begin PBXFileReference section */
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
+		1DC59BBB23D6A532BD30539D /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		3006373329A1011F00D63963 /* Env.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Env.swift; sourceTree = "<group>"; };
 		30095F29295BC58F00D3389F /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		302D7E31295BEE78005CBB29 /* NotificationServiceExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -70,9 +83,11 @@
 		681FB9752F7CD18800BFFB0F /* NotificationServiceExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NotificationServiceExtension.entitlements; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		A7F5CCB52F87000000000001 /* PermissionChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionChannelHandler.swift; sourceTree = "<group>"; };
 		78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = FlutterGeneratedPluginSwiftPackage; path = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage; sourceTree = "<group>"; };
+		79D24AE6E2C71E6994B72F5E /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
+		8C1798AA60F5079C5C86451C /* LiveActivityWidgetBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveActivityWidgetBundle.swift; sourceTree = "<group>"; };
+		91C513D11E43CFE11285240E /* RideshareLiveActivity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RideshareLiveActivity.swift; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
 		97C146EE1CF9000F007C117D /* Runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Runner.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -80,9 +95,19 @@
 		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A7F5CCB52F87000000000001 /* PermissionChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionChannelHandler.swift; sourceTree = "<group>"; };
+		D135D93A5C195F10CDB42963 /* LiveActivityWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LiveActivityWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		15E2BD3AF5951A3751A4C567 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5AE1C3437204E2D906BF49A6 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		302D7E2E295BEE78005CBB29 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -112,6 +137,22 @@
 			path = NotificationServiceExtension;
 			sourceTree = "<group>";
 		};
+		3EDA66FB63AE1086BA54230E /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				1DC59BBB23D6A532BD30539D /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		6490A60C67521ECCD00141B9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3EDA66FB63AE1086BA54230E /* iOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		9740EEB11CF90186004384FC /* Flutter */ = {
 			isa = PBXGroup;
 			children = (
@@ -133,6 +174,8 @@
 				302D7E32295BEE78005CBB29 /* NotificationServiceExtension */,
 				97C146EF1CF9000F007C117D /* Products */,
 				6615E32455EADFC1FBDD78CC /* GoogleService-Info.plist */,
+				6490A60C67521ECCD00141B9 /* Frameworks */,
+				C6644C0853063B795A2C668A /* LiveActivityWidget */,
 			);
 			sourceTree = "<group>";
 		};
@@ -141,6 +184,7 @@
 			children = (
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				302D7E31295BEE78005CBB29 /* NotificationServiceExtension.appex */,
+				D135D93A5C195F10CDB42963 /* LiveActivityWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -162,9 +206,41 @@
 			path = Runner;
 			sourceTree = "<group>";
 		};
+		C6644C0853063B795A2C668A /* LiveActivityWidget */ = {
+			isa = PBXGroup;
+			children = (
+				8C1798AA60F5079C5C86451C /* LiveActivityWidgetBundle.swift */,
+				91C513D11E43CFE11285240E /* RideshareLiveActivity.swift */,
+				79D24AE6E2C71E6994B72F5E /* Info.plist */,
+			);
+			name = LiveActivityWidget;
+			path = LiveActivityWidget;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		0DC4DBB0DDE07D562465E823 /* LiveActivityWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EA94B0C8F58A0B4C9311943E /* Build configuration list for PBXNativeTarget "LiveActivityWidget" */;
+			buildPhases = (
+				6D2E61BBC115EDD5F117302A /* Sources */,
+				15E2BD3AF5951A3751A4C567 /* Frameworks */,
+				7E051D1053F0A45C52874546 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LiveActivityWidget;
+			packageProductDependencies = (
+				A9A0791B2FB8CCF3498BCB38 /* LiveActivities_Attributes */,
+				8AF62B69DD27659F4B6736FA /* LiveActivities_Templates */,
+			);
+			productName = LiveActivityWidget;
+			productReference = D135D93A5C195F10CDB42963 /* LiveActivityWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		302D7E30295BEE78005CBB29 /* NotificationServiceExtension */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 302D7E39295BEE78005CBB29 /* Build configuration list for PBXNativeTarget "NotificationServiceExtension" */;
@@ -201,6 +277,7 @@
 			);
 			dependencies = (
 				302D7E37295BEE78005CBB29 /* PBXTargetDependency */,
+				26F2E6E07430CB1CCB579E2D /* PBXTargetDependency */,
 			);
 			name = Runner;
 			packageProductDependencies = (
@@ -240,7 +317,8 @@
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
 			packageReferences = (
-				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */,
+				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */,
+				1BE99B10B93B3864502FF8B1 /* XCRemoteSwiftPackageReference "customerio-ios" */,
 			);
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
 			projectDirPath = "";
@@ -248,12 +326,20 @@
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
 				302D7E30295BEE78005CBB29 /* NotificationServiceExtension */,
+				0DC4DBB0DDE07D562465E823 /* LiveActivityWidget */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		302D7E2F295BEE78005CBB29 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7E051D1053F0A45C52874546 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -318,6 +404,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6D2E61BBC115EDD5F117302A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F4B0C28DAFBE7E24C89AE3B0 /* LiveActivityWidgetBundle.swift in Sources */,
+				A6B668154ECC2EF165DCC2E3 /* RideshareLiveActivity.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		97C146EA1CF9000F007C117D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -332,6 +427,12 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		26F2E6E07430CB1CCB579E2D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = LiveActivityWidget;
+			target = 0DC4DBB0DDE07D562465E823 /* LiveActivityWidget */;
+			targetProxy = C16F2D5B76DBB5642F3614A0 /* PBXContainerItemProxy */;
+		};
 		302D7E37295BEE78005CBB29 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 302D7E30295BEE78005CBB29 /* NotificationServiceExtension */;
@@ -438,6 +539,31 @@
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Profile;
+		};
+		272C8EE873213FBBD7CF6B67 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 2YC97BQN3N;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LiveActivityWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.customer.testbed.flutter.spm.LiveActivityWidget;
+				PRODUCT_NAME = LiveActivityWidget;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development io.customer.testbed.flutter.spm.LiveActivityWidget";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
 		};
 		302D7E3A295BEE78005CBB29 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -553,6 +679,52 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Profile;
+		};
+		483EA41652014A26827F1E68 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 2YC97BQN3N;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LiveActivityWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.customer.testbed.flutter.spm.LiveActivityWidget;
+				PRODUCT_NAME = LiveActivityWidget;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development io.customer.testbed.flutter.spm.LiveActivityWidget";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		8F752491209B08F831CA9E83 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LiveActivityWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.customer.testbed.flutter.spm.LiveActivityWidget;
+				PRODUCT_NAME = LiveActivityWidget;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Profile;
 		};
@@ -758,23 +930,54 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		EA94B0C8F58A0B4C9311943E /* Build configuration list for PBXNativeTarget "LiveActivityWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				272C8EE873213FBBD7CF6B67 /* Release */,
+				483EA41652014A26827F1E68 /* Debug */,
+				8F752491209B08F831CA9E83 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */ = {
+		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage;
 		};
 /* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		1BE99B10B93B3864502FF8B1 /* XCRemoteSwiftPackageReference "customerio-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/customerio/customerio-ios.git";
+			requirement = {
+				branch = "feat/live-activities";
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FlutterGeneratedPluginSwiftPackage;
 		};
+		8AF62B69DD27659F4B6736FA /* LiveActivities_Templates */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1BE99B10B93B3864502FF8B1 /* XCRemoteSwiftPackageReference "customerio-ios" */;
+			productName = LiveActivities_Templates;
+		};
 		A7F5CCB22F85A5EE00654DD4 /* FlutterGeneratedPluginSwiftPackage */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FlutterGeneratedPluginSwiftPackage;
+		};
+		A9A0791B2FB8CCF3498BCB38 /* LiveActivities_Attributes */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1BE99B10B93B3864502FF8B1 /* XCRemoteSwiftPackageReference "customerio-ios" */;
+			productName = LiveActivities_Attributes;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

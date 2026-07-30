@@ -3,6 +3,10 @@ team_id "2YC97BQN3N"
 app_identifier([
   "io.customer.testbed.flutter.spm",
   "io.customer.testbed.flutter.spm.notification-service",
+  # Required, for the same reason the notification-service one is: this app is the primary sample, so
+  # CI builds it signed via the `ios build` lane. Every embedded extension needs its own profile, or
+  # the widget is signed with a different certificate than the host app and the build fails.
+  "io.customer.testbed.flutter.spm.LiveActivityWidget",
 ])
 
 package_name("io.customer.testbed.flutter.spm")
