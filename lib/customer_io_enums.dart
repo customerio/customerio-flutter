@@ -41,6 +41,33 @@ enum PushClickBehaviorAndroid {
 /// inApp - to only display in-app messages and not send screen events to destinations.
 enum ScreenView { all, inApp }
 
+/// Built-in Live Activity (iOS) / Live Notification (Android) templates.
+///
+/// The raw values are the reverse-DNS identifiers Customer.io uses everywhere —
+/// the `notificationType` on the wire, Android's `LiveNotificationType`, and
+/// iOS's `CIOSegmentsAttributes.identifier` — so Dart, both native SDKs, and the
+/// backend share one vocabulary. They are also the `type` inside
+/// [LiveActivityPayload] maps.
+enum LiveActivityTemplate {
+  /// Segmented progress template (header, status, substatus, segment counts).
+  segments(rawValue: 'io.customer.livenotifications.segments'),
+
+  /// Countdown timer template (header, title, status message, end time).
+  countdownTimer(rawValue: 'io.customer.livenotifications.countdowntimer'),
+
+  /// Your own activity type, rendered by SwiftUI you write (iOS) and your
+  /// `createLiveNotification` callback (Android).
+  ///
+  /// Unlike the members above this raw value is a marker, not an identifier — the
+  /// activity is named by `LiveActivitiesConfig.customType` and reported under that
+  /// name. It belongs in a payload's type, never in `LiveActivitiesConfig.types`.
+  custom(rawValue: 'custom');
+
+  const LiveActivityTemplate({required this.rawValue});
+
+  final String rawValue;
+}
+
 /// Location tracking mode for the CustomerIO Location module.
 enum LocationTrackingMode {
   /// Location tracking is disabled. All location operations no-op.

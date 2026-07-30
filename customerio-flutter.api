@@ -6,6 +6,28 @@ public final class CioLogLevel {
 	static public val values: List<CioLogLevel>;
 }
 
+public final class CountdownTimerLiveActivityPayload {
+	public fun new(
+		required String header,
+		required String title,
+		String? statusMessage,
+		int? endTime
+	): CountdownTimerLiveActivityPayload;
+	public fun toMap(): Map<String, dynamic>;
+	public val endTime: int?;
+	public val header: String;
+	public val statusMessage: String?;
+	public val title: String;
+	public val type: LiveActivityTemplate;
+}
+
+public final class CustomLiveActivityPayload {
+	public fun new(required Map<String, String> data): CustomLiveActivityPayload;
+	public fun toMap(): Map<String, dynamic>;
+	public val data: Map<String, String>;
+	public val type: LiveActivityTemplate;
+}
+
 public final class CustomerIO {
 	public fun clearIdentify();
 	static public fun createInstance(
@@ -13,7 +35,8 @@ public final class CustomerIO {
 		CustomerIOMessagingPushPlatform? pushMessaging,
 		CustomerIOMessagingInAppPlatform? inAppMessaging,
 		CustomerIOLocationPlatform? location,
-		CustomerIOGeofencePlatform? geofence
+		CustomerIOGeofencePlatform? geofence,
+		CustomerIOLiveActivitiesPlatform? liveActivities
 	): CustomerIO;
 	public fun deleteDeviceToken();
 	public fun identify(
@@ -41,6 +64,7 @@ public final class CustomerIO {
 	static public val geofence: CustomerIOGeofencePlatform;
 	static public val inAppMessaging: CustomerIOMessagingInAppPlatform;
 	static public val instance: CustomerIO;
+	static public val liveActivities: CustomerIOLiveActivitiesPlatform;
 	static public val location: CustomerIOLocationPlatform;
 	static public val pushMessaging: CustomerIOMessagingPushPlatform;
 }
@@ -62,7 +86,8 @@ public final class CustomerIOConfig {
 		PushConfig? pushConfig,
 		LocationConfig? locationConfig,
 		GeofenceConfig? geofenceConfig,
-		CustomerIOConfigIos? iosConfig
+		CustomerIOConfigIos? iosConfig,
+		LiveActivitiesConfig? liveNotificationsConfig
 	): CustomerIOConfig;
 	public fun toMap(): Map<String, dynamic>;
 	public val apiHost: String?;
@@ -74,6 +99,7 @@ public final class CustomerIOConfig {
 	public val geofenceConfig: GeofenceConfig?;
 	public val inAppConfig: InAppConfig?;
 	public val iosConfig: CustomerIOConfigIos?;
+	public val liveNotificationsConfig: LiveActivitiesConfig?;
 	public val locationConfig: LocationConfig?;
 	public val logLevel: CioLogLevel?;
 	public val migrationSiteId: String?;
@@ -95,6 +121,20 @@ public final class CustomerIOGeofencePlatform {
 	public fun new(): CustomerIOGeofencePlatform;
 	public fun refreshFromCurrentLocation();
 	static public var instance: CustomerIOGeofencePlatform;
+}
+
+public final class CustomerIOLiveActivitiesPlatform {
+	public fun new(): CustomerIOLiveActivitiesPlatform;
+	public fun end(
+		String activityId,
+		LiveActivityPayload? payload
+	): Future<void> async;
+	public fun start(LiveActivityPayload payload): Future<String> async;
+	public fun update(
+		String activityId,
+		LiveActivityPayload payload
+	): Future<void> async;
+	static public var instance: CustomerIOLiveActivitiesPlatform;
 }
 
 public final class CustomerIOLocationPlatform {
@@ -276,6 +316,63 @@ public final class InlineInAppMessageView {
 	public val onActionClick: void Function(InAppMessage, String, String)?;
 }
 
+public final class LiveActivitiesBranding {
+	public fun new(
+		String? companyName,
+		String? accentColorHex,
+		String? logoResource,
+		String? logoUrl,
+		String? smallIconResource
+	): LiveActivitiesBranding;
+	public fun toMap(): Map<String, dynamic>;
+	public val accentColorHex: String?;
+	public val companyName: String?;
+	public val logoResource: String?;
+	public val logoUrl: String?;
+	public val smallIconResource: String?;
+}
+
+public final class LiveActivitiesConfig {
+	public fun new(
+		List<LiveActivityTemplate> types,
+		String? customType,
+		LiveActivitiesBranding? branding
+	): LiveActivitiesConfig;
+	public fun toMap(): Map<String, dynamic>;
+	public val branding: LiveActivitiesBranding?;
+	public val customType: String?;
+	public val types: List<LiveActivityTemplate>;
+}
+
+public final class LiveActivityPayload {
+	public fun countdownTimer(
+		required String header,
+		required String title,
+		String? statusMessage,
+		int? endTime
+	): LiveActivityPayload;
+	public fun custom(required Map<String, String> data): LiveActivityPayload;
+	public fun new(LiveActivityTemplate type): LiveActivityPayload;
+	public fun segments(
+		required String header,
+		required String status,
+		String? substatus,
+		required int segmentsTotal,
+		required int segmentsComplete,
+		String? trailingText
+	): LiveActivityPayload;
+	public fun toMap(): Map<String, dynamic>;
+	public val type: LiveActivityTemplate;
+}
+
+public final class LiveActivityTemplate {
+	static public val countdownTimer: LiveActivityTemplate;
+	static public val custom: LiveActivityTemplate;
+	public val rawValue: String;
+	static public val segments: LiveActivityTemplate;
+	static public val values: List<LiveActivityTemplate>;
+}
+
 public final class LocationConfig {
 	public fun new(LocationTrackingMode trackingMode): LocationConfig;
 	public fun toMap(): Map<String, dynamic>;
@@ -340,6 +437,25 @@ public final class ScreenView {
 	static public val all: ScreenView;
 	static public val inApp: ScreenView;
 	static public val values: List<ScreenView>;
+}
+
+public final class SegmentsLiveActivityPayload {
+	public fun new(
+		required String header,
+		required String status,
+		String? substatus,
+		required int segmentsTotal,
+		required int segmentsComplete,
+		String? trailingText
+	): SegmentsLiveActivityPayload;
+	public fun toMap(): Map<String, dynamic>;
+	public val header: String;
+	public val segmentsComplete: int;
+	public val segmentsTotal: int;
+	public val status: String;
+	public val substatus: String?;
+	public val trailingText: String?;
+	public val type: LiveActivityTemplate;
 }
 
 

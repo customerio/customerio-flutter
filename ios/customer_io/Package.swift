@@ -3,18 +3,20 @@
 import PackageDescription
 import Foundation
 
-// MARK: - Location / Geofence Module Configuration
+// MARK: - Optional Module Configuration
 //
-// The Location and Geofence modules are optional and excluded by default.
-// To enable either, use ONE of these approaches (checked in this order):
+// The Location, Geofence and Live Activities modules are optional and excluded by default.
+// To enable one, use ONE of these approaches (checked in this order):
 //
 // 1. Set in your Flutter app's android/gradle.properties (recommended, works for both platforms):
 //      customerio_location_enabled=true
 //      customerio_geofence_enabled=true
+//      customerio_live_activities_enabled=true
 //
 // 2. Set an environment variable (required for Flutter add-to-app modules or custom project structures):
 //      CIO_LOCATION=true flutter build ios
 //      CIO_GEOFENCE=true flutter build ios
+//      CIO_LIVE_ACTIVITIES=true flutter build ios
 //
 // Geofence implies Location: enabling geofence also pulls in the Location
 // module, since geofence reacts to location fixes published by it.
@@ -57,20 +59,21 @@ func readGradleProperty(_ key: String, from startDir: String) -> String? {
     return nil
 }
 
-/// Resolves a boolean opt-in flag, checking gradle.properties first (file-based, persistent),
-/// then falling back to an environment variable. Returns false if no configuration is found.
-func isModuleEnabled(gradleKey: String, envKey: String) -> Bool {
+/// Determines whether an optional module should be included.
+/// Checks gradle.properties first (file-based, persistent), then falls back to environment variable.
+/// Returns false if no configuration is found — every module using this is opt-in.
+func isModuleEnabled(propertyKey: String, envKey: String) -> Bool {
     let env = ProcessInfo.processInfo.environment
 
     // 1. Try gradle.properties via PWD (preserves symlink path in Flutter's SPM structure).
     if let pwd = env["PWD"],
-       let value = readGradleProperty(gradleKey, from: pwd) {
+       let value = readGradleProperty(propertyKey, from: pwd) {
         return value.lowercased() == "true"
     }
 
     // 2. Try gradle.properties via FileManager cwd (resolves symlinks; works for direct CLI usage).
     let cwd = FileManager.default.currentDirectoryPath
-    if let value = readGradleProperty(gradleKey, from: cwd) {
+    if let value = readGradleProperty(propertyKey, from: cwd) {
         return value.lowercased() == "true"
     }
 
@@ -79,11 +82,22 @@ func isModuleEnabled(gradleKey: String, envKey: String) -> Bool {
 }
 
 /// Whether the Geofence module should be included (opt-in).
-let useGeofence = isModuleEnabled(gradleKey: "customerio_geofence_enabled", envKey: "CIO_GEOFENCE")
+let useGeofence = isModuleEnabled(
+    propertyKey: "customerio_geofence_enabled",
+    envKey: "CIO_GEOFENCE"
+)
 
 /// Whether the Location module should be included. Opt-in, and also implied by
 /// geofence, which depends on it.
-let useLocation = isModuleEnabled(gradleKey: "customerio_location_enabled", envKey: "CIO_LOCATION") || useGeofence
+let useLocation = isModuleEnabled(
+    propertyKey: "customerio_location_enabled",
+    envKey: "CIO_LOCATION"
+) || useGeofence
+
+let useLiveActivities = isModuleEnabled(
+    propertyKey: "customerio_live_activities_enabled",
+    envKey: "CIO_LIVE_ACTIVITIES"
+)
 
 var targetDependencies: [Target.Dependency] = [
     .product(name: "DataPipelines", package: "customerio-ios"),
@@ -98,6 +112,18 @@ if useLocation {
 
 if useGeofence {
     targetDependencies.append(.product(name: "LocationGeofence", package: "customerio-ios"))
+}
+
+// Live Activities (iOS) native rendering + built-in templates. Opt-in: the Templates product ships
+// SwiftUI widget UI that is dead weight for apps which never run a Live Activity. The plugin's Swift
+// is guarded by `#if canImport(CioLiveActivities)`, so it compiles to no-ops when this is off.
+// NOTE: requires the customerio-ios pin below to include Live Activities (>= the LA release).
+if useLiveActivities {
+    targetDependencies.append(contentsOf: [
+        .product(name: "LiveActivities", package: "customerio-ios"),
+        .product(name: "LiveActivities_Attributes", package: "customerio-ios"),
+        .product(name: "LiveActivities_Templates", package: "customerio-ios")
+    ])
 }
 
 let package = Package(

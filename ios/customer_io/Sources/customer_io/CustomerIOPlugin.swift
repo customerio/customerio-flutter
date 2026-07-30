@@ -20,6 +20,7 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
     private var geofenceChannelHandler: CustomerIOGeofence!
     #endif
     private var messagingPushChannelHandler: CustomerIOMessagingPush!
+    private var liveActivitiesChannelHandler: CustomerIOLiveActivities!
 
     private let logger: CioInternalCommon.Logger = DIGraphShared.shared.logger
 
@@ -37,6 +38,7 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
         instance.geofenceChannelHandler = CustomerIOGeofence(with: registrar)
         #endif
         instance.messagingPushChannelHandler = CustomerIOMessagingPush(with: registrar)
+        instance.liveActivitiesChannelHandler = CustomerIOLiveActivities(with: registrar)
     }
 
     deinit {
@@ -223,6 +225,15 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
             #endif
             let allowBackgroundDelivery = (params["ios"] as? [String: AnyHashable])?["allowBackgroundDelivery"] as? Bool
             _ = sdkConfigBuilder.allowBackgroundDelivery(allowBackgroundDelivery ?? geofenceAdded)
+
+            #if canImport(CioLiveActivities)
+            // Register Live Activities from the `liveNotifications` config (iOS 16.2+). Adding it
+            // to the config builder — rather than initializing after the fact — is what enables
+            // push-to-start, since token registration happens during SDK init.
+            if let liveActivitiesModule = CustomerIOLiveActivities.module(from: params) {
+                _ = sdkConfigBuilder.addModule(liveActivitiesModule)
+            }
+            #endif
 
             CustomerIO.initialize(withConfig: sdkConfigBuilder.build())
 

@@ -77,6 +77,13 @@ class CustomerIOSDK extends ChangeNotifier {
               trackingMode: _sdkConfig?.locationTrackingMode ??
                   LocationTrackingMode.manual),
           geofenceConfig: GeofenceConfig(),
+          liveNotificationsConfig: LiveActivitiesConfig(
+            types: [
+              LiveActivityTemplate.segments,
+              LiveActivityTemplate.countdownTimer,
+            ],
+            customType: 'io.customer.livenotifications.custom.rideshare',
+          ),
         ),
       );
     } catch (ex) {

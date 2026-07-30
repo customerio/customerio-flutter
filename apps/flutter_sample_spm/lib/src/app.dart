@@ -14,6 +14,7 @@ import 'screens/dashboard.dart';
 import 'screens/events.dart';
 import 'screens/inbox_messages.dart';
 import 'screens/inline_messages.dart';
+import 'screens/live_activities.dart';
 import 'screens/location.dart';
 import 'screens/login.dart';
 import 'screens/settings.dart';
@@ -162,6 +163,11 @@ class _AmiAppState extends State<AmiApp> {
               name: Screen.locationTest.name,
               path: Screen.locationTest.path,
               builder: (context, state) => const LocationScreen(),
+            ),
+            GoRoute(
+              name: Screen.liveActivitiesTest.name,
+              path: Screen.liveActivitiesTest.path,
+              builder: (context, state) => const LiveActivitiesScreen(),
             ),
           ],
         ),

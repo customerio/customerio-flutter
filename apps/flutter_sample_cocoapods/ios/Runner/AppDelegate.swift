@@ -5,6 +5,7 @@ import CioMessagingPushFCM
 import FirebaseMessaging
 import FirebaseCore
 import CioFirebaseWrapper
+import customer_io
 #if canImport(CioLocationGeofence)
 import CioLocationGeofence
 #endif
@@ -29,7 +30,7 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
 
         let controller = window?.rootViewController as! FlutterViewController
         permissionHandler.register(with: controller.binaryMessenger)
-        
+
         // Depending on the method you choose to install Firebase in your app,
         // you may need to add functions to this file, such as the following:
         // FirebaseApp.configure()
@@ -71,6 +72,15 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
     override func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
         super.application(application, continue: userActivity, restorationHandler: restorationHandler)
         return false
+    }
+
+    // Reference pattern: report a Live Activity tap so Customer.io attributes an `opened` metric.
+    // A tap arrives here through the normal openURL path; the wrapper forwards the URL to the SDK.
+    // For a Customer.io widget URL this returns the customer's redirect target to route to (nil
+    // when it carries none); any other URL comes back unchanged, so existing deep links still work.
+    override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+        guard let routableUrl = CustomerIOLiveActivities.handleWidgetUrl(url) else { return true }
+        return super.application(app, open: routableUrl, options: options)
     }
 }
 

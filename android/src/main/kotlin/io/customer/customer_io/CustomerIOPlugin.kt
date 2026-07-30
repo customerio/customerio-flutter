@@ -7,6 +7,7 @@ import io.customer.customer_io.bridge.NativeModuleBridge
 import io.customer.customer_io.bridge.nativeMapArgs
 import io.customer.customer_io.bridge.nativeNoArgs
 import io.customer.customer_io.geofence.CustomerIOGeofence
+import io.customer.customer_io.liveactivities.CustomerIOLiveActivities
 import io.customer.customer_io.location.CustomerIOLocation
 import io.customer.customer_io.messaginginapp.CustomerIOInAppMessaging
 import io.customer.customer_io.messagingpush.CustomerIOPushMessaging
@@ -55,6 +56,9 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         modules = buildList {
             add(CustomerIOPushMessaging(flutterPluginBinding))
             add(CustomerIOInAppMessaging(flutterPluginBinding))
+            // Live Activities / Live Notifications runtime methods (config is applied onto the
+            // push module's config builder during initialize).
+            add(CustomerIOLiveActivities(flutterPluginBinding))
             // Location module is optional - enabled via customerio_location_enabled gradle
             // property. CIO_LOCATION_ENABLED also covers geofence (geofence implies location).
             if (BuildConfig.CIO_LOCATION_ENABLED) {
@@ -228,12 +232,22 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     )
                 }
             }
-            // Configure push messaging module based on config provided by customer app
+            // Configure push messaging module based on config provided by customer app.
+            // Live Notifications are hosted by the push module, so the `liveNotifications` config is
+            // merged into the push config and applied onto the same MessagingPushModuleConfig.
             args.getAs<Map<String, Any>>(key = "push").let { pushConfig ->
+                val liveActivitiesConfig = args.getAs<Map<String, Any>>(key = "liveNotifications")
+                val mergedConfig = (pushConfig ?: emptyMap()).let { base ->
+                    if (liveActivitiesConfig != null) {
+                        base + ("liveNotifications" to liveActivitiesConfig)
+                    } else {
+                        base
+                    }
+                }
                 modules.filterIsInstance<CustomerIOPushMessaging>().forEach {
                     it.configureModule(
                         builder = this,
-                        config = pushConfig ?: emptyMap()
+                        config = mergedConfig
                     )
                 }
             }

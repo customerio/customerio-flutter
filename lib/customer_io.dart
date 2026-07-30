@@ -8,9 +8,13 @@ import 'customer_io_enums.dart';
 import 'data_pipelines/customer_io_platform_interface.dart';
 import 'extensions/map_extensions.dart';
 import 'geofence/platform_interface.dart';
+import 'liveActivities/platform_interface.dart';
 import 'location/platform_interface.dart';
 import 'messaging_in_app/platform_interface.dart';
 import 'messaging_push/platform_interface.dart';
+
+export 'liveActivities/live_activity_payload.dart';
+export 'liveActivities/platform_interface.dart';
 
 class CustomerIO {
   static CustomerIO? _instance;
@@ -20,6 +24,7 @@ class CustomerIO {
   final CustomerIOMessagingInAppPlatform _inAppMessaging;
   final CustomerIOLocationPlatform _location;
   final CustomerIOGeofencePlatform _geofence;
+  final CustomerIOLiveActivitiesPlatform _liveActivities;
 
   /// Private constructor to enforce singleton pattern
   CustomerIO._({
@@ -28,13 +33,16 @@ class CustomerIO {
     CustomerIOMessagingInAppPlatform? inAppMessaging,
     CustomerIOLocationPlatform? location,
     CustomerIOGeofencePlatform? geofence,
+    CustomerIOLiveActivitiesPlatform? liveActivities,
   })  : _platform = platform ?? CustomerIOPlatform.instance,
         _pushMessaging =
             pushMessaging ?? CustomerIOMessagingPushPlatform.instance,
         _inAppMessaging =
             inAppMessaging ?? CustomerIOMessagingInAppPlatform.instance,
         _location = location ?? CustomerIOLocationPlatform.instance,
-        _geofence = geofence ?? CustomerIOGeofencePlatform.instance;
+        _geofence = geofence ?? CustomerIOGeofencePlatform.instance,
+        _liveActivities =
+            liveActivities ?? CustomerIOLiveActivitiesPlatform.instance;
 
   /// Get the singleton instance of CustomerIO
   static CustomerIO get instance {
@@ -55,6 +63,7 @@ class CustomerIO {
     CustomerIOMessagingInAppPlatform? inAppMessaging,
     CustomerIOLocationPlatform? location,
     CustomerIOGeofencePlatform? geofence,
+    CustomerIOLiveActivitiesPlatform? liveActivities,
   }) {
     _instance = CustomerIO._(
       platform: platform,
@@ -62,6 +71,7 @@ class CustomerIO {
       inAppMessaging: inAppMessaging,
       location: location,
       geofence: geofence,
+      liveActivities: liveActivities,
     );
     return _instance!;
   }
@@ -91,6 +101,12 @@ class CustomerIO {
   /// Access geofence functionality
   static CustomerIOGeofencePlatform get geofence {
     return _instance?._geofence ?? CustomerIOGeofencePlatform.instance;
+  }
+
+  /// Access Live Activities (iOS) / Live Notifications (Android) functionality
+  static CustomerIOLiveActivitiesPlatform get liveActivities {
+    return _instance?._liveActivities ??
+        CustomerIOLiveActivitiesPlatform.instance;
   }
 
   /// To initialize the plugin

@@ -53,6 +53,16 @@ Pod::Spec.new do |s|
     ss.dependency "CustomerIO/LocationGeofence", native_sdk_version
   end
 
+  # Live Activities are optional - customers must opt in by adding this subspec. Kept out of the
+  # parent spec on purpose: the Templates pod ships SwiftUI widget UI, which is dead weight for the
+  # majority of apps that never run a Live Activity. The plugin's Swift is guarded by
+  # `#if canImport(CioLiveActivities)`, so it compiles to no-ops when this subspec is absent.
+  # NOTE: requires native_sdk_version to include Live Activities (>= the LA release).
+  s.subspec 'liveactivities' do |ss|
+    ss.dependency "CustomerIO/LiveActivities", native_sdk_version
+    ss.dependency "CustomerIO/LiveActivitiesTemplates", native_sdk_version
+  end
+
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
   s.swift_version = '5.0'

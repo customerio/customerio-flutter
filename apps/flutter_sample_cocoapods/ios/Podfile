@@ -46,6 +46,8 @@ target 'Runner' do
   pod 'customer_io/fcm', :path => '.symlinks/plugins/customer_io/ios' # install podspec bundled with the plugin
   pod 'customer_io/location', :path => '.symlinks/plugins/customer_io/ios' # install location subspec for testing
   pod 'customer_io/geofence', :path => '.symlinks/plugins/customer_io/ios' # install geofence subspec for testing (pulls in location)
+  pod 'customer_io/liveactivities', :path => '.symlinks/plugins/customer_io/ios' # opt in to Live Activities
+
   # install_non_production_ios_sdk_local_path(local_path: '~/code/customerio-ios/', is_app_extension: false, push_service: "fcm")
   # install_non_production_ios_sdk_git_branch(branch_name: 'feature/wrappers-inline-support', is_app_extension: false, push_service: "fcm")
 
@@ -59,6 +61,18 @@ target 'NotificationServiceExtension' do
   pod 'customer_io_richpush/fcm', :path => '.symlinks/plugins/customer_io/ios' # install podspec bundled with the plugin
   # install_non_production_ios_sdk_local_path(local_path: '~/code/customerio-ios/', is_app_extension: true, push_service: "fcm")
   # install_non_production_ios_sdk_git_branch(branch_name: 'feature/wrappers-inline-support', is_app_extension: true, push_service: "fcm")
+end
+
+# Live Activities Widget Extension: renders the built-in SDK templates plus the app-owned custom
+# one. The widget links the attributes + templates pods directly; it does not inherit the Runner
+# target's pods.
+target 'LiveActivityWidget' do
+  use_frameworks!
+  # A widget extension cannot link the Flutter plugin pod, so it names the rendering pods itself.
+  # Keep the version in step with pubspec.yaml's native_sdk_version.
+  %w[CustomerIOLiveActivitiesTemplates CustomerIOLiveActivitiesAttributes].each do |cio_pod|
+    pod cio_pod, '4.7.0'
+  end
 end
 
 post_install do |installer|

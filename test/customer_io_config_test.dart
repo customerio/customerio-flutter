@@ -1,5 +1,6 @@
 import 'package:customer_io/config/customer_io_config.dart';
 import 'package:customer_io/config/in_app_config.dart';
+import 'package:customer_io/config/live_activities_config.dart';
 import 'package:customer_io/config/push_config.dart';
 import 'package:customer_io/customer_io_enums.dart';
 import 'package:customer_io/customer_io_plugin_version.dart' as plugin_info;
@@ -112,6 +113,7 @@ void main() {
         'location': null,
         'geofence': null,
         'ios': null,
+        'liveNotifications': null,
         'version': config.version,
         'source': config.source,
       };
@@ -170,6 +172,71 @@ void main() {
       final expectedMap = {'siteId': 'testSiteId'};
 
       expect(inAppConfig.toMap(), expectedMap);
+    });
+  });
+
+  group('LiveActivitiesConfig', () {
+    test('should default to empty types and null customType/branding', () {
+      final config = LiveActivitiesConfig();
+
+      expect(config.types, isEmpty);
+      expect(config.customType, isNull);
+      expect(config.branding, isNull);
+
+      final map = config.toMap();
+      expect(map['types'], isEmpty);
+      expect(map['customType'], isNull);
+      expect(map['branding'], isNull);
+    });
+
+    test('should serialize types to their reverse-DNS identifiers', () {
+      final config = LiveActivitiesConfig(
+        types: [
+          LiveActivityTemplate.segments,
+          LiveActivityTemplate.countdownTimer,
+        ],
+        customType: 'com.example.rideshare',
+      );
+
+      final map = config.toMap();
+      expect(map['types'], [
+        'io.customer.livenotifications.segments',
+        'io.customer.livenotifications.countdowntimer',
+      ]);
+      expect(map['customType'], 'com.example.rideshare');
+    });
+
+    test('should serialize branding fields', () {
+      final config = LiveActivitiesConfig(
+        types: [LiveActivityTemplate.segments],
+        branding: LiveActivitiesBranding(
+          companyName: 'Acme',
+          accentColorHex: '#FF0000',
+          logoUrl: 'https://example.com/logo.png',
+          smallIconResource: 'ic_notification',
+        ),
+      );
+
+      final branding = config.toMap()['branding'] as Map;
+      expect(branding['companyName'], 'Acme');
+      expect(branding['accentColorHex'], '#FF0000');
+      expect(branding['logoUrl'], 'https://example.com/logo.png');
+      expect(branding['smallIconResource'], 'ic_notification');
+    });
+
+    test('CustomerIOConfig includes liveNotifications in toMap()', () {
+      final config = CustomerIOConfig(
+        cdpApiKey: 'testApiKey',
+        liveNotificationsConfig: LiveActivitiesConfig(
+          types: [LiveActivityTemplate.countdownTimer],
+        ),
+      );
+
+      final map = config.toMap();
+      expect(map['liveNotifications'], isNotNull);
+      expect((map['liveNotifications'] as Map)['types'], [
+        'io.customer.livenotifications.countdowntimer',
+      ]);
     });
   });
 

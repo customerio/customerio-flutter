@@ -104,5 +104,7 @@
 	<string>This app uses your location to test Customer.io location tracking features.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This app uses your location in the background to test Customer.io geofence features.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 </dict>
 </plist>
