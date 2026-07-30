@@ -311,6 +311,7 @@ enum _ActionItem {
   profileAttributes,
   inlineMessages,
   inboxMessages,
+  inboxUi,
   location,
   showPushPrompt,
   showLocalPush,
@@ -332,6 +333,8 @@ extension _ActionNames on _ActionItem {
         return 'Test Inline Messages';
       case _ActionItem.inboxMessages:
         return 'Inbox Messages';
+      case _ActionItem.inboxUi:
+        return 'Inbox UI Components';
       case _ActionItem.location:
         return 'Test Location';
       case _ActionItem.showPushPrompt:
@@ -357,6 +360,8 @@ extension _ActionNames on _ActionItem {
         return 'Inline Messages Button';
       case _ActionItem.inboxMessages:
         return 'Inbox Messages Button';
+      case _ActionItem.inboxUi:
+        return 'Inbox UI Components Button';
       case _ActionItem.location:
         return 'Location Button';
       case _ActionItem.showPushPrompt:
@@ -382,6 +387,8 @@ extension _ActionNames on _ActionItem {
         return Screen.inlineMessages;
       case _ActionItem.inboxMessages:
         return Screen.inboxMessages;
+      case _ActionItem.inboxUi:
+        return Screen.inboxUi;
       case _ActionItem.location:
         return Screen.locationTest;
       case _ActionItem.showPushPrompt:
