@@ -40,6 +40,10 @@ dependencies:
     path: ../../
   email_validator: ^3.0.0
   go_router: ^14.2.3
+  # Inbox action navigation: registering an InboxEventListener makes this app own it, so the demo
+  # hands the action url to the OS the way the SDK would. Flutter has no built-in equivalent of
+  # React Native's Linking.
+  url_launcher: ^6.3.0
   shared_preferences: ^2.0.15
   flutter_dotenv: ^5.0.2
   package_info_plus: ^8.0.1
