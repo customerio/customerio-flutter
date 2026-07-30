@@ -110,7 +110,6 @@ let package = Package(
         // On native release, revert both to version pins and delete the fcm scaffold branch:
         //   .package(url: ".../customerio-ios.git", exact: "4.6.1"),   // per main today
         //   .package(url: ".../customerio-ios-fcm.git", from: "1.0.0")
-        // See DEVELOPING_LOCALLY.md.
         .package(url: "https://github.com/customerio/customerio-ios.git", branch: "feat/overlay-inbox"),
         .package(url: "https://github.com/customerio/customerio-ios-fcm.git", branch: "inbox/overlay-inbox-pin")
     ],
