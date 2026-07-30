@@ -75,19 +75,14 @@ private final class HostedContainerView: UIView {
 
 /// Hosts a SwiftUI view inside a Flutter `UIView` container.
 ///
-/// The inbox SwiftUI components require iOS 15 (Jist floor); on older versions an empty container is
-/// returned so the host app does not crash.
+/// Carries no availability floor of its own: `UIHostingController` and SwiftUI are iOS 13, which is
+/// what this plugin's podspec declares. Each caller gates on what its own content needs — the message
+/// list and bare bell are `@available(iOS 13.0, *)`, only `NotificationInboxOverlay` requires iOS 16.
 private func makeHostedContainer<Content: View>(
     frame: CGRect,
     @ViewBuilder content: () -> Content
 ) -> UIView {
-    guard #available(iOS 15.0, *) else {
-        let container = UIView(frame: frame)
-        container.backgroundColor = .clear
-        return container
-    }
-
-    return HostedContainerView(
+    HostedContainerView(
         frame: frame,
         hostingController: UIHostingController(rootView: content())
     )
@@ -102,6 +97,9 @@ private func invokeDartMethod(_ channel: FlutterMethodChannel?, _ method: String
 // MARK: - NotificationInboxView (message list)
 
 /// Flutter wrapper for the standalone `NotificationInboxView` (Jist-rendered list).
+///
+/// Unguarded: the native view is `@available(iOS 13.0, *)` and Jist's own floor is iOS 13, so the list
+/// works everywhere this plugin's podspec claims support. Only the bell below needs a higher floor.
 class NotificationInboxPlatformView: NSObject, FlutterPlatformView {
     private let _view: UIView
     private var methodChannel: FlutterMethodChannel?

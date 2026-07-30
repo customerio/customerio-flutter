@@ -50,7 +50,14 @@ internal class CustomerIOInAppMessaging(
     private val inboxListenerLock = Any()
     private val inboxChangeListener = FlutterNotificationInboxChangeListener.instance
     private var isInboxChangeListenerSetup = false
-    private var isInboxEventListenerRegistered = false
+
+    // The forwarder THIS plugin instance installed on the SDK, or null if it has none installed.
+    // Compared by identity against [InstalledInboxForwarder.current] so teardown only clears a
+    // forwarder that is both ours and still the one the SDK holds. A plain "did I register" boolean
+    // cannot express that: the SDK keeps a single process-wide listener, so a second engine
+    // registering silently replaces the first engine's forwarder while the first engine's flag stays
+    // set — and its later detach would then wipe the live listener out from under the second engine.
+    private var myInboxForwarder: CustomerIOInboxEventListener? = null
 
     /**
      * Returns NotificationInbox instance if available, null otherwise, logging error on failure.
@@ -140,12 +147,16 @@ internal class CustomerIOInAppMessaging(
             )
             return
         }
-        module.setInboxEventListener(CustomerIOInboxEventListener { method, args ->
+        val forwarder = CustomerIOInboxEventListener { method, args ->
             runOnMainThread {
                 flutterCommunicationChannel.invokeMethod(method, args)
             }
-        })
-        synchronized(inboxListenerLock) { isInboxEventListenerRegistered = true }
+        }
+        synchronized(InstalledInboxForwarder.lock) {
+            module.setInboxEventListener(forwarder)
+            InstalledInboxForwarder.current = forwarder
+            myInboxForwarder = forwarder
+        }
         result.success(null)
     }
 
@@ -164,16 +175,23 @@ internal class CustomerIOInAppMessaging(
      *
      * Also called on engine detach: the Dart-backed forwarder reports every action as host-handled,
      * so leaving it installed once the engine is gone would suppress the SDK's own navigation with
-     * nothing on the Flutter side left to replace it. Only clears a forwarder this plugin instance
-     * installed, so an engine that never used the inbox cannot disable another engine's listener.
+     * nothing on the Flutter side left to replace it.
+     *
+     * Clears only when this instance's forwarder is the one the SDK currently holds, which keeps two
+     * cases from stepping on a working listener: an engine that never registered cannot restore
+     * default handling for an engine that did, and an engine whose forwarder was already superseded
+     * cannot uninstall its replacement on the way out.
      */
     private fun clearInboxEventListener() {
-        synchronized(inboxListenerLock) {
-            if (!isInboxEventListenerRegistered) {
+        synchronized(InstalledInboxForwarder.lock) {
+            val mine = myInboxForwarder ?: return
+            myInboxForwarder = null
+            // Superseded by another engine's forwarder: that engine still owns action handling.
+            if (InstalledInboxForwarder.current !== mine) {
                 return
             }
             inAppMessagingModule?.setInboxEventListener(NoOpInboxEventListener)
-            isInboxEventListenerRegistered = false
+            InstalledInboxForwarder.current = null
         }
     }
 
@@ -411,6 +429,25 @@ class CustomerIOInboxEventListener(private val invokeMethod: (String, Any?) -> U
     override fun messageDismissed(message: InboxMessage) {
         invokeMethod("inboxMessageDismissed", mapOf("message" to message.toMap()))
     }
+}
+
+/**
+ * Process-wide record of the inbox forwarder currently installed on the SDK, or null when the SDK
+ * has its own default action handling.
+ *
+ * Deliberately file-scoped rather than per-plugin-instance state: `ModuleMessagingInApp` holds one
+ * listener for the whole process, so ownership of that single slot has to be tracked somewhere every
+ * Flutter engine can see. The SDK exposes only a setter — there is no way to ask it which listener
+ * is installed — so the wrapper keeps the record itself.
+ *
+ * [lock] guards both the record and the SDK setter call, since engines can register from different
+ * threads. [current] holds the forwarder strongly, and the forwarder in turn captures the plugin
+ * instance that created it — but that is the retention the SDK already creates by holding the
+ * listener itself, and engine detach clears this record, so it adds no lifetime of its own.
+ */
+private object InstalledInboxForwarder {
+    val lock = Any()
+    var current: CustomerIOInboxEventListener? = null
 }
 
 /**

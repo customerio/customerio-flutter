@@ -4,8 +4,8 @@ import 'inbox_message.dart';
 /// Notification Inbox messages.
 ///
 /// Mirrors the native `InboxEventListener` (iOS/Android). Register it via
-/// `CustomerIO.instance.inAppMessaging.setInboxEventListener(listener)` and
-/// unregister by passing `null`.
+/// `CustomerIO.inAppMessaging.setInboxEventListener(listener)` and unregister by
+/// passing `null`. (`inAppMessaging` is a static getter on `CustomerIO`.)
 ///
 /// IMPORTANT — action handling ownership:
 /// Unlike the native listener (whose `messageActionTaken` returns a `Bool` to
