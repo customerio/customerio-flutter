@@ -14,7 +14,8 @@ enum Screen {
   inlineMessages(name: 'Inline Messages Test', path: 'inline-messages'),
   inboxMessages(name: 'Inbox Messages', path: 'inbox-messages'),
   inboxUi(name: 'Inbox UI Components', path: 'inbox-ui'),
-  locationTest(name: 'Location', path: 'location');
+  locationTest(name: 'Location', path: 'location'),
+  liveActivitiesTest(name: 'Live Activities', path: 'live-activities');
 
   const Screen({
     required this.name,

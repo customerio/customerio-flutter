@@ -74,7 +74,10 @@ android {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     // Customer.io SDK
-    def cioVersion = "4.20.0"
+    // Version can be overridden for local/CI verification via -PcioVersion=<version>
+    // (e.g. -PcioVersion=local to build against a mavenLocal build). The committed default
+    // tracks the intended published release.
+    def cioVersion = rootProject.findProperty("cioVersion") ?: "4.20.0"
     implementation "io.customer.android:datapipelines:$cioVersion"
     implementation "io.customer.android:messaging-push-fcm:$cioVersion"
     implementation "io.customer.android:messaging-in-app:$cioVersion"

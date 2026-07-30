@@ -7,9 +7,13 @@ import 'customer_io_config.dart';
 import 'customer_io_enums.dart';
 import 'data_pipelines/customer_io_platform_interface.dart';
 import 'extensions/map_extensions.dart';
+import 'liveActivities/platform_interface.dart';
 import 'location/platform_interface.dart';
 import 'messaging_in_app/platform_interface.dart';
 import 'messaging_push/platform_interface.dart';
+
+export 'liveActivities/live_activity_payload.dart';
+export 'liveActivities/platform_interface.dart';
 
 class CustomerIO {
   static CustomerIO? _instance;
@@ -18,6 +22,7 @@ class CustomerIO {
   final CustomerIOMessagingPushPlatform _pushMessaging;
   final CustomerIOMessagingInAppPlatform _inAppMessaging;
   final CustomerIOLocationPlatform _location;
+  final CustomerIOLiveActivitiesPlatform _liveActivities;
 
   /// Private constructor to enforce singleton pattern
   CustomerIO._({
@@ -25,12 +30,15 @@ class CustomerIO {
     CustomerIOMessagingPushPlatform? pushMessaging,
     CustomerIOMessagingInAppPlatform? inAppMessaging,
     CustomerIOLocationPlatform? location,
+    CustomerIOLiveActivitiesPlatform? liveActivities,
   })  : _platform = platform ?? CustomerIOPlatform.instance,
         _pushMessaging =
             pushMessaging ?? CustomerIOMessagingPushPlatform.instance,
         _inAppMessaging =
             inAppMessaging ?? CustomerIOMessagingInAppPlatform.instance,
-        _location = location ?? CustomerIOLocationPlatform.instance;
+        _location = location ?? CustomerIOLocationPlatform.instance,
+        _liveActivities =
+            liveActivities ?? CustomerIOLiveActivitiesPlatform.instance;
 
   /// Get the singleton instance of CustomerIO
   static CustomerIO get instance {
@@ -50,12 +58,14 @@ class CustomerIO {
     CustomerIOMessagingPushPlatform? pushMessaging,
     CustomerIOMessagingInAppPlatform? inAppMessaging,
     CustomerIOLocationPlatform? location,
+    CustomerIOLiveActivitiesPlatform? liveActivities,
   }) {
     _instance = CustomerIO._(
       platform: platform,
       pushMessaging: pushMessaging,
       inAppMessaging: inAppMessaging,
       location: location,
+      liveActivities: liveActivities,
     );
     return _instance!;
   }
@@ -80,6 +90,12 @@ class CustomerIO {
   /// Access location functionality
   static CustomerIOLocationPlatform get location {
     return _instance?._location ?? CustomerIOLocationPlatform.instance;
+  }
+
+  /// Access Live Activities (iOS) / Live Notifications (Android) functionality
+  static CustomerIOLiveActivitiesPlatform get liveActivities {
+    return _instance?._liveActivities ??
+        CustomerIOLiveActivitiesPlatform.instance;
   }
 
   /// To initialize the plugin
