@@ -312,6 +312,7 @@ enum _ActionItem {
   inlineMessages,
   inboxMessages,
   location,
+  liveActivities,
   showPushPrompt,
   showLocalPush,
   signOut,
@@ -334,6 +335,8 @@ extension _ActionNames on _ActionItem {
         return 'Inbox Messages';
       case _ActionItem.location:
         return 'Test Location';
+      case _ActionItem.liveActivities:
+        return 'Test Live Activities';
       case _ActionItem.showPushPrompt:
         return 'Show Push Prompt';
       case _ActionItem.showLocalPush:
@@ -359,6 +362,8 @@ extension _ActionNames on _ActionItem {
         return 'Inbox Messages Button';
       case _ActionItem.location:
         return 'Location Button';
+      case _ActionItem.liveActivities:
+        return 'Live Activities Button';
       case _ActionItem.showPushPrompt:
         return 'Show Push Prompt Button';
       case _ActionItem.showLocalPush:
@@ -384,6 +389,8 @@ extension _ActionNames on _ActionItem {
         return Screen.inboxMessages;
       case _ActionItem.location:
         return Screen.locationTest;
+      case _ActionItem.liveActivities:
+        return Screen.liveActivitiesTest;
       case _ActionItem.showPushPrompt:
         return null;
       case _ActionItem.showLocalPush:

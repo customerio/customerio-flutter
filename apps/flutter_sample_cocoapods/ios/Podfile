@@ -45,6 +45,17 @@ target 'Runner' do
   # Uncomment only 1 of the lines below to install a version of the iOS SDK
   pod 'customer_io/fcm', :path => '.symlinks/plugins/customer_io/ios' # install podspec bundled with the plugin
   pod 'customer_io/location', :path => '.symlinks/plugins/customer_io/ios' # install location subspec for testing
+  pod 'customer_io/liveactivities', :path => '.symlinks/plugins/customer_io/ios' # opt in to Live Activities
+
+  # TEMPORARY (REL-1): the Live Activities pods are not on CocoaPods trunk yet, so pull the whole
+  # Customer.io iOS SDK from the branch that carries their podspecs. Remove once they ship.
+  %w[
+    CustomerIO CustomerIOCommon CustomerIODataPipelines CustomerIOTrackingMigration
+    CustomerIOMessagingPush CustomerIOMessagingPushFCM CustomerIOMessagingInApp CustomerIOLocation
+    CustomerIOLiveActivities CustomerIOLiveActivitiesAttributes CustomerIOLiveActivitiesTemplates
+  ].each do |cio_pod|
+    pod cio_pod, :git => "https://github.com/customerio/customerio-ios.git", :branch => "feat/live-activities"
+  end
   # install_non_production_ios_sdk_local_path(local_path: '~/code/customerio-ios/', is_app_extension: false, push_service: "fcm")
   # install_non_production_ios_sdk_git_branch(branch_name: 'feature/wrappers-inline-support', is_app_extension: false, push_service: "fcm")
 
@@ -58,6 +69,18 @@ target 'NotificationServiceExtension' do
   pod 'customer_io_richpush/fcm', :path => '.symlinks/plugins/customer_io/ios' # install podspec bundled with the plugin
   # install_non_production_ios_sdk_local_path(local_path: '~/code/customerio-ios/', is_app_extension: true, push_service: "fcm")
   # install_non_production_ios_sdk_git_branch(branch_name: 'feature/wrappers-inline-support', is_app_extension: true, push_service: "fcm")
+end
+
+# Live Activities Widget Extension: renders the built-in SDK templates plus the app-owned custom
+# one. The widget links the attributes + templates pods directly; it does not inherit the Runner
+# target's pods.
+target 'LiveActivityWidget' do
+  use_frameworks!
+  # TEMPORARY (REL-1): these pods are not on CocoaPods trunk yet, so pull them from the branch that
+  # carries their podspecs. Remove the :git/:branch overrides once Live Activities ships.
+  %w[CustomerIOLiveActivitiesTemplates CustomerIOLiveActivitiesAttributes].each do |cio_pod|
+    pod cio_pod, :git => "https://github.com/customerio/customerio-ios.git", :branch => "feat/live-activities"
+  end
 end
 
 post_install do |installer|
