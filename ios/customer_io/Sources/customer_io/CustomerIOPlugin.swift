@@ -6,12 +6,18 @@ import UIKit
 #if canImport(CioLocation)
 import CioLocation
 #endif
+#if canImport(CioLocationGeofence)
+import CioLocationGeofence
+#endif
 
 public class CustomerIOPlugin: NSObject, FlutterPlugin {
     private var methodChannel: FlutterMethodChannel!
     private var inAppMessagingChannelHandler: CustomerIOInAppMessaging!
     #if canImport(CioLocation)
     private var locationChannelHandler: CustomerIOLocation!
+    #endif
+    #if canImport(CioLocationGeofence)
+    private var geofenceChannelHandler: CustomerIOGeofence!
     #endif
     private var messagingPushChannelHandler: CustomerIOMessagingPush!
     private var liveActivitiesChannelHandler: CustomerIOLiveActivities!
@@ -27,6 +33,9 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
         instance.inAppMessagingChannelHandler = CustomerIOInAppMessaging(with: registrar)
         #if canImport(CioLocation)
         instance.locationChannelHandler = CustomerIOLocation(with: registrar)
+        #endif
+        #if canImport(CioLocationGeofence)
+        instance.geofenceChannelHandler = CustomerIOGeofence(with: registrar)
         #endif
         instance.messagingPushChannelHandler = CustomerIOMessagingPush(with: registrar)
         instance.liveActivitiesChannelHandler = CustomerIOLiveActivities(with: registrar)
@@ -169,9 +178,18 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
             let sdkConfigBuilder = try SDKConfigBuilder.create(from: params)
 
             #if canImport(CioLocation)
-            // Add location module to config builder if location config is provided
-            if let locationConfig = params["location"] as? [String: AnyHashable] {
-                let trackingModeValue = locationConfig["trackingMode"] as? String
+            let locationConfig = params["location"] as? [String: AnyHashable]
+            #if canImport(CioLocationGeofence)
+            let geofenceConfigured = params["geofence"] as? [String: AnyHashable] != nil
+            #else
+            let geofenceConfigured = false
+            #endif
+
+            // Add location module when location or geofence is configured. Geofence implies
+            // location: it relies on the location module's fixes, so register location (with
+            // the app's config if given, otherwise defaults) whenever geofence is enabled.
+            if locationConfig != nil || geofenceConfigured {
+                let trackingModeValue = locationConfig?["trackingMode"] as? String
                 let mode: LocationTrackingMode
                 switch trackingModeValue?.uppercased() {
                 case "OFF":
@@ -183,7 +201,30 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
                 }
                 _ = sdkConfigBuilder.addModule(LocationModule(config: LocationConfig(mode: mode)))
             }
+
+            #if canImport(CioLocationGeofence)
+            // Geofence relies on the location module above.
+            if let geofenceConfig = params["geofence"] as? [String: AnyHashable] {
+                let locationMode: GeofenceLocationMode
+                switch (geofenceConfig["locationMode"] as? String)?.uppercased() {
+                case "MANUAL":
+                    locationMode = .manual
+                default:
+                    locationMode = .automatic
+                }
+                _ = sdkConfigBuilder.addModule(GeofenceModule(config: GeofenceModuleConfig(locationMode: locationMode)))
+            }
             #endif
+            #endif
+
+            // Customer value wins; otherwise on when the geofence module is added, off otherwise.
+            #if canImport(CioLocationGeofence)
+            let geofenceAdded = params["geofence"] as? [String: AnyHashable] != nil
+            #else
+            let geofenceAdded = false
+            #endif
+            let allowBackgroundDelivery = (params["ios"] as? [String: AnyHashable])?["allowBackgroundDelivery"] as? Bool
+            _ = sdkConfigBuilder.allowBackgroundDelivery(allowBackgroundDelivery ?? geofenceAdded)
 
             #if canImport(CioLiveActivities)
             // Register Live Activities from the `liveNotifications` config (iOS 16.2+). Adding it

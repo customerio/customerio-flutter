@@ -1,6 +1,8 @@
 import '../customer_io_enums.dart';
 import '../customer_io_plugin_version.dart' as plugin_info show version;
+import 'geofence_config.dart';
 import 'in_app_config.dart';
+import 'ios_config.dart';
 import 'live_activities_config.dart';
 import 'location_config.dart';
 import 'push_config.dart';
@@ -23,6 +25,8 @@ class CustomerIOConfig {
   final InAppConfig? inAppConfig;
   final PushConfig pushConfig;
   final LocationConfig? locationConfig;
+  final GeofenceConfig? geofenceConfig;
+  final CustomerIOConfigIos? iosConfig;
   final LiveActivitiesConfig? liveNotificationsConfig;
 
   CustomerIOConfig({
@@ -40,6 +44,8 @@ class CustomerIOConfig {
     this.inAppConfig,
     PushConfig? pushConfig,
     this.locationConfig,
+    this.geofenceConfig,
+    this.iosConfig,
     this.liveNotificationsConfig,
   }) : pushConfig = pushConfig ?? PushConfig();
 
@@ -59,6 +65,8 @@ class CustomerIOConfig {
       'inApp': inAppConfig?.toMap(),
       'push': pushConfig.toMap(),
       'location': locationConfig?.toMap(),
+      'geofence': geofenceConfig?.toMap(),
+      'ios': iosConfig?.toMap(),
       'liveNotifications': liveNotificationsConfig?.toMap(),
       'version': version,
       'source': source
