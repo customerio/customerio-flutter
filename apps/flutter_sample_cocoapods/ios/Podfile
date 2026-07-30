@@ -47,15 +47,6 @@ target 'Runner' do
   pod 'customer_io/location', :path => '.symlinks/plugins/customer_io/ios' # install location subspec for testing
   pod 'customer_io/liveactivities', :path => '.symlinks/plugins/customer_io/ios' # opt in to Live Activities
 
-  # TEMPORARY (REL-1): the Live Activities pods are not on CocoaPods trunk yet, so pull the whole
-  # Customer.io iOS SDK from the branch that carries their podspecs. Remove once they ship.
-  %w[
-    CustomerIO CustomerIOCommon CustomerIODataPipelines CustomerIOTrackingMigration
-    CustomerIOMessagingPush CustomerIOMessagingPushFCM CustomerIOMessagingInApp CustomerIOLocation
-    CustomerIOLiveActivities CustomerIOLiveActivitiesAttributes CustomerIOLiveActivitiesTemplates
-  ].each do |cio_pod|
-    pod cio_pod, :git => "https://github.com/customerio/customerio-ios.git", :branch => "feat/live-activities"
-  end
   # install_non_production_ios_sdk_local_path(local_path: '~/code/customerio-ios/', is_app_extension: false, push_service: "fcm")
   # install_non_production_ios_sdk_git_branch(branch_name: 'feature/wrappers-inline-support', is_app_extension: false, push_service: "fcm")
 
@@ -76,10 +67,10 @@ end
 # target's pods.
 target 'LiveActivityWidget' do
   use_frameworks!
-  # TEMPORARY (REL-1): these pods are not on CocoaPods trunk yet, so pull them from the branch that
-  # carries their podspecs. Remove the :git/:branch overrides once Live Activities ships.
+  # A widget extension cannot link the Flutter plugin pod, so it names the rendering pods itself.
+  # Keep the version in step with pubspec.yaml's native_sdk_version.
   %w[CustomerIOLiveActivitiesTemplates CustomerIOLiveActivitiesAttributes].each do |cio_pod|
-    pod cio_pod, :git => "https://github.com/customerio/customerio-ios.git", :branch => "feat/live-activities"
+    pod cio_pod, '4.7.0'
   end
 end
 
