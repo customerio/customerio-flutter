@@ -80,7 +80,7 @@ var targetDependencies: [Target.Dependency] = [
     .product(name: "MessagingInApp", package: "customerio-ios"),
     .product(name: "MessagingPushFCM", package: "customerio-ios"),
     .product(name: "CioFirebaseWrapper", package: "customerio-ios-fcm"),
-    // Visual Notification Inbox UI components, from the branch-pinned customerio-ios below.
+    // Visual Notification Inbox UI components.
     .product(name: "MessagingInbox", package: "customerio-ios")
 ]
 
@@ -97,21 +97,10 @@ let package = Package(
         .library(name: "customer-io", targets: ["customer_io"])
     ],
     dependencies: [
-        // WIP (visual-inbox-wrappers): the native Visual Notification Inbox UI (`MessagingInbox`
-        // product) is unreleased, so customerio-ios is pinned to the base feature branch.
-        //
-        // customerio-ios-fcm is pinned to a branch too, and only because of a SwiftPM rule: it will
-        // not resolve a package that one dependency requires by BRANCH while another requires it by
-        // VERSION, and fcm's `main` pins customerio-ios with `from: "4.0.0"`. The scaffold branch
-        // `inbox/overlay-inbox-pin` matches the branch requirement instead, collapsing both to one
-        // package identity with no version requirement.
-        //
-        // Unlike the local paths this replaces, these resolve on CI and on any machine.
-        // On native release, revert both to version pins and delete the fcm scaffold branch:
-        //   .package(url: ".../customerio-ios.git", exact: "4.6.1"),   // per main today
-        //   .package(url: ".../customerio-ios-fcm.git", from: "1.0.0")
-        .package(url: "https://github.com/customerio/customerio-ios.git", branch: "feat/overlay-inbox"),
-        .package(url: "https://github.com/customerio/customerio-ios-fcm.git", branch: "inbox/overlay-inbox-pin")
+        // Pinned exactly, matching `native_sdk_version` in pubspec.yaml and the podspec, so one
+        // plugin version always resolves one native SDK across every package manager.
+        .package(url: "https://github.com/customerio/customerio-ios.git", exact: "4.7.0"),
+        .package(url: "https://github.com/customerio/customerio-ios-fcm.git", from: "1.0.0")
     ],
     targets: [
         .target(

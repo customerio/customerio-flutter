@@ -11,7 +11,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.6.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        // SPIKE: Compose compiler Gradle plugin (Kotlin 2.x bundles it under the kotlin version).
+        // Compose compiler Gradle plugin (Kotlin 2.x bundles it under the kotlin version).
         classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlin_version"
     }
 }
@@ -20,20 +20,13 @@ rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
-        // WIP (visual-inbox-wrappers): the native `messaging-inbox` module is unreleased, so the inbox
-        // components are consumed from the snapshot customerio-android CI publishes for its base feature
-        // branch on every push (see `cioVersion` below). Remove on native release.
-        maven {
-            url = uri("https://central.sonatype.com/repository/maven-snapshots/")
-            mavenContent { snapshotsOnly() }
-        }
     }
 }
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-// SPIKE (spike/visual-inbox-wrappers): Compose is required to host the native Visual Notification
-// Inbox Compose components (NotificationInboxOverlay/Bell/View) inside Flutter platform views.
+// Compose is required to host the native Visual Notification Inbox Compose components
+// (NotificationInboxOverlay/Bell/View) inside Flutter platform views.
 apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 
 def cioLocationEnabled = rootProject.findProperty("customerio_location_enabled")?.toBoolean() ?: false
@@ -44,7 +37,7 @@ android {
 
     buildFeatures {
         buildConfig true
-        // SPIKE: required to host the native inbox Compose components.
+        // Required to host the native inbox Compose components.
         compose true
     }
 
@@ -81,19 +74,14 @@ android {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     // Customer.io SDK
-    // WIP (visual-inbox-wrappers): the native `messaging-inbox` module is unreleased, so consume the
-    // snapshot customerio-android CI publishes for its base feature branch on every push to that PR
-    // (`snapshot-release.yml` names it after the branch). Unlike mavenLocal this resolves on CI and on
-    // any machine, so no local native build is needed.
-    // On native release, revert to a version pin (e.g. "4.18.2") and drop the snapshot repo above.
-    def cioVersion = "feat-overlay-inbox-SNAPSHOT"
+    def cioVersion = "4.20.0"
     implementation "io.customer.android:datapipelines:$cioVersion"
     implementation "io.customer.android:messaging-push-fcm:$cioVersion"
     implementation "io.customer.android:messaging-in-app:$cioVersion"
     // Visual Notification Inbox UI components (NotificationInboxOverlay/Bell/View).
     implementation "io.customer.android:messaging-inbox:$cioVersion"
 
-    // SPIKE: Compose runtime needed to host the native inbox Compose components.
+    // Compose runtime needed to host the native inbox Compose components.
     def composeBom = platform("androidx.compose:compose-bom:2025.10.00")
     implementation composeBom
     implementation "androidx.compose.ui:ui"
