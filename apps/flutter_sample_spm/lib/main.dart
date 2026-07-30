@@ -5,6 +5,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'src/app.dart';
 import 'src/auth.dart';
+import 'src/quick_action_probe.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -51,11 +52,16 @@ void main() async {
         properties: {"payload": notificationResponse.payload});
   });
 
+  // Quick Actions registers an application delegate with Flutter. Keeping it
+  // in the sample protects the CioAppDelegateWrapper lifecycle integration.
+  final quickActionProbe = QuickActionProbe();
+  await quickActionProbe.initialize();
+
   // Load SDK configurations
   await dotenv.load(fileName: ".env");
   // Wait for user state to be updated
   AmiAppAuth auth = AmiAppAuth();
   await auth.updateState();
   // Initialize and run app
-  runApp(AmiApp(auth: auth));
+  runApp(AmiApp(auth: auth, quickActionProbe: quickActionProbe));
 }

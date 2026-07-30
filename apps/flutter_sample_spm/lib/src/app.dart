@@ -8,6 +8,7 @@ import 'auth.dart';
 import 'color_schemes.g.dart';
 import 'customer_io.dart';
 import 'data/screen.dart';
+import 'quick_action_probe.dart';
 import 'screens/attributes.dart';
 import 'screens/dashboard.dart';
 import 'screens/events.dart';
@@ -24,8 +25,13 @@ import 'utils/logs.dart';
 /// Main entry point of AmiApp
 class AmiApp extends StatefulWidget {
   final AmiAppAuth auth;
+  final QuickActionProbe quickActionProbe;
 
-  const AmiApp({required this.auth, super.key});
+  const AmiApp({
+    required this.auth,
+    required this.quickActionProbe,
+    super.key,
+  });
 
   @override
   State<AmiApp> createState() => _AmiAppState();
@@ -199,6 +205,45 @@ class _AmiAppState extends State<AmiApp> {
           themeMode: ThemeMode.system,
           theme: _createTheme(false),
           darkTheme: _createTheme(true),
+          builder: (context, child) => Stack(
+            fit: StackFit.expand,
+            children: [
+              child ?? const SizedBox.shrink(),
+              AnimatedBuilder(
+                animation: widget.quickActionProbe,
+                builder: (context, _) {
+                  final action = widget.quickActionProbe.lastAction;
+                  if (action == null) {
+                    return const SizedBox.shrink();
+                  }
+                  final callbackCount = widget.quickActionProbe.callbackCount;
+
+                  return IgnorePointer(
+                    child: SafeArea(
+                      minimum: const EdgeInsets.all(16),
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Material(
+                          elevation: 4,
+                          borderRadius: BorderRadius.circular(4),
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Text(
+                              'Quick action received: $action ($callbackCount)',
+                              key: const ValueKey('quick_action_result'),
+                              semanticsLabel:
+                                  'Quick Action Result: $action ($callbackCount)',
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -264,6 +309,7 @@ class _AmiAppState extends State<AmiApp> {
 
     _auth.dispose();
     _customerIOSDK.dispose();
+    widget.quickActionProbe.dispose();
     _router.dispose();
 
     super.dispose();
