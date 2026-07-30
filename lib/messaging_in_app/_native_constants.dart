@@ -7,6 +7,19 @@ class NativeMethods {
   static const String markInboxMessageUnopened = "markInboxMessageUnopened";
   static const String markInboxMessageDeleted = "markInboxMessageDeleted";
   static const String trackInboxMessageClicked = "trackInboxMessageClicked";
+
+  // Inbox event listener registration (Dart -> native)
+  static const String registerInboxEventListener = "registerInboxEventListener";
+  static const String unregisterInboxEventListener =
+      "unregisterInboxEventListener";
+
+  // Inbox event listener callbacks (native -> Dart). Distinct names so they do
+  // not collide with the in-app messageShown/messageDismissed/messageActionTaken
+  // that share the same `customer_io_messaging_in_app` channel.
+  static const String inboxMessageActionTaken = "inboxMessageActionTaken";
+  static const String inboxMessageShown = "inboxMessageShown";
+  static const String inboxMessageOpened = "inboxMessageOpened";
+  static const String inboxMessageDismissed = "inboxMessageDismissed";
 }
 
 /// Method parameters specific to In-App module.

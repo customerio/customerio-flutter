@@ -103,7 +103,9 @@ var targetDependencies: [Target.Dependency] = [
     .product(name: "DataPipelines", package: "customerio-ios"),
     .product(name: "MessagingInApp", package: "customerio-ios"),
     .product(name: "MessagingPushFCM", package: "customerio-ios"),
-    .product(name: "CioFirebaseWrapper", package: "customerio-ios-fcm")
+    .product(name: "CioFirebaseWrapper", package: "customerio-ios-fcm"),
+    // Visual Notification Inbox UI components.
+    .product(name: "MessagingInbox", package: "customerio-ios")
 ]
 
 if useLocation {
@@ -135,6 +137,8 @@ let package = Package(
         .library(name: "customer-io", targets: ["customer_io"])
     ],
     dependencies: [
+        // Pinned exactly, matching `native_sdk_version` in pubspec.yaml and the podspec, so one
+        // plugin version always resolves one native SDK across every package manager.
         .package(url: "https://github.com/customerio/customerio-ios.git", exact: "4.7.0"),
         .package(url: "https://github.com/customerio/customerio-ios-fcm.git", from: "1.0.0")
     ],

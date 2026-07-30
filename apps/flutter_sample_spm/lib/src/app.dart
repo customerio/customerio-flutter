@@ -13,6 +13,7 @@ import 'screens/attributes.dart';
 import 'screens/dashboard.dart';
 import 'screens/events.dart';
 import 'screens/inbox_messages.dart';
+import 'screens/inbox_ui.dart';
 import 'screens/inline_messages.dart';
 import 'screens/live_activities.dart';
 import 'screens/location.dart';
@@ -158,6 +159,11 @@ class _AmiAppState extends State<AmiApp> {
               name: Screen.inboxMessages.name,
               path: Screen.inboxMessages.path,
               builder: (context, state) => const InboxMessagesScreen(),
+            ),
+            GoRoute(
+              name: Screen.inboxUi.name,
+              path: Screen.inboxUi.path,
+              builder: (context, state) => const InboxUiScreen(),
             ),
             GoRoute(
               name: Screen.locationTest.name,
