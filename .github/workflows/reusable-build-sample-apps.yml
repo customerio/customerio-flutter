@@ -227,7 +227,7 @@ jobs:
     defaults:
       run:
         working-directory: apps/${{ inputs.sample_app_name }}
-    runs-on: macos-15
+    runs-on: macos-26
     outputs:
       APP_VERSION_NAME: ${{ steps.set_output.outputs.APP_VERSION_NAME }}
       APP_VERSION_CODE: ${{ steps.set_output.outputs.APP_VERSION_CODE }}
@@ -360,10 +360,12 @@ jobs:
       - name: Install Flutter dependencies for app
         run: flutter pub get
 
+      # No xcode-version here on purpose: the action pins the fleet-wide default
+      # (26.6). This previously passed ${{ env.XCODE_VERSION }}, which was defined
+      # only in the calling workflow — env does not cross a workflow_call boundary,
+      # so it arrived empty and setup-xcode silently resolved `latest` instead.
       - name: Setup iOS environment for sample app
-        uses: customerio/mobile-ci-tools/github-actions/ios/setup-ios/v1@MacOS-15+iOS-26
-        with:
-          xcode-version: ${{ env.XCODE_VERSION }}
+        uses: customerio/mobile-ci-tools/github-actions/ios/setup-ios/v1@macos-26
 
       - name: Cache CocoaPods downloaded dependencies for faster builds in the future
         if: ${{ inputs.sample_app_name != 'flutter_sample_spm' }}
