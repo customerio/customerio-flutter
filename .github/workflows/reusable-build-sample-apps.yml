@@ -365,7 +365,7 @@ jobs:
       # only in the calling workflow — env does not cross a workflow_call boundary,
       # so it arrived empty and setup-xcode silently resolved `latest` instead.
       - name: Setup iOS environment for sample app
-        uses: customerio/mobile-ci-tools/github-actions/ios/setup-ios/v1@macos-26
+        uses: customerio/mobile-ci-tools/github-actions/ios/setup-ios/v1@main
 
       - name: Cache CocoaPods downloaded dependencies for faster builds in the future
         if: ${{ inputs.sample_app_name != 'flutter_sample_spm' }}
