@@ -81,7 +81,7 @@ dependencies {
     // Version can be overridden for local/CI verification via -PcioVersion=<version>
     // (e.g. -PcioVersion=local to build against a mavenLocal build). The committed default
     // tracks the intended published release.
-    def cioVersion = rootProject.findProperty("cioVersion") ?: "4.20.0"
+    def cioVersion = rootProject.findProperty("cioVersion") ?: "4.20.1"
     implementation "io.customer.android:datapipelines:$cioVersion"
     implementation "io.customer.android:messaging-push-fcm:$cioVersion"
     implementation "io.customer.android:messaging-in-app:$cioVersion"

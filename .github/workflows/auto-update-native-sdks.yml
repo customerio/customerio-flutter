@@ -183,7 +183,10 @@ jobs:
             sed -i "s/native_sdk_version: .*/native_sdk_version: $IOS_VERSION/" pubspec.yaml
             # Keep Package.swift in sync with pubspec.yaml native_sdk_version
             sed -i "s/\.package(url: \"https:\/\/github.com\/customerio\/customerio-ios.git\", exact: \".*\"/.package(url: \"https:\/\/github.com\/customerio\/customerio-ios.git\", exact: \"$IOS_VERSION\"/" ios/customer_io/Package.swift
-            echo "✅ iOS version updated in pubspec.yaml and Package.swift"
+            # Keep both sample apps' Live Activities widget pods in sync with native_sdk_version
+            sed -i "s/pod cio_pod, '.*'/pod cio_pod, '$IOS_VERSION'/" apps/flutter_sample_cocoapods/ios/Podfile
+            sed -i -E "s/^([[:space:]]*)version = [0-9]+\.[0-9]+\.[0-9]+;/\1version = $IOS_VERSION;/" apps/flutter_sample_spm/ios/Runner.xcodeproj/project.pbxproj
+            echo "✅ iOS version updated in pubspec.yaml, Package.swift, and both sample apps"
           fi
           
           # Update Android version if needed  
