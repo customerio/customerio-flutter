@@ -1,3 +1,5 @@
+## [4.2.1](https://github.com/customerio/customerio-flutter/compare/4.2.0...4.2.1) (2026-08-07)
+
 ## [4.2.0](https://github.com/customerio/customerio-flutter/compare/4.1.3...4.2.0) (2026-07-30)
 
 ## [4.1.3](https://github.com/customerio/customerio-flutter/compare/4.1.2...4.1.3) (2026-07-24)
