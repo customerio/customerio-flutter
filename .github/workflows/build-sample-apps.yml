@@ -9,9 +9,6 @@ concurrency: # cancel previous workflow run if one exists.
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  XCODE_VERSION: "26.2"
-
 jobs:
   update-pr-comment:
     if: ${{ github.event_name == 'pull_request' }}
