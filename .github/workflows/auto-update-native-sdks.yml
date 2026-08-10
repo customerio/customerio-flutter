@@ -75,14 +75,25 @@ jobs:
       - name: Get current SDK versions
         id: current_versions
         run: |
-          # Get current iOS version from pubspec.yaml
-          current_ios=$(grep 'native_sdk_version:' pubspec.yaml | sed 's/.*native_sdk_version: *//')
+          # Takes the version literal off the matched line instead of assuming its shape, so
+          # wrappers like `findProperty("cioVersion") ?: "<version>"` still parse. Failing to
+          # parse must fail the job: falling back to the raw line reports a bogus update.
+          extract_version() {
+            local label=$1 file=$2 pattern=$3 version
+            version=$(grep -m1 -- "$pattern" "$file" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+[0-9A-Za-z.+-]*' | tail -1)
+            if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+              echo "❌ Could not parse $label version from $file (matched '$pattern', got '$version')" >&2
+              exit 1
+            fi
+            echo "$version"
+          }
+
+          current_ios=$(extract_version "iOS" pubspec.yaml 'native_sdk_version:') || exit 1
           echo "current_ios=$current_ios" >> $GITHUB_OUTPUT
-          
-          # Get current Android version from build.gradle
-          current_android=$(grep 'def cioVersion = ' android/build.gradle | sed 's/.*def cioVersion = "\(.*\)"/\1/')
+
+          current_android=$(extract_version "Android" android/build.gradle 'def cioVersion') || exit 1
           echo "current_android=$current_android" >> $GITHUB_OUTPUT
-          
+
           echo "📋 Current versions:"
           echo "iOS: $current_ios"
           echo "Android: $current_android"
@@ -99,7 +110,7 @@ jobs:
             local repo=$1
             gh api "repos/$repo/releases/latest" --jq '.tag_name' 2>/dev/null | sed 's/^v//' || echo ""
           }
-          
+
           CURRENT_IOS="${{ steps.current_versions.outputs.current_ios }}"
           CURRENT_ANDROID="${{ steps.current_versions.outputs.current_android }}"
           INPUT_IOS="${{ github.event.inputs.ios_version }}"
@@ -116,7 +127,7 @@ jobs:
           if [[ -n "$LATEST_IOS" && "$LATEST_IOS" != "$CURRENT_IOS" ]]; then
             IOS_NEEDS_UPDATE="true"
           fi
-          
+
           if [[ -n "$LATEST_ANDROID" && "$LATEST_ANDROID" != "$CURRENT_ANDROID" ]]; then
             ANDROID_NEEDS_UPDATE="true"
           fi
@@ -177,6 +188,23 @@ jobs:
             ANDROID_VERSION="${{ needs.check-updates.outputs.latest_android }}"
           fi
           
+          # Versions go into grep patterns below. Suffixed versions are accepted upstream, so
+          # escape `+` as well as `.` to keep both literal.
+          IOS_VERSION_RE=${IOS_VERSION//./\\.}
+          IOS_VERSION_RE=${IOS_VERSION_RE//+/\\+}
+          ANDROID_VERSION_RE=${ANDROID_VERSION//./\\.}
+          ANDROID_VERSION_RE=${ANDROID_VERSION_RE//+/\\+}
+
+          # Each edit is verified: a sed that silently stops matching is what produced the
+          # stream of empty PRs this workflow used to open.
+          verify_updated() {
+            local file=$1 pattern=$2
+            if ! grep -qE -- "$pattern" "$file"; then
+              echo "❌ $file was not updated (expected a line matching '$pattern')" >&2
+              exit 1
+            fi
+          }
+
           # Update iOS version if needed
           if [[ -n "$IOS_VERSION" ]]; then
             echo "📝 Updating iOS SDK version to $IOS_VERSION"
@@ -185,14 +213,23 @@ jobs:
             sed -i "s/\.package(url: \"https:\/\/github.com\/customerio\/customerio-ios.git\", exact: \".*\"/.package(url: \"https:\/\/github.com\/customerio\/customerio-ios.git\", exact: \"$IOS_VERSION\"/" ios/customer_io/Package.swift
             # Keep both sample apps' Live Activities widget pods in sync with native_sdk_version
             sed -i "s/pod cio_pod, '.*'/pod cio_pod, '$IOS_VERSION'/" apps/flutter_sample_cocoapods/ios/Podfile
-            sed -i -E "s/^([[:space:]]*)version = [0-9]+\.[0-9]+\.[0-9]+;/\1version = $IOS_VERSION;/" apps/flutter_sample_spm/ios/Runner.xcodeproj/project.pbxproj
+            # `[^;]+` rather than a semver shape: the value being replaced may itself be
+            # suffixed (a beta, say), and the SPM pin is the only `version =` key here.
+            sed -i -E "s/^([[:space:]]*)version = [^;]+;/\1version = $IOS_VERSION;/" apps/flutter_sample_spm/ios/Runner.xcodeproj/project.pbxproj
+            verify_updated pubspec.yaml "native_sdk_version: $IOS_VERSION_RE\$"
+            verify_updated ios/customer_io/Package.swift "customerio-ios\.git\", exact: \"$IOS_VERSION_RE\""
+            verify_updated apps/flutter_sample_cocoapods/ios/Podfile "pod cio_pod, '$IOS_VERSION_RE'"
+            verify_updated apps/flutter_sample_spm/ios/Runner.xcodeproj/project.pbxproj "version = $IOS_VERSION_RE;"
             echo "✅ iOS version updated in pubspec.yaml, Package.swift, and both sample apps"
           fi
-          
-          # Update Android version if needed  
+
+          # Update Android version if needed
           if [[ -n "$ANDROID_VERSION" ]]; then
             echo "📝 Updating Android SDK version to $ANDROID_VERSION"
-            sed -i "s/def cioVersion = \".*\"/def cioVersion = \"$ANDROID_VERSION\"/" android/build.gradle
+            # Replaces the last quoted literal on the line, so both `def cioVersion = "<version>"`
+            # and the `findProperty("cioVersion") ?: "<version>"` form work.
+            sed -i -E "s|(def cioVersion = .*)\"[0-9][^\"]*\"|\1\"$ANDROID_VERSION\"|" android/build.gradle
+            verify_updated android/build.gradle "def cioVersion = .*\"$ANDROID_VERSION_RE\""
             echo "✅ Android version updated"
           fi
 
@@ -214,25 +251,27 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Function to get release notes using gh CLI
-          get_release_notes() {
-            local owner=$1
-            local repo=$2
-            local version=$3
-            
-            # Try with 'v' prefix first, then without
-            for tag in "v$version" "$version"; do
-              gh api "repos/$owner/$repo/releases/tags/$tag" 2>/dev/null && return 0
+          # Both repos tag without a 'v' prefix today; older tags used one.
+          resolve_release_tag() {
+            local repo=$1 version=$2
+            for tag in "$version" "v$version"; do
+              if gh api "repos/customerio/$repo/releases/tags/$tag" --jq '.tag_name' >/dev/null 2>&1; then
+                echo "$tag"
+                return 0
+              fi
             done
             return 1
           }
-          
+
           # Function to extract key changes from release notes
           extract_key_changes() {
-            local release_body="$1"
-            echo "$release_body" | jq -r '.body' | grep -E '^[-*]\s+|^#{1,3}\s+|^[0-9]+\.\s+|^(Added|Fixed|Changed|Updated|Improved|Enhanced):' | head -5 || echo ""
+            local repo=$1 tag=$2
+            gh api "repos/customerio/$repo/releases/tags/$tag" --jq '.body' 2>/dev/null \
+              | tr -d '\r' \
+              | grep -E '^[-*][[:space:]]+|^#{1,3}[[:space:]]+|^[0-9]+\.[[:space:]]+|^(Added|Fixed|Changed|Updated|Improved|Enhanced):' \
+              | head -5 || true
           }
-          
+
           # Function to generate PR title
           generate_title() {
             local ios_updated=$1
@@ -261,129 +300,192 @@ jobs:
           
           # Generate title
           TITLE=$(generate_title "$IOS_UPDATED" "$ANDROID_UPDATED" "$NEW_IOS" "$NEW_ANDROID")
-          
-          # Generate description
-          DESCRIPTION="## Summary
 
-          Automated update of Customer.io native SDK dependencies:
-          
-          "
-          
+          IOS_TAG=""
+          ANDROID_TAG=""
+          IOS_CHANGES=""
+          ANDROID_CHANGES=""
+
           if [[ "$IOS_UPDATED" == "true" ]]; then
-            IOS_RELEASE_URL="https://github.com/customerio/customerio-ios/releases/tag/v$NEW_IOS"
-            DESCRIPTION+="- **iOS SDK**: $CURRENT_IOS → $NEW_IOS ([Release Notes]($IOS_RELEASE_URL))
-          "
-            
-            # Try to get iOS release notes
-            if IOS_RELEASE=$(get_release_notes "customerio" "customerio-ios" "$NEW_IOS"); then
-              IOS_CHANGES=$(extract_key_changes "$IOS_RELEASE")
-              if [[ -n "$IOS_CHANGES" ]]; then
-                DESCRIPTION+="
-
-          ## Key Changes
-          
-          ### iOS SDK $NEW_IOS
-          $IOS_CHANGES
-          "
-              fi
+            IOS_TAG=$(resolve_release_tag "customerio-ios" "$NEW_IOS" || true)
+            if [[ -n "$IOS_TAG" ]]; then
+              IOS_CHANGES=$(extract_key_changes "customerio-ios" "$IOS_TAG")
             fi
           fi
-          
+
           if [[ "$ANDROID_UPDATED" == "true" ]]; then
-            ANDROID_RELEASE_URL="https://github.com/customerio/customerio-android/releases/tag/v$NEW_ANDROID"
-            DESCRIPTION+="- **Android SDK**: $CURRENT_ANDROID → $NEW_ANDROID ([Release Notes]($ANDROID_RELEASE_URL))
-          "
-            
-            # Try to get Android release notes
-            if ANDROID_RELEASE=$(get_release_notes "customerio" "customerio-android" "$NEW_ANDROID"); then
-              ANDROID_CHANGES=$(extract_key_changes "$ANDROID_RELEASE")
-              if [[ -n "$ANDROID_CHANGES" ]]; then
-                if [[ "$IOS_UPDATED" != "true" ]]; then
-                  DESCRIPTION+="
-
-          ## Key Changes
-          "
-                fi
-                DESCRIPTION+="
-
-          ### Android SDK $NEW_ANDROID
-          $ANDROID_CHANGES
-          "
-              fi
+            ANDROID_TAG=$(resolve_release_tag "customerio-android" "$NEW_ANDROID" || true)
+            if [[ -n "$ANDROID_TAG" ]]; then
+              ANDROID_CHANGES=$(extract_key_changes "customerio-android" "$ANDROID_TAG")
             fi
           fi
-          
-          DESCRIPTION+="
 
-          ## Testing
-          
-          - ✅ Flutter analysis passed
-          - ✅ Unit tests passed
-          - ✅ iOS compilation verified
-          - ✅ Android compilation verified
-          - ✅ Sample app builds successfully
-          
-          ## Migration Notes
-          
-          This update maintains API compatibility. Please test your integration thoroughly and review the release notes linked above for any specific changes that might affect your implementation.
-          
-          ---
-          *🤖 This PR was automatically generated and tested*"
-          
+          # A file, not a step output: markdown full of quotes does not survive being
+          # interpolated into a shell command.
+          BODY_FILE="$RUNNER_TEMP/pr_body.md"
+          {
+            echo "## Summary"
+            echo ""
+            echo "Automated update of Customer.io native SDK dependencies:"
+            echo ""
+            if [[ "$IOS_UPDATED" == "true" ]]; then
+              if [[ -n "$IOS_TAG" ]]; then
+                echo "- **iOS SDK**: $CURRENT_IOS → $NEW_IOS ([Release Notes](https://github.com/customerio/customerio-ios/releases/tag/$IOS_TAG))"
+              else
+                echo "- **iOS SDK**: $CURRENT_IOS → $NEW_IOS"
+              fi
+            fi
+            if [[ "$ANDROID_UPDATED" == "true" ]]; then
+              if [[ -n "$ANDROID_TAG" ]]; then
+                echo "- **Android SDK**: $CURRENT_ANDROID → $NEW_ANDROID ([Release Notes](https://github.com/customerio/customerio-android/releases/tag/$ANDROID_TAG))"
+              else
+                echo "- **Android SDK**: $CURRENT_ANDROID → $NEW_ANDROID"
+              fi
+            fi
+
+            if [[ -n "$IOS_CHANGES$ANDROID_CHANGES" ]]; then
+              echo ""
+              echo "## Key Changes"
+              if [[ -n "$IOS_CHANGES" ]]; then
+                echo ""
+                echo "### iOS SDK $NEW_IOS"
+                echo ""
+                echo "$IOS_CHANGES"
+              fi
+              if [[ -n "$ANDROID_CHANGES" ]]; then
+                echo ""
+                echo "### Android SDK $NEW_ANDROID"
+                echo ""
+                echo "$ANDROID_CHANGES"
+              fi
+            fi
+
+            echo ""
+            echo "## Testing"
+            echo ""
+            echo "- ✅ Flutter analysis passed"
+            echo "- ✅ Unit tests passed"
+            echo "- ✅ Sample app builds run on this PR"
+            echo ""
+            echo "## Migration Notes"
+            echo ""
+            echo "This update maintains API compatibility. Please test your integration thoroughly and review the release notes linked above for any specific changes that might affect your implementation."
+            echo ""
+            echo "---"
+            echo "*🤖 This PR was automatically generated and tested*"
+          } > "$BODY_FILE"
+
           # Set outputs
           echo "title=$TITLE" >> $GITHUB_OUTPUT
-          {
-            echo "description<<EOF"
-            echo "$DESCRIPTION"
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
-          
+          echo "body_file=$BODY_FILE" >> $GITHUB_OUTPUT
+
           echo "📝 Generated PR content:"
           echo "Title: $TITLE"
+          cat "$BODY_FILE"
 
       - name: Commit changes
+        env:
+          CURRENT_IOS: ${{ needs.check-updates.outputs.current_ios }}
+          CURRENT_ANDROID: ${{ needs.check-updates.outputs.current_android }}
+          NEW_IOS: ${{ needs.check-updates.outputs.latest_ios }}
+          NEW_ANDROID: ${{ needs.check-updates.outputs.latest_android }}
+          IOS_UPDATED: ${{ needs.check-updates.outputs.ios_needs_update }}
+          ANDROID_UPDATED: ${{ needs.check-updates.outputs.android_needs_update }}
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          
-          git add .
-          git commit -m "chore: update Customer.io native SDK versions
 
-          - iOS: ${{ needs.check-updates.outputs.current_ios }} → ${{ needs.check-updates.outputs.latest_ios }}
-          - Android: ${{ needs.check-updates.outputs.current_android }} → ${{ needs.check-updates.outputs.latest_android }}
-          
-          🤖 Automated update with compilation verification"
+          # Only the version files: `git add .` also swept up regenerated pubspec.lock files
+          # and committed them as an "SDK update".
+          git add \
+            pubspec.yaml \
+            ios/customer_io/Package.swift \
+            android/build.gradle \
+            apps/flutter_sample_cocoapods/ios/Podfile \
+            apps/flutter_sample_spm/ios/Runner.xcodeproj/project.pbxproj
 
-      - name: Check for existing PR with same title
+          if git diff --cached --quiet; then
+            echo "❌ No version changes to commit — nothing was updated" >&2
+            exit 1
+          fi
+
+          MSG_FILE="$RUNNER_TEMP/commit_msg.txt"
+          {
+            echo "chore: update Customer.io native SDK versions"
+            echo ""
+            if [[ "$IOS_UPDATED" == "true" ]]; then
+              echo "- iOS: $CURRENT_IOS → $NEW_IOS"
+            fi
+            if [[ "$ANDROID_UPDATED" == "true" ]]; then
+              echo "- Android: $CURRENT_ANDROID → $NEW_ANDROID"
+            fi
+            echo ""
+            echo "🤖 Automated update"
+          } > "$MSG_FILE"
+
+          git commit -F "$MSG_FILE"
+
+      - name: Check for existing PR with same update
         id: check_existing_pr
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EXPECTED_TITLE: ${{ steps.generate_pr_content.outputs.title }}
+          NEW_IOS: ${{ needs.check-updates.outputs.latest_ios }}
+          NEW_ANDROID: ${{ needs.check-updates.outputs.latest_android }}
+          IOS_UPDATED: ${{ needs.check-updates.outputs.ios_needs_update }}
+          ANDROID_UPDATED: ${{ needs.check-updates.outputs.android_needs_update }}
         run: |
-          EXPECTED_TITLE="${{ steps.generate_pr_content.outputs.title }}"
-          echo "🔍 Checking for existing open PRs with title: $EXPECTED_TITLE"
-          
-          # Use gh pr list with jq to find PRs with exact title match
-          MATCHING_PRS=$(gh pr list --state=open --json number,title | jq -r --arg title "$EXPECTED_TITLE" '.[] | select(.title == $title) | .number')
-          
-          if [[ -n "$MATCHING_PRS" ]]; then
-            # Get first PR number and count total matches
-            FIRST_PR=$(echo "$MATCHING_PRS" | head -n 1)
-            PR_COUNT=$(echo "$MATCHING_PRS" | wc -l | tr -d ' ')
-            
-            if [[ "$PR_COUNT" -gt 1 ]]; then
-              echo "⚠️  Found $PR_COUNT existing open PRs with identical title"
-              echo "📋 PR numbers: $(echo "$MATCHING_PRS" | tr '\n' ' ')"
-              echo "🎯 Using first PR #$FIRST_PR as reference"
-            else
-              echo "⚠️  Found existing open PR #$FIRST_PR with identical title"
+          # Versions go into grep patterns, so `.` and `+` must stay literal.
+          NEW_IOS_RE=${NEW_IOS//./\\.}
+          NEW_IOS_RE=${NEW_IOS_RE//+/\\+}
+          NEW_ANDROID_RE=${NEW_ANDROID//./\\.}
+          NEW_ANDROID_RE=${NEW_ANDROID_RE//+/\\+}
+
+          # Matching on diff as well as title is what catches update PRs opened by hand,
+          # which never match the title we generate.
+          pr_carries_update() {
+            local diff=$1
+            if [[ "$IOS_UPDATED" == "true" ]] && ! grep -qE "^\+.*native_sdk_version: *$NEW_IOS_RE *$" <<< "$diff"; then
+              return 1
             fi
-            
+            if [[ "$ANDROID_UPDATED" == "true" ]] && ! grep -qE "^\+.*def cioVersion = .*\"$NEW_ANDROID_RE\"" <<< "$diff"; then
+              return 1
+            fi
+            return 0
+          }
+
+          echo "🔍 Checking open PRs for this update (title: $EXPECTED_TITLE)"
+          OPEN_PRS=$(gh pr list --state=open --limit 100 --json number,title,author)
+
+          EXISTING_PR=""
+          EXISTING_REASON=""
+
+          MATCHING_PRS=$(jq -r --arg title "$EXPECTED_TITLE" '.[] | select(.title == $title) | .number' <<< "$OPEN_PRS")
+          if [[ -n "$MATCHING_PRS" ]]; then
+            EXISTING_PR=$(head -n 1 <<< "$MATCHING_PRS")
+            EXISTING_REASON="identical title"
+          else
+            while read -r number author; do
+              if [[ -z "$number" ]]; then
+                continue
+              fi
+              DIFF=$(gh pr diff "$number" 2>/dev/null) || continue
+              if pr_carries_update "$DIFF"; then
+                EXISTING_PR="$number"
+                EXISTING_REASON="already bumps these versions (opened by @$author)"
+                break
+              fi
+            done < <(jq -r '.[] | "\(.number) \(.author.login)"' <<< "$OPEN_PRS")
+          fi
+
+          if [[ -n "$EXISTING_PR" ]]; then
+            echo "⚠️  Open PR #$EXISTING_PR $EXISTING_REASON"
             echo "🚫 Skipping PR creation to avoid duplicates"
             echo "existing_pr_found=true" >> $GITHUB_OUTPUT
-            echo "existing_pr_number=$FIRST_PR" >> $GITHUB_OUTPUT
-            echo "duplicate_pr_count=$PR_COUNT" >> $GITHUB_OUTPUT
+            echo "existing_pr_number=$EXISTING_PR" >> $GITHUB_OUTPUT
+            echo "existing_pr_reason=$EXISTING_REASON" >> $GITHUB_OUTPUT
           else
-            echo "✅ No existing PR found with this title"
+            echo "✅ No open PR already carries this update"
             echo "existing_pr_found=false" >> $GITHUB_OUTPUT
           fi
 
@@ -391,34 +493,39 @@ jobs:
         if: steps.check_existing_pr.outputs.existing_pr_found != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_TITLE: ${{ steps.generate_pr_content.outputs.title }}
+          PR_BODY_FILE: ${{ steps.generate_pr_content.outputs.body_file }}
         run: |
           git push origin "$branch_name"
-          
+
           # Create PR
           gh pr create \
-            --title "${{ steps.generate_pr_content.outputs.title }}" \
-            --body "${{ steps.generate_pr_content.outputs.description }}" \
+            --title "$PR_TITLE" \
+            --body-file "$PR_BODY_FILE" \
             --base main \
             --head "$branch_name"
-          
+
           echo "✅ Pull request created successfully!"
 
       - name: Log duplicate PR skip
         if: steps.check_existing_pr.outputs.existing_pr_found == 'true'
+        env:
+          PR_TITLE: ${{ steps.generate_pr_content.outputs.title }}
+          EXISTING_PR: ${{ steps.check_existing_pr.outputs.existing_pr_number }}
+          EXISTING_REASON: ${{ steps.check_existing_pr.outputs.existing_pr_reason }}
         run: |
           echo "🚫 PR creation skipped due to existing duplicate"
-          if [[ "${{ steps.check_existing_pr.outputs.duplicate_pr_count }}" -gt 1 ]]; then
-            echo "📋 Found ${{ steps.check_existing_pr.outputs.duplicate_pr_count }} existing PRs with identical title"
-            echo "🎯 Reference PR: #${{ steps.check_existing_pr.outputs.existing_pr_number }}"
-          else
-            echo "📋 Existing PR: #${{ steps.check_existing_pr.outputs.existing_pr_number }}"
-          fi
-          echo "🏷️  Title: ${{ steps.generate_pr_content.outputs.title }}"
+          echo "📋 Existing PR: #$EXISTING_PR ($EXISTING_REASON)"
+          echo "🏷️  Title: $PR_TITLE"
           echo ""
-          echo "ℹ️  Open PR(s) with identical title already exist."
+          echo "ℹ️  An open PR already carries this update."
           echo "   No new PR will be created to avoid duplicates."
 
       - name: Post workflow summary
+        env:
+          PR_TITLE: ${{ steps.generate_pr_content.outputs.title }}
+          EXISTING_PR: ${{ steps.check_existing_pr.outputs.existing_pr_number }}
+          EXISTING_REASON: ${{ steps.check_existing_pr.outputs.existing_pr_reason }}
         run: |
           echo "## 🚀 Native SDK Update Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -436,21 +543,16 @@ jobs:
           if [[ "${{ steps.check_existing_pr.outputs.existing_pr_found }}" != "true" ]]; then
             echo "- ✅ Sample app compilation will be tested after PR creation" >> $GITHUB_STEP_SUMMARY
           else
-            echo "- ✅ Sample app compilation will be tested on existing PR #${{ steps.check_existing_pr.outputs.existing_pr_number }}" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Sample app compilation will be tested on existing PR #$EXISTING_PR" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
           if [[ "${{ steps.check_existing_pr.outputs.existing_pr_found }}" == "true" ]]; then
             echo "### ⚠️ PR Creation Skipped" >> $GITHUB_STEP_SUMMARY
-            if [[ "${{ steps.check_existing_pr.outputs.duplicate_pr_count }}" -gt 1 ]]; then
-              echo "- 🚫 Found ${{ steps.check_existing_pr.outputs.duplicate_pr_count }} duplicate PRs with identical title" >> $GITHUB_STEP_SUMMARY
-              echo "- 🎯 **Reference PR**: #${{ steps.check_existing_pr.outputs.existing_pr_number }}" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "- 🚫 Duplicate PR detected: #${{ steps.check_existing_pr.outputs.existing_pr_number }}" >> $GITHUB_STEP_SUMMARY
-            fi
-            echo "- 🏷️ **Title**: ${{ steps.generate_pr_content.outputs.title }}" >> $GITHUB_STEP_SUMMARY
+            echo "- 🚫 Existing PR #$EXISTING_PR — $EXISTING_REASON" >> $GITHUB_STEP_SUMMARY
+            echo "- 🏷️ **Title**: $PR_TITLE" >> $GITHUB_STEP_SUMMARY
             echo "- 🌱 **Branch created**: \`$branch_name\` (not pushed)" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "ℹ️ Open PR(s) with identical title already exist. No duplicate PR was created." >> $GITHUB_STEP_SUMMARY
+            echo "ℹ️ An open PR already carries this update. No duplicate PR was created." >> $GITHUB_STEP_SUMMARY
           else
             echo "**Branch created**: \`$branch_name\`" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
