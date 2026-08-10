@@ -188,9 +188,12 @@ jobs:
             ANDROID_VERSION="${{ needs.check-updates.outputs.latest_android }}"
           fi
           
-          # Versions go into grep patterns below, so the dots must stay literal.
+          # Versions go into grep patterns below. Suffixed versions are accepted upstream, so
+          # escape `+` as well as `.` to keep both literal.
           IOS_VERSION_RE=${IOS_VERSION//./\\.}
+          IOS_VERSION_RE=${IOS_VERSION_RE//+/\\+}
           ANDROID_VERSION_RE=${ANDROID_VERSION//./\\.}
+          ANDROID_VERSION_RE=${ANDROID_VERSION_RE//+/\\+}
 
           # Each edit is verified: a sed that silently stops matching is what produced the
           # stream of empty PRs this workflow used to open.
@@ -210,7 +213,9 @@ jobs:
             sed -i "s/\.package(url: \"https:\/\/github.com\/customerio\/customerio-ios.git\", exact: \".*\"/.package(url: \"https:\/\/github.com\/customerio\/customerio-ios.git\", exact: \"$IOS_VERSION\"/" ios/customer_io/Package.swift
             # Keep both sample apps' Live Activities widget pods in sync with native_sdk_version
             sed -i "s/pod cio_pod, '.*'/pod cio_pod, '$IOS_VERSION'/" apps/flutter_sample_cocoapods/ios/Podfile
-            sed -i -E "s/^([[:space:]]*)version = [0-9]+\.[0-9]+\.[0-9]+;/\1version = $IOS_VERSION;/" apps/flutter_sample_spm/ios/Runner.xcodeproj/project.pbxproj
+            # `[^;]+` rather than a semver shape: the value being replaced may itself be
+            # suffixed (a beta, say), and the SPM pin is the only `version =` key here.
+            sed -i -E "s/^([[:space:]]*)version = [^;]+;/\1version = $IOS_VERSION;/" apps/flutter_sample_spm/ios/Runner.xcodeproj/project.pbxproj
             verify_updated pubspec.yaml "native_sdk_version: $IOS_VERSION_RE\$"
             verify_updated ios/customer_io/Package.swift "customerio-ios\.git\", exact: \"$IOS_VERSION_RE\""
             verify_updated apps/flutter_sample_cocoapods/ios/Podfile "pod cio_pod, '$IOS_VERSION_RE'"
@@ -430,9 +435,11 @@ jobs:
           IOS_UPDATED: ${{ needs.check-updates.outputs.ios_needs_update }}
           ANDROID_UPDATED: ${{ needs.check-updates.outputs.android_needs_update }}
         run: |
-          # Versions go into grep patterns, so the dots must stay literal.
+          # Versions go into grep patterns, so `.` and `+` must stay literal.
           NEW_IOS_RE=${NEW_IOS//./\\.}
+          NEW_IOS_RE=${NEW_IOS_RE//+/\\+}
           NEW_ANDROID_RE=${NEW_ANDROID//./\\.}
+          NEW_ANDROID_RE=${NEW_ANDROID_RE//+/\\+}
 
           # Matching on diff as well as title is what catches update PRs opened by hand,
           # which never match the title we generate.
