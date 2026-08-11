@@ -104,7 +104,7 @@ jobs:
           SIMULATOR_SDK: ${{ steps.preview.outputs.simulator-sdk }}
         run: |
           set -o pipefail
-          if ! flutter build ios --simulator --debug --no-pub 2>&1 | tee "$RUNNER_TEMP/xcode27-flutter-build.log"; then
+          if ! flutter --verbose build ios --simulator --debug --no-pub 2>&1 | tee "$RUNNER_TEMP/xcode27-flutter-build.log"; then
             echo "::error title=Xcode 27 SDK compile regression ($DEPENDENCY_MANAGER)::The pinned toolchain passed, but the Flutter fixture did not compile."
             {
               echo "## Flutter $DEPENDENCY_MANAGER fixture"
@@ -121,3 +121,12 @@ jobs:
             echo "**Toolchain:** Flutter 3.41.6, Xcode $XCODE_VERSION build $XCODE_BUILD, iphonesimulator$SIMULATOR_SDK"
             echo "**Scope:** compile-only; no launch, callback, or push-delivery claim"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Flutter build log
+        if: ${{ always() && !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: xcode27-${{ matrix.app }}-build-log
+          path: ${{ runner.temp }}/xcode27-flutter-build.log
+          if-no-files-found: ignore
+          retention-days: 7
