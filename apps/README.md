@@ -48,6 +48,22 @@ For a guided interactive walkthrough:
 - **PRs and pushes**: both apps are built to verify SPM and CocoaPods compatibility
 - **SDK releases**: only the primary app is built
 
+### Xcode 27 Flutter toolchain
+
+The Xcode 27 compile lane must use the exact Flutter version recorded in both
+sample apps' `.flutter-version` files. Flutter `3.44.8` is the first stable
+release containing the [upstream fix](https://github.com/flutter/flutter/pull/188625)
+for Xcode 27 rejecting multi-architecture
+`lipo -verify_arch` calls. The lane must run
+`apps/scripts/verify_xcode27_flutter_version.sh` before installing Flutter and
+run it again with `--installed` after setup, in the same `PATH` context used by
+the subsequent Flutter build.
+
+This pairing is an Xcode 27 build-tool requirement. It does not raise the
+published `customer_io` package minimum of Flutter `2.5.0`. Any deliberate
+older-Flutter compatibility check must remain on an appropriate older Xcode
+lane and must not be represented as Xcode 27-compatible.
+
 ## iOS App Delegate Regression Check
 
 Both samples register a `quick_actions` lifecycle delegate to verify that the
