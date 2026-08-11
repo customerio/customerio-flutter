@@ -380,6 +380,15 @@ jobs:
         if: ${{ inputs.sample_app_name != 'flutter_sample_spm' }}
         run: pod install --project-directory=ios
 
+      - name: Audit CocoaPods deployment targets
+        if: ${{ inputs.sample_app_name == 'flutter_sample_cocoapods' }}
+        run: |
+          bundle exec ruby ../../scripts/test_cocoapods_deployment_target.rb
+          bundle exec ruby ../../scripts/audit_cocoapods_deployment_targets.rb \
+            --minimum 15.0 \
+            ios/Pods \
+            ios/Runner.xcodeproj
+
       - name: Build and upload iOS app via Fastlane
         if: ${{ inputs.should_distribute }}
         id: ios_build
