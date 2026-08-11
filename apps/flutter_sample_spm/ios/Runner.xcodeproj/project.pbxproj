@@ -955,7 +955,7 @@
 			repositoryURL = "https://github.com/customerio/customerio-ios.git";
 			requirement = {
 				kind = exactVersion;
-				version = 4.7.2;
+				version = 4.7.3;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
