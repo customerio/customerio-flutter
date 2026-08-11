@@ -21,7 +21,7 @@ Pod::Spec.new do |s|
   s.source      = { :path => '.' }
   s.source_files = 'customer_io/Sources/customer_io/**/*'
   s.dependency 'Flutter'
-  s.platform = :ios, '13.0'
+  s.platform = :ios, '15.0'
 
   # Careful when declaring dependencies here. All dependencies will be included in the App Extension target in Xcode, not the host iOS app.
   # s.dependency "X", "X"

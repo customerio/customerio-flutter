@@ -19,7 +19,7 @@ Pod::Spec.new do |s|
   s.source      = { :path => '.' }
   s.source_files = 'customer_io/Sources/customer_io/**/*.swift'
   s.dependency 'Flutter'
-  s.platform = :ios, '13.0'
+  s.platform = :ios, '15.0'
 
   # Native SDK dependencies that are required for the Flutter plugin to work.
   s.dependency "CustomerIO/DataPipelines", native_sdk_version
