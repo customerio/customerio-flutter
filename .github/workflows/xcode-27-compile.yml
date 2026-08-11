@@ -45,15 +45,25 @@ jobs:
         id: preview
         uses: ./.github/actions/verify-xcode-27-preview
 
+      - name: Verify pinned Flutter requirement
+        id: flutter-pin
+        shell: bash
+        run: |
+          ./apps/scripts/verify_xcode27_flutter_version.sh
+          flutter_version="$(<"apps/${{ matrix.app }}/.flutter-version")"
+          echo "version=$flutter_version" >> "$GITHUB_OUTPUT"
+
       - name: Install pinned Flutter
         uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046 # v2.19.0
         with:
           channel: stable
-          flutter-version: 3.41.6
+          flutter-version: ${{ steps.flutter-pin.outputs.version }}
 
-      - name: Print Flutter toolchain
+      - name: Verify installed Flutter toolchain
         shell: bash
-        run: flutter --version
+        run: |
+          ./apps/scripts/verify_xcode27_flutter_version.sh --installed
+          flutter --version
 
       - name: Install pinned CocoaPods
         if: matrix.manager == 'CocoaPods'
@@ -99,6 +109,7 @@ jobs:
         working-directory: apps/${{ matrix.app }}
         env:
           DEPENDENCY_MANAGER: ${{ matrix.manager }}
+          FLUTTER_VERSION: ${{ steps.flutter-pin.outputs.version }}
           XCODE_BUILD: ${{ steps.preview.outputs.xcode-build }}
           XCODE_VERSION: ${{ steps.preview.outputs.xcode-version }}
           SIMULATOR_SDK: ${{ steps.preview.outputs.simulator-sdk }}
@@ -110,7 +121,7 @@ jobs:
               echo "## Flutter $DEPENDENCY_MANAGER fixture"
               echo
               echo "**Classification:** sdk-compile-failure"
-              echo "**Toolchain:** Flutter 3.41.6, Xcode $XCODE_VERSION build $XCODE_BUILD, iphonesimulator$SIMULATOR_SDK"
+              echo "**Toolchain:** Flutter $FLUTTER_VERSION, Xcode $XCODE_VERSION build $XCODE_BUILD, iphonesimulator$SIMULATOR_SDK"
             } >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
@@ -118,7 +129,7 @@ jobs:
             echo "## Flutter $DEPENDENCY_MANAGER fixture"
             echo
             echo "**Classification:** compile-passed"
-            echo "**Toolchain:** Flutter 3.41.6, Xcode $XCODE_VERSION build $XCODE_BUILD, iphonesimulator$SIMULATOR_SDK"
+            echo "**Toolchain:** Flutter $FLUTTER_VERSION, Xcode $XCODE_VERSION build $XCODE_BUILD, iphonesimulator$SIMULATOR_SDK"
             echo "**Scope:** compile-only; no launch, callback, or push-delivery claim"
           } >> "$GITHUB_STEP_SUMMARY"
 
