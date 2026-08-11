@@ -14,6 +14,9 @@ This is the official Customer.io Flutter plugin.
 
 You'll find our complete [SDK documentation here](https://customer.io/docs/sdk/flutter/). 
 
+If a CocoaPods build reports that a generated dependency target is below the deployment range
+supported by Xcode, follow the [deployment-target normalization guide](docs/cocoapods-deployment-target-normalization.md).
+
 # Live Activities
 
 Enable the activity types you use via `liveNotificationsConfig` in your `CustomerIOConfig`. On iOS, Live Activities are opt-in: add the `liveactivities` pod subspec (CocoaPods) or set `customerio_live_activities_enabled=true` in `android/gradle.properties` (Swift Package Manager), plus a Widget Extension that renders the SDK's built-in templates.
