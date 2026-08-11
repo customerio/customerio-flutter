@@ -1,0 +1,123 @@
+name: Xcode 27 Flutter fixtures
+
+on:
+  pull_request:
+    paths:
+      - ".github/actions/verify-xcode-27-preview/**"
+      - ".github/workflows/xcode-27-compile.yml"
+      - "apps/flutter_sample_cocoapods/**"
+      - "apps/flutter_sample_spm/**"
+      - "apps/scripts/**"
+      - "ios/**"
+      - "lib/**"
+      - "pubspec.yaml"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: xcode-27-flutter-fixtures-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    name: Xcode 27 compile (${{ matrix.manager }})
+    runs-on: xcode-27
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: flutter_sample_cocoapods
+            manager: CocoaPods
+          - app: flutter_sample_spm
+            manager: SwiftPM
+    steps:
+      - name: Check out Flutter SDK
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # Keep this before Flutter setup and pub get. Flutter inspects the selected
+      # Xcode while generating its SwiftPM package, and the guard exports DEVELOPER_DIR.
+      - name: Verify pinned preview toolchain
+        id: preview
+        uses: ./.github/actions/verify-xcode-27-preview
+
+      - name: Install pinned Flutter
+        uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046 # v2.19.0
+        with:
+          channel: stable
+          flutter-version: 3.41.6
+
+      - name: Print Flutter toolchain
+        shell: bash
+        run: flutter --version
+
+      - name: Install pinned CocoaPods
+        if: matrix.manager == 'CocoaPods'
+        shell: bash
+        run: gem install cocoapods -v 1.16.2 --no-document
+
+      - name: Prepare fixture
+        shell: bash
+        env:
+          APP: ${{ matrix.app }}
+          DEPENDENCY_MANAGER: ${{ matrix.manager }}
+        run: |
+          set -o pipefail
+          if ! ./apps/scripts/setup_env.sh "apps/$APP" 2>&1 | tee "$RUNNER_TEMP/flutter-setup-env.log"; then
+            echo "::error title=Xcode 27 fixture preparation failure::$DEPENDENCY_MANAGER environment setup failed. No compile conclusion is available."
+            echo "**Classification:** fixture-preparation-failure" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          cd "apps/$APP"
+          if [[ "$DEPENDENCY_MANAGER" == "SwiftPM" ]]; then
+            if ! flutter config --enable-swift-package-manager; then
+              echo "::error title=Xcode 27 fixture preparation failure::Flutter could not enable SwiftPM. No compile conclusion is available."
+              echo "**Classification:** fixture-preparation-failure" >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+            export FLUTTER_SWIFT_PACKAGE_MANAGER=true
+            echo "FLUTTER_SWIFT_PACKAGE_MANAGER=true" >> "$GITHUB_ENV"
+          fi
+          if ! flutter pub get 2>&1 | tee "$RUNNER_TEMP/flutter-pub-get.log"; then
+            echo "::error title=Xcode 27 fixture preparation failure::$DEPENDENCY_MANAGER dependency resolution failed. No compile conclusion is available."
+            echo "**Classification:** fixture-preparation-failure" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          if [[ "$DEPENDENCY_MANAGER" == "CocoaPods" ]] && \
+            ! pod install --project-directory=ios 2>&1 | tee "$RUNNER_TEMP/flutter-pod-install.log"; then
+            echo "::error title=Xcode 27 fixture preparation failure::CocoaPods resolution failed. No compile conclusion is available."
+            echo "**Classification:** fixture-preparation-failure" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      - name: Compile Flutter fixture
+        shell: bash
+        working-directory: apps/${{ matrix.app }}
+        env:
+          DEPENDENCY_MANAGER: ${{ matrix.manager }}
+          XCODE_BUILD: ${{ steps.preview.outputs.xcode-build }}
+          XCODE_VERSION: ${{ steps.preview.outputs.xcode-version }}
+          SIMULATOR_SDK: ${{ steps.preview.outputs.simulator-sdk }}
+        run: |
+          set -o pipefail
+          if ! flutter build ios --simulator --debug --no-pub 2>&1 | tee "$RUNNER_TEMP/xcode27-flutter-build.log"; then
+            echo "::error title=Xcode 27 SDK compile regression ($DEPENDENCY_MANAGER)::The pinned toolchain passed, but the Flutter fixture did not compile."
+            {
+              echo "## Flutter $DEPENDENCY_MANAGER fixture"
+              echo
+              echo "**Classification:** sdk-compile-failure"
+              echo "**Toolchain:** Flutter 3.41.6, Xcode $XCODE_VERSION build $XCODE_BUILD, iphonesimulator$SIMULATOR_SDK"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          {
+            echo "## Flutter $DEPENDENCY_MANAGER fixture"
+            echo
+            echo "**Classification:** compile-passed"
+            echo "**Toolchain:** Flutter 3.41.6, Xcode $XCODE_VERSION build $XCODE_BUILD, iphonesimulator$SIMULATOR_SDK"
+            echo "**Scope:** compile-only; no launch, callback, or push-delivery claim"
+          } >> "$GITHUB_STEP_SUMMARY"
