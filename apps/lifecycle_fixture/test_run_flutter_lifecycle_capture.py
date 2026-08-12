@@ -1,7 +1,11 @@
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
+import signal
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -55,6 +59,307 @@ def _write_trace(path: Path, record: dict, *, drops: int = 0) -> None:
 
 
 class FlutterLifecycleCaptureTests(unittest.TestCase):
+    @staticmethod
+    def _completed(arguments, returncode=0, stdout=""):
+        return MODULE.subprocess.CompletedProcess(arguments, returncode, stdout, "")
+
+    def testSimulatorProcessIds_parsesExactUIKitApplicationLabel(self):
+        listing = """PID Status Label
+8502 0 UIKitApplication:io.customer.testbed.flutter.spm[abc][rb-legacy]
+9001 0 UIKitApplication:io.customer.testbed.flutter.spm.other[abc][rb-legacy]
+- 0 com.apple.SpringBoard
+"""
+        with patch.object(MODULE, "_run", return_value=listing):
+            self.assertEqual(
+                MODULE._simulator_process_ids(
+                    Path("."), "SIMULATOR", "io.customer.testbed.flutter.spm"
+                ),
+                [8502],
+            )
+
+    def testStimulusConfiguration_simctlCannotClaimAppIconEvidence(self):
+        self.assertEqual(
+            MODULE._stimulus_configuration("simctl-diagnostic"),
+            ("diagnostic", "simulator-control"),
+        )
+        self.assertEqual(
+            MODULE._stimulus_configuration("manual-app-icon"),
+            ("L2", "app-icon"),
+        )
+
+    def testManualAppIconMode_neverInvokesSimctlLaunch(self):
+        with patch.object(MODULE, "_set_simulator_environment", return_value=["KEY"]), patch.object(
+            MODULE, "_simulator_process_ids", return_value=[]
+        ), patch.object(MODULE, "_run") as run, patch.object(
+            MODULE.sys, "stdin", io.StringIO("\n")
+        ):
+            process_id, keys, initiated_at = MODULE._initiate_stimulus(
+                "manual-app-icon",
+                Path("."),
+                "SIMULATOR",
+                "example.bundle",
+                {"KEY": "value"},
+            )
+
+        self.assertIsNone(process_id)
+        self.assertEqual(keys, ["KEY"])
+        self.assertTrue(initiated_at.endswith("Z"))
+        run.assert_not_called()
+
+    def testManualAppIconMode_timestampsOnlyAfterOperatorConfirmation(self):
+        class ConfirmingInput:
+            def readline(inner_self):
+                self.assertEqual(timestamp.call_count, 0)
+                return "\n"
+
+        with patch.object(
+            MODULE, "_set_simulator_environment", return_value=["KEY"]
+        ), patch.object(
+            MODULE, "_simulator_process_ids", return_value=[]
+        ), patch.object(
+            MODULE.sys, "stdin", ConfirmingInput()
+        ), patch.object(
+            MODULE, "_timestamp", return_value="2026-08-12T12:00:00.000Z"
+        ) as timestamp:
+            _, _, initiated_at = MODULE._initiate_stimulus(
+                "manual-app-icon",
+                Path("."),
+                "SIMULATOR",
+                "example.bundle",
+                {"KEY": "value"},
+            )
+
+        timestamp.assert_called_once_with()
+        self.assertEqual(initiated_at, "2026-08-12T12:00:00.000Z")
+
+    def testManualAppIconMode_missingConfirmationFailsAndCleansEnvironment(self):
+        with patch.object(
+            MODULE, "_set_simulator_environment", return_value=["KEY"]
+        ), patch.object(
+            MODULE, "_simulator_process_ids", return_value=[]
+        ), patch.object(
+            MODULE.sys, "stdin", io.StringIO("")
+        ), patch.object(MODULE, "_clear_simulator_environment") as clear:
+            with self.assertRaisesRegex(MODULE.CaptureError, "not confirmed"):
+                MODULE._initiate_stimulus(
+                    "manual-app-icon",
+                    Path("."),
+                    "SIMULATOR",
+                    "example.bundle",
+                    {"KEY": "value"},
+                )
+
+        clear.assert_called_once_with(Path("."), "SIMULATOR", ["KEY"])
+
+    def testDiagnosticMode_invokesSimctlLaunchAndReturnsItsPid(self):
+        with patch.object(
+            MODULE, "_run", return_value="example.bundle: 42"
+        ) as run:
+            process_id, keys, initiated_at = MODULE._initiate_stimulus(
+                "simctl-diagnostic",
+                Path("."),
+                "SIMULATOR",
+                "example.bundle",
+                {"KEY": "value"},
+            )
+
+        self.assertEqual(process_id, 42)
+        self.assertEqual(keys, [])
+        self.assertTrue(initiated_at.endswith("Z"))
+        self.assertIn("launch", run.call_args.args[0])
+
+    def testManualAppIconMode_alreadyRunningFailsClosedAndCleansEnvironment(self):
+        with patch.object(MODULE, "_set_simulator_environment", return_value=["KEY"]), patch.object(
+            MODULE, "_simulator_process_ids", return_value=[42]
+        ), patch.object(MODULE, "_clear_simulator_environment") as clear:
+            with self.assertRaisesRegex(MODULE.CaptureError, "already running"):
+                MODULE._initiate_stimulus(
+                    "manual-app-icon",
+                    Path("."),
+                    "SIMULATOR",
+                    "example.bundle",
+                    {"KEY": "value"},
+                )
+        clear.assert_called_once_with(Path("."), "SIMULATOR", ["KEY"])
+
+    def testManualAppIconMode_processQueryFailureCleansEnvironment(self):
+        with patch.object(MODULE, "_set_simulator_environment", return_value=["KEY"]), patch.object(
+            MODULE, "_simulator_process_ids", side_effect=MODULE.CaptureError("query failed")
+        ), patch.object(MODULE, "_clear_simulator_environment") as clear:
+            with self.assertRaisesRegex(MODULE.CaptureError, "query failed"):
+                MODULE._initiate_stimulus(
+                    "manual-app-icon",
+                    Path("."),
+                    "SIMULATOR",
+                    "example.bundle",
+                    {"KEY": "value"},
+                )
+        clear.assert_called_once_with(Path("."), "SIMULATOR", ["KEY"])
+
+    def testManualAppIconMode_waitTimeoutCleansEnvironment(self):
+        with patch.object(
+            MODULE,
+            "_initiate_stimulus",
+            return_value=(None, ["KEY"], MODULE._timestamp()),
+        ), patch.object(
+            MODULE, "_wait_for_files", side_effect=MODULE.CaptureError("timed out")
+        ), patch.object(MODULE, "_clear_simulator_environment") as clear:
+            with self.assertRaisesRegex(MODULE.CaptureError, "timed out"):
+                MODULE._await_stimulus_capture(
+                    "manual-app-icon",
+                    Path("/repo"),
+                    "SIMULATOR",
+                    "example.bundle",
+                    {"KEY": "value"},
+                    [Path("swift")],
+                    0.01,
+                )
+        clear.assert_called_once_with(Path("/repo"), "SIMULATOR", ["KEY"])
+
+    def testClearSimulatorEnvironment_unsetsAndVerifiesEmpty(self):
+        completed = [
+            self._completed(["unsetenv"]),
+            self._completed(["getenv"]),
+        ]
+        with patch.object(MODULE.subprocess, "run", side_effect=completed) as run:
+            MODULE._clear_simulator_environment(Path("/repo"), "SIMULATOR", ["KEY"])
+
+        self.assertEqual(run.call_count, 2)
+        self.assertIn("unsetenv", run.call_args_list[0].args[0])
+        self.assertIn("getenv", run.call_args_list[1].args[0])
+
+    def testClearSimulatorEnvironment_unsetFailureFailsClosed(self):
+        completed = [
+            self._completed(["unsetenv"], returncode=1),
+            self._completed(["getenv"]),
+        ]
+        with patch.object(MODULE.subprocess, "run", side_effect=completed):
+            with self.assertRaisesRegex(MODULE.CaptureError, "KEY unsetenv exited 1"):
+                MODULE._clear_simulator_environment(Path("/repo"), "SIMULATOR", ["KEY"])
+
+    def testClearSimulatorEnvironment_valueStillSetFailsClosed(self):
+        completed = [
+            self._completed(["unsetenv"]),
+            self._completed(["getenv"], stdout="stale-value\n"),
+        ]
+        with patch.object(MODULE.subprocess, "run", side_effect=completed):
+            with self.assertRaisesRegex(MODULE.CaptureError, "KEY remained set"):
+                MODULE._clear_simulator_environment(Path("/repo"), "SIMULATOR", ["KEY"])
+
+    def testClearSimulatorEnvironment_partialFailureStillAttemptsEveryKey(self):
+        completed = [
+            self._completed(["unsetenv"], returncode=1),
+            self._completed(["getenv"], stdout="stale\n"),
+            self._completed(["unsetenv"]),
+            self._completed(["getenv"]),
+        ]
+        with patch.object(MODULE.subprocess, "run", side_effect=completed) as run:
+            with self.assertRaisesRegex(MODULE.CaptureError, "cleanup failed"):
+                MODULE._clear_simulator_environment(
+                    Path("/repo"), "SIMULATOR", ["FIRST", "SECOND"]
+                )
+
+        self.assertEqual(run.call_count, 4)
+        self.assertIn("SECOND", run.call_args_list[0].args[0])
+        self.assertIn("FIRST", run.call_args_list[2].args[0])
+
+    def testWaitTimeout_preservesPrimaryErrorWhenCleanupAlsoFails(self):
+        with patch.object(
+            MODULE,
+            "_initiate_stimulus",
+            return_value=(None, ["KEY"], MODULE._timestamp()),
+        ), patch.object(
+            MODULE, "_wait_for_files", side_effect=MODULE.CaptureError("timed out")
+        ), patch.object(
+            MODULE,
+            "_clear_simulator_environment",
+            side_effect=MODULE.CaptureError("cleanup failed"),
+        ):
+            with self.assertRaisesRegex(
+                MODULE.CaptureError, "timed out; additionally, cleanup failed"
+            ):
+                MODULE._await_stimulus_capture(
+                    "manual-app-icon",
+                    Path("/repo"),
+                    "SIMULATOR",
+                    "example.bundle",
+                    {"KEY": "value"},
+                    [Path("swift")],
+                    0.01,
+                )
+
+    def testManualCapture_ignoresManagedSignalsDuringCleanupAndRestoresHandlers(self):
+        previous_hup = signal.getsignal(signal.SIGHUP)
+        previous_term = signal.getsignal(signal.SIGTERM)
+        cleared = []
+
+        def cleanup(root, simulator_id, keys):
+            os.kill(os.getpid(), signal.SIGTERM)
+            cleared.extend(keys)
+
+        with patch.object(
+            MODULE,
+            "_initiate_stimulus",
+            return_value=(None, ["FIRST", "SECOND"], MODULE._timestamp()),
+        ), patch.object(MODULE, "_wait_for_files"), patch.object(
+            MODULE, "_clear_simulator_environment", side_effect=cleanup
+        ):
+            MODULE._await_stimulus_capture(
+                "manual-app-icon",
+                Path("/repo"),
+                "SIMULATOR",
+                "example.bundle",
+                {"KEY": "value"},
+                [Path("swift")],
+                0.01,
+            )
+
+        self.assertEqual(cleared, ["FIRST", "SECOND"])
+        self.assertIs(signal.getsignal(signal.SIGHUP), previous_hup)
+        self.assertIs(signal.getsignal(signal.SIGTERM), previous_term)
+
+    def testManualCapture_termDuringWaitRunsCleanupAndRestoresHandler(self):
+        with tempfile.TemporaryDirectory() as directory:
+            cleanup = Path(directory) / "cleanup"
+            script = f"""
+import importlib.util
+from pathlib import Path
+import signal
+import time
+
+spec = importlib.util.spec_from_file_location('capture', {str(SCRIPT)!r})
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+cleanup = Path({str(cleanup)!r})
+module._initiate_stimulus = lambda *args: (None, ['FIRST', 'SECOND'], module._timestamp())
+def wait(*args):
+    print('WAITING', flush=True)
+    time.sleep(30)
+module._wait_for_files = wait
+module._clear_simulator_environment = lambda root, simulator, keys: cleanup.write_text(','.join(keys))
+try:
+    module._await_stimulus_capture('manual-app-icon', Path('.'), 'SIMULATOR', 'bundle', {{}}, [Path('trace')], 30)
+except module.CaptureError as error:
+    print(error)
+print('RESTORED=' + str(signal.getsignal(signal.SIGTERM) is signal.SIG_DFL), flush=True)
+"""
+            process = subprocess.Popen(
+                [sys.executable, "-c", script],
+                cwd=SCRIPT.parent,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+            )
+            assert process.stdout is not None
+            self.assertEqual(process.stdout.readline().strip(), "WAITING")
+            process.send_signal(signal.SIGTERM)
+            output, _ = process.communicate(timeout=5)
+
+            self.assertEqual(process.returncode, 0, output)
+            self.assertEqual(cleanup.read_text(), "FIRST,SECOND")
+            self.assertIn("interrupted by SIGTERM", output)
+            self.assertIn("RESTORED=True", output)
+
     def testContentSnapshot_directorySymlink_failsClosed(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -67,6 +372,52 @@ class FlutterLifecycleCaptureTests(unittest.TestCase):
                 MODULE.CaptureError, "resolved Customer.io dependency contains unsafe input"
             ):
                 MODULE._content_snapshot(root)
+
+    def testContentSnapshot_unusedOverride_failsClosed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "file.txt").write_text("value\n", encoding="utf-8")
+            with self.assertRaisesRegex(MODULE.CaptureError, "did not match"):
+                MODULE._content_snapshot(root, {"missing.txt": "a" * 64})
+
+    def testCocoaDependencyProvenance_rejectsPostReceiptTreeMutation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source_root = Path(directory) / "repo"
+            derived_data = Path(directory) / "derived"
+            dependency = (
+                source_root
+                / "apps/flutter_sample_cocoapods/ios/Pods/CustomerIOMessagingPushFCM"
+            )
+            source = dependency / "Sources/MessagingPushFCM/Integration/CioAppDelegateFCM.swift"
+            source.parent.mkdir(parents=True)
+            source.write_bytes(
+                (SCRIPT.parent / "testdata/CioAppDelegateFCM-4.7.2.swift").read_bytes()
+            )
+            other = dependency / "Sources/Other.swift"
+            other.write_text("original\n", encoding="utf-8")
+            lock = source_root / "apps/flutter_sample_cocoapods/ios/Podfile.lock"
+            lock.write_text("CustomerIOMessagingPushFCM (4.7.2)\n", encoding="utf-8")
+            relative = source.relative_to(dependency).as_posix()
+            snapshot = MODULE._content_snapshot(
+                dependency,
+                {relative: "b15fe188aa873c30d15c97c09f0757406c16f38da87a99269f8c8bc7bd26b176"},
+            )
+            derived_data.mkdir()
+            (derived_data / "cio-lifecycle-dependency-instrumentation.json").write_text(
+                json.dumps({
+                    "original_sha256": "f7293e78daa312de780d14094451128fa23d023097a2471682ecfdb7c7ef0ff8",
+                    "patch_sha256": "f213e7a51dc2eb59c9dbb21d33e32d42d967530933597b1abb06fcdbc2010195",
+                    "patched_sha256": "b15fe188aa873c30d15c97c09f0757406c16f38da87a99269f8c8bc7bd26b176",
+                    "patched_tree_sha256": snapshot["tree_hash"],
+                    "restored_sha256": "f7293e78daa312de780d14094451128fa23d023097a2471682ecfdb7c7ef0ff8",
+                }),
+                encoding="utf-8",
+            )
+
+            MODULE._dependency_provenance(source_root, derived_data, "cocoapods")
+            other.write_text("mutated\n", encoding="utf-8")
+            with self.assertRaisesRegex(MODULE.CaptureError, "changed after"):
+                MODULE._dependency_provenance(source_root, derived_data, "cocoapods")
 
     def testPartialReceipt_waitsAndFailsClosed(self):
         with tempfile.TemporaryDirectory() as directory:

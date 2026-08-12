@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 
 import pathlib
+import hashlib
+import json
+import os
 import shutil
 import subprocess
 import tempfile
 import unittest
+
+from apps.lifecycle_fixture.dependency_content_snapshot import content_snapshot
 
 
 APPS_ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -32,9 +37,19 @@ class InstrumentLifecycleFixtureDependencyTest(unittest.TestCase):
         shutil.copyfile(ORIGINAL, destination)
         return destination
 
-    def run_patch(self, resolution: str, root: pathlib.Path):
+    def run_patch(self, resolution: str, root: pathlib.Path, command=None, extra_environment=None):
+        arguments = [str(SCRIPT), resolution, str(root.resolve())]
+        environment = None
+        if command is not None:
+            arguments.extend(["--", *command])
+            environment = os.environ.copy()
+            environment["CIO_LIFECYCLE_INSTRUMENTATION_RECEIPT"] = str(
+                self.root / "instrumentation.json"
+            )
+            environment.update(extra_environment or {})
         return subprocess.run(
-            [str(SCRIPT), resolution, str(root.resolve())],
+            arguments,
+            env=environment,
             text=True,
             capture_output=True,
             check=False,
@@ -47,10 +62,62 @@ class InstrumentLifecycleFixtureDependencyTest(unittest.TestCase):
         self.assertEqual(first.returncode, 0, first.stderr)
         self.assertEqual(second.returncode, 0, second.stderr)
 
-    def test_cocoapods_exact_path_succeeds(self):
-        self.install_original(self.root, PODS_SUFFIX)
-        result = self.run_patch("cocoapods", self.root)
+    def test_cocoapods_success_restores_exact_original_and_writes_receipt(self):
+        source = self.install_original(self.root, PODS_SUFFIX)
+        original = source.read_bytes()
+        result = self.run_patch("cocoapods", self.root, ["/usr/bin/true"])
         self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(source.read_bytes(), original)
+        receipt = json.loads((self.root / "instrumentation.json").read_text())
+        self.assertEqual(receipt["restored_sha256"], hashlib.sha256(original).hexdigest())
+        self.assertRegex(receipt["patched_tree_sha256"], r"^[0-9a-f]{64}$")
+        dependency = self.root / "ios/Pods/CustomerIOMessagingPushFCM"
+        relative = source.relative_to(dependency).as_posix()
+        reconstructed = content_snapshot(
+            dependency,
+            {relative: receipt["patched_sha256"]},
+        )
+        self.assertEqual(receipt["patched_tree_sha256"], reconstructed["tree_hash"])
+        self.assertEqual(
+            list((self.root / "ios/Pods").glob(".CioAppDelegateFCM.original.*")),
+            [],
+        )
+
+    def test_cocoapods_failure_restores_exact_original_without_receipt(self):
+        source = self.install_original(self.root, PODS_SUFFIX)
+        original = source.read_bytes()
+        result = self.run_patch("cocoapods", self.root, ["/usr/bin/false"])
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(source.read_bytes(), original)
+        self.assertFalse((self.root / "instrumentation.json").exists())
+
+    def test_cocoapods_backup_setup_failure_deletesCandidateWithoutTouchingSource(self):
+        source = self.install_original(self.root, PODS_SUFFIX)
+        original = source.read_bytes()
+        result = self.run_patch(
+            "cocoapods",
+            self.root,
+            ["/usr/bin/true"],
+            {"CIO_LIFECYCLE_INSTRUMENTATION_TEST_FAIL_BACKUP_SETUP": "1"},
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("forced CocoaPods source backup setup failure", result.stderr)
+        self.assertEqual(source.read_bytes(), original)
+        self.assertEqual(
+            list((self.root / "ios/Pods").glob(".CioAppDelegateFCM.original.*")),
+            [],
+        )
+        self.assertFalse((self.root / "instrumentation.json").exists())
+
+    def test_cocoapods_prepatched_source_is_refused(self):
+        source = self.install_original(self.root, PODS_SUFFIX)
+        spm_source = self.install_original(self.root, SPM_SUFFIX)
+        spm = self.run_patch("spm", self.root)
+        self.assertEqual(spm.returncode, 0, spm.stderr)
+        shutil.copyfile(spm_source, source)
+        result = self.run_patch("cocoapods", self.root, ["/usr/bin/true"])
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("refusing prepatched CocoaPods", result.stderr)
 
     def test_wrong_hash_fails_closed(self):
         source = self.install_original(self.root, SPM_SUFFIX)

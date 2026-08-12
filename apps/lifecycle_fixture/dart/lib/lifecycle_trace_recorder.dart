@@ -63,7 +63,9 @@ final class LifecycleTraceDartContext {
         !_canonicalUuid.hasMatch(streamId) ||
         !_canonicalUuid.hasMatch(processInstanceId) ||
         scenario != 'icon-cold-launch' ||
-        (evidenceLevel != 'L2' && evidenceLevel != 'L3') ||
+        (evidenceLevel != 'diagnostic' &&
+            evidenceLevel != 'L2' &&
+            evidenceLevel != 'L3') ||
         integration != 'flutter' ||
         provider != 'none') {
       return null;

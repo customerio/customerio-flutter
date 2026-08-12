@@ -11,11 +11,17 @@ import os
 from pathlib import Path
 import platform
 import re
+import signal
 import subprocess
 import sys
 import time
 import uuid
 from typing import Any
+
+FIXTURE_DIR = Path(__file__).resolve().parent
+if str(FIXTURE_DIR) not in sys.path:
+    sys.path.insert(0, str(FIXTURE_DIR))
+from dependency_content_snapshot import SnapshotError, content_snapshot
 
 
 TRACE_PREFIX = "CIO-LIFECYCLE-TRACE "
@@ -109,12 +115,13 @@ def _bind_streams(
     dart_path: Path,
     identifiers: dict[str, str],
     launched_pid: int,
+    evidence_level: str = "L2",
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any], dict[str, Any]]:
     common = {
         "manifest_id": identifiers["MANIFEST_ID"],
         "run_id": identifiers["RUN_ID"],
         "scenario": "icon-cold-launch",
-        "evidence_level": "L2",
+        "evidence_level": evidence_level,
         "integration": "flutter",
         "provider": "none",
     }
@@ -133,27 +140,17 @@ def _bind_streams(
     return swift_records, dart_records, swift_receipt, dart_receipt
 
 
-def _content_snapshot(root: Path) -> dict[str, Any]:
-    if root.is_symlink() or not root.is_dir():
-        raise CaptureError("resolved Customer.io dependency root is unsafe")
-    tree = hashlib.sha256()
-    for path in sorted(root.rglob("*")):
-        if ".git" in path.parts:
-            continue
-        if path.is_symlink():
-            raise CaptureError("resolved Customer.io dependency contains unsafe input")
-        if path.is_dir():
-            continue
-        if not path.is_file():
-            raise CaptureError("resolved Customer.io dependency contains unsafe input")
-        relative = path.relative_to(root).as_posix()
-        tree.update(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {relative}\n".encode())
-    return {
-        "algorithm": "sha256",
-        "tree_hash": tree.hexdigest(),
-        "diff_hash": "f213e7a51dc2eb59c9dbb21d33e32d42d967530933597b1abb06fcdbc2010195",
-        "ignored_build_inputs_excluded": True,
-    }
+def _content_snapshot(
+    root: Path,
+    hash_overrides: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    helper = FIXTURE_DIR / "dependency_content_snapshot.py"
+    if helper.is_symlink() or not helper.is_file():
+        raise CaptureError("dependency snapshot helper is unsafe")
+    try:
+        return content_snapshot(root, hash_overrides)
+    except (OSError, SnapshotError) as error:
+        raise CaptureError(str(error)) from error
 
 
 def _dependency_provenance(source_root: Path, derived_data: Path, sample: str) -> tuple[str, dict[str, Any]]:
@@ -183,9 +180,36 @@ def _dependency_provenance(source_root: Path, derived_data: Path, sample: str) -
         if sample == "spm"
         else dependency_root / "Sources/MessagingPushFCM/Integration/CioAppDelegateFCM.swift"
     )
-    if source.is_symlink() or not source.is_file() or hashlib.sha256(source.read_bytes()).hexdigest() != "b15fe188aa873c30d15c97c09f0757406c16f38da87a99269f8c8bc7bd26b176":
-        raise CaptureError("built Customer.io dependency lacks the exact fixture patch")
-    return revision, _content_snapshot(dependency_root)
+    source_relative = source.relative_to(dependency_root).as_posix()
+    if source.is_symlink() or not source.is_file():
+        raise CaptureError("built Customer.io dependency source is unsafe")
+    if sample == "spm":
+        if hashlib.sha256(source.read_bytes()).hexdigest() != "b15fe188aa873c30d15c97c09f0757406c16f38da87a99269f8c8bc7bd26b176":
+            raise CaptureError("built Customer.io dependency lacks the exact fixture patch")
+        return revision, _content_snapshot(dependency_root)
+    if hashlib.sha256(source.read_bytes()).hexdigest() != "f7293e78daa312de780d14094451128fa23d023097a2471682ecfdb7c7ef0ff8":
+        raise CaptureError("CocoaPods Customer.io source was not restored after the build")
+    receipt = _load_object(
+        derived_data / "cio-lifecycle-dependency-instrumentation.json",
+        "CocoaPods instrumentation receipt",
+    )
+    expected_receipt = {
+        "original_sha256": "f7293e78daa312de780d14094451128fa23d023097a2471682ecfdb7c7ef0ff8",
+        "patch_sha256": "f213e7a51dc2eb59c9dbb21d33e32d42d967530933597b1abb06fcdbc2010195",
+        "patched_sha256": "b15fe188aa873c30d15c97c09f0757406c16f38da87a99269f8c8bc7bd26b176",
+        "restored_sha256": "f7293e78daa312de780d14094451128fa23d023097a2471682ecfdb7c7ef0ff8",
+    }
+    if set(receipt) != {*expected_receipt, "patched_tree_sha256"} or any(
+        receipt.get(key) != value for key, value in expected_receipt.items()
+    ) or re.fullmatch(r"[0-9a-f]{64}", str(receipt.get("patched_tree_sha256"))) is None:
+        raise CaptureError("CocoaPods instrumentation receipt does not bind the compiled patch")
+    snapshot = _content_snapshot(
+        dependency_root,
+        {source_relative: expected_receipt["patched_sha256"]},
+    )
+    if snapshot["tree_hash"] != receipt["patched_tree_sha256"]:
+        raise CaptureError("CocoaPods dependency tree changed after the instrumented build")
+    return revision, snapshot
 
 
 def _snapshot(root: Path) -> tuple[bool, dict[str, Any] | None]:
@@ -373,6 +397,243 @@ def _wait_for_files(paths: list[Path], timeout: float) -> None:
     raise CaptureError(f"capture timed out waiting for complete files: {incomplete}")
 
 
+def _stimulus_configuration(mode: str) -> tuple[str, str]:
+    if mode == "manual-app-icon":
+        return "L2", "app-icon"
+    if mode == "simctl-diagnostic":
+        return "diagnostic", "simulator-control"
+    raise CaptureError("unsupported stimulus mode")
+
+
+def _set_simulator_environment(
+    root: Path,
+    simulator_id: str,
+    values: dict[str, str],
+) -> list[str]:
+    configured: list[str] = []
+    try:
+        for key, value in values.items():
+            existing = subprocess.run(
+                ["xcrun", "simctl", "spawn", simulator_id, "launchctl", "getenv", key],
+                cwd=root,
+                check=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                text=True,
+            )
+            if existing.returncode == 0 and existing.stdout.strip():
+                raise CaptureError(f"simulator launch environment already defines {key}")
+            _run(
+                ["xcrun", "simctl", "spawn", simulator_id, "launchctl", "setenv", key, value],
+                cwd=root,
+            )
+            configured.append(key)
+    except BaseException as error:
+        _cleanup_simulator_environment_after_error(
+            root, simulator_id, configured, error
+        )
+        raise
+    return configured
+
+
+def _clear_simulator_environment(root: Path, simulator_id: str, keys: list[str]) -> None:
+    failures = []
+    for key in reversed(keys):
+        unset_arguments = [
+            "xcrun", "simctl", "spawn", simulator_id, "launchctl", "unsetenv", key
+        ]
+        verify_arguments = [
+            "xcrun", "simctl", "spawn", simulator_id, "launchctl", "getenv", key
+        ]
+        try:
+            unset = subprocess.run(
+                unset_arguments,
+                cwd=root,
+                check=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            if unset.returncode != 0:
+                failures.append(f"{key} unsetenv exited {unset.returncode}")
+        except OSError:
+            failures.append(f"{key} unsetenv could not start")
+        try:
+            verified = subprocess.run(
+                verify_arguments,
+                cwd=root,
+                check=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            if verified.returncode != 0:
+                failures.append(f"{key} getenv exited {verified.returncode}")
+            elif verified.stdout.strip():
+                failures.append(f"{key} remained set")
+        except OSError:
+            failures.append(f"{key} getenv could not start")
+    if failures:
+        raise CaptureError("simulator environment cleanup failed: " + "; ".join(failures))
+
+
+def _cleanup_simulator_environment_after_error(
+    root: Path,
+    simulator_id: str,
+    keys: list[str],
+    primary_error: BaseException,
+) -> None:
+    try:
+        _clear_simulator_environment(root, simulator_id, keys)
+    except CaptureError as cleanup_error:
+        raise CaptureError(
+            f"{primary_error}; additionally, {cleanup_error}"
+        ) from primary_error
+
+
+def _initiate_stimulus(
+    mode: str,
+    root: Path,
+    simulator_id: str,
+    bundle: str,
+    injected: dict[str, str],
+) -> tuple[int | None, list[str], str]:
+    if mode == "manual-app-icon":
+        keys = _set_simulator_environment(root, simulator_id, injected)
+        try:
+            if _simulator_process_ids(root, simulator_id, bundle):
+                raise CaptureError("manual app-icon target was already running before READY")
+            print(
+                f"READY: press Enter only when ready to tap the {bundle} Home Screen icon "
+                f"on simulator {simulator_id}",
+                file=sys.stderr,
+                flush=True,
+            )
+            if sys.stdin.readline() not in {"\n", "\r\n"}:
+                raise CaptureError("manual app-icon stimulus was not confirmed with Enter")
+            initiated_at = _timestamp()
+            print("TAP NOW", file=sys.stderr, flush=True)
+        except BaseException as error:
+            _cleanup_simulator_environment_after_error(
+                root, simulator_id, keys, error
+            )
+            raise
+        return None, keys, initiated_at
+    if mode != "simctl-diagnostic":
+        raise CaptureError("unsupported stimulus mode")
+    environment = os.environ.copy()
+    environment.update({f"SIMCTL_CHILD_{key}": value for key, value in injected.items()})
+    initiated_at = _timestamp()
+    launch = _run(
+        ["xcrun", "simctl", "launch", "--terminate-running-process", simulator_id, bundle],
+        cwd=root,
+        environment=environment,
+    )
+    match = re.fullmatch(re.escape(bundle) + r": ([1-9][0-9]*)", launch)
+    if match is None:
+        raise CaptureError("simctl launch returned an unexpected process result")
+    return int(match.group(1)), [], initiated_at
+
+
+def _simulator_process_ids(root: Path, simulator_id: str, bundle: str) -> list[int]:
+    output = _run(
+        ["xcrun", "simctl", "spawn", simulator_id, "launchctl", "list"],
+        cwd=root,
+    )
+    process_ids = []
+    for line in output.splitlines():
+        columns = line.split()
+        if (
+            len(columns) >= 3
+            and columns[0].isdigit()
+            and int(columns[0]) > 0
+            and columns[2].startswith(f"UIKitApplication:{bundle}[")
+        ):
+            process_ids.append(int(columns[0]))
+    return process_ids
+
+
+def _observed_process_id(swift_path: Path, identifiers: dict[str, str], evidence_level: str) -> int:
+    records = _records(
+        swift_path,
+        {
+            "manifest_id": identifiers["MANIFEST_ID"],
+            "run_id": identifiers["RUN_ID"],
+            "stream_id": identifiers["STREAM_ID"],
+            "scenario": "icon-cold-launch",
+            "evidence_level": evidence_level,
+            "integration": "flutter",
+            "runtime": "swift",
+            "provider": "none",
+        },
+    )
+    process_ids = {record.get("process_id") for record in records}
+    if len(process_ids) != 1:
+        raise CaptureError("Swift stream does not identify exactly one process_id")
+    process_id = process_ids.pop()
+    if not isinstance(process_id, int) or process_id <= 0:
+        raise CaptureError("Swift stream has an invalid process_id")
+    return process_id
+
+
+def _await_stimulus_capture(
+    mode: str,
+    root: Path,
+    simulator_id: str,
+    bundle: str,
+    injected: dict[str, str],
+    paths: list[Path],
+    timeout: float,
+) -> tuple[int | None, str]:
+    configured_keys: list[str] = []
+    primary_error: BaseException | None = None
+    managed_signals = (signal.SIGHUP, signal.SIGTERM)
+    previous_handlers: dict[signal.Signals, Any] = {}
+
+    def interrupt(signum: int, _frame: Any) -> None:
+        for managed in managed_signals:
+            signal.signal(managed, signal.SIG_IGN)
+        raise CaptureError(
+            f"manual app-icon capture interrupted by {signal.Signals(signum).name}"
+        )
+
+    try:
+        if mode == "manual-app-icon":
+            previous_handlers = {
+                managed: signal.getsignal(managed) for managed in managed_signals
+            }
+            for managed in managed_signals:
+                signal.signal(managed, interrupt)
+        launched_pid, configured_keys, initiated_at = _initiate_stimulus(
+            mode,
+            root,
+            simulator_id,
+            bundle,
+            injected,
+        )
+        _wait_for_files(paths, timeout)
+        return launched_pid, initiated_at
+    except BaseException as error:
+        primary_error = error
+        raise
+    finally:
+        if previous_handlers:
+            for managed in managed_signals:
+                signal.signal(managed, signal.SIG_IGN)
+        try:
+            try:
+                _clear_simulator_environment(root, simulator_id, configured_keys)
+            except CaptureError as cleanup_error:
+                if primary_error is not None:
+                    raise CaptureError(
+                        f"{primary_error}; additionally, {cleanup_error}"
+                    ) from primary_error
+                raise
+        finally:
+            for managed, previous in previous_handlers.items():
+                signal.signal(managed, previous)
+
+
 def capture(arguments: argparse.Namespace) -> None:
     source_root = arguments.source_root.resolve()
     output = arguments.output_dir.resolve()
@@ -386,6 +647,7 @@ def capture(arguments: argparse.Namespace) -> None:
     if not os.environ.get("DEVELOPER_DIR"):
         raise CaptureError("DEVELOPER_DIR must be set before Flutter dependency generation")
 
+    evidence_level, stimulus_source = _stimulus_configuration(arguments.stimulus_mode)
     commit = _run(["git", "rev-parse", "HEAD"], cwd=source_root)
     root_dirty, root_snapshot = _snapshot(source_root)
     identifiers = {key: str(uuid.uuid4()) for key in UUID_KEYS}
@@ -396,7 +658,7 @@ def capture(arguments: argparse.Namespace) -> None:
         "CIO_LIFECYCLE_DART_OUTPUT_BASENAME": dart_basename,
         **{f"CIO_LIFECYCLE_{key}": value for key, value in identifiers.items()},
         "CIO_LIFECYCLE_SCENARIO": "icon-cold-launch",
-        "CIO_LIFECYCLE_EVIDENCE_LEVEL": "L2",
+        "CIO_LIFECYCLE_EVIDENCE_LEVEL": evidence_level,
         "CIO_LIFECYCLE_INTEGRATION": "flutter",
         "CIO_LIFECYCLE_PROVIDER": "none",
     })
@@ -412,36 +674,42 @@ def capture(arguments: argparse.Namespace) -> None:
     container = Path(_run(["xcrun", "simctl", "get_app_container", arguments.simulator_id, bundle, "data"], cwd=source_root))
     swift_path = container / "Documents/lifecycle-swift.ndjson"
     dart_path = container / "tmp" / dart_basename
-    launch_environment = os.environ.copy()
     injected = {
         "CIO_LIFECYCLE_MANIFEST_ID": identifiers["MANIFEST_ID"],
         "CIO_LIFECYCLE_RUN_ID": identifiers["RUN_ID"],
         "CIO_LIFECYCLE_STREAM_ID": identifiers["STREAM_ID"],
         "CIO_LIFECYCLE_PROCESS_INSTANCE_ID": identifiers["PROCESS_INSTANCE_ID"],
         "CIO_LIFECYCLE_SCENARIO": "icon-cold-launch",
-        "CIO_LIFECYCLE_EVIDENCE_LEVEL": "L2",
+        "CIO_LIFECYCLE_EVIDENCE_LEVEL": evidence_level,
         "CIO_LIFECYCLE_INTEGRATION": "flutter",
         "CIO_LIFECYCLE_RUNTIME": "swift",
         "CIO_LIFECYCLE_PROVIDER": "none",
         "CIO_LIFECYCLE_OUTPUT_PATH": str(swift_path),
     }
-    launch_environment.update({f"SIMCTL_CHILD_{key}": value for key, value in injected.items()})
     started_at = _timestamp()
-    launch = _run(["xcrun", "simctl", "launch", "--terminate-running-process", arguments.simulator_id, bundle], cwd=source_root, environment=launch_environment)
-    match = re.fullmatch(re.escape(bundle) + r": ([1-9][0-9]*)", launch)
-    if match is None:
-        raise CaptureError("simctl launch returned an unexpected process result")
-    launched_pid = int(match.group(1))
-    _wait_for_files([
-        swift_path,
-        Path(str(swift_path) + ".receipt.json"),
-        dart_path,
-        Path(str(dart_path) + ".receipt.json"),
-    ], arguments.timeout)
+    stimulus_initiated_at = started_at
+    launched_pid: int | None = None
+    launched_pid, stimulus_initiated_at = _await_stimulus_capture(
+        arguments.stimulus_mode,
+        source_root,
+        arguments.simulator_id,
+        bundle,
+        injected,
+        [
+            swift_path,
+            Path(str(swift_path) + ".receipt.json"),
+            dart_path,
+            Path(str(dart_path) + ".receipt.json"),
+        ],
+        arguments.timeout,
+    )
     ended_at = _timestamp()
 
+    if launched_pid is None:
+        launched_pid = _observed_process_id(swift_path, identifiers, evidence_level)
+
     _, _, swift_receipt, dart_receipt = _bind_streams(
-        swift_path, dart_path, identifiers, launched_pid
+        swift_path, dart_path, identifiers, launched_pid, evidence_level
     )
 
     copied_swift = output / "swift.ndjson"
@@ -478,7 +746,7 @@ def capture(arguments: argparse.Namespace) -> None:
         "run_started_at": started_at,
         "run_ended_at": ended_at,
         "created_at": _timestamp(),
-        "evidence_level": "L2",
+        "evidence_level": evidence_level,
         "scenario": "icon-cold-launch",
         "repositories": [
             {"name": "customerio-flutter", "commit_sha": commit, "dirty": root_dirty, "source_snapshot": root_snapshot},
@@ -495,7 +763,7 @@ def capture(arguments: argparse.Namespace) -> None:
             {"name": "apple-usernotifications", "role": "platform-framework", "version": sdk_version, "commit_sha": None},
         ],
         "provider_provenance": {"provider": "none", "source": "none", "environment": "none", "receipt_result": "not-applicable", "receipt_recorded_at": None, "provider_sdk": None},
-        "stimulus": {"scenario": "icon-cold-launch", "source": "app-icon", "initiated_at": started_at},
+        "stimulus": {"scenario": "icon-cold-launch", "source": stimulus_source, "initiated_at": stimulus_initiated_at},
         "streams": [
             {"stream_id": identifiers["STREAM_ID"], "integration": "flutter", "runtime": "swift", "provider": "none", "process_id": launched_pid, "process_instance_id": identifiers["PROCESS_INSTANCE_ID"], "receipt": swift_receipt},
             {"stream_id": identifiers["DART_STREAM_ID"], "integration": "flutter", "runtime": "dart", "provider": "none", "process_id": launched_pid, "process_instance_id": identifiers["PROCESS_INSTANCE_ID"], "receipt": dart_receipt},
@@ -523,6 +791,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--simulator-id", required=True)
     parser.add_argument("--mode", choices=("legacy", "scene"), required=True)
     parser.add_argument("--sample", choices=("spm", "cocoapods"), required=True)
+    parser.add_argument(
+        "--stimulus-mode",
+        choices=("manual-app-icon", "simctl-diagnostic"),
+        required=True,
+        help="manual-app-icon is the only L2 path; simctl-diagnostic cannot claim app-icon evidence",
+    )
     parser.add_argument("--flutter", type=Path, required=True)
     parser.add_argument("--validator-python", default=sys.executable)
     parser.add_argument("--timeout", type=float, default=20.0)

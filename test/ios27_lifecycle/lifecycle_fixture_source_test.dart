@@ -163,17 +163,48 @@ void main() {
       });
     }
 
-    test('build instruments generated dependency before final xcodebuild', () {
+    test('build gives the instrumentation wrapper exact command ownership', () {
       final String build = read('apps/scripts/lifecycle_fixture_build.sh');
       final int config =
           build.indexOf('"\$FLUTTER" "\${FLUTTER_CONFIG_ARGS[@]}"');
-      final int instrument = build.indexOf(
+      final int command = build.indexOf('XCODEBUILD_COMMAND=(xcodebuild');
+      final int spm = build.indexOf('if [ "\$SAMPLE" = "spm" ]; then', command);
+      final int spmInstrument = build.indexOf(
         'instrument_lifecycle_fixture_dependency.sh',
+        spm,
       );
-      final int compile = build.lastIndexOf('xcodebuild');
+      final int spmCompile =
+          build.indexOf('"\${XCODEBUILD_COMMAND[@]}"', spmInstrument);
+      final int cocoa = build.indexOf('else', spmCompile);
+      final int cocoaInstrument = build.indexOf(
+        'instrument_lifecycle_fixture_dependency.sh',
+        cocoa,
+      );
+      final int commandSeparator = build.indexOf('\n    --', cocoaInstrument);
+      final int cocoaCompile =
+          build.indexOf('"\${XCODEBUILD_COMMAND[@]}"', commandSeparator);
       expect(config, greaterThanOrEqualTo(0));
-      expect(instrument, greaterThan(config));
-      expect(compile, greaterThan(instrument));
+      expect(command, greaterThan(config));
+      expect(spm, greaterThan(command));
+      expect(spmInstrument, greaterThan(spm));
+      expect(spmCompile, greaterThan(spmInstrument));
+      expect(cocoa, greaterThan(spmCompile));
+      expect(cocoaInstrument, greaterThan(cocoa));
+      expect(commandSeparator, greaterThan(cocoaInstrument));
+      expect(cocoaCompile, greaterThan(commandSeparator));
+    });
+
+    test('build serializes shared per-sample generation and compilation', () {
+      final String build = read('apps/scripts/lifecycle_fixture_build.sh');
+      final int lock = build.indexOf('if ! mkdir "\$LOCK_DIR"');
+      final int config =
+          build.indexOf('"\$FLUTTER" "\${FLUTTER_CONFIG_ARGS[@]}"');
+      final int verify = build.indexOf('if [ "\$BUILT_MODE" != "\$MODE" ]');
+      expect(lock, greaterThanOrEqualTo(0));
+      expect(config, greaterThan(lock));
+      expect(verify, greaterThan(config));
+      expect(build, contains('trap release_build_lock EXIT'));
+      expect(build, contains('another \$SAMPLE lifecycle build owns'));
     });
   });
 
