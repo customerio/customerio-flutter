@@ -16,6 +16,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # Used only by the MBL-2232 fixture tests to pin plugin source digests.
+  crypto: ^3.0.0
   flutter_lints: ^6.0.0
   build_runner: ^2.2.0
   mockito: ^5.0.15

@@ -1,0 +1,56 @@
+{
+  "schema": "cio-lifecycle-incomplete-observations/1",
+  "acceptance": "none",
+  "evidence_level": "unclaimed",
+  "toolchain": {
+    "flutter": "3.44.8",
+    "dart": "3.12.2",
+    "xcode": "26.6",
+    "simulator_runtime": "iOS 26.5"
+  },
+  "observations": [
+    {
+      "configuration": "legacy-spm",
+      "swift_callbacks": [
+        "trace.scenario-start",
+        "flutter.implicit-engine-created",
+        "flutter.plugin-registered",
+        "application.did-finish-launching",
+        "flutter.application.did-finish-launching-forwarded",
+        "uikit.application-did-finish-launching-notification",
+        "uikit.application-did-become-active-notification",
+        "trace.scenario-end"
+      ],
+      "swift_receipt": "zero-drop",
+      "dart_callbacks": ["trace.scenario-start"],
+      "dart_receipt": "absent",
+      "finding": "Dart main attached after native active and no real resumed observer callback followed."
+    },
+    {
+      "configuration": "scene-spm",
+      "swift_callbacks": [
+        "trace.scenario-start",
+        "application.did-finish-launching",
+        "flutter.application.did-finish-launching-forwarded",
+        "uikit.application-did-finish-launching-notification",
+        "flutter.implicit-engine-created",
+        "flutter.plugin-registered",
+        "scene.will-connect",
+        "flutter.scene.will-connect-forwarded",
+        "uikit.application-did-become-active-notification",
+        "trace.scenario-end"
+      ],
+      "swift_relative_ms": [0, 4, 4, 15, 58, 72, 77, 77, 264, 264],
+      "swift_receipt": "zero-drop",
+      "dart_callbacks": ["trace.scenario-start"],
+      "dart_start_after_swift_end_ms": 53,
+      "dart_receipt": "absent",
+      "finding": "Dart main attached after native active and no real resumed observer callback followed."
+    }
+  ],
+  "limitations": [
+    "These are intentionally incomplete producer observations, not canonical capture manifests.",
+    "They do not establish L2 conformance and are not acceptance evidence.",
+    "Run identifiers, process identifiers, absolute simulator paths, and wall-clock timestamps are intentionally omitted."
+  ]
+}

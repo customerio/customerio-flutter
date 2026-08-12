@@ -1,0 +1,16 @@
+name: cio_lifecycle_flutter_fixture
+description: Private MBL-2232 Flutter lifecycle evidence producer.
+publish_to: none
+version: 0.0.0
+
+environment:
+  sdk: '>=3.12.0 <4.0.0'
+  flutter: '>=3.44.8'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

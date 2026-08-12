@@ -19,8 +19,12 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # of the product and file versions while build-number is used as the build suffix.
 version: 1.0.0+1
 
+# Sample-app pin only. The published `customer_io` package deliberately keeps a
+# much wider `environment` range (see ../../pubspec.yaml); pinning the samples
+# to the toolchain in .flutter-version must not raise the package minimum.
 environment:
-  sdk: '>=2.18.6 <3.0.0'
+  sdk: '>=3.12.0 <4.0.0'
+  flutter: '>=3.44.8'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -31,6 +35,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  cio_lifecycle_flutter_fixture:
+    path: ../lifecycle_fixture/dart
 
 
   # The following adds the Cupertino Icons font to your application.

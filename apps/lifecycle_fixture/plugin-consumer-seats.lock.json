@@ -1,0 +1,208 @@
+{
+  "schema": "cio-lifecycle-plugin-consumer-seats/1",
+  "contract": "cio-lifecycle-trace/1",
+  "contract_lock": "docs/dev-notes/ios27-lifecycle-contract-v1.lock.json",
+  "toolchain": {
+    "flutter": "3.44.8",
+    "dart": "3.12.2"
+  },
+  "description": [
+    "Where the Flutter sample apps actually receive a lifecycle stimulus in Dart.",
+    "Each seat names a canonical cio-lifecycle-trace/1 callback (the contract's closed",
+    "enum owns the names; none are invented here), the sample expression that consumes",
+    "it, and the exact pinned plugin source that delivers it. Digests are taken from an",
+    "isolated PUB_CACHE resolution, so a plugin bump that moves or renames a seat fails",
+    "the check instead of silently invalidating the mapping.",
+    "This is a source-level (L0) mapping. It is not runtime evidence and asserts nothing",
+    "about delivery, ordering, or evidence level."
+  ],
+  "seats": [
+    {
+      "id": "remote-notification-received",
+      "canonical": {
+        "callback": "wrapper.app-received-notification",
+        "owner": "flutter-dart",
+        "kind": "app-received",
+        "runtime": "dart",
+        "provider": "fcm"
+      },
+      "consumer_call_sites": [
+        {
+          "path": "apps/flutter_sample_spm/lib/src/screens/dashboard.dart",
+          "shared_with": ["apps/flutter_sample_cocoapods/lib/src"],
+          "expressions": [
+            "FirebaseMessaging.instance.getInitialMessage()",
+            "FirebaseMessaging.onMessageOpenedApp.listen",
+            "FirebaseMessaging.onMessage.listen"
+          ]
+        }
+      ],
+      "pinned_sources": [
+        {
+          "samples": ["spm"],
+          "package": "firebase_messaging",
+          "version": "16.1.3",
+          "path": "lib/src/messaging.dart",
+          "sha256": "7198e02cd3b454d65c1f318ae29d6190b3c77c12dbaf27322321a664dc7c1ec5",
+          "declarations": [
+            "static Stream<RemoteMessage> get onMessage =>",
+            "static Stream<RemoteMessage> get onMessageOpenedApp =>",
+            "Future<RemoteMessage?> getInitialMessage() {"
+          ]
+        },
+        {
+          "samples": ["cocoapods"],
+          "package": "firebase_messaging",
+          "version": "15.2.10",
+          "path": "lib/src/messaging.dart",
+          "sha256": "5c7e03e105bee4d8ed22f0f02a21eeafd62c94ba81e7748f4a4f142703a71051",
+          "declarations": [
+            "static Stream<RemoteMessage> get onMessage =>",
+            "static Stream<RemoteMessage> get onMessageOpenedApp =>",
+            "Future<RemoteMessage?> getInitialMessage() {"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "local-notification-response",
+      "canonical": {
+        "callback": "wrapper.app-received-notification",
+        "owner": "flutter-dart",
+        "kind": "app-received",
+        "runtime": "dart",
+        "provider": "local"
+      },
+      "consumer_call_sites": [
+        {
+          "path": "apps/flutter_sample_spm/lib/main.dart",
+          "expressions": [
+            "await localNotificationsPlugin.initialize(",
+            "onDidReceiveNotificationResponse:"
+          ]
+        },
+        {
+          "path": "apps/flutter_sample_cocoapods/lib/main.dart",
+          "expressions": [
+            "await localNotificationsPlugin.initialize(",
+            "onDidReceiveNotificationResponse:"
+          ]
+        }
+      ],
+      "pinned_sources": [
+        {
+          "samples": ["spm", "cocoapods"],
+          "package": "flutter_local_notifications",
+          "version": "19.5.0",
+          "path": "lib/src/flutter_local_notifications_plugin.dart",
+          "sha256": "c6963af229b5c8477c1867e567f2cf12028048866aea59c6a6f0d7306df2b9be",
+          "declarations": [
+            "Future<bool?> initialize(",
+            "DidReceiveNotificationResponseCallback? onDidReceiveNotificationResponse,"
+          ]
+        },
+        {
+          "samples": ["spm", "cocoapods"],
+          "package": "flutter_local_notifications",
+          "version": "19.5.0",
+          "path": "lib/src/platform_flutter_local_notifications.dart",
+          "sha256": "64508c1fc105672e99439e2b1d94ac02885ea17fb732f1a841edcc4909d9e443",
+          "declarations": [
+            "case 'didReceiveNotificationResponse':",
+            "_onDidReceiveNotificationResponse?.call("
+          ]
+        },
+        {
+          "samples": ["spm", "cocoapods"],
+          "package": "flutter_local_notifications_platform_interface",
+          "version": "9.1.0",
+          "path": "lib/src/typedefs.dart",
+          "sha256": "6cefa6b30cee723c69f79c71c2d3693d2c754c7703a6a2de3a3acee16cd44465",
+          "declarations": [
+            "typedef DidReceiveNotificationResponseCallback = void Function("
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quick-action-received",
+      "canonical": {
+        "callback": "wrapper.app-received-quick-action",
+        "owner": "flutter-dart",
+        "kind": "app-received",
+        "runtime": "dart",
+        "provider": "none"
+      },
+      "consumer_call_sites": [
+        {
+          "path": "apps/flutter_sample_spm/lib/src/quick_action_probe.dart",
+          "shared_with": ["apps/flutter_sample_cocoapods/lib/src"],
+          "expressions": [
+            "final quickActions = QuickActionsIos();",
+            "await quickActions.initialize(_handleAction);"
+          ]
+        }
+      ],
+      "pinned_sources": [
+        {
+          "samples": ["spm", "cocoapods"],
+          "package": "quick_actions_ios",
+          "version": "1.2.4",
+          "path": "lib/quick_actions_ios.dart",
+          "sha256": "987d7cb41987d8c1fcf4a5078d878267ef8d25a18d495d0bf418224241a4bb00",
+          "declarations": [
+            "Future<void> initialize(QuickActionHandler handler) async {"
+          ]
+        },
+        {
+          "samples": ["spm", "cocoapods"],
+          "package": "quick_actions_platform_interface",
+          "version": "1.1.0",
+          "path": "lib/types/quick_action_handler.dart",
+          "sha256": "6f69853adaaaf2ca94fe44dc73a1a691258a1783fa43ac9accbbf7a7f134f643",
+          "declarations": [
+            "typedef QuickActionHandler = void Function(String type);"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "router-location-received",
+      "canonical": {
+        "callback": "wrapper.app-received-url",
+        "owner": "flutter-dart",
+        "kind": "app-received",
+        "runtime": "dart",
+        "provider": "none"
+      },
+      "consumer_call_sites": [
+        {
+          "path": "apps/flutter_sample_spm/lib/src/app.dart",
+          "shared_with": ["apps/flutter_sample_cocoapods/lib/src"],
+          "expressions": [
+            "_router.routerDelegate.addListener(() => _onRouteChanged());"
+          ]
+        },
+        {
+          "path": "apps/flutter_sample_spm/lib/src/utils/extensions.dart",
+          "shared_with": ["apps/flutter_sample_cocoapods/lib/src"],
+          "expressions": [
+            "final RouteMatch lastMatch = routerDelegate.currentConfiguration.last;"
+          ]
+        }
+      ],
+      "pinned_sources": [
+        {
+          "samples": ["spm", "cocoapods"],
+          "package": "go_router",
+          "version": "14.8.1",
+          "path": "lib/src/router.dart",
+          "sha256": "31d63882bb186c88ccdb8e7fd421f73690e4a9e0ea13ec8fe7d2ba5df683e533",
+          "declarations": [
+            "late final GoRouterDelegate routerDelegate;"
+          ]
+        }
+      ]
+    }
+  ]
+}

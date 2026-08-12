@@ -17,6 +17,13 @@
 		5AE1C3437204E2D906BF49A6 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DC59BBB23D6A532BD30539D /* Foundation.framework */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		D21000012F88000000000001 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D21000112F88000000000001 /* SceneDelegate.swift */; };
+		D20100012F88000000000001 /* LifecycleTraceModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20100112F88000000000001 /* LifecycleTraceModel.swift */; };
+		D20100022F88000000000001 /* LifecycleTraceRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20100122F88000000000001 /* LifecycleTraceRecorder.swift */; };
+		D20100032F88000000000001 /* LifecycleTraceProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20100132F88000000000001 /* LifecycleTraceProbe.swift */; };
+		D20100042F88000000000001 /* LifecycleTraceEvidence.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20100142F88000000000001 /* LifecycleTraceEvidence.swift */; };
+		D20100052F88000000000001 /* LifecycleTraceFlutterFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20100152F88000000000001 /* LifecycleTraceFlutterFixture.swift */; };
+		D20100062F88000000000001 /* LifecycleTraceSceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20100162F88000000000001 /* LifecycleTraceSceneDelegate.swift */; };
+		D20100072F88000000000001 /* LifecycleTraceRawLaunchMarker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20100172F88000000000001 /* LifecycleTraceRawLaunchMarker.swift */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
@@ -85,6 +92,13 @@
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D21000112F88000000000001 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		D20100112F88000000000001 /* LifecycleTraceModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleTraceModel.swift; sourceTree = "<group>"; };
+		D20100122F88000000000001 /* LifecycleTraceRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleTraceRecorder.swift; sourceTree = "<group>"; };
+		D20100132F88000000000001 /* LifecycleTraceProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleTraceProbe.swift; sourceTree = "<group>"; };
+		D20100142F88000000000001 /* LifecycleTraceEvidence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleTraceEvidence.swift; sourceTree = "<group>"; };
+		D20100152F88000000000001 /* LifecycleTraceFlutterFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleTraceFlutterFixture.swift; sourceTree = "<group>"; };
+		D20100162F88000000000001 /* LifecycleTraceSceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleTraceSceneDelegate.swift; sourceTree = "<group>"; };
+		D20100172F88000000000001 /* LifecycleTraceRawLaunchMarker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleTraceRawLaunchMarker.swift; sourceTree = "<group>"; };
 		78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = FlutterGeneratedPluginSwiftPackage; path = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage; sourceTree = "<group>"; };
 		79D24AE6E2C71E6994B72F5E /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
@@ -206,6 +220,13 @@
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				D21000112F88000000000001 /* SceneDelegate.swift */,
 				A7F5CCB52F87000000000001 /* PermissionChannelHandler.swift */,
+				D20100112F88000000000001 /* LifecycleTraceModel.swift */,
+				D20100122F88000000000001 /* LifecycleTraceRecorder.swift */,
+				D20100132F88000000000001 /* LifecycleTraceProbe.swift */,
+				D20100142F88000000000001 /* LifecycleTraceEvidence.swift */,
+				D20100152F88000000000001 /* LifecycleTraceFlutterFixture.swift */,
+				D20100162F88000000000001 /* LifecycleTraceSceneDelegate.swift */,
+				D20100172F88000000000001 /* LifecycleTraceRawLaunchMarker.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
 			path = Runner;
@@ -426,6 +447,13 @@
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				D21000012F88000000000001 /* SceneDelegate.swift in Sources */,
 				A7F5CCB42F87000000000001 /* PermissionChannelHandler.swift in Sources */,
+				D20100012F88000000000001 /* LifecycleTraceModel.swift in Sources */,
+				D20100022F88000000000001 /* LifecycleTraceRecorder.swift in Sources */,
+				D20100032F88000000000001 /* LifecycleTraceProbe.swift in Sources */,
+				D20100042F88000000000001 /* LifecycleTraceEvidence.swift in Sources */,
+				D20100052F88000000000001 /* LifecycleTraceFlutterFixture.swift in Sources */,
+				D20100062F88000000000001 /* LifecycleTraceSceneDelegate.swift in Sources */,
+				D20100072F88000000000001 /* LifecycleTraceRawLaunchMarker.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

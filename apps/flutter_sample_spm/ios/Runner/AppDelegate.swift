@@ -11,7 +11,12 @@ import CioLocationGeofence
 #endif
 
 @main
-class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
+class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {
+    override init() {
+        super.init()
+        _ = LifecycleTraceFlutterFixture.startIfConfigured()
+    }
+}
 
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
     private let permissionHandler = PermissionChannelHandler()
@@ -29,9 +34,22 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
 
         GeneratedPluginRegistrant.register(with: registry)
         permissionHandler.register(with: registrar.messenger())
+        _ = LifecycleTraceProbe.post(
+            callback: .flutterPluginRegistered,
+            owner: .flutterPlugin,
+            kind: .frameworkCallback,
+            phase: .result
+        )
     }
 
     func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+        _ = LifecycleTraceFlutterFixture.startIfConfigured()
+        _ = LifecycleTraceProbe.post(
+            callback: .flutterImplicitEngineCreated,
+            owner: .flutterEngine,
+            kind: .frameworkCallback,
+            phase: .result
+        )
         registerPluginsIfNeeded(with: engineBridge.pluginRegistry)
     }
 
@@ -43,6 +61,15 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
         // a FlutterViewController exists. Register that engine here, then reuse the same
         // registry-key guard if Flutter later reports an implicit engine callback.
         registerPluginsIfNeeded(with: self)
+        _ = LifecycleTraceProbe.post(
+            callback: .flutterApplicationDidFinishLaunchingForwarded,
+            owner: .flutterPlugin,
+            kind: .frameworkCallback,
+            phase: .entry,
+            observations:
+                LifecycleTraceEvidence.observe(applicationState: application.applicationState),
+                LifecycleTraceEvidence.observe(launchOptions: launchOptions)
+        )
 
         #if canImport(CioLocationGeofence)
         // iOS can cold-wake the app for a geofence transition before the Dart runtime

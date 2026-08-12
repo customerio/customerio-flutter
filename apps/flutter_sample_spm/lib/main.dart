@@ -2,6 +2,7 @@ import 'package:customer_io/customer_io.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:cio_lifecycle_flutter_fixture/lifecycle_trace_recorder.dart';
 
 import 'src/app.dart';
 import 'src/auth.dart';
@@ -16,11 +17,10 @@ final FlutterLocalNotificationsPlugin localNotificationsPlugin =
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  LifecycleTraceDartRecorder.attachFromBuildEnvironment()?.didEnterDartMain();
 
   // Initialize FCM (flutter-fire)
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   /// Update the iOS foreground notification presentation options to allow
   /// heads up notifications.
@@ -42,15 +42,18 @@ void main() async {
     android: initSettingsAndroid,
     iOS: initSettingsIOS,
   );
-  await localNotificationsPlugin.initialize(initSettings,
-      onDidReceiveNotificationResponse:
-          (NotificationResponse notificationResponse) async {
-    // Callback from `flutter_local_notifications` plugin for when a local notification is clicked.
-    // Unfortunately, we are only able to get the payload object for the local push, not anything else such as title or body.
-    CustomerIO.instance.track(
-        name: "local push notification clicked",
-        properties: {"payload": notificationResponse.payload});
-  });
+  await localNotificationsPlugin.initialize(
+    initSettings,
+    onDidReceiveNotificationResponse:
+        (NotificationResponse notificationResponse) async {
+          // Callback from `flutter_local_notifications` plugin for when a local notification is clicked.
+          // Unfortunately, we are only able to get the payload object for the local push, not anything else such as title or body.
+          CustomerIO.instance.track(
+            name: "local push notification clicked",
+            properties: {"payload": notificationResponse.payload},
+          );
+        },
+  );
 
   // Quick Actions registers an application delegate with Flutter. Keeping it
   // in the sample protects the CioAppDelegateWrapper lifecycle integration.

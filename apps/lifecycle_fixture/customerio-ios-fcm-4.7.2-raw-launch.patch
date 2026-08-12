@@ -1,0 +1,28 @@
+--- CioAppDelegateFCM.swift
++++ CioAppDelegateFCM.swift
+@@ -25,4 +25,25 @@
+         _ application: UIApplication,
+         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
+     ) -> Bool {
++        let lifecycleState: String
++        switch application.applicationState {
++        case .active: lifecycleState = "active"
++        case .inactive: lifecycleState = "inactive"
++        case .background: lifecycleState = "background"
++        @unknown default: lifecycleState = "unknown"
++        }
++        let lifecycleProcessInstanceID = ProcessInfo.processInfo.environment[
++            "CIO_LIFECYCLE_PROCESS_INSTANCE_ID"
++        ] ?? ""
++        NotificationCenter.default.post(
++            name: Notification.Name("io.customer.lifecycle-trace.fixture.raw-did-finish"),
++            object: NotificationCenter.default,
++            userInfo: [
++                "app_state": lifecycleState,
++                "has_launch_options": launchOptions != nil,
++                "launch_option_keys": launchOptions?.count ?? 0,
++                "process_instance_id": lifecycleProcessInstanceID
++            ]
++        )
++
+         let result = super.application(application, didFinishLaunchingWithOptions: launchOptions)

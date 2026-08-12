@@ -79,3 +79,50 @@ Objective-C protocol conformance and forwarding behavior.
 
 Run the check on both the SPM and CocoaPods samples whenever the native iOS SDK
 pin or app delegate integration changes.
+
+## iOS 27 / UIScene lifecycle fixture (MBL-2232)
+
+Using the Flutter **3.44.8** pins owned by MBL-2280, both samples bootstrap
+their plugins from the implicit engine, via
+`FlutterImplicitEngineDelegate.didInitializeImplicitFlutterEngine(_:)`. That is
+the one plugin-consumer seat in each app; the `FlutterAppDelegate` and
+`FlutterSceneDelegate` super calls are raw/forward seats only.
+
+Each sample ships two immutable Info.plist configurations. Nothing is edited to
+switch between them — the Runner target resolves
+`Runner/Info$(CIO_LIFECYCLE_INFOPLIST_SUFFIX).plist`, and the suffix is passed on
+the xcodebuild command line:
+
+| Configuration | Info.plist | Lifecycle |
+|---|---|---|
+| `legacy` (default) | `Runner/Info.plist` | `UIApplicationDelegate` |
+| `scene` | `Runner/Info-Scene.plist` | `UIApplicationSceneManifest` → fixture subclass of `FlutterSceneDelegate` |
+
+```bash
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+./apps/scripts/lifecycle_fixture_build.sh legacy spm
+./apps/scripts/lifecycle_fixture_build.sh scene  spm
+./apps/scripts/lifecycle_fixture_build.sh legacy cocoapods
+./apps/scripts/lifecycle_fixture_build.sh scene  cocoapods
+```
+
+The script refuses to run on a toolchain other than the pinned one and verifies
+that the built product carries the configuration that was requested.
+
+To check that the bootstrap still registers exactly once per implicit engine:
+
+```bash
+python3 apps/scripts/verify_implicit_engine_registration.py \
+  --flutter-root "$(dirname "$(dirname "$(which flutter)")")" \
+  --app <derived-data>/Build/Products/Debug-iphonesimulator/Runner.app
+```
+
+`apps/lifecycle_fixture/plugin-consumer-seats.lock.json` maps each Dart-side
+receipt (Firebase, local notification, quick action, router) to a canonical
+`cio-lifecycle-trace/1` callback and to the exact pinned plugin source that
+delivers it. Resolve both samples with the same disposable `PUB_CACHE` before
+running `flutter test test/ios27_lifecycle`; the tests fail closed if either
+sample resolution is absent, then re-derive every digest from that cache.
+
+See `docs/mbl-2232-flutter-lifecycle-fixture.md` for the vendored contract,
+scope, verification commands, and evidence status.
