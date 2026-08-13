@@ -67,18 +67,28 @@ exit 2
         await Directory.systemTemp.createTemp('customerio-api-ordering.');
     addTearDown(() => fixture.delete(recursive: true));
 
-    Map<String, Object> declaration(String source) => <String, Object>{
+    Map<String, Object> declaration(String source, String fieldName) =>
+        <String, Object>{
           'name': 'InAppMessage',
           'isDeprecated': false,
           'superTypeNames': <String>[],
           'relativePath': source,
           'executableDeclarations': <Object>[],
-          'fieldDeclarations': <Object>[],
+          'fieldDeclarations': <Object>[
+            <String, Object>{
+              'name': fieldName,
+              'typeName': 'String',
+              'isDeprecated': false,
+              'isStatic': false,
+              'isReadable': true,
+              'isWriteable': false,
+            },
+          ],
         };
 
     final List<Map<String, Object>> declarations = <Map<String, Object>>[
-      declaration('package:customer_io/z.dart'),
-      declaration('package:customer_io/a.dart'),
+      declaration('package:customer_io/z.dart', 'fromZ'),
+      declaration('package:customer_io/a.dart', 'fromA'),
     ];
 
     Future<String> render(List<Map<String, Object>> interfaces) async {
@@ -97,6 +107,47 @@ exit 2
     final String forward = await render(declarations);
     final String reversed = await render(declarations.reversed.toList());
     expect(reversed, forward);
+    expect(forward.indexOf('fromA'), lessThan(forward.indexOf('fromZ')));
+  });
+
+  test('API check reports extraction failures without replacing baseline',
+      () async {
+    final Directory repository = Directory.current;
+    final Directory fixture =
+        await Directory.systemTemp.createTemp('customerio-api-check.');
+    addTearDown(() => fixture.delete(recursive: true));
+
+    final Directory scripts = Directory('${fixture.path}/scripts')
+      ..createSync();
+    File('${repository.path}/scripts/check_api_changes.sh')
+        .copySync('${scripts.path}/check_api_changes.sh');
+    final File extractor = File('${scripts.path}/extract_api.sh')
+      ..writeAsStringSync(r'''#!/bin/bash
+echo "sentinel extraction failure" >&2
+exit 1
+''');
+    final ProcessResult chmod = await Process.run(
+      'chmod',
+      <String>['+x', extractor.path],
+    );
+    expect(chmod.exitCode, 0, reason: '${chmod.stderr}');
+
+    const String originalBaseline = 'public final class Existing {}\n';
+    final File baseline = File('${fixture.path}/customerio-flutter.api')
+      ..writeAsStringSync(originalBaseline);
+
+    final ProcessResult result = await Process.run(
+      'bash',
+      <String>['scripts/check_api_changes.sh'],
+      workingDirectory: fixture.path,
+    );
+
+    expect(result.exitCode, 2);
+    expect(result.stderr, contains('sentinel extraction failure'));
+    expect(result.stderr, contains('API extraction failed'));
+    expect(baseline.readAsStringSync(), originalBaseline);
+    expect(File('${fixture.path}/customerio-flutter.api.backup').existsSync(),
+        isFalse);
   });
 }
 

@@ -2,6 +2,10 @@
 
 # Customer.io Flutter SDK API Extraction Tool
 # Usage: ./extract_api.sh
+#
+# Regenerate the checked-in baseline with Flutter 3.44.8. Hosted API checks
+# intentionally use that audited version while dart_apitool 0.22.x is
+# incompatible with the Dart 3.13 analyzer AST shipped by newer Flutter.
 
 set -euo pipefail
 
@@ -16,6 +20,9 @@ cleanup() {
   fi
 }
 trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 temporary_model="$temporary_directory/api_current.json"
 

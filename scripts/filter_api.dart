@@ -61,6 +61,9 @@ Map<String, dynamic> filterAPI(Map<String, dynamic> data) {
       'isDeprecated': cls['isDeprecated'],
       'superTypes': cls['superTypeNames'],
       'file': _extractFileName(cls['relativePath']),
+      // Keep the full package-relative path for a total deterministic order.
+      // The shorter `file` value remains the user-facing Markdown value.
+      'sourcePath': cls['relativePath'] ?? 'unknown',
     };
 
     // Extract methods
@@ -163,7 +166,9 @@ String generateSummary(Map<String, dynamic> filtered) {
       classB['name'] as String,
     );
     if (byName != 0) return byName;
-    return (classA['file'] as String).compareTo(classB['file'] as String);
+    return (classA['sourcePath'] as String).compareTo(
+      classB['sourcePath'] as String,
+    );
   });
 
   for (final cls in sortedClasses) {
