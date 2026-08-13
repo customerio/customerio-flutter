@@ -12,6 +12,17 @@ configuration, preserving a higher inherited app or extension floor. It changes 
 settings in the generated Pods project and CocoaPods-integrated Runner or extension projects. It
 does not rewrite a podspec or change runtime API availability.
 
+Customer.io deliberately continues to publish native SDKs that support iOS versions below 15. A
+podspec can therefore correctly declare that lower library minimum even when the Flutter
+application consuming it has moved to iOS 15 or later. CocoaPods carries deployment metadata from
+Customer.io and third-party podspecs into generated build targets, but Xcode 27 no longer accepts
+targets below the iOS SDK's supported build range. Raising every published podspec to iOS 15 would
+unnecessarily drop older applications and would not control metadata from transitive
+dependencies. The helper instead aligns the generated targets with the host application's chosen
+minimum while leaving the packages' published runtime compatibility unchanged.
+This is the supported integration policy for a Flutter application that has moved its own minimum
+to iOS 15 or later.
+
 > [!WARNING]
 > This is an opt-in build migration. Integrated Runner and extension targets below iOS 15.0 are
 > raised to 15.0. Shipping that project means users on iOS 13 or iOS 14 cannot install subsequent
@@ -60,13 +71,19 @@ Synchronized-group xcconfig references are not resolved by that public parser; i
 reports one, replace it with a standard xcconfig file reference, then run `pod install` again.
 These cases fail before any project mutation.
 
-## Remove the helper
+## When the helper is no longer needed
 
-Treat the helper as a temporary compatibility layer. Remove it only when a clean install without
-the helper proves that every target/configuration in every supported resolved dependency graph
-declares an effective numeric deployment target at or above the host application's minimum. Check
-each supported Flutter plugin and push-provider graph, and keep the audit in CI when removing the
-helper so a later dependency update cannot silently reintroduce a lower target.
+Keep the helper while a supported dependency graph can validly include deployment metadata below
+the host application's minimum. This is expected while Customer.io supports older iOS versions or
+supported third-party pods continue to declare lower minimums. A `platform` declaration in the
+application's Podfile alone does not guarantee that every generated target uses the same value.
+
+The helper becomes unnecessary only when a clean install without it proves that every
+target/configuration in every supported Flutter plugin and push-provider graph declares an
+effective numeric deployment target at or above the host application's minimum. That state would
+normally follow an intentional platform-support change across the SDK, wrappers, and relevant
+dependencies; it is not a prerequisite for adopting Xcode 27. Keep the audit in CI after removing
+the helper so a later dependency update cannot silently reintroduce a lower target.
 
 For a deterministic CI audit, use the script from this repository with the installed CocoaPods
 Ruby environment. Its stable report includes the target, matching project, and effective value.
