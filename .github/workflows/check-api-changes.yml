@@ -12,16 +12,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+
+    - name: Read API extraction Flutter version
+      id: api-toolchain
+      shell: bash
+      run: |
+        version="$(tr -d '[:space:]' < scripts/api-extraction-flutter-version.txt)"
+        if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "Invalid API extraction Flutter version: $version" >&2
+          exit 1
+        fi
+        echo "flutter-version=$version" >> "$GITHUB_OUTPUT"
+
     # dart_apitool 0.22.1 is incompatible with the dot-shorthand AST first
     # enabled by Dart 3.13. Keep API extraction on the audited MBL-2280
     # toolchain until the extractor supports that analyzer shape.
-    - uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046 # v2.19.0
+    - uses: ./.github/actions/setup-flutter
       with:
-        channel: stable
-        flutter-version: 3.44.8
-
-    - name: Install Flutter dependencies
-      run: flutter pub get
+        flutter-version: ${{ steps.api-toolchain.outputs.flutter-version }}
+        install-sample-dependencies: 'false'
     
     - name: Check for API changes
       run: ./scripts/check_api_changes.sh

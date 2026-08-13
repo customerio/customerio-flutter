@@ -2,14 +2,26 @@
 
 # Customer.io Flutter SDK API Extraction Tool
 # Usage: ./extract_api.sh
-#
-# Regenerate the checked-in baseline with Flutter 3.44.8. Hosted API checks
-# intentionally use that audited version while dart_apitool 0.22.x is
-# incompatible with the Dart 3.13 analyzer AST shipped by newer Flutter.
 
 set -euo pipefail
 
 echo "🔍 Extracting Customer.io Flutter SDK API..."
+
+version_file="scripts/api-extraction-flutter-version.txt"
+if [ ! -f "$version_file" ]; then
+  echo "❌ Error: API extraction Flutter version file is missing" >&2
+  exit 1
+fi
+expected_flutter_version="$(tr -d '[:space:]' < "$version_file")"
+if [[ ! "$expected_flutter_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "❌ Error: invalid API extraction Flutter version: $expected_flutter_version" >&2
+  exit 1
+fi
+actual_flutter_version="$(flutter --version | awk 'NR == 1 { print $2 }')"
+if [ "$actual_flutter_version" != "$expected_flutter_version" ]; then
+  echo "❌ Error: API extraction requires Flutter $expected_flutter_version; found $actual_flutter_version" >&2
+  exit 1
+fi
 
 temporary_directory="$(mktemp -d "${TMPDIR:-/tmp}/customerio-flutter-api.XXXXXX")"
 temporary_api=""
@@ -49,6 +61,8 @@ if [ ! -s "$temporary_api" ]; then
   echo "❌ Error: API filtering produced no public API" >&2
   exit 1
 fi
+
+chmod 644 "$temporary_api"
 
 # Publish only a complete, nonempty extraction. The checked-in baseline remains
 # byte-for-byte intact if either tool fails.

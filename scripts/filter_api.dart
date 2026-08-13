@@ -49,10 +49,22 @@ void main(List<String> arguments) async {
 Map<String, dynamic> filterAPI(Map<String, dynamic> data) {
   final packageApi = data['packageApi'] as Map<String, dynamic>;
   final interfaces = packageApi['interfaceDeclarations'] as List<dynamic>;
+  final sortedInterfaces = List<dynamic>.from(interfaces)
+    ..sort((a, b) {
+      final classA = a as Map<String, dynamic>;
+      final classB = b as Map<String, dynamic>;
+      final byName = (classA['name'] as String).compareTo(
+        classB['name'] as String,
+      );
+      if (byName != 0) return byName;
+      return ((classA['relativePath'] as String?) ?? 'unknown').compareTo(
+        (classB['relativePath'] as String?) ?? 'unknown',
+      );
+    });
 
   final filteredClasses = <Map<String, dynamic>>[];
 
-  for (final interface in interfaces) {
+  for (final interface in sortedInterfaces) {
     final cls = interface as Map<String, dynamic>;
 
     // Extract basic class info
@@ -61,9 +73,6 @@ Map<String, dynamic> filterAPI(Map<String, dynamic> data) {
       'isDeprecated': cls['isDeprecated'],
       'superTypes': cls['superTypeNames'],
       'file': _extractFileName(cls['relativePath']),
-      // Keep the full package-relative path for a total deterministic order.
-      // The shorter `file` value remains the user-facing Markdown value.
-      'sourcePath': cls['relativePath'] ?? 'unknown',
     };
 
     // Extract methods
@@ -154,24 +163,9 @@ String generateSummary(Map<String, dynamic> filtered) {
   final buffer = StringBuffer();
   final classes = filtered['classes'] as List<dynamic>;
 
-  // Sort by name and then source file. The package currently exports two
-  // unrelated InAppMessage classes, and dart_apitool does not guarantee their
-  // input order. A name-only comparison therefore made the API file alternate
-  // between two byte orders without an API change.
-  final sortedClasses = List<dynamic>.from(classes);
-  sortedClasses.sort((a, b) {
-    final classA = a as Map<String, dynamic>;
-    final classB = b as Map<String, dynamic>;
-    final byName = (classA['name'] as String).compareTo(
-      classB['name'] as String,
-    );
-    if (byName != 0) return byName;
-    return (classA['sourcePath'] as String).compareTo(
-      classB['sourcePath'] as String,
-    );
-  });
-
-  for (final cls in sortedClasses) {
+  // filterAPI returns classes in a deterministic name and full-source-path
+  // order for every output format.
+  for (final cls in classes) {
     final clsMap = cls as Map<String, dynamic>;
     final methods = clsMap['methods'] as List<dynamic>;
     final properties = clsMap['properties'] as List<dynamic>;

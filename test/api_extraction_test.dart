@@ -16,6 +16,8 @@ void main() {
         .copySync('${scripts.path}/extract_api.sh');
     File('${repository.path}/scripts/filter_api.dart')
         .copySync('${scripts.path}/filter_api.dart');
+    File('${repository.path}/scripts/api-extraction-flutter-version.txt')
+        .copySync('${scripts.path}/api-extraction-flutter-version.txt');
 
     const String originalBaseline = 'public final class Existing {}\n';
     final File baseline = File('${fixture.path}/customerio-flutter.api')
@@ -25,6 +27,10 @@ void main() {
     final File flutter = File('${binaries.path}/flutter')
       ..writeAsStringSync(r'''#!/bin/bash
 set -e
+if [ "${1:-}" = "--version" ]; then
+  echo "Flutter 3.44.8 • channel stable"
+  exit 0
+fi
 while [ "$#" -gt 0 ]; do
   if [ "$1" = "--output" ]; then
     printf '%s\n' '{"packageApi":{"packageName":"customer_io","packageVersion":"test","interfaceDeclarations":[]}}' > "$2"
@@ -60,7 +66,7 @@ exit 2
           .where((File file) => file.path.contains('.customerio-flutter.api.')),
       isEmpty,
     );
-  });
+  }, skip: Platform.isWindows ? 'requires bash' : false);
 
   test('duplicate class names are ordered by source file', () async {
     final Directory fixture =
@@ -108,7 +114,7 @@ exit 2
     final String reversed = await render(declarations.reversed.toList());
     expect(reversed, forward);
     expect(forward.indexOf('fromA'), lessThan(forward.indexOf('fromZ')));
-  });
+  }, skip: Platform.isWindows ? 'requires process execution' : false);
 
   test('API check reports extraction failures without replacing baseline',
       () async {
@@ -148,7 +154,54 @@ exit 1
     expect(baseline.readAsStringSync(), originalBaseline);
     expect(File('${fixture.path}/customerio-flutter.api.backup').existsSync(),
         isFalse);
-  });
+  }, skip: Platform.isWindows ? 'requires bash' : false);
+
+  test('API extraction rejects the wrong Flutter version', () async {
+    final Directory repository = Directory.current;
+    final Directory fixture =
+        await Directory.systemTemp.createTemp('customerio-api-version.');
+    addTearDown(() => fixture.delete(recursive: true));
+
+    final Directory scripts = Directory('${fixture.path}/scripts')
+      ..createSync();
+    File('${repository.path}/scripts/extract_api.sh')
+        .copySync('${scripts.path}/extract_api.sh');
+    File('${repository.path}/scripts/api-extraction-flutter-version.txt')
+        .copySync('${scripts.path}/api-extraction-flutter-version.txt');
+
+    const String originalBaseline = 'public final class Existing {}\n';
+    final File baseline = File('${fixture.path}/customerio-flutter.api')
+      ..writeAsStringSync(originalBaseline);
+    final Directory binaries = Directory('${fixture.path}/bin')..createSync();
+    final File flutter = File('${binaries.path}/flutter')
+      ..writeAsStringSync(r'''#!/bin/bash
+if [ "${1:-}" = "--version" ]; then
+  echo "Flutter 3.47.0 • channel stable"
+  exit 0
+fi
+exit 2
+''');
+    final ProcessResult chmod = await Process.run(
+      'chmod',
+      <String>['+x', flutter.path],
+    );
+    expect(chmod.exitCode, 0, reason: '${chmod.stderr}');
+
+    final ProcessResult result = await Process.run(
+      'bash',
+      <String>['scripts/extract_api.sh'],
+      workingDirectory: fixture.path,
+      environment: <String, String>{
+        ...Platform.environment,
+        'PATH': '${binaries.path}:${Platform.environment['PATH']}',
+      },
+    );
+
+    expect(result.exitCode, isNot(0));
+    expect(result.stderr, contains('requires Flutter 3.44.8'));
+    expect(result.stderr, contains('found 3.47.0'));
+    expect(baseline.readAsStringSync(), originalBaseline);
+  }, skip: Platform.isWindows ? 'requires bash' : false);
 }
 
 String _jsonEncode(Object value) => const JsonEncoder().convert(value);

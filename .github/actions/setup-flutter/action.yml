@@ -1,12 +1,31 @@
 name: Setup
 description: Setup runner to be able to build an app with Flutter. Not specific for Android or iOS.
 
+inputs:
+  flutter-version:
+    description: Exact Flutter version. Leave empty to install the latest stable release.
+    required: false
+    default: ''
+  install-sample-dependencies:
+    description: Whether to resolve dependencies for every sample app.
+    required: false
+    default: 'true'
+
 runs:
   using: "composite"
   steps:
-  - uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046 # v2.19.0
+  - name: Install latest stable Flutter
+    if: inputs.flutter-version == ''
+    uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046 # v2.19.0
     with:
       channel: stable
+
+  - name: Install exact stable Flutter
+    if: inputs.flutter-version != ''
+    uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046 # v2.19.0
+    with:
+      channel: stable
+      flutter-version: ${{ inputs.flutter-version }}
 
   - run: flutter --version
     shell: bash
@@ -19,6 +38,7 @@ runs:
     shell: bash
 
   - name: Install Flutter dependencies for sample apps
+    if: inputs.install-sample-dependencies == 'true'
     run: |
       for app_dir in apps/flutter_sample_*/; do
         echo "Installing dependencies for $app_dir"
