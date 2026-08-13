@@ -107,6 +107,8 @@ jobs:
       - name: Install locked Ruby dependencies for CocoaPods
         if: matrix.manager == 'CocoaPods'
         uses: ruby/setup-ruby@922ebc4c5262cd14e07bb0e1db020984b6c064fe # v1.226.0
+        env:
+          BUNDLE_FROZEN: 'true'
         with:
           ruby-version: '3.1'
           bundler-cache: true
