@@ -17,7 +17,7 @@ if [[ ! "$expected_flutter_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   echo "❌ Error: invalid API extraction Flutter version: $expected_flutter_version" >&2
   exit 1
 fi
-actual_flutter_version="$(flutter --version | awk '/^Flutter / { print $2; exit }')"
+actual_flutter_version="$(flutter --version | awk '/^Flutter / && version == "" { version = $2 } END { print version }')"
 if [ "$actual_flutter_version" != "$expected_flutter_version" ]; then
   echo "❌ Error: API extraction requires Flutter $expected_flutter_version; found $actual_flutter_version" >&2
   exit 1

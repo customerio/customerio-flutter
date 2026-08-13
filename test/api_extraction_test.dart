@@ -228,6 +228,9 @@ set -e
 if [ "${1:-}" = "--version" ]; then
   echo "Preparing Flutter tool..."
   echo "Flutter 3.44.8 • channel stable"
+  for line in 1 2 3 4 5 6 7 8; do
+    echo "post-version diagnostic $line"
+  done
   exit 0
 fi
 while [ "$#" -gt 0 ]; do
@@ -258,7 +261,12 @@ exit 2
     expect(result.exitCode, 0, reason: '${result.stderr}');
     final File baseline = File('${fixture.path}/customerio-flutter.api');
     expect(baseline.readAsStringSync(), contains('public final class Example'));
-    expect(baseline.statSync().mode & 0x1FF, 0x1A4);
+    const int permissionBits = 0x1FF; // 0o777
+    const int ownerReadWriteWorldRead = 0x1A4; // 0o644
+    expect(
+      baseline.statSync().mode & permissionBits,
+      ownerReadWriteWorldRead,
+    );
     expect(
       fixture
           .listSync()
