@@ -86,8 +86,8 @@ class CustomerIOSDK extends ChangeNotifier {
           ),
         ),
       );
-    } catch (ex) {
-      return Future.error(ex);
+    } catch (_) {
+      rethrow;
     }
   }
 }

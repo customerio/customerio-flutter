@@ -21,6 +21,9 @@ cleanup() {
 
 # Set up cleanup on exit
 trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 # Check if current API file exists
 if [ ! -f "$CURRENT_API_FILE" ]; then
@@ -60,6 +63,7 @@ else
     echo ""
     echo "💡 If these changes are intentional, update the baseline API file:"
     echo "   ./scripts/extract_api.sh"
+    echo "   Use Flutter $(tr -d '[:space:]' < scripts/api-extraction-flutter-version.txt)."
     echo ""
     echo "   This will regenerate customerio-flutter.api with the current API surface."
     

@@ -202,6 +202,122 @@ exit 2
     expect(result.stderr, contains('found 3.47.0'));
     expect(baseline.readAsStringSync(), originalBaseline);
   }, skip: Platform.isWindows ? 'requires bash' : false);
+
+  test('successful API extraction publishes a complete clean baseline',
+      () async {
+    final Directory repository = Directory.current;
+    final Directory fixture =
+        await Directory.systemTemp.createTemp('customerio-api-success.');
+    addTearDown(() => fixture.delete(recursive: true));
+
+    final Directory scripts = Directory('${fixture.path}/scripts')
+      ..createSync();
+    for (final String scriptName in <String>[
+      'extract_api.sh',
+      'filter_api.dart',
+      'api-extraction-flutter-version.txt',
+    ]) {
+      File('${repository.path}/scripts/$scriptName')
+          .copySync('${scripts.path}/$scriptName');
+    }
+
+    final Directory binaries = Directory('${fixture.path}/bin')..createSync();
+    final File flutter = File('${binaries.path}/flutter')
+      ..writeAsStringSync(r'''#!/bin/bash
+set -e
+if [ "${1:-}" = "--version" ]; then
+  echo "Preparing Flutter tool..."
+  echo "Flutter 3.44.8 • channel stable"
+  exit 0
+fi
+while [ "$#" -gt 0 ]; do
+  if [ "$1" = "--output" ]; then
+    printf '%s\n' '{"packageApi":{"packageName":"customer_io","packageVersion":"test","interfaceDeclarations":[{"name":"Example","isDeprecated":false,"superTypeNames":[],"relativePath":"package:customer_io/example.dart","executableDeclarations":[],"fieldDeclarations":[]}]}}' > "$2"
+    exit 0
+  fi
+  shift
+done
+exit 2
+''');
+    final ProcessResult chmod = await Process.run(
+      'chmod',
+      <String>['+x', flutter.path],
+    );
+    expect(chmod.exitCode, 0, reason: '${chmod.stderr}');
+
+    final ProcessResult result = await Process.run(
+      'bash',
+      <String>['scripts/extract_api.sh'],
+      workingDirectory: fixture.path,
+      environment: <String, String>{
+        ...Platform.environment,
+        'PATH': '${binaries.path}:${Platform.environment['PATH']}',
+      },
+    );
+
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    final File baseline = File('${fixture.path}/customerio-flutter.api');
+    expect(baseline.readAsStringSync(), contains('public final class Example'));
+    expect(baseline.statSync().mode & 0x1FF, 0x1A4);
+    expect(
+      fixture
+          .listSync()
+          .whereType<File>()
+          .where((File file) => file.path.contains('.customerio-flutter.api.')),
+      isEmpty,
+    );
+  }, skip: Platform.isWindows ? 'requires bash' : false);
+
+  test('empty dart_apitool model fails before filtering', () async {
+    final Directory repository = Directory.current;
+    final Directory fixture =
+        await Directory.systemTemp.createTemp('customerio-api-empty-model.');
+    addTearDown(() => fixture.delete(recursive: true));
+
+    final Directory scripts = Directory('${fixture.path}/scripts')
+      ..createSync();
+    File('${repository.path}/scripts/extract_api.sh')
+        .copySync('${scripts.path}/extract_api.sh');
+    File('${repository.path}/scripts/api-extraction-flutter-version.txt')
+        .copySync('${scripts.path}/api-extraction-flutter-version.txt');
+    final Directory binaries = Directory('${fixture.path}/bin')..createSync();
+    final File flutter = File('${binaries.path}/flutter')
+      ..writeAsStringSync(r'''#!/bin/bash
+set -e
+if [ "${1:-}" = "--version" ]; then
+  echo "Flutter 3.44.8 • channel stable"
+  exit 0
+fi
+while [ "$#" -gt 0 ]; do
+  if [ "$1" = "--output" ]; then
+    : > "$2"
+    exit 0
+  fi
+  shift
+done
+exit 2
+''');
+    final ProcessResult chmod = await Process.run(
+      'chmod',
+      <String>['+x', flutter.path],
+    );
+    expect(chmod.exitCode, 0, reason: '${chmod.stderr}');
+
+    final ProcessResult result = await Process.run(
+      'bash',
+      <String>['scripts/extract_api.sh'],
+      workingDirectory: fixture.path,
+      environment: <String, String>{
+        ...Platform.environment,
+        'PATH': '${binaries.path}:${Platform.environment['PATH']}',
+      },
+    );
+
+    expect(result.exitCode, isNot(0));
+    expect(result.stderr, contains('produced no API model'));
+    expect(
+        File('${fixture.path}/customerio-flutter.api').existsSync(), isFalse);
+  }, skip: Platform.isWindows ? 'requires bash' : false);
 }
 
 String _jsonEncode(Object value) => const JsonEncoder().convert(value);
