@@ -29,7 +29,7 @@ jobs:
           token: ${{ steps.generate_token.outputs.token }}
 
       - name: Install sd CLI
-        uses: levibostian/setup-sd@cbdeed93d4fe03f9e36b73bb6d9e7c3c4805e1f9 # add-file-extension
+        uses: kenji-miyake/setup-sd@08c14e27d65a1c215342ef00c81583ae67f4c5ef # v2.0.0
 
       - name: Deploy git tag via semantic-release
         uses: cycjimmy/semantic-release-action@0a51e81a6baff2acad3ee88f4121c589c73d0f0e # v4.2.0
