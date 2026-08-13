@@ -1,8 +1,10 @@
 # iOS toolchain compatibility CI
 
-`iOS toolchain compatibility` compiles the CocoaPods and SwiftPM sample apps on the supported Xcode 26.6 toolchain and the floating Xcode 27 preview runner. Both sides install the exact Flutter version in each app's `.flutter-version` file, and the repository verifier requires the two pins to remain synchronized and compatible with Xcode 27.
+`iOS toolchain compatibility` compiles the CocoaPods and SwiftPM sample apps on the supported Xcode 26.6 toolchain and the floating Xcode 27 preview runner. Both sides install the exact Flutter version in each app's `.flutter-version` file, and the repository verifier requires the two pins to remain synchronized and compatible with Xcode 27. Its pull-request trigger is path-scoped, while every push to `main` records a baseline.
 
-The stable cells are required regression evidence. Preview cells are experimental and non-blocking until Xcode 27 is supported as a stable toolchain. The workflow records the hosted image, macOS, architecture, exact Xcode build, SDK versions, and installed runtimes through the shared `mobile-ci-tools` action. It verifies toolchain families rather than copying an exact beta-image pin into this repository.
+When the workflow runs, the stable cells are blocking regression controls. Preview cells are experimental and non-blocking until Xcode 27 is supported as a stable toolchain. Do not configure the path-scoped pull-request checks as universally required branch-protection checks without an always-run fallback. The stable cells intentionally use the same focused commands, Flutter version, and dependency setup as the preview cells, providing a controlled before-and-after comparison even though broader sample-build workflows also compile these apps.
+
+The workflow records the hosted image, macOS, architecture, exact Xcode build, SDK versions, and installed runtimes through the shared `mobile-ci-tools` action. It verifies toolchain families rather than copying an exact beta-image pin into this repository.
 
 Exact beta-image validation belongs in a temporary, explicitly test-only PR. When Xcode 27 becomes stable, change its matrix cells to the supported stable runner/version and make them blocking. Remove preview wording at the same time.
 

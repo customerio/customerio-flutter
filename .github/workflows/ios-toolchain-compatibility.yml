@@ -18,8 +18,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ios-toolchain-compatibility-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   compile:
@@ -74,6 +74,7 @@ jobs:
 
       # Flutter inspects the selected Xcode when generating its SwiftPM plugin package.
       - name: Select Xcode
+        id: select-xcode
         uses: customerio/mobile-ci-tools/github-actions/ios/setup-ios/v1@86901f620405b9acdcbee56020f3d4ef38e45650
         with:
           xcode-version: ${{ matrix.xcode-version }}
@@ -100,10 +101,12 @@ jobs:
           cache: true
 
       - name: Verify installed Flutter
+        shell: bash
         run: ./apps/scripts/verify_xcode27_flutter_version.sh --installed
 
       - name: Install CocoaPods
         if: matrix.manager == 'CocoaPods'
+        shell: bash
         run: gem install cocoapods -v 1.16.2 --no-document
 
       - name: Prepare fixture
@@ -122,7 +125,7 @@ jobs:
           fi
           flutter pub get
           if [[ "$DEPENDENCY_MANAGER" == 'CocoaPods' ]]; then
-            pod install --project-directory=ios
+            pod _1.16.2_ install --project-directory=ios
           fi
 
       - name: Compile Flutter fixture
@@ -136,14 +139,20 @@ jobs:
       - name: Record compile result
         if: steps.compile.outcome == 'success'
         shell: bash
+        env:
+          APP: ${{ matrix.app }}
+          DEPENDENCY_MANAGER: ${{ matrix.manager }}
+          XCODE_VERSION: ${{ steps.toolchain.outputs.xcode-version }}
+          XCODE_BUILD: ${{ steps.toolchain.outputs.xcode-build }}
+          IOS_SIMULATOR_SDK: ${{ steps.toolchain.outputs.iphonesimulator-sdk }}
         run: |
-          flutter_version="$(<"apps/${{ matrix.app }}/.flutter-version")"
+          flutter_version="$(<"apps/$APP/.flutter-version")"
           {
             echo '## Flutter fixture compile'
             echo
             echo '**Classification:** compile-passed'
-            echo '**Dependency manager:** ${{ matrix.manager }}'
-            echo "**Toolchain:** Flutter $flutter_version, Xcode ${{ steps.toolchain.outputs.xcode-version }} build ${{ steps.toolchain.outputs.xcode-build }}, iphonesimulator ${{ steps.toolchain.outputs.iphonesimulator-sdk }}"
+            echo "**Dependency manager:** $DEPENDENCY_MANAGER"
+            echo "**Toolchain:** Flutter $flutter_version, Xcode $XCODE_VERSION build $XCODE_BUILD, iphonesimulator $IOS_SIMULATOR_SDK"
             echo '**Scope:** simulator compile only; no launch, lifecycle callback, push-delivery, signing, or App Store claim'
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -161,7 +170,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Record setup failure
-        if: failure() && steps.toolchain.outcome != 'failure' && steps.compile.outcome == 'skipped'
+        if: failure() && steps.select-xcode.outcome != 'failure' && steps.toolchain.outcome != 'failure' && steps.compile.outcome == 'skipped'
         shell: bash
         run: |
           {
@@ -174,7 +183,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Record unavailable toolchain
-        if: failure() && steps.toolchain.outcome == 'failure'
+        if: failure() && (steps.select-xcode.outcome == 'failure' || steps.toolchain.outcome == 'failure')
         shell: bash
         run: |
           {
