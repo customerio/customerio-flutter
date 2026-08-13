@@ -1,0 +1,151 @@
+name: iOS toolchain compatibility
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/ios-toolchain-compatibility.yml'
+      - 'apps/flutter_sample_cocoapods/**'
+      - 'apps/flutter_sample_spm/**'
+      - 'apps/scripts/**'
+      - 'ios/**'
+      - 'lib/**'
+      - 'pubspec.yaml'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-toolchain-compatibility-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    name: ${{ matrix.toolchain }} (${{ matrix.manager }})
+    runs-on: ${{ matrix.runner }}
+    continue-on-error: ${{ matrix.experimental }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - toolchain: Xcode 26.6
+            runner: macos-26
+            xcode-version: '26.6'
+            xcode-major: '26'
+            ios-sdk-major: '26'
+            experimental: false
+            app: flutter_sample_spm
+            manager: SwiftPM
+          - toolchain: Xcode 26.6
+            runner: macos-26
+            xcode-version: '26.6'
+            xcode-major: '26'
+            ios-sdk-major: '26'
+            experimental: false
+            app: flutter_sample_cocoapods
+            manager: CocoaPods
+          - toolchain: Xcode 27 preview
+            runner: xcode-27
+            xcode-version: ''
+            xcode-major: '27'
+            ios-sdk-major: '27'
+            experimental: true
+            app: flutter_sample_spm
+            manager: SwiftPM
+          - toolchain: Xcode 27 preview
+            runner: xcode-27
+            xcode-version: ''
+            xcode-major: '27'
+            ios-sdk-major: '27'
+            experimental: true
+            app: flutter_sample_cocoapods
+            manager: CocoaPods
+
+    steps:
+      - name: Check out Flutter SDK
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # Flutter inspects the selected Xcode when generating its SwiftPM plugin package.
+      - name: Select Xcode
+        uses: customerio/mobile-ci-tools/github-actions/ios/setup-ios/v1@86901f620405b9acdcbee56020f3d4ef38e45650
+        with:
+          xcode-version: ${{ matrix.xcode-version }}
+
+      - name: Report and verify toolchain family
+        id: toolchain
+        uses: customerio/mobile-ci-tools/github-actions/ios/report-toolchain/v1@1572446a747bfd0aa33226a037617b62ab2e53ab
+        with:
+          expected-xcode-major: ${{ matrix.xcode-major }}
+          expected-ios-sdk-major: ${{ matrix.ios-sdk-major }}
+
+      - name: Verify and select canonical Flutter pin
+        id: flutter-pin
+        shell: bash
+        run: |
+          ./apps/scripts/verify_xcode27_flutter_version.sh
+          echo "version=$(<"apps/${{ matrix.app }}/.flutter-version")" >> "$GITHUB_OUTPUT"
+
+      - name: Install pinned Flutter
+        uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046 # v2.19.0
+        with:
+          channel: stable
+          flutter-version: ${{ steps.flutter-pin.outputs.version }}
+
+      - name: Verify installed Flutter
+        run: ./apps/scripts/verify_xcode27_flutter_version.sh --installed
+
+      - name: Install CocoaPods
+        if: matrix.manager == 'CocoaPods'
+        run: gem install cocoapods -v 1.16.2 --no-document
+
+      - name: Prepare fixture
+        shell: bash
+        env:
+          APP: ${{ matrix.app }}
+          DEPENDENCY_MANAGER: ${{ matrix.manager }}
+        run: |
+          set -euo pipefail
+          ./apps/scripts/setup_env.sh "apps/$APP"
+          cd "apps/$APP"
+          if [[ "$DEPENDENCY_MANAGER" == 'SwiftPM' ]]; then
+            flutter config --enable-swift-package-manager
+            export FLUTTER_SWIFT_PACKAGE_MANAGER=true
+            echo 'FLUTTER_SWIFT_PACKAGE_MANAGER=true' >> "$GITHUB_ENV"
+          fi
+          flutter pub get
+          if [[ "$DEPENDENCY_MANAGER" == 'CocoaPods' ]]; then
+            pod install --project-directory=ios
+          fi
+
+      - name: Compile Flutter fixture
+        shell: bash
+        working-directory: apps/${{ matrix.app }}
+        run: |
+          set -o pipefail
+          flutter --verbose build ios --simulator --debug --no-pub 2>&1 | tee "$RUNNER_TEMP/${{ matrix.app }}-build.log"
+
+      - name: Record compile result
+        if: success()
+        shell: bash
+        run: |
+          flutter_version="$(<"apps/${{ matrix.app }}/.flutter-version")"
+          {
+            echo '## Flutter fixture compile'
+            echo
+            echo '**Classification:** compile-passed'
+            echo '**Dependency manager:** ${{ matrix.manager }}'
+            echo "**Toolchain:** Flutter $flutter_version, Xcode ${{ steps.toolchain.outputs.xcode-version }} build ${{ steps.toolchain.outputs.xcode-build }}, iphonesimulator ${{ steps.toolchain.outputs.iphonesimulator-sdk }}"
+            echo '**Scope:** simulator compile only; no launch, lifecycle callback, push-delivery, signing, or App Store claim'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload build log
+        if: always() && !cancelled()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ios-toolchain-${{ matrix.xcode-major }}-${{ matrix.app }}-build-log
+          path: ${{ runner.temp }}/${{ matrix.app }}-build.log
+          if-no-files-found: ignore
+          retention-days: 7
