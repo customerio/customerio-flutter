@@ -18,7 +18,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -49,7 +49,7 @@ jobs:
             manager: CocoaPods
           - toolchain: Xcode 27 preview
             runner: xcode-27
-            # Empty selects the Xcode bundled with the floating preview image;
+            # Empty makes the setup action leave the image-bundled Xcode selected;
             # the next step fails closed unless it is Xcode/iOS SDK 27.
             xcode-version: ''
             xcode-major: '27'
@@ -59,7 +59,7 @@ jobs:
             manager: SwiftPM
           - toolchain: Xcode 27 preview
             runner: xcode-27
-            # Empty selects the Xcode bundled with the floating preview image;
+            # Empty makes the setup action leave the image-bundled Xcode selected;
             # the next step fails closed unless it is Xcode/iOS SDK 27.
             xcode-version: ''
             xcode-major: '27'
@@ -104,10 +104,13 @@ jobs:
         shell: bash
         run: ./apps/scripts/verify_xcode27_flutter_version.sh --installed
 
-      - name: Install CocoaPods
+      - name: Install locked Ruby dependencies for CocoaPods
         if: matrix.manager == 'CocoaPods'
-        shell: bash
-        run: gem install cocoapods -v 1.16.2 --no-document
+        uses: ruby/setup-ruby@922ebc4c5262cd14e07bb0e1db020984b6c064fe # v1.226.0
+        with:
+          ruby-version: '3.1'
+          bundler-cache: true
+          working-directory: apps/${{ matrix.app }}
 
       - name: Prepare fixture
         shell: bash
@@ -120,21 +123,25 @@ jobs:
           cd "apps/$APP"
           if [[ "$DEPENDENCY_MANAGER" == 'SwiftPM' ]]; then
             flutter config --enable-swift-package-manager
-            export FLUTTER_SWIFT_PACKAGE_MANAGER=true
-            echo 'FLUTTER_SWIFT_PACKAGE_MANAGER=true' >> "$GITHUB_ENV"
           fi
           flutter pub get
           if [[ "$DEPENDENCY_MANAGER" == 'CocoaPods' ]]; then
-            pod _1.16.2_ install --project-directory=ios
+            bundle exec pod install --project-directory=ios
           fi
 
       - name: Compile Flutter fixture
         id: compile
         shell: bash
         working-directory: apps/${{ matrix.app }}
+        env:
+          DEPENDENCY_MANAGER: ${{ matrix.manager }}
         run: |
           set -o pipefail
-          flutter --verbose build ios --simulator --debug --no-pub 2>&1 | tee "$RUNNER_TEMP/${{ matrix.app }}-build.log"
+          if [[ "$DEPENDENCY_MANAGER" == 'CocoaPods' ]]; then
+            bundle exec flutter --verbose build ios --simulator --debug --no-pub 2>&1 | tee "$RUNNER_TEMP/${{ matrix.app }}-build.log"
+          else
+            flutter --verbose build ios --simulator --debug --no-pub 2>&1 | tee "$RUNNER_TEMP/${{ matrix.app }}-build.log"
+          fi
 
       - name: Record compile result
         if: steps.compile.outcome == 'success'
@@ -170,7 +177,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Record setup failure
-        if: failure() && steps.select-xcode.outcome != 'failure' && steps.toolchain.outcome != 'failure' && steps.compile.outcome == 'skipped'
+        if: failure() && steps.select-xcode.outcome != 'failure' && steps.toolchain.outcome != 'failure' && steps.compile.outcome != 'success' && steps.compile.outcome != 'failure'
         shell: bash
         run: |
           {
