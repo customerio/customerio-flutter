@@ -3,32 +3,48 @@
 # Customer.io Flutter SDK API Extraction Tool
 # Usage: ./extract_api.sh
 
+set -euo pipefail
+
 echo "🔍 Extracting Customer.io Flutter SDK API..."
 
-# Remove existing API file to ensure fresh generation
-echo "🗑️ Removing existing API file..."
-rm -f customerio-flutter.api
+temporary_directory="$(mktemp -d "${TMPDIR:-/tmp}/customerio-flutter-api.XXXXXX")"
+temporary_api=""
+cleanup() {
+  rm -rf "$temporary_directory"
+  if [ -n "$temporary_api" ]; then
+    rm -f "$temporary_api"
+  fi
+}
+trap cleanup EXIT
+
+temporary_model="$temporary_directory/api_current.json"
 
 # Extract full API using dart_apitool
 echo "📝 Running dart_apitool extraction..."
-flutter pub run dart_apitool:main extract --input . --output api_current.json --force-use-flutter
+flutter pub run dart_apitool:main extract \
+  --input . \
+  --output "$temporary_model" \
+  --force-use-flutter
+
+if [ ! -s "$temporary_model" ]; then
+  echo "❌ Error: dart_apitool produced no API model" >&2
+  exit 1
+fi
 
 # Generate filtered API format
 echo "🎯 Generating API format..."
-dart run scripts/filter_api.dart api_current.json > customerio-flutter.api
+# Keep the publication candidate beside the checked-in file so the final rename
+# is atomic even when TMPDIR is mounted on another filesystem.
+temporary_api="$(mktemp ./.customerio-flutter.api.XXXXXX)"
+dart run scripts/filter_api.dart "$temporary_model" > "$temporary_api"
 
-# Verify the API file was created
-if [ ! -f customerio-flutter.api ]; then
-    echo "❌ Error: Failed to generate customerio-flutter.api"
-    rm -f api_current.json
-    exit 1
+if [ ! -s "$temporary_api" ]; then
+  echo "❌ Error: API filtering produced no public API" >&2
+  exit 1
 fi
 
+# Publish only a complete, nonempty extraction. The checked-in baseline remains
+# byte-for-byte intact if either tool fails.
+mv -f "$temporary_api" customerio-flutter.api
 echo "✅ API saved to customerio-flutter.api"
-
-# Clean up temporary files
-echo "🧹 Cleaning up temporary files..."
-rm -f api_current.json
-echo "✅ Temporary files removed"
-
 echo "🚀 API extraction complete!"

@@ -26,6 +26,11 @@ void main(List<String> arguments) async {
   final data = jsonDecode(content) as Map<String, dynamic>;
 
   final filtered = filterAPI(data);
+  final classes = filtered['classes'] as List<dynamic>;
+  if (classes.isEmpty) {
+    stderr.writeln('Error: extracted API contains no public classes');
+    exit(1);
+  }
 
   switch (outputFormat.toLowerCase()) {
     case 'json':
@@ -146,12 +151,19 @@ String generateSummary(Map<String, dynamic> filtered) {
   final buffer = StringBuffer();
   final classes = filtered['classes'] as List<dynamic>;
 
-  // Sort classes alphabetically by name for deterministic output
+  // Sort by name and then source file. The package currently exports two
+  // unrelated InAppMessage classes, and dart_apitool does not guarantee their
+  // input order. A name-only comparison therefore made the API file alternate
+  // between two byte orders without an API change.
   final sortedClasses = List<dynamic>.from(classes);
   sortedClasses.sort((a, b) {
-    final nameA = (a as Map<String, dynamic>)['name'] as String;
-    final nameB = (b as Map<String, dynamic>)['name'] as String;
-    return nameA.compareTo(nameB);
+    final classA = a as Map<String, dynamic>;
+    final classB = b as Map<String, dynamic>;
+    final byName = (classA['name'] as String).compareTo(
+      classB['name'] as String,
+    );
+    if (byName != 0) return byName;
+    return (classA['file'] as String).compareTo(classB['file'] as String);
   });
 
   for (final cls in sortedClasses) {

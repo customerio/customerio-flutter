@@ -12,7 +12,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/setup-flutter
+    # dart_apitool 0.22.1 is incompatible with the dot-shorthand AST first
+    # enabled by Dart 3.13. Keep API extraction on the audited MBL-2280
+    # toolchain until the extractor supports that analyzer shape.
+    - uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046 # v2.19.0
+      with:
+        channel: stable
+        flutter-version: 3.44.8
+
+    - name: Install Flutter dependencies
+      run: flutter pub get
     
     - name: Check for API changes
       run: ./scripts/check_api_changes.sh

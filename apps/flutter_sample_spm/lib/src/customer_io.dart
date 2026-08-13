@@ -60,7 +60,7 @@ class CustomerIOSDK extends ChangeNotifier {
       } else {
         inAppConfig = null;
       }
-      return CustomerIO.initialize(
+      await CustomerIO.initialize(
         config: CustomerIOConfig(
           cdpApiKey: _sdkConfig?.cdpApiKey ?? 'INVALID',
           migrationSiteId: migrationSiteId,
