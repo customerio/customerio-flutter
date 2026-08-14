@@ -46,6 +46,12 @@ Android needs no equivalent step.
 
 Thanks for taking an interest in our project! We welcome your contributions. 
 
+The checked-in public API baseline is generated with the exact Flutter version
+in `scripts/api-extraction-flutter-version.txt` and `dart_apitool` 0.22.1. The
+pin avoids the unsupported Dart 3.13 analyzer AST in newer Flutter releases.
+Run `./scripts/extract_api.sh` with that Flutter version when an intentional
+public API change requires a new baseline.
+
 We value an open, welcoming, diverse, inclusive, and healthy community for this project. We expect all  contributors to follow our [code of conduct](CODE_OF_CONDUCT.md).
 
 # License
