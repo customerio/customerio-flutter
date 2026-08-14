@@ -21,6 +21,8 @@ ios/Flutter/flutter_export_environment.sh
 .dart_tool/
 .packages
 build/
+.customerio-flutter.api.*
+customerio-flutter.api.backup
 
 # If you're building an application, you may want to check-in your pubspec.lock
 pubspec.lock

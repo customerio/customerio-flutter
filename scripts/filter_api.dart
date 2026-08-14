@@ -26,6 +26,11 @@ void main(List<String> arguments) async {
   final data = jsonDecode(content) as Map<String, dynamic>;
 
   final filtered = filterAPI(data);
+  final classes = filtered['classes'] as List<dynamic>;
+  if (classes.isEmpty) {
+    stderr.writeln('Error: extracted API contains no public classes');
+    exit(1);
+  }
 
   switch (outputFormat.toLowerCase()) {
     case 'json':
@@ -44,10 +49,22 @@ void main(List<String> arguments) async {
 Map<String, dynamic> filterAPI(Map<String, dynamic> data) {
   final packageApi = data['packageApi'] as Map<String, dynamic>;
   final interfaces = packageApi['interfaceDeclarations'] as List<dynamic>;
+  final sortedInterfaces = List<dynamic>.from(interfaces)
+    ..sort((a, b) {
+      final classA = a as Map<String, dynamic>;
+      final classB = b as Map<String, dynamic>;
+      final byName = (classA['name'] as String).compareTo(
+        classB['name'] as String,
+      );
+      if (byName != 0) return byName;
+      return ((classA['relativePath'] as String?) ?? 'unknown').compareTo(
+        (classB['relativePath'] as String?) ?? 'unknown',
+      );
+    });
 
   final filteredClasses = <Map<String, dynamic>>[];
 
-  for (final interface in interfaces) {
+  for (final interface in sortedInterfaces) {
     final cls = interface as Map<String, dynamic>;
 
     // Extract basic class info
@@ -146,15 +163,9 @@ String generateSummary(Map<String, dynamic> filtered) {
   final buffer = StringBuffer();
   final classes = filtered['classes'] as List<dynamic>;
 
-  // Sort classes alphabetically by name for deterministic output
-  final sortedClasses = List<dynamic>.from(classes);
-  sortedClasses.sort((a, b) {
-    final nameA = (a as Map<String, dynamic>)['name'] as String;
-    final nameB = (b as Map<String, dynamic>)['name'] as String;
-    return nameA.compareTo(nameB);
-  });
-
-  for (final cls in sortedClasses) {
+  // filterAPI returns classes in a deterministic name and full-source-path
+  // order for every output format.
+  for (final cls in classes) {
     final clsMap = cls as Map<String, dynamic>;
     final methods = clsMap['methods'] as List<dynamic>;
     final properties = clsMap['properties'] as List<dynamic>;

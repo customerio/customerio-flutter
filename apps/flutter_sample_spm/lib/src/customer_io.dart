@@ -60,7 +60,7 @@ class CustomerIOSDK extends ChangeNotifier {
       } else {
         inAppConfig = null;
       }
-      return CustomerIO.initialize(
+      await CustomerIO.initialize(
         config: CustomerIOConfig(
           cdpApiKey: _sdkConfig?.cdpApiKey ?? 'INVALID',
           migrationSiteId: migrationSiteId,
@@ -86,8 +86,8 @@ class CustomerIOSDK extends ChangeNotifier {
           ),
         ),
       );
-    } catch (ex) {
-      return Future.error(ex);
+    } catch (error, stackTrace) {
+      Error.throwWithStackTrace(error, stackTrace);
     }
   }
 }
