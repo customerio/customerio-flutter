@@ -94,9 +94,9 @@ jobs:
         uses: kenji-miyake/setup-sd@08c14e27d65a1c215342ef00c81583ae67f4c5ef # v2.0.0
 
       - name: Install Ruby
-        uses: ruby/setup-ruby@922ebc4c5262cd14e07bb0e1db020984b6c064fe # v1.226.0
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
         with:
-          ruby-version: '3.1'
+          ruby-version: '3.4'
           bundler-cache: true # cache tools to make builds faster in future
           working-directory: apps/${{ inputs.sample_app_name }}
 
@@ -282,9 +282,9 @@ jobs:
           brew install xcbeautify # used by fastlane for output
 
       - name: Install Ruby
-        uses: ruby/setup-ruby@922ebc4c5262cd14e07bb0e1db020984b6c064fe # v1.226.0
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
         with:
-          ruby-version: '3.1'
+          ruby-version: '3.4'
           bundler-cache: true # cache tools to make builds faster in future
           working-directory: apps/${{ inputs.sample_app_name }}
 
