@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - name: Verify Xcode 27 Flutter sample pins
+      run: apps/scripts/verify_xcode27_flutter_version.sh
     - uses: ./.github/actions/setup-flutter
     - name: Run flutter analyze
       run: flutter analyze
