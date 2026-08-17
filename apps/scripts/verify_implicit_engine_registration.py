@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Prove the implicit-engine plugin bootstrap runs exactly once (MBL-2232).
+"""Prove launch and implicit-engine plugin bootstrap run exactly once (MBL-2232).
 
 Registering plugins twice on one engine is not a silent bug: `registrarForPlugin:`
 asserts on a duplicate key. This script gathers the evidence that the sample apps
-register exactly once per implicit engine, at three levels:
+register exactly once per engine, at three levels:
 
   source   the sample's Swift has exactly one `GeneratedPluginRegistrant.register`
-           and one permission-channel registration, both inside
-           `didInitializeImplicitFlutterEngine`, none at launch;
+           and one permission-channel registration inside a shared helper. Both
+           did-finish launch and `didInitializeImplicitFlutterEngine` call it;
   wiring   the generated registrant uses one unique registry key per plugin, the
            permission channel adds one more distinct key, and the storyboard
            declares exactly one FlutterViewController, so one launch creates one
@@ -52,7 +52,9 @@ class Report:
 
 def function_body(source: str, name: str) -> str:
     """Return the matching Swift method, ignoring mentions in comments."""
-    declarations = list(re.finditer(r"(?m)^    (?:override )?func ", source))
+    declarations = list(
+        re.finditer(r"(?m)^    (?:(?:private|override) )*func ", source)
+    )
     for index, declaration in enumerate(declarations):
         start = declaration.start()
         end = declarations[index + 1].start() if index + 1 < len(declarations) else len(source)
@@ -68,6 +70,7 @@ def check_source(repo: Path, sample: str, report: Report) -> None:
     source = app_delegate.read_text(encoding="utf-8")
     bootstrap = function_body(source, BOOTSTRAP)
     launch = function_body(source, LAUNCH)
+    helper = function_body(source, "registerPluginsIfNeeded")
 
     registrant_calls = source.count("GeneratedPluginRegistrant.register(")
     permission_calls = source.count("permissionHandler.register(")
@@ -79,29 +82,32 @@ def check_source(repo: Path, sample: str, report: Report) -> None:
     report.check(registrant_calls == 1, f"{sample}: one GeneratedPluginRegistrant.register call", f"found {registrant_calls}")
     report.check(permission_calls == 1, f"{sample}: one permission-channel registration", f"found {permission_calls}")
     report.check(
-        "GeneratedPluginRegistrant.register(with: registry)" in bootstrap,
-        f"{sample}: registration targets engineBridge.pluginRegistry inside {BOOTSTRAP}",
+        "GeneratedPluginRegistrant.register(with: registry)" in helper,
+        f"{sample}: generated registration is owned by the shared helper",
     )
     report.check(
-        "permissionHandler.register(with: registrar" in bootstrap,
+        "permissionHandler.register(with: registrar" in helper,
         f"{sample}: permission channel uses a registrar from the same registry",
     )
     report.check(
-        "registry.hasPlugin(" in bootstrap,
-        f"{sample}: repeat callback on the same engine is guarded",
+        "registry.hasPlugin(" in helper,
+        f"{sample}: repeated registration on the same engine is guarded",
     )
-    registrar_index = bootstrap.find("registry.registrar(forPlugin:")
-    registrant_index = bootstrap.find("GeneratedPluginRegistrant.register(with: registry)")
-    permission_index = bootstrap.find("permissionHandler.register(with: registrar")
+    registrar_index = helper.find("registry.registrar(forPlugin:")
+    registrant_index = helper.find("GeneratedPluginRegistrant.register(with: registry)")
+    permission_index = helper.find("permissionHandler.register(with: registrar")
     report.check(
         0 <= registrar_index < registrant_index < permission_index,
         f"{sample}: permission key is claimed before generated registration",
     )
+    report.check(
+        "registerPluginsIfNeeded(with: engineBridge.pluginRegistry)" in bootstrap,
+        f"{sample}: implicit-engine callback registers its registry",
+    )
     report.check(bool(launch), f"{sample}: launch method body was located")
     report.check(
-        "GeneratedPluginRegistrant.register(" not in launch
-        and re.search(r"\bregister\s*\(", launch) is None,
-        f"{sample}: nothing registers at launch",
+        "registerPluginsIfNeeded(with: self)" in launch,
+        f"{sample}: launch registers FlutterAppDelegate's headless engine",
     )
     report.check(
         "rootViewController" not in launch,
@@ -270,7 +276,7 @@ def main() -> int:
     if report.failures:
         print(f"{len(report.failures)} check(s) failed", file=sys.stderr)
         return 1
-    print("all implicit-engine registration checks passed")
+    print("all launch and implicit-engine registration checks passed")
     return 0
 
 

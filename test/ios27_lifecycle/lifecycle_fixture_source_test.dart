@@ -36,13 +36,15 @@ void main() {
     }
   });
 
-  group('real implicit-engine consumer seat', () {
+  group('real launch and implicit-engine consumer seats', () {
     for (final String sample in samples) {
-      test('$sample registers plugins once on engineBridge registry', () {
+      test('$sample registers each engine through one guarded helper', () {
         final String source =
             read('${appDir(sample)}/ios/Runner/AppDelegate.swift');
-        final String body =
+        final String bootstrap =
             _bodyOf(source, 'didInitializeImplicitFlutterEngine');
+        final String helper = _bodyOf(source, 'registerPluginsIfNeeded');
+        final String launch = _bodyOf(source, 'didFinishLaunchingWithOptions');
         expect(
           source,
           contains('FlutterAppDelegate, FlutterImplicitEngineDelegate'),
@@ -53,30 +55,32 @@ void main() {
             'didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge)',
           ),
         );
-        expect(body, contains('let registry = engineBridge.pluginRegistry'));
-        expect(body, contains('guard !registry.hasPlugin('));
+        expect(helper, contains('guard !registry.hasPlugin('));
         expect(
-          body,
+          helper,
           contains('GeneratedPluginRegistrant.register(with: registry)'),
         );
         expect(
-          body,
+          helper,
           contains('permissionHandler.register(with: registrar.messenger())'),
         );
         expect(
-          body,
+          helper,
           contains(
               'preconditionFailure("permission channel registrar unavailable")'),
         );
+        expect(
+          bootstrap,
+          contains(
+              'registerPluginsIfNeeded(with: engineBridge.pluginRegistry)'),
+        );
+        expect(launch, contains('registerPluginsIfNeeded(with: self)'));
         expect(
           'GeneratedPluginRegistrant.register('.allMatches(source).length,
           1,
         );
         expect('permissionHandler.register('.allMatches(source).length, 1);
-        expect(
-          _bodyOf(source, 'didFinishLaunchingWithOptions'),
-          isNot(contains('GeneratedPluginRegistrant.register(')),
-        );
+        expect(launch, isNot(contains('GeneratedPluginRegistrant.register(')));
       });
     }
   });
@@ -440,7 +444,7 @@ void main() {
       expect(
         lock,
         contains(
-          '"pinned_content_commit": "068a540e74921741251c6e1812f27d7c4a4155cb"',
+          '"pinned_content_commit": "ce73b1a4ef2b16e178a31ebbda1620034570c0af"',
         ),
       );
     });
@@ -448,12 +452,23 @@ void main() {
 }
 
 String _bodyOf(String source, String functionName) {
-  final int signature = source.indexOf(
-    RegExp(r'(?:override )?func [^{\n]*' + RegExp.escape(functionName)),
-  );
-  if (signature < 0) return '';
-  final int next = source.indexOf('\n    override func ', signature + 1);
-  return source.substring(signature, next < 0 ? source.length : next);
+  final List<RegExpMatch> declarations = RegExp(
+    r'^    (?:(?:public|private|internal|fileprivate|open|override|static|class|mutating|nonmutating|final) )*func ',
+    multiLine: true,
+  ).allMatches(source).toList();
+  for (int index = 0; index < declarations.length; index += 1) {
+    final int start = declarations[index].start;
+    final int end = index + 1 < declarations.length
+        ? declarations[index + 1].start
+        : source.length;
+    final String candidate = source.substring(start, end);
+    final int signatureEnd = candidate.indexOf('{');
+    if (signatureEnd >= 0 &&
+        candidate.substring(0, signatureEnd).contains(functionName)) {
+      return candidate;
+    }
+  }
+  return '';
 }
 
 String _bodyOfDart(String source, String functionName) {

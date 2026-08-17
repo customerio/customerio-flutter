@@ -8,7 +8,7 @@ MBL-2277.
 
 The complete 18-file canonical bundle is vendored byte-identically from
 `customerio-ios` reviewed content commit
-`068a540e74921741251c6e1812f27d7c4a4155cb` under `docs/dev-notes/`. The v2
+`ce73b1a4ef2b16e178a31ebbda1620034570c0af` under `docs/dev-notes/`. The v2
 lock pins that immutable content commit while allowing the native owner to add
 its descendant relock commit without a self-reference. The owning lock and
 verifier are:
@@ -27,11 +27,15 @@ published package keeps its existing Dart and Flutter minimums.
 
 ## Real production seats
 
-`AppDelegate` implements Flutter 3.44.8's
-`FlutterImplicitEngineDelegate.didInitializeImplicitFlutterEngine(_:)` and uses
-`engineBridge.pluginRegistry`. It claims one per-engine guard key, invokes
-`GeneratedPluginRegistrant` once, registers the permission channel on the same
-registry, then emits the canonical engine/plugin bootstrap observations.
+`AppDelegate` uses one registry-key-guarded registration helper from both the
+application did-finish seat and Flutter 3.44.8's
+`FlutterImplicitEngineDelegate.didInitializeImplicitFlutterEngine(_:)`. The
+launch seat covers UI-less background wakes through FlutterAppDelegate's
+headless launch engine. The callback seat covers callback-created or additional
+engines. The helper claims the permission-channel key, invokes
+`GeneratedPluginRegistrant`, registers the permission channel on the same
+registry, and emits `flutter.plugin-registered` only when registration occurs.
+The implicit callback independently emits `flutter.implicit-engine-created`.
 
 The outer Customer.io FCM app delegate owns the actual raw application
 did-finish entry, but Customer.io iOS 4.7.2 declares it `public` rather than

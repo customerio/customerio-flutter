@@ -79,7 +79,7 @@ void main() {
       () {
         final legacy = read('$runner/Info.plist');
         final scene = read('$runner/Info-Scene.plist');
-        final sceneDelegate = read('$runner/SceneDelegate.swift');
+        final sceneDelegate = read('$runner/LifecycleTraceSceneDelegate.swift');
         final projectSource = read(project);
 
         final sceneWithoutManifest = scene.replaceFirst(
@@ -93,12 +93,15 @@ void main() {
         expect(legacy, isNot(contains('UIApplicationSceneManifest')));
         expect(scene, contains('UIApplicationSceneManifest'));
         expect(sceneWithoutManifest, legacy);
-        expect(scene, contains(r'$(PRODUCT_MODULE_NAME).SceneDelegate'));
+        expect(
+          scene,
+          contains(r'$(PRODUCT_MODULE_NAME).LifecycleTraceSceneDelegate'),
+        );
         expect(scene, contains('<string>fetch</string>'));
         expect(scene, contains('<string>remote-notification</string>'));
         expect(
           sceneDelegate,
-          contains('class SceneDelegate: FlutterSceneDelegate'),
+          contains('final class LifecycleTraceSceneDelegate: FlutterSceneDelegate'),
         );
 
         expect(

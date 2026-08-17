@@ -82,11 +82,12 @@ pin or app delegate integration changes.
 
 ## iOS 27 / UIScene lifecycle fixture (MBL-2232)
 
-Using the Flutter **3.44.8** pins owned by MBL-2280, both samples bootstrap
-their plugins from the implicit engine, via
-`FlutterImplicitEngineDelegate.didInitializeImplicitFlutterEngine(_:)`. That is
-the one plugin-consumer seat in each app; the `FlutterAppDelegate` and
-`FlutterSceneDelegate` super calls are raw/forward seats only.
+Using the Flutter **3.44.8** pins owned by MBL-2280, both samples register
+plugins through one registry-key-guarded helper. The application did-finish
+seat registers FlutterAppDelegate's headless launch engine so a UI-less wake
+does not depend on creating a FlutterViewController. The
+`FlutterImplicitEngineDelegate.didInitializeImplicitFlutterEngine(_:)` seat
+uses the same helper for callback-created or additional engines.
 
 Each sample ships two immutable Info.plist configurations. Nothing is edited to
 switch between them — the Runner target resolves

@@ -50,6 +50,7 @@
   ],
   "limitations": [
     "These are intentionally incomplete producer observations, not canonical capture manifests.",
+    "They predate launch-seat plugin registration and are retained only as historical diagnostics, not current implementation evidence.",
     "They do not establish L2 conformance and are not acceptance evidence.",
     "Run identifiers, process identifiers, absolute simulator paths, and wall-clock timestamps are intentionally omitted."
   ]
