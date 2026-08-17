@@ -49,3 +49,7 @@ jobs:
         credentialJson: ${{ secrets.CREDENTIAL_JSON }}
         dryRunOnly: true
         flutter: true
+        # The unit_test job already runs the root and nested-package suites with
+        # their sample dependencies available. Keep this container focused on
+        # validating the publish archive.
+        skipTests: true
