@@ -298,8 +298,101 @@ void main() {
       expect(recorder, contains('observation.correlations[.occurrence]'));
       expect(recorder, contains('.string(context.runID)'));
       expect(recorder, contains('occurrence: aliasTables[.occurrence]'));
+    });
+
+    test('$sample cleans up only after an accepted scenario end drains', () {
+      final String probe = read(
+        '${appDir(sample)}/ios/Runner/LifecycleTraceProbe.swift',
+      );
+      final String endScenario = _bodyOf(probe, 'endScenario');
+      expect(
+        endScenario,
+        contains(
+          'guard recorder.endScenario(after: terminal, completion: { _ in\n'
+          '            runEndCleanups()\n'
+          '        }) else {\n'
+          '            return',
+        ),
+      );
+      final String recorder = read(
+        '${appDir(sample)}/ios/Runner/LifecycleTraceRecorder.swift',
+      );
+      expect(
+        recorder,
+        contains(
+          'guard canEndScenarioLocked(), terminalIsValidForScenarioLocked(terminal) else {\n'
+          '            stateLock.unlock()\n'
+          '            return false',
+        ),
+      );
+      expect(
+        recorder,
+        isNot(
+          contains(
+            'stateLock.unlock()\n'
+            '            completion(nil)\n'
+            '            return false',
+          ),
+        ),
+      );
+      expect(
+        recorder,
+        isNot(contains('@discardableResult\n    public func endScenario(')),
+      );
+    });
+
+    test('$sample recorder drops only the oldest pending record on overflow',
+        () {
+      final String recorder = read(
+        '${appDir(sample)}/ios/Runner/LifecycleTraceRecorder.swift',
+      );
+      expect(
+        recorder,
+        contains(
+          'let displacedOldestRecord = bufferedRecordCountLocked() > bufferCapacity\n'
+          '        if displacedOldestRecord, !evictOldestBufferedRecordLocked() {\n'
+          '            captureFailed = true\n'
+          '            pendingRecords.removeAll()\n'
+          '            return record\n'
+          '        }\n'
+          '        let observedBufferLoad = max(\n'
+          '            pendingRecords.contains(where: { \$0.callback == .traceScenarioStart }) ? 1 : 0,\n'
+          '            bufferedRecordCountLocked()\n'
+          '        )\n'
+          '        bufferHighWatermark = max(bufferHighWatermark, observedBufferLoad)',
+        ),
+      );
       expect(recorder,
-          contains('stateLock.unlock()\n            completion(nil)'));
+          isNot(contains('droppedRecordsTotal += pendingRecords.count')));
+      expect(recorder, contains('droppedRecordsTotal += 1'));
+      expect(
+        recorder,
+        contains(
+          'private func evictOldestBufferedRecordLocked() -> Bool {\n'
+          '        guard let evictionIndex = pendingRecords.firstIndex(where: {\n'
+          '            \$0.callback != .traceScenarioStart\n'
+          '        }) else { return false }\n'
+          '        pendingRecords.remove(at: evictionIndex)\n'
+          '        droppedRecordsTotal += 1\n'
+          '        return true',
+        ),
+      );
+      expect(
+        recorder,
+        contains(
+          'if displacedOldestRecord {\n'
+          '            refreshPendingBufferAccountingLocked()\n'
+          '        }',
+        ),
+      );
+      expect(
+        recorder,
+        contains(
+          'guard pendingRecords[index].callback != .traceScenarioStart else { continue }\n'
+          '            let snapshot = pendingRecords[index].recorder\n'
+          '            pendingRecords[index].recorder = LifecycleTraceRecorderSnapshot(',
+        ),
+      );
     });
   }
 

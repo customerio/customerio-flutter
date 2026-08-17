@@ -132,8 +132,10 @@ public enum LifecycleTraceHarness {
             runEndCleanups()
             return
         }
-        _ = recorder.endScenario(after: terminal) { _ in
+        guard recorder.endScenario(after: terminal, completion: { _ in
             runEndCleanups()
+        }) else {
+            return
         }
     }
 
