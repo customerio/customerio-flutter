@@ -3,16 +3,16 @@ import UIKit
 
 /// Fixture-only ownership for the canonical Swift trace stream.
 ///
-/// The recorder is armed from whichever real bootstrap seat occurs first. In
-/// the legacy configuration that is the implicit-engine callback. In the scene
-/// configuration UIKit reaches the already-owned Customer.io app-delegate
-/// wrapper first. This preserves the platform's actual callback order.
+/// The app delegate initializer configures the recorder before either launch
+/// topology reaches its first patched wrapper seat. Later bootstrap callbacks
+/// call this entry point idempotently, preserving the platform's actual order.
 enum LifecycleTraceFlutterFixture {
     private final class State: @unchecked Sendable {
         let lock = NSLock()
         var rawLaunchObserver: NSObjectProtocol?
         var launchObserver: NSObjectProtocol?
         var activeObserver: NSObjectProtocol?
+        var platformProbeObserver: LifecycleTracePlatformProbeObserver?
     }
 
     private static let state = State()
@@ -22,11 +22,20 @@ enum LifecycleTraceFlutterFixture {
         guard LifecycleTraceHarness.configureFromEnvironment(sink: ConsoleLifecycleTraceSink()) != nil else {
             return false
         }
+        installPlatformProbeObserverOnce()
         installRawLaunchObserverOnce()
         installLaunchObserverOnce()
         installActiveObserverOnce()
         return LifecycleTraceHarness.startScenario()
             || LifecycleTraceHarness.sharedRecorder != nil
+    }
+
+    private static func installPlatformProbeObserverOnce() {
+        state.lock.lock()
+        defer { state.lock.unlock() }
+        guard state.platformProbeObserver == nil else { return }
+
+        state.platformProbeObserver = LifecycleTracePlatformProbeObserver()
     }
 
     private static func installRawLaunchObserverOnce() {
@@ -113,6 +122,7 @@ enum LifecycleTraceFlutterFixture {
                 center.removeObserver(observer)
                 state.launchObserver = nil
             }
+            state.platformProbeObserver = nil
             guard let observer = state.activeObserver else { return }
             center.removeObserver(observer)
             state.activeObserver = nil

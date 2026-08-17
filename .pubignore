@@ -79,9 +79,9 @@ app.*.map.json
 # sample app
 apps/*
 
-# Vendored iOS 27 lifecycle evidence contract + dev notes (development only,
-# not part of the published package). See docs/mbl-2232-flutter-lifecycle-fixture.md.
-docs/
+# Vendored iOS 27 lifecycle evidence contract + fixture guide (development only).
+docs/dev-notes/
+docs/mbl-2232-flutter-lifecycle-fixture.md
 scripts/ios27_lifecycle_contract.py
 test/ios27_lifecycle/
 

@@ -109,6 +109,28 @@ void main() {
         );
       });
 
+      test('$sample starts and retains the platform probe observer once', () {
+        final String fixture = read(
+          '${appDir(sample)}/ios/Runner/LifecycleTraceFlutterFixture.swift',
+        );
+        expect(
+          fixture,
+          contains(
+            'var platformProbeObserver: LifecycleTracePlatformProbeObserver?',
+          ),
+        );
+        expect(
+          'state.platformProbeObserver = LifecycleTracePlatformProbeObserver()'
+              .allMatches(fixture)
+              .length,
+          1,
+        );
+        expect(
+          _bodyOf(fixture, 'startIfConfigured'),
+          contains('installPlatformProbeObserverOnce()'),
+        );
+      });
+
       test('$sample adds no lifecycle selector or completion ownership', () {
         final String appDelegate =
             read('${appDir(sample)}/ios/Runner/AppDelegate.swift');
