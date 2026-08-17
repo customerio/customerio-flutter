@@ -22,6 +22,7 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
     private let permissionHandler = PermissionChannelHandler()
     // Flutter stores plugin scene delegates weakly, so the AppDelegate owns this handler.
     private let liveActivitySceneHandler = CustomerIOLiveActivitySceneHandler()
+    private var liveActivitySceneHandlerRegistered = false
 
     /// Registry key for this app's permission channel. This helper owns every generated
     /// plugin registration seat, so claiming the permission channel first is also its
@@ -30,12 +31,14 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
     private static let liveActivityScenePluginKey = "io.customer.testbed.LiveActivitySceneHandler"
 
     private func registerLiveActivitySceneHandlerIfNeeded(with registry: FlutterPluginRegistry) {
+        guard !liveActivitySceneHandlerRegistered else { return }
         guard !registry.hasPlugin(Self.liveActivityScenePluginKey) else { return }
         guard let registrar = registry.registrar(forPlugin: Self.liveActivityScenePluginKey) else {
             lifecycleLogger.error("Live Activity scene registrar unavailable; registration will retry on the next engine seat")
             return
         }
         registrar.addSceneDelegate(liveActivitySceneHandler)
+        liveActivitySceneHandlerRegistered = true
     }
 
     private func registerPluginsIfNeeded(with registry: FlutterPluginRegistry) {

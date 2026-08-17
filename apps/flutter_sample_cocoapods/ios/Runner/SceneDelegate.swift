@@ -62,8 +62,14 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
         // engine/view controller is attached by this point, unlike during willConnectTo.
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
+            var URLsToRetry: [URL] = []
             for URL in URLs {
-                _ = forwardToFlutter(URL)
+                if !forwardToFlutter(URL) {
+                    URLsToRetry.append(URL)
+                }
+            }
+            if !URLsToRetry.isEmpty {
+                pendingColdStartURLs.insert(contentsOf: URLsToRetry, at: 0)
             }
         }
     }
@@ -99,14 +105,11 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
         var consumedTrackingURL = false
         for url in urls {
             let isTrackingURL = isCustomerIOURL(url)
+            consumedTrackingURL = consumedTrackingURL || isTrackingURL
             let routableURL = isTrackingURL ? handleWidgetURL(url) : url
-            guard let routableURL else {
-                consumedTrackingURL = consumedTrackingURL || isTrackingURL
-                continue
-            }
+            guard let routableURL else { continue }
             guard !isCustomerIOURL(routableURL) else {
                 logger.error("Customer.io Live Activity redirect resolved to another tracking URL")
-                consumedTrackingURL = true
                 continue
             }
             didRoute = route(routableURL) || didRoute
@@ -135,6 +138,20 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
             nestedRoutes.append($0)
             return true
         }
+        var rejectedRoutes: [URL] = []
+        let rejectedRouteConsumed = handler.routeCustomerIOURLs([tracking]) {
+            rejectedRoutes.append($0)
+            return false
+        }
+        let noRedirectHandler = CustomerIOLiveActivitySceneHandler(
+            isCustomerIOURL: { $0 == tracking },
+            handleWidgetURL: { _ in nil }
+        )
+        var noRedirectRoutes: [URL] = []
+        let noRedirectConsumed = noRedirectHandler.routeCustomerIOURLs([tracking]) {
+            noRedirectRoutes.append($0)
+            return true
+        }
         var webRoutes: [URL] = []
         let webHandled = handler.routeCustomerIOURLs([tracking, web]) {
             webRoutes.append($0)
@@ -148,6 +165,10 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
             && Set(routedURLs) == Set([redirect, ordinary])
             && nestedHandled
             && nestedRoutes.isEmpty
+            && rejectedRouteConsumed
+            && rejectedRoutes == [redirect]
+            && noRedirectConsumed
+            && noRedirectRoutes.isEmpty
             && webHandled
             && webRoutes.count == 2
             && Set(webRoutes) == Set([redirect, web])

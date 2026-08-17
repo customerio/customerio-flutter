@@ -107,7 +107,7 @@ jobs:
             -destination 'generic/platform=iOS Simulator'
             -derivedDataPath "$RUNNER_TEMP/${{ matrix.app }}-scene-xcode-27"
             CIO_LIFECYCLE_INFOPLIST_SUFFIX=-Scene
-            SWIFT_ACTIVE_COMPILATION_CONDITIONS=CIO_SCENE_CONTRACT_SELF_TEST
+            'SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG CIO_SCENE_CONTRACT_SELF_TEST'
             CODE_SIGNING_ALLOWED=NO
             build
           )

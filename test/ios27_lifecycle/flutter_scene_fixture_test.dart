@@ -56,6 +56,14 @@ void main() {
         source,
         contains('registerLiveActivitySceneHandlerIfNeeded(with: self)'),
       );
+      expect(
+        source,
+        contains('guard !liveActivitySceneHandlerRegistered else { return }'),
+      );
+      expect(
+        occurrences(source, 'liveActivitySceneHandlerRegistered = true'),
+        1,
+      );
       expect(source,
           contains('registrar.addSceneDelegate(liveActivitySceneHandler)'));
       expect(source, contains('registerPluginsIfNeeded(with: self)'));
@@ -157,6 +165,7 @@ void main() {
         );
         expect(sceneDelegate, contains('sceneDidBecomeActive'));
         expect(sceneDelegate, contains('pendingColdStartURLs'));
+        expect(sceneDelegate, contains('URLsToRetry'));
         expect(sceneDelegate, contains('&& nestedHandled'));
         expect(
           sceneDelegate,
@@ -168,6 +177,8 @@ void main() {
         );
         expect(sceneDelegate, contains('routedURLs.count == 2'));
         expect(sceneDelegate, contains('webRoutes.count == 2'));
+        expect(sceneDelegate, contains('&& rejectedRouteConsumed'));
+        expect(sceneDelegate, contains('&& noRedirectConsumed'));
         expect(
           sceneDelegate,
           contains('#if CIO_SCENE_CONTRACT_SELF_TEST'),
@@ -240,7 +251,7 @@ void main() {
     expect(
       workflow,
       contains(
-        'SWIFT_ACTIVE_COMPILATION_CONDITIONS=CIO_SCENE_CONTRACT_SELF_TEST',
+        'SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG CIO_SCENE_CONTRACT_SELF_TEST',
       ),
     );
     expect(

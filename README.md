@@ -44,8 +44,9 @@ override func application(_ app: UIApplication, open url: URL, options: [UIAppli
 ```
 
 Apps with a `UIApplicationSceneManifest` receive opened URLs through their scene lifecycle instead
-of the AppDelegate callback above. Register a `FlutterSceneLifeCycleDelegate` on every Flutter
-engine registry and forward `scene(_:willConnectTo:options:)` plus
+of the AppDelegate callback above. Register one retained `FlutterSceneLifeCycleDelegate` on the
+app's primary Flutter engine registry, retrying from the implicit-engine callback if the launch
+registry is not ready, and forward `scene(_:willConnectTo:options:)` plus
 `scene(_:openURLContexts:)`. The
 [SwiftPM sample](apps/flutter_sample_spm/ios/Runner/SceneDelegate.swift) and
 [CocoaPods sample](apps/flutter_sample_cocoapods/ios/Runner/SceneDelegate.swift) show the complete
