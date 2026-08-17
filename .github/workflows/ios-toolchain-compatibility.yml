@@ -120,7 +120,7 @@ jobs:
         id: legacy-launch
         continue-on-error: true
         # TODO(MBL-2232): switch to @main after customerio/mobile-ci-tools#16 merges.
-        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@74220ac3aad31615e8c6564c5c75ea5466a4ebc3
+        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@b773241085b17d9dce9e1155b30ccf19fea012ec
         with:
           app-path: apps/${{ matrix.app }}/build/ios/iphonesimulator/Runner.app
           expected-ios-major: '27'
@@ -141,7 +141,7 @@ jobs:
       - name: Launch the UIScene fixture
         id: scene-launch
         # TODO(MBL-2232): switch to @main after customerio/mobile-ci-tools#16 merges.
-        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@74220ac3aad31615e8c6564c5c75ea5466a4ebc3
+        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@b773241085b17d9dce9e1155b30ccf19fea012ec
         with:
           app-path: ${{ runner.temp }}/${{ matrix.app }}-scene-xcode-27/Build/Products/Debug-iphonesimulator/Runner.app
           expected-ios-major: '27'
@@ -167,7 +167,7 @@ jobs:
           xcrun simctl boot "$SIMULATOR_UDID" >/dev/null 2>&1 || true
           xcrun simctl bootstatus "$SIMULATOR_UDID" -b
           xcrun simctl install "$SIMULATOR_UDID" "$APP_PATH"
-          callback_start="$(date -u +'%Y-%m-%d %H:%M:%S')"
+          callback_start="$(date +'%Y-%m-%d %H:%M:%S')"
           SIMCTL_CHILD_CIO_SCENE_HANDLER_SELF_TEST=1 \
             xcrun simctl launch --terminate-running-process "$SIMULATOR_UDID" "$BUNDLE_ID"
           for _ in {1..10}; do

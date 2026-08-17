@@ -205,7 +205,7 @@ void main() {
     expect(
       occurrences(
         workflow,
-        'launch-simulator-app/v1@74220ac3aad31615e8c6564c5c75ea5466a4ebc3',
+        'launch-simulator-app/v1@b773241085b17d9dce9e1155b30ccf19fea012ec',
       ),
       2,
     );
