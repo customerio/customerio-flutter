@@ -46,6 +46,12 @@ void main() {
       );
       expect(
         source,
+        contains(
+          'registerLiveActivitySceneHandlerIfNeeded(with: engineBridge.pluginRegistry)',
+        ),
+      );
+      expect(
+        source,
         contains('registerLiveActivitySceneHandlerIfNeeded(with: self)'),
       );
       expect(source,
@@ -123,7 +129,19 @@ void main() {
         );
         expect(
           sceneDelegate,
-          contains('CustomerIOLiveActivities.handleWidgetUrl(context.url)'),
+          contains('handleWidgetURL = CustomerIOLiveActivities.handleWidgetUrl'),
+        );
+        expect(
+          sceneDelegate,
+          contains('guard !isCustomerIOURL(routableURL)'),
+        );
+        expect(
+          sceneDelegate,
+          contains('customerio-flutter-scene-will-connect'),
+        );
+        expect(
+          sceneDelegate,
+          contains('customerio-flutter-scene-open-url-contexts'),
         );
         expect(
             sceneDelegate, contains('scene.open(routableURL, options: nil)'));
@@ -172,7 +190,23 @@ void main() {
     );
     expect(workflow, contains('Launch the UIScene fixture'));
     expect(
+      workflow,
+      contains('Verify Flutter scene forwarding and URL-handler contract'),
+    );
+    expect(workflow, contains('customerio-flutter-scene-will-connect'));
+    expect(
+      workflow,
+      contains('customerio-flutter-scene-handler-contract-passed'),
+    );
+    expect(
       occurrences(workflow, 'ios/launch-simulator-app/v1@'),
+      2,
+    );
+    expect(
+      occurrences(
+        workflow,
+        'launch-simulator-app/v1@8e270bbad1fa659379755aec99c5ad80ac23a7a4',
+      ),
       2,
     );
     expect(occurrences(workflow, "expected-ios-major: '27'"), 2);
@@ -188,7 +222,7 @@ void main() {
     expect(
       workflow,
       contains(
-        '**Host topologies:** AppDelegate-only compile plus expected Xcode 27 launch rejection; UIScene compile and launch survival',
+        '**Host topologies:** AppDelegate-only compile plus expected Xcode 27 launch rejection; UIScene compile, launch survival, cold connection, and URL-handler contract',
       ),
     );
   });

@@ -120,7 +120,7 @@ jobs:
         id: legacy-launch
         continue-on-error: true
         # TODO(MBL-2232): switch to @main after customerio/mobile-ci-tools#16 merges.
-        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@codex/ios-simulator-launch-smoke
+        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@8e270bbad1fa659379755aec99c5ad80ac23a7a4
         with:
           app-path: apps/${{ matrix.app }}/build/ios/iphonesimulator/Runner.app
           expected-ios-major: '27'
@@ -141,12 +141,48 @@ jobs:
       - name: Launch the UIScene fixture
         id: scene-launch
         # TODO(MBL-2232): switch to @main after customerio/mobile-ci-tools#16 merges.
-        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@codex/ios-simulator-launch-smoke
+        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@8e270bbad1fa659379755aec99c5ad80ac23a7a4
         with:
           app-path: ${{ runner.temp }}/${{ matrix.app }}-scene-xcode-27/Build/Products/Debug-iphonesimulator/Runner.app
           expected-ios-major: '27'
           survival-seconds: '10'
           log-path: ${{ runner.temp }}/${{ matrix.app }}-scene-launch.log
+
+      - name: Verify Flutter scene forwarding and URL-handler contract
+        shell: bash
+        env:
+          APP_PATH: ${{ runner.temp }}/${{ matrix.app }}-scene-xcode-27/Build/Products/Debug-iphonesimulator/Runner.app
+          BUNDLE_ID: ${{ steps.scene-launch.outputs.bundle-id }}
+          SIMULATOR_UDID: ${{ steps.scene-launch.outputs.simulator-udid }}
+        run: |
+          set -euo pipefail
+          [[ "$SIMULATOR_UDID" =~ ^[A-Za-z0-9-]+$ ]]
+          [[ "$BUNDLE_ID" =~ ^[A-Za-z0-9.-]+$ ]]
+          callback_log="$RUNNER_TEMP/${{ matrix.app }}-scene-callbacks.log"
+          cleanup() {
+            xcrun simctl terminate "$SIMULATOR_UDID" "$BUNDLE_ID" >/dev/null 2>&1 || true
+            xcrun simctl uninstall "$SIMULATOR_UDID" "$BUNDLE_ID" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          xcrun simctl boot "$SIMULATOR_UDID" >/dev/null 2>&1 || true
+          xcrun simctl bootstatus "$SIMULATOR_UDID" -b
+          xcrun simctl install "$SIMULATOR_UDID" "$APP_PATH"
+          SIMCTL_CHILD_CIO_SCENE_HANDLER_SELF_TEST=1 \
+            xcrun simctl launch "$SIMULATOR_UDID" "$BUNDLE_ID"
+          for _ in {1..10}; do
+            xcrun simctl spawn "$SIMULATOR_UDID" log show \
+              --last 5m \
+              --style compact \
+              --predicate 'subsystem == "io.customer.flutter.fixture" AND category == "scene-lifecycle"' \
+              > "$callback_log"
+            if grep -Fq 'customerio-flutter-scene-will-connect' "$callback_log" \
+              && grep -Fq 'customerio-flutter-scene-handler-contract-passed' "$callback_log"; then
+              break
+            fi
+            sleep 1
+          done
+          grep -Fq 'customerio-flutter-scene-will-connect' "$callback_log"
+          grep -Fq 'customerio-flutter-scene-handler-contract-passed' "$callback_log"
 
       - name: Record launch result
         if: steps.scene-launch.outcome == 'success'
@@ -170,8 +206,8 @@ jobs:
             echo '**Classification:** launch-passed'
             echo "**Dependency manager:** $DEPENDENCY_MANAGER"
             echo "**Toolchain:** Flutter $FLUTTER_VERSION, Xcode $XCODE_VERSION build $XCODE_BUILD, iphonesimulator $IOS_SIMULATOR_SDK"
-            echo '**Host topologies:** AppDelegate-only compile plus expected Xcode 27 launch rejection; UIScene compile and launch survival'
-            echo '**Scope:** simulator compile, install, launch, and 10-second process survival; no lifecycle callback, push-delivery, signing, or App Store claim'
+            echo '**Host topologies:** AppDelegate-only compile plus expected Xcode 27 launch rejection; UIScene compile, launch survival, cold connection, and URL-handler contract'
+            echo '**Scope:** simulator compile, install, launch, 10-second process survival, Flutter scene callback forwarding, and environment-gated URL routing self-test; no real URL stimulus, push delivery, signing, or App Store claim'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Record compile failure

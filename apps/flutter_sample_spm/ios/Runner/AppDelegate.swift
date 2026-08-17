@@ -1,5 +1,6 @@
 import UIKit
 import Flutter
+import OSLog
 import CioDataPipelines
 import CioMessagingPushFCM
 import FirebaseMessaging
@@ -26,7 +27,8 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
     private func registerLiveActivitySceneHandlerIfNeeded(with registry: FlutterPluginRegistry) {
         guard !registry.hasPlugin(Self.liveActivityScenePluginKey) else { return }
         guard let registrar = registry.registrar(forPlugin: Self.liveActivityScenePluginKey) else {
-            preconditionFailure("Live Activity scene registrar unavailable")
+            assertionFailure("Live Activity scene registrar unavailable")
+            return
         }
         registrar.addSceneDelegate(liveActivitySceneHandler)
     }
@@ -34,7 +36,8 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
     private func registerPluginsIfNeeded(with registry: FlutterPluginRegistry) {
         guard !registry.hasPlugin(Self.permissionChannelPluginKey) else { return }
         guard let registrar = registry.registrar(forPlugin: Self.permissionChannelPluginKey) else {
-            preconditionFailure("permission channel registrar unavailable")
+            assertionFailure("permission channel registrar unavailable")
+            return
         }
 
         GeneratedPluginRegistrant.register(with: registry)
@@ -42,6 +45,7 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
     }
 
     func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+        registerLiveActivitySceneHandlerIfNeeded(with: engineBridge.pluginRegistry)
         registerPluginsIfNeeded(with: engineBridge.pluginRegistry)
     }
 
@@ -54,6 +58,12 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
         // registry-key guard if Flutter later reports an implicit engine callback.
         registerLiveActivitySceneHandlerIfNeeded(with: self)
         registerPluginsIfNeeded(with: self)
+
+        if ProcessInfo.processInfo.environment["CIO_SCENE_HANDLER_SELF_TEST"] == "1" {
+            precondition(CustomerIOLiveActivitySceneHandler.runContractSelfTest())
+            Logger(subsystem: "io.customer.flutter.fixture", category: "scene-lifecycle")
+                .notice("customerio-flutter-scene-handler-contract-passed")
+        }
 
         #if canImport(CioLocationGeofence)
         // iOS can cold-wake the app for a geofence transition before the Dart runtime
