@@ -129,7 +129,8 @@ void main() {
         );
         expect(
           sceneDelegate,
-          contains('handleWidgetURL = CustomerIOLiveActivities.handleWidgetUrl'),
+          contains(
+              'handleWidgetURL = CustomerIOLiveActivities.handleWidgetUrl'),
         );
         expect(
           sceneDelegate,
@@ -144,7 +145,15 @@ void main() {
           contains('customerio-flutter-scene-open-url-contexts'),
         );
         expect(
-            sceneDelegate, contains('scene.open(routableURL, options: nil)'));
+          sceneDelegate,
+          contains('UIApplication.shared.delegate?.application?('),
+        );
+        expect(
+          sceneDelegate,
+          contains('connectionOptions?.userActivities.isEmpty ?? true'),
+        );
+        expect(sceneDelegate, contains('routedURLs.count == 2'));
+        expect(sceneDelegate, contains('webRoutes.count == 2'));
 
         expect(
           occurrences(
@@ -202,10 +211,11 @@ void main() {
       occurrences(workflow, 'ios/launch-simulator-app/v1@'),
       2,
     );
+    // This exact pin is an intentional tripwire until customerio/mobile-ci-tools#16 merges.
     expect(
       occurrences(
         workflow,
-        'launch-simulator-app/v1@4a09284521d9bdcb0747acf21a44371975112e2d',
+        'launch-simulator-app/v1@5a3a7cfb412e5b2f25ccf968d002a4af6194a741',
       ),
       2,
     );

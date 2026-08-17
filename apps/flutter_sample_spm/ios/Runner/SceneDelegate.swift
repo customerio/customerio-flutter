@@ -33,25 +33,28 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
         options connectionOptions: UIScene.ConnectionOptions?
     ) -> Bool {
         logger.notice("customerio-flutter-scene-will-connect")
+        // Flutter owns universal-link user activities. A plugin cannot partially consume
+        // connection options, so leave a mixed URL/user-activity occurrence untouched.
+        guard connectionOptions?.userActivities.isEmpty ?? true else { return false }
         guard let URLContexts = connectionOptions?.urlContexts else { return false }
-        return handleCustomerIOURLs(URLContexts, in: scene)
+        return handleCustomerIOURLs(URLContexts)
     }
 
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) -> Bool {
         logger.notice("customerio-flutter-scene-open-url-contexts")
-        return handleCustomerIOURLs(URLContexts, in: scene)
+        return handleCustomerIOURLs(URLContexts)
     }
 
-    private func handleCustomerIOURLs(
-        _ URLContexts: Set<UIOpenURLContext>,
-        in scene: UIScene
-    ) -> Bool {
+    private func handleCustomerIOURLs(_ URLContexts: Set<UIOpenURLContext>) -> Bool {
         routeCustomerIOURLs(URLContexts.map(\.url)) { routableURL in
             DispatchQueue.main.async {
-                scene.open(routableURL, options: nil) { success in
-                    if !success {
-                        print("Unable to route a URL received with a Customer.io Live Activity tap")
-                    }
+                let handled = UIApplication.shared.delegate?.application?(
+                    UIApplication.shared,
+                    open: routableURL,
+                    options: [:]
+                ) ?? false
+                if !handled {
+                    self.logger.error("Flutter did not handle a URL received with a Customer.io Live Activity tap")
                 }
             }
         }
@@ -62,18 +65,10 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
         route: (URL) -> Void
     ) -> Bool {
         guard urls.contains(where: isCustomerIOURL) else { return false }
-        // A web URL cannot be replayed to Flutter with UIScene.open. Fail open
-        // before Customer.io handling so Flutter retains the original callback
-        // when a tracking URL is co-delivered with a universal/web link.
-        let hasOrdinaryWebURL = urls.contains { url in
-            guard !isCustomerIOURL(url) else { return false }
-            return url.scheme == "http" || url.scheme == "https"
-        }
-        guard !hasOrdinaryWebURL else { return false }
 
         // Consuming this callback prevents Flutter from routing the Customer.io tracking URL.
-        // Replay every routable URL through the scene so Flutter receives only customer deep links
-        // and any non-Customer.io URLs that arrived in the same callback.
+        // Replay every routable URL through FlutterAppDelegate so both custom-scheme and web
+        // redirects reach Flutter instead of being handed back to the OS by UIScene.open.
         for url in urls {
             let routableURL = isCustomerIOURL(url) ? handleWidgetURL(url) : url
             guard let routableURL else { continue }
@@ -111,11 +106,13 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
         return handler.responds(to: NSSelectorFromString("scene:willConnectToSession:options:"))
             && handler.responds(to: NSSelectorFromString("scene:openURLContexts:"))
             && handled
+            && routedURLs.count == 2
             && Set(routedURLs) == Set([redirect, ordinary])
             && nestedHandled
             && nestedRoutes.isEmpty
-            && !webHandled
-            && webRoutes.isEmpty
+            && webHandled
+            && webRoutes.count == 2
+            && Set(webRoutes) == Set([redirect, web])
     }
 }
 

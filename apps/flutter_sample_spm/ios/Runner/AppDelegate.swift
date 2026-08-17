@@ -16,6 +16,7 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
 
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
     private let permissionHandler = PermissionChannelHandler()
+    // Flutter stores plugin scene delegates weakly, so the AppDelegate owns this handler.
     private let liveActivitySceneHandler = CustomerIOLiveActivitySceneHandler()
 
     /// Registry key for this app's permission channel. This helper owns every generated
