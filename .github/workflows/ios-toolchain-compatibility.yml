@@ -119,6 +119,7 @@ jobs:
       - name: Confirm the AppDelegate-only control reproduces the Xcode 27 launch failure
         id: legacy-launch
         continue-on-error: true
+        # TODO(MBL-2232): switch to @main after customerio/mobile-ci-tools#16 merges.
         uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@codex/ios-simulator-launch-smoke
         with:
           app-path: apps/${{ matrix.app }}/build/ios/iphonesimulator/Runner.app
@@ -139,6 +140,7 @@ jobs:
 
       - name: Launch the UIScene fixture
         id: scene-launch
+        # TODO(MBL-2232): switch to @main after customerio/mobile-ci-tools#16 merges.
         uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@codex/ios-simulator-launch-smoke
         with:
           app-path: ${{ runner.temp }}/${{ matrix.app }}-scene-xcode-27/Build/Products/Debug-iphonesimulator/Runner.app
@@ -146,7 +148,7 @@ jobs:
           survival-seconds: '10'
           log-path: ${{ runner.temp }}/${{ matrix.app }}-scene-launch.log
 
-      - name: Record compile result
+      - name: Record launch result
         if: steps.scene-launch.outcome == 'success'
         shell: bash
         env:
@@ -163,7 +165,7 @@ jobs:
           : "${XCODE_BUILD:?missing xcode-build output}"
           : "${IOS_SIMULATOR_SDK:?missing iphonesimulator-sdk output}"
           {
-            echo '## Flutter fixture compile'
+            echo '## Flutter fixture launch'
             echo
             echo '**Classification:** launch-passed'
             echo "**Dependency manager:** $DEPENDENCY_MANAGER"

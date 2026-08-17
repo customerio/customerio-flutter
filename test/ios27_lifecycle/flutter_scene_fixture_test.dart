@@ -44,6 +44,12 @@ void main() {
         source,
         contains('registerPluginsIfNeeded(with: engineBridge.pluginRegistry)'),
       );
+      expect(
+        source,
+        contains('registerLiveActivitySceneHandlerIfNeeded(with: self)'),
+      );
+      expect(source,
+          contains('registrar.addSceneDelegate(liveActivitySceneHandler)'));
       expect(source, contains('registerPluginsIfNeeded(with: self)'));
       expect(source, isNot(contains('rootViewController')));
 
@@ -69,7 +75,13 @@ void main() {
         'registerPluginsIfNeeded(with: self)',
         launch,
       );
+      final sceneHandlerRegistration = source.indexOf(
+        'registerLiveActivitySceneHandlerIfNeeded(with: self)',
+        launch,
+      );
       final launchForward = source.indexOf('return super.application', launch);
+      expect(sceneHandlerRegistration, greaterThan(launch));
+      expect(launchRegistration, greaterThan(sceneHandlerRegistration));
       expect(launchRegistration, greaterThan(launch));
       expect(launchForward, greaterThan(launchRegistration));
     });
@@ -100,6 +112,21 @@ void main() {
           sceneDelegate,
           contains('class SceneDelegate: FlutterSceneDelegate'),
         );
+        expect(sceneDelegate, contains('FlutterSceneLifeCycleDelegate'));
+        expect(
+          sceneDelegate,
+          contains('willConnectTo session: UISceneSession'),
+        );
+        expect(
+          sceneDelegate,
+          contains('openURLContexts URLContexts: Set<UIOpenURLContext>'),
+        );
+        expect(
+          sceneDelegate,
+          contains('CustomerIOLiveActivities.handleWidgetUrl(context.url)'),
+        );
+        expect(
+            sceneDelegate, contains('scene.open(routableURL, options: nil)'));
 
         expect(
           occurrences(
@@ -121,12 +148,8 @@ void main() {
   test('Xcode 27 preview proves the legacy failure and UIScene launch', () {
     final workflow = read('.github/workflows/ios-toolchain-compatibility.yml');
 
-    expect(
-      workflow,
-      contains(
-        'ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b',
-      ),
-    );
+    expect(workflow, contains('uses: ruby/setup-ruby@'));
+    expect(workflow, contains('# v1.321.0'));
     expect(workflow, contains("ruby-version: '3.4'"));
     expect(workflow, contains('build_arguments=('));
     expect(
@@ -148,6 +171,14 @@ void main() {
       ),
     );
     expect(workflow, contains('Launch the UIScene fixture'));
+    expect(
+      occurrences(workflow, 'ios/launch-simulator-app/v1@'),
+      2,
+    );
+    expect(occurrences(workflow, "expected-ios-major: '27'"), 2);
+    expect(occurrences(workflow, "survival-seconds: '10'"), 2);
+    expect(workflow, contains('continue-on-error: true'));
+    expect(workflow, contains("test \"\$LAUNCH_OUTCOME\" = 'failure'"));
     expect(
       workflow,
       contains(

@@ -15,11 +15,21 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
 
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
     private let permissionHandler = PermissionChannelHandler()
+    private let liveActivitySceneHandler = CustomerIOLiveActivitySceneHandler()
 
     /// Registry key for this app's permission channel. This helper owns every generated
     /// plugin registration seat, so claiming the permission channel first is also its
     /// once-per-engine guard.
     private static let permissionChannelPluginKey = "io.customer.testbed.PermissionChannelHandler"
+    private static let liveActivityScenePluginKey = "io.customer.testbed.LiveActivitySceneHandler"
+
+    private func registerLiveActivitySceneHandlerIfNeeded(with registry: FlutterPluginRegistry) {
+        guard !registry.hasPlugin(Self.liveActivityScenePluginKey) else { return }
+        guard let registrar = registry.registrar(forPlugin: Self.liveActivityScenePluginKey) else {
+            preconditionFailure("Live Activity scene registrar unavailable")
+        }
+        registrar.addSceneDelegate(liveActivitySceneHandler)
+    }
 
     private func registerPluginsIfNeeded(with registry: FlutterPluginRegistry) {
         guard !registry.hasPlugin(Self.permissionChannelPluginKey) else { return }
@@ -42,6 +52,7 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
         // FlutterAppDelegate drives a headless launch engine when iOS wakes the app before
         // a FlutterViewController exists. Register that engine here, then reuse the same
         // registry-key guard if Flutter later reports an implicit engine callback.
+        registerLiveActivitySceneHandlerIfNeeded(with: self)
         registerPluginsIfNeeded(with: self)
 
         #if canImport(CioLocationGeofence)
