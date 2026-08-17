@@ -62,6 +62,14 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
         route: (URL) -> Void
     ) -> Bool {
         guard urls.contains(where: isCustomerIOURL) else { return false }
+        // A web URL cannot be replayed to Flutter with UIScene.open. Fail open
+        // before Customer.io handling so Flutter retains the original callback
+        // when a tracking URL is co-delivered with a universal/web link.
+        let hasOrdinaryWebURL = urls.contains { url in
+            guard !isCustomerIOURL(url) else { return false }
+            return url.scheme == "http" || url.scheme == "https"
+        }
+        guard !hasOrdinaryWebURL else { return false }
 
         // Consuming this callback prevents Flutter from routing the Customer.io tracking URL.
         // Replay every routable URL through the scene so Flutter receives only customer deep links
@@ -82,6 +90,7 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
         let tracking = URL(string: "cio-test://tracking")!
         let redirect = URL(string: "fixture://redirect")!
         let ordinary = URL(string: "fixture://ordinary")!
+        let web = URL(string: "https://example.com/deep-link")!
         let nestedTracking = URL(string: "cio-test://nested")!
         let handler = CustomerIOLiveActivitySceneHandler(
             isCustomerIOURL: { $0 == tracking || $0 == nestedTracking },
@@ -95,12 +104,18 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
         let nestedHandled = handler.routeCustomerIOURLs([nestedTracking]) {
             nestedRoutes.append($0)
         }
+        var webRoutes: [URL] = []
+        let webHandled = handler.routeCustomerIOURLs([tracking, web]) {
+            webRoutes.append($0)
+        }
         return handler.responds(to: NSSelectorFromString("scene:willConnectToSession:options:"))
             && handler.responds(to: NSSelectorFromString("scene:openURLContexts:"))
             && handled
             && Set(routedURLs) == Set([redirect, ordinary])
             && nestedHandled
             && nestedRoutes.isEmpty
+            && !webHandled
+            && webRoutes.isEmpty
     }
 }
 
