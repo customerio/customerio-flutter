@@ -15,6 +15,28 @@ jobs:
     - uses: ./.github/actions/setup-flutter
     - name: Run Flutter tests
       run: flutter test
+    - name: Run lifecycle fixture tests in their own package context
+      working-directory: apps/lifecycle_fixture/dart
+      run: |
+        flutter pub get
+        flutter test
+
+  lifecycle_fixture_contract:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run lifecycle contract and capture-tool tests
+      run: |
+        validator_venv="$(mktemp -d)"
+        python3 -m venv "$validator_venv"
+        "$validator_venv/bin/pip" install 'jsonschema[format]>=4.18,<5'
+        PYTHONDONTWRITEBYTECODE=1 "$validator_venv/bin/python" -m unittest \
+          docs/dev-notes/test_validate_ios27_lifecycle_trace.py \
+          apps/lifecycle_fixture/test_instrument_lifecycle_fixture_dependency.py \
+          apps/lifecycle_fixture/test_lifecycle_fixture_build_lock.py \
+          apps/lifecycle_fixture/test_raw_launch_marker.py \
+          apps/lifecycle_fixture/test_run_flutter_lifecycle_capture.py
+        "$validator_venv/bin/python" scripts/ios27_lifecycle_contract.py verify --root .
   
   test_publish:
     runs-on: ubuntu-latest

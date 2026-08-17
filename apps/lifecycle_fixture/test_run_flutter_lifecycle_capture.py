@@ -39,6 +39,8 @@ def _record(runtime: str, stream_id: str, process_id: int = 42) -> dict:
         "provider": "none",
         "process_id": process_id,
         "sequence": 1,
+        "kind": "app-received",
+        "correlation": {"occurrence": "occurrence-1"},
     }
 
 
@@ -86,6 +88,12 @@ class FlutterLifecycleCaptureTests(unittest.TestCase):
             MODULE._stimulus_configuration("manual-app-icon"),
             ("L2", "app-icon"),
         )
+
+    def testHostTopology_isExplicitForEachSupportedMode(self):
+        self.assertEqual(MODULE._host_topology("legacy"), "app-delegate-only")
+        self.assertEqual(MODULE._host_topology("scene"), "ui-scene")
+        with self.assertRaisesRegex(MODULE.CaptureError, "unsupported lifecycle mode"):
+            MODULE._host_topology("inferred")
 
     def testManualAppIconMode_neverInvokesSimctlLaunch(self):
         with patch.object(MODULE, "_set_simulator_environment", return_value=["KEY"]), patch.object(
@@ -625,6 +633,18 @@ print('RESTORED=' + str(signal.getsignal(signal.SIGTERM) is signal.SIG_DFL), flu
             _write_trace(swift, _record("swift", IDS["STREAM_ID"]))
             _write_trace(dart, _record("dart", IDS["DART_STREAM_ID"], 43))
             with self.assertRaisesRegex(MODULE.CaptureError, "launched process_id"):
+                MODULE._bind_streams(swift, dart, IDS, 42)
+
+    def testMissingOccurrence_failsClosed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            swift = root / "swift.ndjson"
+            dart = root / "dart.ndjson"
+            missing = _record("swift", IDS["STREAM_ID"])
+            missing["correlation"] = None
+            _write_trace(swift, missing)
+            _write_trace(dart, _record("dart", IDS["DART_STREAM_ID"]))
+            with self.assertRaisesRegex(MODULE.CaptureError, "occurrence-1"):
                 MODULE._bind_streams(swift, dart, IDS, 42)
 
     def testValidatorRejection_failsClosed(self):

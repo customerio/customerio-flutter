@@ -135,9 +135,24 @@ def _bind_streams(
     )
     swift_receipt = _receipt(Path(str(swift_path) + ".receipt.json"), swift_records)
     dart_receipt = _receipt(Path(str(dart_path) + ".receipt.json"), dart_records)
+    for record in [*swift_records, *dart_records]:
+        occurrence = (record.get("correlation") or {}).get("occurrence")
+        if record.get("kind") == "trace-control":
+            if occurrence is not None:
+                raise CaptureError("trace-control records must not carry an occurrence alias")
+        elif evidence_level in ("L2", "L3") and occurrence != "occurrence-1":
+            raise CaptureError("L2/L3 runtime records must carry occurrence-1")
     if {record.get("process_id") for record in [*swift_records, *dart_records]} != {launched_pid}:
         raise CaptureError("streams do not bind to the launched process_id")
     return swift_records, dart_records, swift_receipt, dart_receipt
+
+
+def _host_topology(mode: str) -> str:
+    if mode == "legacy":
+        return "app-delegate-only"
+    if mode == "scene":
+        return "ui-scene"
+    raise CaptureError(f"unsupported lifecycle mode: {mode}")
 
 
 def _content_snapshot(
@@ -748,6 +763,7 @@ def capture(arguments: argparse.Namespace) -> None:
         "created_at": _timestamp(),
         "evidence_level": evidence_level,
         "scenario": "icon-cold-launch",
+        "host_topology": _host_topology(arguments.mode),
         "repositories": [
             {"name": "customerio-flutter", "commit_sha": commit, "dirty": root_dirty, "source_snapshot": root_snapshot},
             {"name": "customerio-ios", "commit_sha": dependency_commit, "dirty": True, "source_snapshot": dependency_snapshot},

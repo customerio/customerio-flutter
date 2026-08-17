@@ -211,6 +211,7 @@ final class LifecycleTraceDartRecorder with WidgetsBindingObserver {
   bool _pumping = false;
   bool _closing = false;
   bool _ended = false;
+  bool _hasOccurrence = false;
 
   Future<void> get drained => _drained.future;
 
@@ -343,6 +344,11 @@ final class LifecycleTraceDartRecorder with WidgetsBindingObserver {
       _dropped += 1;
       return false;
     }
+    final bool hasOccurrence =
+        kind != 'trace-control' && context.evidenceLevel != 'diagnostic';
+    if (hasOccurrence) {
+      _hasOccurrence = true;
+    }
     _sequence += 1;
     _outstanding += 1;
     _highWatermark = _outstanding > _highWatermark
@@ -372,7 +378,9 @@ final class LifecycleTraceDartRecorder with WidgetsBindingObserver {
         'counts': const <String, int>{},
         'enums': enums,
       },
-      'correlation': null,
+      'correlation': hasOccurrence
+          ? const <String, String>{'occurrence': 'occurrence-1'}
+          : null,
       'completion': null,
       'recorder': _snapshot(),
     });
@@ -439,7 +447,8 @@ final class LifecycleTraceDartRecorder with WidgetsBindingObserver {
 
   Map<String, Object> _snapshot() => <String, Object>{
     'dropped_records_total': _dropped,
-    'alias_counts': const <String, int>{
+    'alias_counts': <String, int>{
+      'occurrence': _hasOccurrence ? 1 : 0,
       'delivery': 0,
       'request': 0,
       'scene': 0,

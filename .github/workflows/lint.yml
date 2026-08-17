@@ -19,3 +19,8 @@ jobs:
       run: flutter analyze
     - name: Run dart analyze as deployment process also runs it
       run: dart analyze
+    - name: Analyze lifecycle fixture in its own package context
+      working-directory: apps/lifecycle_fixture/dart
+      run: |
+        flutter pub get
+        flutter analyze

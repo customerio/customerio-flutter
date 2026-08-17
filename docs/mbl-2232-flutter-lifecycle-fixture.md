@@ -7,9 +7,11 @@ MBL-2277.
 ## Contract and toolchain
 
 The complete 18-file canonical bundle is vendored byte-identically from
-`customerio-ios` canonical content commit
-`5b8c02e4c85203d073a85da8abb2212b19867e68` under `docs/dev-notes/`. The
-owning lock and verifier are:
+`customerio-ios` reviewed content commit
+`068a540e74921741251c6e1812f27d7c4a4155cb` under `docs/dev-notes/`. The v2
+lock pins that immutable content commit while allowing the native owner to add
+its descendant relock commit without a self-reference. The owning lock and
+verifier are:
 
 - `docs/dev-notes/ios27-lifecycle-contract-v1.lock.json`
 - `scripts/ios27_lifecycle_contract.py`

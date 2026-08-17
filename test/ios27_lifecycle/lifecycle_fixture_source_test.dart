@@ -16,6 +16,26 @@ void main() {
     return file.readAsStringSync();
   }
 
+  test('sample apps compile byte-identical Swift trace support', () {
+    for (final String filename in <String>[
+      'LifecycleTraceEvidence.swift',
+      'LifecycleTraceFlutterFixture.swift',
+      'LifecycleTraceModel.swift',
+      'LifecycleTraceProbe.swift',
+      'LifecycleTraceRawLaunchMarker.swift',
+      'LifecycleTraceRecorder.swift',
+      'LifecycleTraceSceneDelegate.swift',
+    ]) {
+      expect(
+        File('${repoRoot.path}/${appDir('spm')}/ios/Runner/$filename')
+            .readAsBytesSync(),
+        File('${repoRoot.path}/${appDir('cocoapods')}/ios/Runner/$filename')
+            .readAsBytesSync(),
+        reason: '$filename must have one evidence meaning in both samples',
+      );
+    }
+  });
+
   group('real implicit-engine consumer seat', () {
     for (final String sample in samples) {
       test('$sample registers plugins once on engineBridge registry', () {
@@ -42,6 +62,11 @@ void main() {
         expect(
           body,
           contains('permissionHandler.register(with: registrar.messenger())'),
+        );
+        expect(
+          body,
+          contains(
+              'preconditionFailure("permission channel registrar unavailable")'),
         );
         expect(
           'GeneratedPluginRegistrant.register('.allMatches(source).length,
@@ -218,6 +243,8 @@ void main() {
       expect(source, contains('[ -L "\$SOURCE_FILE" ]'));
       expect(source, contains('resolved Customer.io source escapes'));
       expect(source, contains('case "\$actual" in'));
+      expect(source, contains('trap restore_cocoapods_source_on_exit EXIT'));
+      expect(source, contains('if ! restore_cocoapods_source; then'));
     });
 
     test('patch carries identity and process-instance provenance', () {
@@ -240,12 +267,41 @@ void main() {
     expect(source, contains('Queue<Map<String, Object?>>'));
     expect(source, contains('scheduleMicrotask(_pump)'));
     expect(source, contains("'main_thread': false"));
+    expect(source, contains("'occurrence': 'occurrence-1'"));
+    expect(source, contains("'occurrence': _hasOccurrence ? 1 : 0"));
     final String callback = _bodyOfDart(source, 'didChangeAppLifecycleState');
     expect(callback, isNot(contains('writeAsString')));
     expect(callback, isNot(contains('writeLine')));
     expect(callback, isNot(contains('await ')));
     expect(source, isNot(contains("'dart.")));
   });
+
+  for (final String sample in samples) {
+    test('$sample stays silent without lifecycle harness context', () {
+      final String probe = read(
+        '${appDir(sample)}/ios/Runner/LifecycleTraceProbe.swift',
+      );
+      expect(probe, contains('contextEnvironmentKeys.contains'));
+      expect(probe, contains('environment[\$0] != nil'));
+    });
+  }
+
+  for (final String sample in samples) {
+    test('$sample assigns one run-scoped occurrence to L2/L3 Swift seats', () {
+      final String model = read(
+        '${appDir(sample)}/ios/Runner/LifecycleTraceModel.swift',
+      );
+      final String recorder = read(
+        '${appDir(sample)}/ios/Runner/LifecycleTraceRecorder.swift',
+      );
+      expect(model, contains('case occurrence'));
+      expect(recorder, contains('observation.correlations[.occurrence]'));
+      expect(recorder, contains('.string(context.runID)'));
+      expect(recorder, contains('occurrence: aliasTables[.occurrence]'));
+      expect(recorder,
+          contains('stateLock.unlock()\n            completion(nil)'));
+    });
+  }
 
   group('toolchain and canonical contract', () {
     for (final String sample in samples) {
@@ -262,14 +318,14 @@ void main() {
       expect(pubspec, contains('sdk: ">=2.17.6 <4.0.0"'));
       expect(pubspec, contains('flutter: ">=2.5.0"'));
     });
-    test('lock owns exactly 18 files at corrected source commit', () {
+    test('lock owns exactly 18 files at reviewed content commit', () {
       final String lock =
           read('docs/dev-notes/ios27-lifecycle-contract-v1.lock.json');
       expect('"path":'.allMatches(lock).length, 18);
       expect(
         lock,
         contains(
-          '"source_commit": "5b8c02e4c85203d073a85da8abb2212b19867e68"',
+          '"pinned_content_commit": "068a540e74921741251c6e1812f27d7c4a4155cb"',
         ),
       );
     });

@@ -14,14 +14,16 @@ public final class FileLifecycleTraceSink: LifecycleTraceSink {
         guard !manager.fileExists(atPath: receiptURL.path),
               let parentValues = try? parent.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey]),
               parentValues.isDirectory == true,
-              parentValues.isSymbolicLink != true else {
+              parentValues.isSymbolicLink != true
+        else {
             return nil
         }
         if manager.fileExists(atPath: path) {
             guard let values = try? url.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey]),
                   values.isRegularFile == true,
                   values.isSymbolicLink != true,
-                  (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) == 0 else {
+                  (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) == 0
+            else {
                 return nil
             }
         } else {
@@ -57,6 +59,18 @@ public final class FileLifecycleTraceSink: LifecycleTraceSink {
 
 /// Process-wide ownership for the single Swift stream declared by a capture manifest.
 public enum LifecycleTraceHarness {
+    private static let contextEnvironmentKeys = [
+        "CIO_LIFECYCLE_MANIFEST_ID",
+        "CIO_LIFECYCLE_RUN_ID",
+        "CIO_LIFECYCLE_STREAM_ID",
+        "CIO_LIFECYCLE_PROCESS_INSTANCE_ID",
+        "CIO_LIFECYCLE_SCENARIO",
+        "CIO_LIFECYCLE_EVIDENCE_LEVEL",
+        "CIO_LIFECYCLE_INTEGRATION",
+        "CIO_LIFECYCLE_RUNTIME",
+        "CIO_LIFECYCLE_PROVIDER",
+    ]
+
     private final class State: @unchecked Sendable {
         let lock = NSLock()
         var recorder: LifecycleTraceRecorder?
@@ -83,7 +97,9 @@ public enum LifecycleTraceHarness {
         defer { state.lock.unlock() }
         if let recorder = state.recorder { return recorder }
         guard let context = context(environment: environment, processID: processID), context.runtime == .swift else {
-            fallbackSink().write(line: "CIO-LIFECYCLE-DIAGNOSTIC disabled: invalid or incomplete harness context")
+            if contextEnvironmentKeys.contains(where: { environment[$0] != nil }) {
+                fallbackSink().write(line: "CIO-LIFECYCLE-DIAGNOSTIC disabled: invalid or incomplete harness context")
+            }
             return nil
         }
         let sink: LifecycleTraceSink
@@ -153,7 +169,8 @@ public enum LifecycleTraceHarness {
               let runtimeValue = value("RUNTIME"),
               let runtime = LifecycleTraceRuntime(rawValue: runtimeValue),
               let providerValue = value("PROVIDER"),
-              let provider = LifecycleTraceProvider(rawValue: providerValue) else {
+              let provider = LifecycleTraceProvider(rawValue: providerValue)
+        else {
             return nil
         }
         return LifecycleTraceContext(

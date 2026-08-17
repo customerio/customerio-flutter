@@ -6,3 +6,16 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   exclude:
     - apps/scripts/**
+    # These are standalone Flutter packages with their own language and
+    # dependency contexts. The lint workflow analyzes the lifecycle fixture
+    # separately after resolving its own pubspec.
+    - apps/lifecycle_fixture/dart/**
+    # Flutter-generated output and platform trees are not root Dart sources.
+    - apps/flutter_sample_*/build/**
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**

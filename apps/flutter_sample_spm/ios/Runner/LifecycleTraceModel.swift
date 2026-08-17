@@ -241,6 +241,7 @@ public enum LifecycleTraceCallback: String, Codable, CaseIterable, Sendable {
 }
 
 public enum LifecycleTraceAliasNamespace: String, Codable, CaseIterable, Sendable {
+    case occurrence
     case delivery
     case request
     case scene
@@ -364,7 +365,8 @@ public struct LifecycleTraceContext: Equatable, Sendable {
               Self.isCanonicalUUID(runID),
               Self.isCanonicalUUID(streamID),
               Self.isCanonicalUUID(processInstanceID),
-              processID == nil || (processID ?? 0) > 0 else {
+              processID == nil || (processID ?? 0) > 0
+        else {
             return nil
         }
         self.manifestID = manifestID
@@ -386,13 +388,21 @@ public struct LifecycleTraceContext: Equatable, Sendable {
 }
 
 public struct LifecycleTraceAliasCounts: Codable, Equatable, Sendable {
+    public let occurrence: Int
     public let delivery: Int
     public let request: Int
     public let scene: Int
     public let url: Int
     public let closure: Int
 
-    public static let zero = LifecycleTraceAliasCounts(delivery: 0, request: 0, scene: 0, url: 0, closure: 0)
+    public static let zero = LifecycleTraceAliasCounts(
+        occurrence: 0,
+        delivery: 0,
+        request: 0,
+        scene: 0,
+        url: 0,
+        closure: 0
+    )
 }
 
 public struct LifecycleTraceRecorderSnapshot: Codable, Equatable, Sendable {

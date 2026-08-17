@@ -185,10 +185,15 @@ public final class LifecycleTraceRecorder: @unchecked Sendable {
     private var observedBackgroundSeat = false
     private var captureFailed = false
 
-    public var scenario: LifecycleTraceScenario { context.scenario }
-    public var processInstanceID: String { context.processInstanceID }
+    public var scenario: LifecycleTraceScenario {
+        context.scenario
+    }
 
-    // Used only by focused tests to create deterministic overflow. Production code never pauses.
+    public var processInstanceID: String {
+        context.processInstanceID
+    }
+
+    /// Used only by focused tests to create deterministic overflow. Production code never pauses.
     var isDrainSchedulingPausedForTesting = false
 
     public init(
@@ -240,7 +245,10 @@ public final class LifecycleTraceRecorder: @unchecked Sendable {
         phase: LifecycleTracePhase,
         observations: LifecycleTraceObservation...
     ) -> Bool {
-        let observation = observations.reduce(LifecycleTraceObservation()) { $0.merging($1) }
+        var observation = observations.reduce(LifecycleTraceObservation()) { $0.merging($1) }
+        if context.evidenceLevel == .l2 || context.evidenceLevel == .l3 {
+            observation.correlations[.occurrence] = .string(context.runID)
+        }
         stateLock.lock()
         defer { stateLock.unlock() }
         guard case .recording = state,
@@ -249,7 +257,8 @@ public final class LifecycleTraceRecorder: @unchecked Sendable {
               callback != .traceScenarioStart,
               callback != .traceScenarioEnd,
               callback != .fixtureCompletionCreated,
-              callback != .fixtureCompletionObserved else {
+              callback != .fixtureCompletionObserved
+        else {
             return false
         }
 
@@ -318,7 +327,8 @@ public final class LifecycleTraceRecorder: @unchecked Sendable {
         guard case .recording = state,
               !captureFailed,
               context.scenario == .unitFixture,
-              var fixture = fixtureStates[handle.closureAlias] else {
+              var fixture = fixtureStates[handle.closureAlias]
+        else {
             return false
         }
 
@@ -331,7 +341,8 @@ public final class LifecycleTraceRecorder: @unchecked Sendable {
         case .notInvoked:
             guard fixture.observedCallCount == 0,
                   !fixture.hasNotInvokedOutcome,
-                  droppedRecordsTotal == handle.droppedRecordsAtCreation else {
+                  droppedRecordsTotal == handle.droppedRecordsAtCreation
+            else {
                 return false
             }
             fixture.hasNotInvokedOutcome = true
@@ -382,6 +393,7 @@ public final class LifecycleTraceRecorder: @unchecked Sendable {
         stateLock.lock()
         guard canEndScenarioLocked(), terminalIsValidForScenarioLocked(terminal) else {
             stateLock.unlock()
+            completion(nil)
             return false
         }
         beginEndingLocked(completion: completion)
@@ -471,6 +483,7 @@ public final class LifecycleTraceRecorder: @unchecked Sendable {
 
     private func snapshotLocked() -> LifecycleTraceRecorderSnapshot {
         let counts = LifecycleTraceAliasCounts(
+            occurrence: aliasTables[.occurrence]?.count ?? 0,
             delivery: aliasTables[.delivery]?.count ?? 0,
             request: aliasTables[.request]?.count ?? 0,
             scene: aliasTables[.scene]?.count ?? 0,

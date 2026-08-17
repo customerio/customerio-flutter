@@ -5,9 +5,9 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const String _nativeLockSha256 =
-    'f97f648a8bd0698b6bbb038d0707c2d821897e7a65eac5caf10c040cafe0dfde';
+    '425914da8c10d0271cfe4ae4bbf6efb135a55d597cdf9c9b43177b50899515a4';
 const String _nativeToolSha256 =
-    '6d6ec827e0c858dde7d3694eec74f397a514a72305e8b77e3961f63070a15743';
+    '03c48a30b287c58e5b611388980928ea08eb91385b52ac5e4dbdb1d32a23db28';
 
 /// Re-derives the vendored contract lock from disk.
 ///
@@ -38,14 +38,15 @@ void main() {
     );
   });
 
-  test('lock metadata names its source commit', () {
-    expect(lock['schema'], 'cio-lifecycle-contract-lock/1');
+  test('lock metadata names its reviewed content commit', () {
+    expect(lock['schema'], 'cio-lifecycle-contract-lock/2');
     expect(lock['source_repository'], 'customerio/customerio-ios');
     expect(files.length, 18);
     expect(
-      lock['source_commit'],
-      '5b8c02e4c85203d073a85da8abb2212b19867e68',
+      lock['pinned_content_commit'],
+      '068a540e74921741251c6e1812f27d7c4a4155cb',
     );
+    expect(lock['relock_note'], isNotEmpty);
   });
 
   group('every vendored file matches its locked digest', () {

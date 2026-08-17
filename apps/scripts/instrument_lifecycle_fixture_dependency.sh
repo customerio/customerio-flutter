@@ -126,8 +126,17 @@ restore_cocoapods_source() {
   fi
 }
 
+restore_cocoapods_source_on_exit() {
+  exit_status=$?
+  trap - EXIT
+  if ! restore_cocoapods_source; then
+    exit 1
+  fi
+  exit "$exit_status"
+}
+
 if [ "$RESOLUTION" = "cocoapods" ]; then
-  trap restore_cocoapods_source EXIT
+  trap restore_cocoapods_source_on_exit EXIT
   trap 'exit 129' HUP
   trap 'exit 130' INT
   trap 'exit 143' TERM

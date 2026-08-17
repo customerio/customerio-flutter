@@ -51,6 +51,14 @@ void main() {
         'trace.scenario-end',
       ]);
       expect(_record(persistence.lines[2])['kind'], 'app-received');
+      expect(_record(persistence.lines.first)['correlation'], isNull);
+      expect(_record(persistence.lines.last)['correlation'], isNull);
+      expect(_record(persistence.lines[1])['correlation'], <String, Object?>{
+        'occurrence': 'occurrence-1',
+      });
+      expect(_record(persistence.lines[2])['correlation'], <String, Object?>{
+        'occurrence': 'occurrence-1',
+      });
       expect(
         persistence.lines
             .map(_record)
@@ -61,6 +69,11 @@ void main() {
       );
       expect(_receipt(persistence)['emitted_records'], 4);
       expect(_receipt(persistence)['dropped_records_total'], 0);
+      expect(
+        (_receipt(persistence)['alias_counts']!
+            as Map<String, Object?>)['occurrence'],
+        1,
+      );
     },
   );
 
