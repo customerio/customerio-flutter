@@ -66,7 +66,7 @@ jobs:
         env:
           BUNDLE_FROZEN: 'true'
         with:
-          ruby-version: '3.1'
+          ruby-version: '3.4'
           bundler-cache: true
           working-directory: apps/${{ matrix.app }}
 
