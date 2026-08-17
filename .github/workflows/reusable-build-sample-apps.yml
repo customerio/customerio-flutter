@@ -238,6 +238,11 @@ jobs:
         with:
           fetch-depth: 0 # Workaround for bug https://github.com/actions/checkout/issues/1471
 
+      - name: Run lifecycle raw-marker decoder tests
+        if: ${{ inputs.is_primary_app }}
+        working-directory: ${{ github.workspace }}
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest apps/lifecycle_fixture/test_raw_launch_marker.py
+
       - name: Capture Git Context
         shell: bash
         id: git-context

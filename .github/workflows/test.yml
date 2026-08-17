@@ -34,7 +34,6 @@ jobs:
           docs/dev-notes/test_validate_ios27_lifecycle_trace.py \
           apps/lifecycle_fixture/test_instrument_lifecycle_fixture_dependency.py \
           apps/lifecycle_fixture/test_lifecycle_fixture_build_lock.py \
-          apps/lifecycle_fixture/test_raw_launch_marker.py \
           apps/lifecycle_fixture/test_run_flutter_lifecycle_capture.py
         "$validator_venv/bin/python" scripts/ios27_lifecycle_contract.py verify --root .
   
