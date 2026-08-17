@@ -94,11 +94,25 @@ jobs:
         env:
           DEPENDENCY_MANAGER: ${{ matrix.manager }}
         run: |
-          set -o pipefail
+          set -euo pipefail
+          build_log="$RUNNER_TEMP/${{ matrix.app }}-build.log"
           if [[ "$DEPENDENCY_MANAGER" == 'CocoaPods' ]]; then
-            bundle exec flutter --verbose build ios --simulator --debug --no-pub 2>&1 | tee "$RUNNER_TEMP/${{ matrix.app }}-build.log"
+            bundle exec flutter --verbose build ios --simulator --debug --no-pub 2>&1 | tee "$build_log"
           else
-            flutter --verbose build ios --simulator --debug --no-pub 2>&1 | tee "$RUNNER_TEMP/${{ matrix.app }}-build.log"
+            flutter --verbose build ios --simulator --debug --no-pub 2>&1 | tee "$build_log"
+          fi
+          build_arguments=(
+            -scheme Runner
+            -configuration Debug
+            -destination 'generic/platform=iOS Simulator'
+            CIO_LIFECYCLE_INFOPLIST_SUFFIX=-Scene
+            CODE_SIGNING_ALLOWED=NO
+            build
+          )
+          if [[ "$DEPENDENCY_MANAGER" == 'CocoaPods' ]]; then
+            xcodebuild -workspace ios/Runner.xcworkspace "${build_arguments[@]}" 2>&1 | tee -a "$build_log"
+          else
+            xcodebuild -project ios/Runner.xcodeproj "${build_arguments[@]}" 2>&1 | tee -a "$build_log"
           fi
 
       - name: Record compile result
@@ -123,6 +137,7 @@ jobs:
             echo '**Classification:** compile-passed'
             echo "**Dependency manager:** $DEPENDENCY_MANAGER"
             echo "**Toolchain:** Flutter $FLUTTER_VERSION, Xcode $XCODE_VERSION build $XCODE_BUILD, iphonesimulator $IOS_SIMULATOR_SDK"
+            echo '**Host topologies:** legacy AppDelegate and UIScene'
             echo '**Scope:** simulator compile only; no launch, lifecycle callback, push-delivery, signing, or App Store claim'
           } >> "$GITHUB_STEP_SUMMARY"
 
