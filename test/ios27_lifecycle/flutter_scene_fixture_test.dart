@@ -118,9 +118,16 @@ void main() {
     );
   }
 
-  test('Xcode 27 preview compiles both host topologies', () {
+  test('Xcode 27 preview proves the legacy failure and UIScene launch', () {
     final workflow = read('.github/workflows/ios-toolchain-compatibility.yml');
 
+    expect(
+      workflow,
+      contains(
+        'ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b',
+      ),
+    );
+    expect(workflow, contains("ruby-version: '3.4'"));
     expect(workflow, contains('build_arguments=('));
     expect(
       workflow,
@@ -130,7 +137,28 @@ void main() {
     expect(workflow, contains('-project ios/Runner.xcodeproj'));
     expect(
       workflow,
-      contains('**Host topologies:** legacy AppDelegate and UIScene'),
+      contains(
+        'Confirm the AppDelegate-only control reproduces the Xcode 27 launch failure',
+      ),
+    );
+    expect(
+      workflow,
+      contains(
+        'UIScene life cycle is required|_UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption',
+      ),
+    );
+    expect(workflow, contains('Launch the UIScene fixture'));
+    expect(
+      workflow,
+      contains(
+        r'${{ matrix.app }}-scene-xcode-27/Build/Products/Debug-iphonesimulator/Runner.app',
+      ),
+    );
+    expect(
+      workflow,
+      contains(
+        '**Host topologies:** AppDelegate-only compile plus expected Xcode 27 launch rejection; UIScene compile and launch survival',
+      ),
     );
   });
 }
