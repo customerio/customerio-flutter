@@ -60,11 +60,13 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
         registerLiveActivitySceneHandlerIfNeeded(with: self)
         registerPluginsIfNeeded(with: self)
 
+        #if CIO_SCENE_CONTRACT_SELF_TEST
         if ProcessInfo.processInfo.environment["CIO_SCENE_HANDLER_SELF_TEST"] == "1" {
             precondition(CustomerIOLiveActivitySceneHandler.runContractSelfTest())
             Logger(subsystem: "io.customer.flutter.fixture", category: "scene-lifecycle")
                 .notice("customerio-flutter-scene-handler-contract-passed")
         }
+        #endif
 
         #if canImport(CioLocationGeofence)
         // iOS can cold-wake the app for a geofence transition before the Dart runtime

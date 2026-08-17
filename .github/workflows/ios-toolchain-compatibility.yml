@@ -107,6 +107,7 @@ jobs:
             -destination 'generic/platform=iOS Simulator'
             -derivedDataPath "$RUNNER_TEMP/${{ matrix.app }}-scene-xcode-27"
             CIO_LIFECYCLE_INFOPLIST_SUFFIX=-Scene
+            SWIFT_ACTIVE_COMPILATION_CONDITIONS=CIO_SCENE_CONTRACT_SELF_TEST
             CODE_SIGNING_ALLOWED=NO
             build
           )
@@ -120,7 +121,7 @@ jobs:
         id: legacy-launch
         continue-on-error: true
         # TODO(MBL-2232): switch to @main after customerio/mobile-ci-tools#16 merges.
-        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@c68e6b8f077a76525a989f46afc761c2f63c5e50
+        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@f178d035fd2d76c35abcf0561abca473c13e2084
         with:
           app-path: apps/${{ matrix.app }}/build/ios/iphonesimulator/Runner.app
           expected-ios-major: '27'
@@ -141,7 +142,7 @@ jobs:
       - name: Launch the UIScene fixture
         id: scene-launch
         # TODO(MBL-2232): switch to @main after customerio/mobile-ci-tools#16 merges.
-        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@c68e6b8f077a76525a989f46afc761c2f63c5e50
+        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@f178d035fd2d76c35abcf0561abca473c13e2084
         with:
           app-path: ${{ runner.temp }}/${{ matrix.app }}-scene-xcode-27/Build/Products/Debug-iphonesimulator/Runner.app
           expected-ios-major: '27'
@@ -168,7 +169,7 @@ jobs:
           xcrun simctl boot "$SIMULATOR_UDID" >/dev/null 2>&1 || true
           xcrun simctl bootstatus "$SIMULATOR_UDID" -b
           xcrun simctl install "$SIMULATOR_UDID" "$APP_PATH"
-          callback_start="$(date +'%Y-%m-%d %H:%M:%S')"
+          callback_start="$(date -v-5S +'%Y-%m-%d %H:%M:%S')"
           SIMCTL_CHILD_CIO_SCENE_HANDLER_SELF_TEST=1 \
             xcrun simctl launch --terminate-running-process "$SIMULATOR_UDID" "$BUNDLE_ID"
           for _ in {1..10}; do
@@ -185,6 +186,7 @@ jobs:
           done
           grep -Fq 'customerio-flutter-scene-will-connect' "$callback_log"
           grep -Fq 'customerio-flutter-scene-handler-contract-passed' "$callback_log"
+          test "$(grep -Fc 'customerio-flutter-scene-will-connect' "$callback_log")" -eq 1
 
       - name: Record launch result
         if: steps.scene-launch.outcome == 'success'
@@ -209,7 +211,7 @@ jobs:
             echo "**Dependency manager:** $DEPENDENCY_MANAGER"
             echo "**Toolchain:** Flutter $FLUTTER_VERSION, Xcode $XCODE_VERSION build $XCODE_BUILD, iphonesimulator $IOS_SIMULATOR_SDK"
             echo '**Host topologies:** AppDelegate-only compile plus expected Xcode 27 launch rejection; UIScene compile, launch survival, cold connection, and URL-handler contract'
-            echo '**Scope:** simulator compile, install, launch, 10-second process survival, Flutter scene callback forwarding, and environment-gated URL routing self-test; no real URL stimulus, push delivery, signing, or App Store claim'
+            echo '**Scope:** simulator compile, install, launch, 10-second process survival, Flutter scene callback forwarding, and an environment-gated URL-handler self-test; no real URL stimulus, push delivery, signing, or App Store claim'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Record compile failure

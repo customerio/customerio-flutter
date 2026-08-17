@@ -98,6 +98,7 @@ void main() {
         final legacy = read('$runner/Info.plist');
         final scene = read('$runner/Info-Scene.plist');
         final sceneDelegate = read('$runner/SceneDelegate.swift');
+        final appDelegate = read('$runner/AppDelegate.swift');
         final projectSource = read(project);
 
         final sceneWithoutManifest = scene.replaceFirst(
@@ -152,8 +153,21 @@ void main() {
           sceneDelegate,
           contains('connectionOptions?.userActivities.isEmpty ?? true'),
         );
+        expect(sceneDelegate, contains('sceneDidBecomeActive'));
+        expect(sceneDelegate, contains('pendingColdStartURLs'));
+        expect(sceneDelegate, contains('&& !nestedHandled'));
         expect(sceneDelegate, contains('routedURLs.count == 2'));
         expect(sceneDelegate, contains('webRoutes.count == 2'));
+        expect(
+          sceneDelegate,
+          contains('#if CIO_SCENE_CONTRACT_SELF_TEST'),
+        );
+        expect(
+          appDelegate,
+          contains(
+            '#if CIO_SCENE_CONTRACT_SELF_TEST\n        if ProcessInfo.processInfo.environment["CIO_SCENE_HANDLER_SELF_TEST"]',
+          ),
+        );
 
         expect(
           occurrences(
@@ -203,6 +217,13 @@ void main() {
       contains('Verify Flutter scene forwarding and URL-handler contract'),
     );
     expect(workflow, contains('customerio-flutter-scene-will-connect'));
+    expect(workflow, isNot(contains('xcrun simctl openurl')));
+    expect(
+      workflow,
+      contains(
+        'SWIFT_ACTIVE_COMPILATION_CONDITIONS=CIO_SCENE_CONTRACT_SELF_TEST',
+      ),
+    );
     expect(
       workflow,
       contains('customerio-flutter-scene-handler-contract-passed'),
@@ -215,7 +236,7 @@ void main() {
     expect(
       occurrences(
         workflow,
-        'launch-simulator-app/v1@c68e6b8f077a76525a989f46afc761c2f63c5e50',
+        'launch-simulator-app/v1@f178d035fd2d76c35abcf0561abca473c13e2084',
       ),
       2,
     );
