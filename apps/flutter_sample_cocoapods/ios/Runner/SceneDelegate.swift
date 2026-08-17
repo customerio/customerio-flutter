@@ -56,6 +56,7 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
         guard !pendingColdStartURLs.isEmpty else { return }
         let URLs = pendingColdStartURLs
         pendingColdStartURLs.removeAll()
+        logger.notice("customerio-flutter-scene-flushing-cold-start-urls")
 
         // Wait until FlutterSceneDelegate has completed the activation callback. The launch
         // engine/view controller is attached by this point, unlike during willConnectTo.
@@ -95,16 +96,22 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
         // Replay every routable URL through FlutterAppDelegate so both custom-scheme and web
         // redirects reach Flutter instead of being handed back to the OS by UIScene.open.
         var didRoute = false
+        var consumedTrackingURL = false
         for url in urls {
-            let routableURL = isCustomerIOURL(url) ? handleWidgetURL(url) : url
-            guard let routableURL else { continue }
+            let isTrackingURL = isCustomerIOURL(url)
+            let routableURL = isTrackingURL ? handleWidgetURL(url) : url
+            guard let routableURL else {
+                consumedTrackingURL = consumedTrackingURL || isTrackingURL
+                continue
+            }
             guard !isCustomerIOURL(routableURL) else {
                 logger.error("Customer.io Live Activity redirect resolved to another tracking URL")
+                consumedTrackingURL = true
                 continue
             }
             didRoute = route(routableURL) || didRoute
         }
-        return didRoute
+        return didRoute || consumedTrackingURL
     }
 
     #if CIO_SCENE_CONTRACT_SELF_TEST
@@ -135,10 +142,11 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
         }
         return handler.responds(to: NSSelectorFromString("scene:willConnectToSession:options:"))
             && handler.responds(to: NSSelectorFromString("scene:openURLContexts:"))
+            && handler.responds(to: NSSelectorFromString("sceneDidBecomeActive:"))
             && handled
             && routedURLs.count == 2
             && Set(routedURLs) == Set([redirect, ordinary])
-            && !nestedHandled
+            && nestedHandled
             && nestedRoutes.isEmpty
             && webHandled
             && webRoutes.count == 2

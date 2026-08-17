@@ -49,7 +49,10 @@ engine registry and forward `scene(_:willConnectTo:options:)` plus
 `scene(_:openURLContexts:)`. The
 [SwiftPM sample](apps/flutter_sample_spm/ios/Runner/SceneDelegate.swift) and
 [CocoaPods sample](apps/flutter_sample_cocoapods/ios/Runner/SceneDelegate.swift) show the complete
-registration and routing pattern.
+registration and routing pattern. The samples deliberately keep AppDelegate-only behavior by
+default; CI selects their scene manifests with `CIO_LIFECYCLE_INFOPLIST_SUFFIX=-Scene`. The
+`CIO_SCENE_CONTRACT_SELF_TEST` block is fixture-only, and the sample imports its Live Activities
+attributes module because that extension is included in the sample app.
 
 Android needs no equivalent step.
 

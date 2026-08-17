@@ -13,6 +13,8 @@ String read(String path) {
 int occurrences(String source, String value) => value.allMatches(source).length;
 
 void main() {
+  // These source-level checks are structural tripwires. Runtime delivery remains
+  // covered separately by the hosted simulator workflow and MBL-2233 device evidence.
   for (final sample in samples) {
     final runner = 'apps/flutter_sample_$sample/ios/Runner';
     final project =
@@ -155,7 +157,15 @@ void main() {
         );
         expect(sceneDelegate, contains('sceneDidBecomeActive'));
         expect(sceneDelegate, contains('pendingColdStartURLs'));
-        expect(sceneDelegate, contains('&& !nestedHandled'));
+        expect(sceneDelegate, contains('&& nestedHandled'));
+        expect(
+          sceneDelegate,
+          contains('NSSelectorFromString("sceneDidBecomeActive:")'),
+        );
+        expect(
+          sceneDelegate,
+          contains('return didRoute || consumedTrackingURL'),
+        );
         expect(sceneDelegate, contains('routedURLs.count == 2'));
         expect(sceneDelegate, contains('webRoutes.count == 2'));
         expect(
@@ -186,6 +196,13 @@ void main() {
     );
   }
 
+  test('sample apps share the same scene delegate implementation', () {
+    expect(
+      read('apps/flutter_sample_spm/ios/Runner/SceneDelegate.swift'),
+      read('apps/flutter_sample_cocoapods/ios/Runner/SceneDelegate.swift'),
+    );
+  });
+
   test('Xcode 27 preview proves the legacy failure and UIScene launch', () {
     final workflow = read('.github/workflows/ios-toolchain-compatibility.yml');
 
@@ -214,7 +231,9 @@ void main() {
     expect(workflow, contains('Launch the UIScene fixture'));
     expect(
       workflow,
-      contains('Verify Flutter scene forwarding and URL-handler contract'),
+      contains(
+        'Verify Flutter scene forwarding and source-level URL-handler contract',
+      ),
     );
     expect(workflow, contains('customerio-flutter-scene-will-connect'));
     expect(workflow, isNot(contains('xcrun simctl openurl')));
@@ -236,7 +255,7 @@ void main() {
     expect(
       occurrences(
         workflow,
-        'launch-simulator-app/v1@e83f36523b5068a2e274813a4d59929d438335d5',
+        'launch-simulator-app/v1@e23ed26882a5cf99378b3208187dcfedf68d2c93',
       ),
       2,
     );
@@ -253,7 +272,7 @@ void main() {
     expect(
       workflow,
       contains(
-        '**Host topologies:** AppDelegate-only compile plus expected Xcode 27 launch rejection; UIScene compile, launch survival, cold connection, and URL-handler contract',
+        '**Host topologies:** AppDelegate-only compile plus expected Xcode 27 launch rejection; UIScene compile, launch survival, cold connection, and source-level URL-handler contract',
       ),
     );
   });

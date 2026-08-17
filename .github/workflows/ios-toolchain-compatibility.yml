@@ -121,7 +121,7 @@ jobs:
         id: legacy-launch
         continue-on-error: true
         # TODO(MBL-2232): switch to @main after customerio/mobile-ci-tools#16 merges.
-        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@e83f36523b5068a2e274813a4d59929d438335d5
+        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@e23ed26882a5cf99378b3208187dcfedf68d2c93
         with:
           app-path: apps/${{ matrix.app }}/build/ios/iphonesimulator/Runner.app
           expected-ios-major: '27'
@@ -142,14 +142,14 @@ jobs:
       - name: Launch the UIScene fixture
         id: scene-launch
         # TODO(MBL-2232): switch to @main after customerio/mobile-ci-tools#16 merges.
-        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@e83f36523b5068a2e274813a4d59929d438335d5
+        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@e23ed26882a5cf99378b3208187dcfedf68d2c93
         with:
           app-path: ${{ runner.temp }}/${{ matrix.app }}-scene-xcode-27/Build/Products/Debug-iphonesimulator/Runner.app
           expected-ios-major: '27'
           survival-seconds: '10'
           log-path: ${{ runner.temp }}/${{ matrix.app }}-scene-launch.log
 
-      - name: Verify Flutter scene forwarding and URL-handler contract
+      - name: Verify Flutter scene forwarding and source-level URL-handler contract
         id: verify-scene-contract
         shell: bash
         env:
@@ -210,8 +210,8 @@ jobs:
             echo '**Classification:** launch-passed'
             echo "**Dependency manager:** $DEPENDENCY_MANAGER"
             echo "**Toolchain:** Flutter $FLUTTER_VERSION, Xcode $XCODE_VERSION build $XCODE_BUILD, iphonesimulator $IOS_SIMULATOR_SDK"
-            echo '**Host topologies:** AppDelegate-only compile plus expected Xcode 27 launch rejection; UIScene compile, launch survival, cold connection, and URL-handler contract'
-            echo '**Scope:** simulator compile, install, launch, 10-second process survival, Flutter scene callback forwarding, and an environment-gated URL-handler self-test; no real URL stimulus, push delivery, signing, or App Store claim'
+            echo '**Host topologies:** AppDelegate-only compile plus expected Xcode 27 launch rejection; UIScene compile, launch survival, cold connection, and source-level URL-handler contract'
+            echo '**Scope:** simulator compile, install, launch, 10-second process survival, Flutter scene callback forwarding, and an environment-gated URL classification self-test; no real URL stimulus or AppDelegate-to-engine delivery proof, push delivery, signing, or App Store claim'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Record compile failure

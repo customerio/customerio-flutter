@@ -15,6 +15,10 @@ import CioLocationGeofence
 class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
 
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+    private let lifecycleLogger = Logger(
+        subsystem: "io.customer.flutter.fixture",
+        category: "scene-lifecycle"
+    )
     private let permissionHandler = PermissionChannelHandler()
     // Flutter stores plugin scene delegates weakly, so the AppDelegate owns this handler.
     private let liveActivitySceneHandler = CustomerIOLiveActivitySceneHandler()
@@ -28,7 +32,7 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
     private func registerLiveActivitySceneHandlerIfNeeded(with registry: FlutterPluginRegistry) {
         guard !registry.hasPlugin(Self.liveActivityScenePluginKey) else { return }
         guard let registrar = registry.registrar(forPlugin: Self.liveActivityScenePluginKey) else {
-            assertionFailure("Live Activity scene registrar unavailable")
+            lifecycleLogger.error("Live Activity scene registrar unavailable; registration will retry on the next engine seat")
             return
         }
         registrar.addSceneDelegate(liveActivitySceneHandler)
@@ -37,7 +41,7 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
     private func registerPluginsIfNeeded(with registry: FlutterPluginRegistry) {
         guard !registry.hasPlugin(Self.permissionChannelPluginKey) else { return }
         guard let registrar = registry.registrar(forPlugin: Self.permissionChannelPluginKey) else {
-            assertionFailure("permission channel registrar unavailable")
+            lifecycleLogger.error("Permission channel registrar unavailable; registration will retry on the next engine seat")
             return
         }
 
