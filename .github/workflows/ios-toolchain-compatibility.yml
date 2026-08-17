@@ -1,0 +1,181 @@
+name: Xcode 27 preview compatibility
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/ios-toolchain-compatibility.yml'
+  schedule:
+    # Native runs one hour earlier; Expo runs one hour later.
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    name: Xcode 27 preview (${{ matrix.manager }})
+    runs-on: xcode-27
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: flutter_sample_spm
+            manager: SwiftPM
+          - app: flutter_sample_cocoapods
+            manager: CocoaPods
+
+    steps:
+      - name: Check out Flutter SDK
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # Flutter inspects the selected Xcode when generating its SwiftPM plugin package.
+      - name: Report and verify toolchain family
+        id: toolchain
+        uses: customerio/mobile-ci-tools/github-actions/ios/report-toolchain/v1@main
+        with:
+          expected-xcode-major: '27'
+          expected-ios-sdk-major: '27'
+
+      - name: Verify and select canonical Flutter pin
+        id: flutter-pin
+        shell: bash
+        run: |
+          ./apps/scripts/verify_xcode27_flutter_version.sh
+          echo "version=$(<"apps/${{ matrix.app }}/.flutter-version")" >> "$GITHUB_OUTPUT"
+
+      - name: Install pinned Flutter
+        uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046 # v2.19.0
+        with:
+          channel: stable
+          flutter-version: ${{ steps.flutter-pin.outputs.version }}
+          cache: true
+
+      - name: Verify installed Flutter
+        shell: bash
+        run: ./apps/scripts/verify_xcode27_flutter_version.sh --installed
+
+      - name: Install locked Ruby dependencies for CocoaPods
+        if: matrix.manager == 'CocoaPods'
+        uses: ruby/setup-ruby@922ebc4c5262cd14e07bb0e1db020984b6c064fe # v1.226.0
+        env:
+          BUNDLE_FROZEN: 'true'
+        with:
+          ruby-version: '3.1'
+          bundler-cache: true
+          working-directory: apps/${{ matrix.app }}
+
+      - name: Prepare fixture
+        shell: bash
+        env:
+          APP: ${{ matrix.app }}
+          DEPENDENCY_MANAGER: ${{ matrix.manager }}
+        run: |
+          set -euo pipefail
+          ./apps/scripts/setup_env.sh "apps/$APP"
+          cd "apps/$APP"
+          if [[ "$DEPENDENCY_MANAGER" == 'SwiftPM' ]]; then
+            flutter config --enable-swift-package-manager
+          fi
+          flutter pub get
+          if [[ "$DEPENDENCY_MANAGER" == 'CocoaPods' ]]; then
+            bundle exec pod install --project-directory=ios
+          fi
+
+      - name: Compile Flutter fixture
+        id: compile
+        shell: bash
+        working-directory: apps/${{ matrix.app }}
+        env:
+          DEPENDENCY_MANAGER: ${{ matrix.manager }}
+        run: |
+          set -o pipefail
+          if [[ "$DEPENDENCY_MANAGER" == 'CocoaPods' ]]; then
+            bundle exec flutter --verbose build ios --simulator --debug --no-pub 2>&1 | tee "$RUNNER_TEMP/${{ matrix.app }}-build.log"
+          else
+            flutter --verbose build ios --simulator --debug --no-pub 2>&1 | tee "$RUNNER_TEMP/${{ matrix.app }}-build.log"
+          fi
+
+      - name: Record compile result
+        if: steps.compile.outcome == 'success'
+        shell: bash
+        env:
+          APP: ${{ matrix.app }}
+          DEPENDENCY_MANAGER: ${{ matrix.manager }}
+          FLUTTER_VERSION: ${{ steps.flutter-pin.outputs.version }}
+          XCODE_VERSION: ${{ steps.toolchain.outputs.xcode-version }}
+          XCODE_BUILD: ${{ steps.toolchain.outputs.xcode-build }}
+          IOS_SIMULATOR_SDK: ${{ steps.toolchain.outputs.iphonesimulator-sdk }}
+        run: |
+          set -euo pipefail
+          : "${FLUTTER_VERSION:?missing Flutter version output}"
+          : "${XCODE_VERSION:?missing xcode-version output}"
+          : "${XCODE_BUILD:?missing xcode-build output}"
+          : "${IOS_SIMULATOR_SDK:?missing iphonesimulator-sdk output}"
+          {
+            echo '## Flutter fixture compile'
+            echo
+            echo '**Classification:** compile-passed'
+            echo "**Dependency manager:** $DEPENDENCY_MANAGER"
+            echo "**Toolchain:** Flutter $FLUTTER_VERSION, Xcode $XCODE_VERSION build $XCODE_BUILD, iphonesimulator $IOS_SIMULATOR_SDK"
+            echo '**Scope:** simulator compile only; no launch, lifecycle callback, push-delivery, signing, or App Store claim'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record compile failure
+        if: failure() && steps.compile.outcome == 'failure'
+        shell: bash
+        env:
+          DEPENDENCY_MANAGER: ${{ matrix.manager }}
+        run: |
+          {
+            echo '## Flutter fixture compile'
+            echo
+            echo '**Classification:** fixture-compile-failed'
+            echo "**Dependency manager:** $DEPENDENCY_MANAGER"
+            echo '**Toolchain family:** Xcode 27 / iOS SDK 27'
+            echo '**Next step:** inspect the uploaded verbose build log for the exact compiler failure'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record setup failure
+        if: failure() && steps.toolchain.outcome != 'failure' && steps.compile.outcome != 'success' && steps.compile.outcome != 'failure'
+        shell: bash
+        env:
+          DEPENDENCY_MANAGER: ${{ matrix.manager }}
+        run: |
+          {
+            echo '## Flutter fixture compile'
+            echo
+            echo '**Classification:** fixture-setup-failed'
+            echo "**Dependency manager:** $DEPENDENCY_MANAGER"
+            echo '**Toolchain family:** Xcode 27 / iOS SDK 27'
+            echo '**Next step:** inspect checkout, toolchain selection, dependency installation, and fixture preparation before attributing this to SDK compilation'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record unavailable toolchain
+        if: failure() && steps.toolchain.outcome == 'failure'
+        shell: bash
+        env:
+          DEPENDENCY_MANAGER: ${{ matrix.manager }}
+        run: |
+          {
+            echo '## Flutter fixture compile'
+            echo
+            echo '**Classification:** toolchain-unavailable'
+            echo "**Dependency manager:** $DEPENDENCY_MANAGER"
+            echo '**Expected toolchain family:** Xcode 27 / iOS SDK 27'
+            echo '**Next step:** inspect the toolchain report before evaluating fixture setup or SDK compilation'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: xcode-27-preview-${{ matrix.app }}-build-log
+          path: ${{ runner.temp }}/${{ matrix.app }}-build.log
+          if-no-files-found: ignore
+          retention-days: 7
