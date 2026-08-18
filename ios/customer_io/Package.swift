@@ -139,11 +139,7 @@ let package = Package(
     dependencies: [
         // Pinned exactly, matching `native_sdk_version` in pubspec.yaml and the podspec, so one
         // plugin version always resolves one native SDK across every package manager.
-        // Temporary stacked-PR pin. Replace with the released native SDK version before merge.
-        .package(
-            url: "https://github.com/customerio/customerio-ios.git",
-            revision: "e02214af7dffbb5c8ec3eb14071233d6dc55595e"
-        ),
+        .package(url: "https://github.com/customerio/customerio-ios.git", exact: "4.7.4"),
         .package(url: "https://github.com/customerio/customerio-ios-fcm.git", from: "1.0.0")
     ],
     targets: [

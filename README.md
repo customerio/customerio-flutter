@@ -48,21 +48,16 @@ Android needs no equivalent step.
 
 # iOS application lifecycle
 
-Existing AppDelegate-only applications remain the default and require no new configuration. A
-UIScene application must explicitly declare its lifecycle owner in `ios/Runner/Info.plist`:
-
-```xml
-<key>CustomerIOAppLifecycleHostTopology</key>
-<string>ui-scene</string>
-```
+Existing AppDelegate-only applications remain the default and require no new configuration. The
+plugin automatically uses scene routing when the app declares Apple's standard
+`UIApplicationSceneManifest`; no Customer.io-specific lifecycle key is required.
 
 Keep `CioAppDelegateWrapper` as the application delegate. It continues to own SDK initialization,
 APNs token registration, and the global notification-center delegate. Flutter's scene delegate owns
-UI activation callbacks. For existing AppDelegate-only hosts, the plugin calls the Live Activity URL
-primitive directly. For UIScene hosts, it validates callbacks with the native scene coordinator.
-Both paths leave ordinary links and user activities to Flutter. Applications that declare UIScene
-must use Flutter 3.44.8 or newer; older Flutter registrars log an error and leave scene routing
-unclaimed.
+UI activation callbacks. In either topology, the plugin passes Customer.io Live Activity URLs to
+the released native URL handler and leaves ordinary links and user activities to Flutter.
+Applications that declare UIScene must use Flutter 3.44.8 or newer; older Flutter registrars log an
+error and leave scene routing unclaimed.
 
 # Contributing
 

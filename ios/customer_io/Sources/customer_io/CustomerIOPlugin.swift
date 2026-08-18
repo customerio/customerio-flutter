@@ -73,8 +73,7 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
 
     /// Flutter added scene-delegate registration after this package's original minimum Flutter
     /// version. Invoke the optional registrar API dynamically so existing AppDelegate-only apps
-    /// continue to compile on older Flutter releases, while newer Flutter hosts can opt into
-    /// UIScene routing with `CustomerIOAppLifecycleHostTopology`.
+    /// continue to compile on older Flutter releases, while newer Flutter hosts can use UIScene.
     private static func registerSceneDelegateIfSupported(
         _ instance: CustomerIOPlugin,
         with registrar: FlutterPluginRegistrar

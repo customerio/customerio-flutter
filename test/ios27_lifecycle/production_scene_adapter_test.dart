@@ -13,7 +13,7 @@ void main() {
   const String liveActivitiesPath =
       'ios/customer_io/Sources/customer_io/LiveActivities/CustomerIOLiveActivities.swift';
 
-  test('plugin registers only the lifecycle seat selected by host topology',
+  test('plugin registers only the lifecycle seat selected by scene manifest',
       () {
     final String plugin = read(pluginPath);
     final String lifecycle = read(lifecyclePath);
@@ -33,8 +33,9 @@ void main() {
       'registrar.addApplicationDelegate(instance)'.allMatches(plugin),
       hasLength(1),
     );
-    expect(lifecycle, contains('hostTopology == .appDelegateOnly'));
-    expect(lifecycle, contains('hostTopology == .uiScene'));
+    expect(lifecycle, contains('sceneManifestInfoPlistKey'));
+    expect(lifecycle, contains('private let usesUIScene: Bool'));
+    expect(lifecycle, contains('!usesUIScene'));
     expect(
       lifecycle,
       contains(
@@ -44,28 +45,28 @@ void main() {
     expect(lifecycle, contains('@objc(scene:openURLContexts:)'));
   });
 
-  test('legacy routes directly while scenes use the native coordinator', () {
+  test('both topologies use the released native URL primitive', () {
     final String lifecycle = read(lifecyclePath);
 
-    for (final String expected in <String>[
-      'sceneCoordinator = hostTopology == .uiScene',
-      'CioSceneLifecycleCoordinator()',
-      'sceneCoordinator.handleConnection(',
-      'sceneCoordinator.handleOpenURLContexts(',
-      'CioSceneLifecycleHandlingResult',
-    ]) {
-      expect(lifecycle, contains(expected));
-    }
     expectInOrder(lifecycle, <String>[
       'func handleApplicationOpenURL(',
-      'guard hostTopology == .appDelegateOnly else { return false }',
+      'guard !usesUIScene else { return false }',
       'return routeURL(url, applicationOptions: options)',
     ]);
-    expect(lifecycle, isNot(contains('CioAppDelegateLifecycleCoordinator')));
-    expect(lifecycle, isNot(contains('CioAppLifecycleHandlingResult')));
-    expect(lifecycle, contains('case nil:'));
-    expect(lifecycle, contains('self.hostTopology = .appDelegateOnly'));
-    expect(lifecycle, contains('self.hostTopology = nil'));
+    expectInOrder(lifecycle, <String>[
+      'func handleSceneConnection(',
+      'guard usesUIScene',
+      'return routeURL(',
+    ]);
+    expectInOrder(lifecycle, <String>[
+      'func handleSceneOpenURLContexts(',
+      'guard usesUIScene',
+      'return routeURL(',
+    ]);
+    expect(lifecycle, isNot(contains('CioSceneLifecycleCoordinator')));
+    expect(lifecycle, isNot(contains('CioSceneLifecycleHandlingResult')));
+    expect(lifecycle, isNot(contains('CustomerIOAppLifecycleHostTopology')));
+    expect(lifecycle, isNot(contains('HostTopology')));
     expect(lifecycle, isNot(contains('preconditionFailure(')));
   });
 
@@ -107,7 +108,6 @@ void main() {
       lifecycle,
       contains('defer { isForwardingRedirectToApplication = false }'),
     );
-    expect(lifecycle, contains('.rejectedAmbiguousInput:'));
   });
 
   test('adapter does not own push, shortcut, or user-activity completion', () {
@@ -135,10 +135,10 @@ void main() {
       final String appDelegate = read('$prefix/AppDelegate.swift');
       final String sceneDelegate = read('$prefix/SceneDelegate.swift');
 
-      expect(legacy, contains('<string>app-delegate-only</string>'));
       expect(legacy, isNot(contains('UIApplicationSceneManifest')));
-      expect(scene, contains('<string>ui-scene</string>'));
       expect(scene, contains('UIApplicationSceneManifest'));
+      expect(legacy, isNot(contains('CustomerIOAppLifecycleHostTopology')));
+      expect(scene, isNot(contains('CustomerIOAppLifecycleHostTopology')));
       expect(
         appDelegate,
         isNot(contains('CustomerIOLiveActivities.handleWidgetUrl')),

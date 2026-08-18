@@ -86,8 +86,8 @@ Both samples keep AppDelegate-only behavior in `Runner/Info.plist` and provide a
 configuration in `Runner/Info-Scene.plist`. The Runner target selects the scene configuration when
 `CIO_LIFECYCLE_INFOPLIST_SUFFIX=-Scene` is passed to Xcode.
 
-The two plists also declare the Customer.io lifecycle owner. The legacy plist uses
-`app-delegate-only`; the scene plist uses `ui-scene`. `CioAppDelegateWrapper` continues to own SDK
-initialization, APNs registration, and notification-center callbacks in both modes. The standard
-Flutter `SceneDelegate` owns the host scene, while the Customer.io plugin registers its own scene
-adapter with each supported Flutter engine. Do not add a second host-owned Customer.io URL handler.
+The standard Apple scene manifest is the lifecycle source of truth; no Customer.io-specific
+topology key is required. `CioAppDelegateWrapper` continues to own SDK initialization, APNs
+registration, and notification-center callbacks in both modes. The standard Flutter
+`SceneDelegate` owns the host scene, while the Customer.io plugin registers its own scene adapter
+with each supported Flutter engine. Do not add a second host-owned Customer.io URL handler.

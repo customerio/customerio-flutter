@@ -3,12 +3,8 @@ import CioInternalCommon
 import Flutter
 import UIKit
 
-/// Routes Flutter application and scene activation callbacks through topology-specific
-/// Customer.io lifecycle handling.
-///
-/// The host topology is explicit. Existing applications without the Info.plist key keep the
-/// AppDelegate-only behavior. UIScene applications must set
-/// `CustomerIOAppLifecycleHostTopology` to `ui-scene`.
+/// Routes Flutter application and scene activation callbacks through the lifecycle declared by
+/// the host application's standard `UIApplicationSceneManifest`.
 final class CustomerIOFlutterLifecycle: NSObject {
     private final class SceneOccurrenceResult {
         weak var occurrence: AnyObject?
@@ -19,65 +15,33 @@ final class CustomerIOFlutterLifecycle: NSObject {
         }
     }
 
-    static let hostTopologyInfoPlistKey = "CustomerIOAppLifecycleHostTopology"
     private static let sceneManifestInfoPlistKey = "UIApplicationSceneManifest"
 
     @MainActor
     private static var sceneOccurrenceResults: [ObjectIdentifier: SceneOccurrenceResult] = [:]
 
-    private enum HostTopology: String {
-        case appDelegateOnly = "app-delegate-only"
-        case uiScene = "ui-scene"
-    }
-
-    private let hostTopology: HostTopology?
+    private let usesUIScene: Bool
 
     var shouldRegisterApplicationDelegate: Bool {
-        hostTopology == .appDelegateOnly
+        !usesUIScene
     }
 
     var shouldRegisterSceneDelegate: Bool {
-        hostTopology == .uiScene
+        usesUIScene
     }
 
     @MainActor
     private var isForwardingRedirectToApplication = false
 
-    @MainActor
-    private lazy var sceneCoordinator = hostTopology == .uiScene
-        ? CioSceneLifecycleCoordinator()
-        : nil
-
     init(bundle: Bundle = .main) {
-        let configuredTopology = bundle.object(
-            forInfoDictionaryKey: Self.hostTopologyInfoPlistKey
-        ) as? String
-
-        switch configuredTopology {
-        case nil:
-            self.hostTopology = .appDelegateOnly
-            if bundle.object(forInfoDictionaryKey: Self.sceneManifestInfoPlistKey) != nil {
-                DIGraphShared.shared.logger.error(
-                    "\(Self.hostTopologyInfoPlistKey) is missing for a UIScene host; " +
-                        "set it to ui-scene to enable topology-specific Customer.io routing"
-                )
-            }
-        case HostTopology.appDelegateOnly.rawValue:
-            self.hostTopology = .appDelegateOnly
-        case HostTopology.uiScene.rawValue:
-            self.hostTopology = .uiScene
-        default:
-            DIGraphShared.shared.logger.error(
-                "\(Self.hostTopologyInfoPlistKey) must be app-delegate-only or ui-scene"
-            )
-            self.hostTopology = nil
-        }
-
+        self.usesUIScene = bundle.object(
+            forInfoDictionaryKey: Self.sceneManifestInfoPlistKey
+        ) != nil
         super.init()
     }
 
     func reportUnavailableSceneRegistration() {
-        guard hostTopology == .uiScene else { return }
+        guard usesUIScene else { return }
         DIGraphShared.shared.logger.error(
             "Customer.io UIScene routing requires Flutter 3.44.8 or newer"
         )
@@ -92,7 +56,7 @@ final class CustomerIOFlutterLifecycle: NSObject {
             // unwrapped customer URL to its plugin and Dart routing chain. That nested callback is
             // host forwarding, not a second Customer.io activation occurrence.
             guard !isForwardingRedirectToApplication else { return false }
-            guard hostTopology == .appDelegateOnly else { return false }
+            guard !usesUIScene else { return false }
             return routeURL(url, applicationOptions: options)
         }
     }
@@ -100,7 +64,7 @@ final class CustomerIOFlutterLifecycle: NSObject {
     @available(iOS 13.0, *)
     func handleSceneConnection(_ connectionOptions: UIScene.ConnectionOptions?) -> Bool {
         return MainActor.assumeIsolated {
-            guard let sceneCoordinator, let connectionOptions else { return false }
+            guard usesUIScene, let connectionOptions else { return false }
             guard connectionOptions.urlContexts.count == 1,
                   connectionOptions.userActivities.isEmpty,
                   connectionOptions.shortcutItem == nil,
@@ -109,18 +73,9 @@ final class CustomerIOFlutterLifecycle: NSObject {
             }
             return Self.handleSceneOccurrence(urlContext) { [weak self] in
                 guard let self else { return false }
-                return claim(
-                    sceneCoordinator.handleConnection(
-                        options: connectionOptions,
-                        routeURL: { [weak self] context in
-                            self?.routeURL(
-                                context.url,
-                                applicationOptions: Self.applicationOptions(from: context.options)
-                            ) ?? false
-                        },
-                        continueUserActivity: { _ in false },
-                        performShortcut: { _ in false }
-                    )
+                return routeURL(
+                    urlContext.url,
+                    applicationOptions: Self.applicationOptions(from: urlContext.options)
                 )
             }
         }
@@ -129,7 +84,7 @@ final class CustomerIOFlutterLifecycle: NSObject {
     @available(iOS 13.0, *)
     func handleSceneOpenURLContexts(_ urlContexts: Set<UIOpenURLContext>) -> Bool {
         return MainActor.assumeIsolated {
-            guard let sceneCoordinator else { return false }
+            guard usesUIScene else { return false }
             guard urlContexts.count == 1, let urlContext = urlContexts.first else { return false }
 
             // Flutter's Boolean claims the entire set for this engine. A set with multiple URLs
@@ -138,16 +93,9 @@ final class CustomerIOFlutterLifecycle: NSObject {
             // once here and then letting Flutter process that same URL again.
             return Self.handleSceneOccurrence(urlContext) { [weak self] in
                 guard let self else { return false }
-                return claim(
-                    sceneCoordinator.handleOpenURLContexts(
-                        urlContexts,
-                        route: { [weak self] context in
-                            self?.routeURL(
-                                context.url,
-                                applicationOptions: Self.applicationOptions(from: context.options)
-                            ) ?? false
-                        }
-                    )
+                return routeURL(
+                    urlContext.url,
+                    applicationOptions: Self.applicationOptions(from: urlContext.options)
                 )
             }
         }
@@ -228,20 +176,6 @@ final class CustomerIOFlutterLifecycle: NSObject {
             applicationOptions[.eventAttribution] = eventAttribution
         }
         return applicationOptions
-    }
-
-    @MainActor
-    private func claim(_ result: CioSceneLifecycleHandlingResult) -> Bool {
-        // Customer.io claims the Flutter callback only after its routing closure handled the
-        // activation. A native rejection is fail-closed for Customer.io, but the remaining
-        // Flutter/host delegate chain must still get the opportunity to handle that callback.
-        switch result {
-        case .handled:
-            return true
-        case .unhandled, .noActivation, .notificationOwnedByApplication,
-             .rejectedAmbiguousInput:
-            return false
-        }
     }
 
     @available(iOS 13.0, *)
