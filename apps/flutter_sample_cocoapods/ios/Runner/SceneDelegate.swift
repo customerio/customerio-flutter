@@ -69,11 +69,14 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
     func scene(_ scene: UIScene, openURLContexts urlContexts: Set<UIOpenURLContext>) -> Bool {
         logger.notice("customerio-flutter-scene-open-url-contexts")
         let consumed = handleOpenURLs(urlContexts.map(\.url))
-        schedulePendingURLDrain(attempt: 0)
+        if scene.activationState == .foregroundActive {
+            schedulePendingURLDrain(attempt: 0)
+        }
         return consumed
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
+        logger.notice("customerio-flutter-scene-did-become-active token=\(self.runToken, privacy: .public)")
         schedulePendingURLDrain(attempt: 0)
     }
 

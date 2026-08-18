@@ -270,6 +270,7 @@ void main() {
       ),
     );
     expect(workflow, contains('customerio-flutter-scene-will-connect'));
+    expect(workflow, contains('customerio-flutter-scene-did-become-active'));
     expect(workflow, isNot(contains('xcrun simctl openurl')));
     expect(
       workflow,
@@ -291,7 +292,7 @@ void main() {
     expect(
       occurrences(
         workflow,
-        'launch-simulator-app/v1@e5fbb641ab946ca3a1b6cd443c450a9d00348c98',
+        'launch-simulator-app/v1@14d1d9b39c9b28e84d99f6e8e4e2c46ddd8096df',
       ),
       2,
     );

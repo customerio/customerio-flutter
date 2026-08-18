@@ -121,7 +121,7 @@ jobs:
         id: legacy-launch
         continue-on-error: true
         # TODO(MBL-2232): switch to @main after customerio/mobile-ci-tools#16 merges.
-        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@e5fbb641ab946ca3a1b6cd443c450a9d00348c98
+        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@14d1d9b39c9b28e84d99f6e8e4e2c46ddd8096df
         with:
           app-path: apps/${{ matrix.app }}/build/ios/iphonesimulator/Runner.app
           expected-ios-major: '27'
@@ -142,7 +142,7 @@ jobs:
       - name: Launch the UIScene fixture
         id: scene-launch
         # TODO(MBL-2232): switch to @main after customerio/mobile-ci-tools#16 merges.
-        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@e5fbb641ab946ca3a1b6cd443c450a9d00348c98
+        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@14d1d9b39c9b28e84d99f6e8e4e2c46ddd8096df
         with:
           app-path: ${{ runner.temp }}/${{ matrix.app }}-scene-xcode-27/Build/Products/Debug-iphonesimulator/Runner.app
           expected-ios-major: '27'
@@ -181,14 +181,17 @@ jobs:
               --predicate 'subsystem == "io.customer.flutter.fixture" AND category == "scene-lifecycle"' \
               > "$callback_log"
             if grep -Fq "customerio-flutter-scene-will-connect token=$run_token" "$callback_log" \
+              && grep -Fq "customerio-flutter-scene-did-become-active token=$run_token" "$callback_log" \
               && grep -Fq "customerio-flutter-scene-handler-contract-passed token=$run_token" "$callback_log"; then
               break
             fi
             sleep 1
           done
           grep -Fq "customerio-flutter-scene-will-connect token=$run_token" "$callback_log"
+          grep -Fq "customerio-flutter-scene-did-become-active token=$run_token" "$callback_log"
           grep -Fq "customerio-flutter-scene-handler-contract-passed token=$run_token" "$callback_log"
           test "$(grep -Fc "customerio-flutter-scene-will-connect token=$run_token" "$callback_log")" -eq 1
+          test "$(grep -Fc "customerio-flutter-scene-did-become-active token=$run_token" "$callback_log")" -eq 1
 
       - name: Record launch result
         if: steps.scene-launch.outcome == 'success'
