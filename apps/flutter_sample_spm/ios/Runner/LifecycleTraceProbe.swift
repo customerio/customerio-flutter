@@ -1,4 +1,5 @@
 import Foundation
+import Darwin
 
 public final class FileLifecycleTraceSink: LifecycleTraceSink {
     public static let receiptPathSuffix = ".receipt.json"
@@ -14,16 +15,14 @@ public final class FileLifecycleTraceSink: LifecycleTraceSink {
         guard !manager.fileExists(atPath: receiptURL.path),
               let parentValues = try? parent.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey]),
               parentValues.isDirectory == true,
-              parentValues.isSymbolicLink != true
-        else {
+              parentValues.isSymbolicLink != true else {
             return nil
         }
         if manager.fileExists(atPath: path) {
             guard let values = try? url.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey]),
                   values.isRegularFile == true,
                   values.isSymbolicLink != true,
-                  (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) == 0
-            else {
+                  (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) == 0 else {
                 return nil
             }
         } else {
@@ -40,10 +39,26 @@ public final class FileLifecycleTraceSink: LifecycleTraceSink {
         handle.closeFile()
     }
 
-    public func write(line: String) {
-        guard let data = (line + "\n").data(using: .utf8) else { return }
-        handle.seekToEndOfFile()
-        handle.write(data)
+    public func write(line: String) -> Bool {
+        guard let data = (line + "\n").data(using: .utf8) else { return false }
+        return data.withUnsafeBytes { bytes in
+            guard let baseAddress = bytes.baseAddress else { return data.isEmpty }
+            var offset = 0
+            while offset < bytes.count {
+                let written = Darwin.write(
+                    handle.fileDescriptor,
+                    baseAddress.advanced(by: offset),
+                    bytes.count - offset
+                )
+                if written < 0 {
+                    if errno == EINTR { continue }
+                    return false
+                }
+                guard written > 0 else { return false }
+                offset += written
+            }
+            return true
+        }
     }
 
     public func writeReceipt(json: String) -> Bool {
@@ -59,18 +74,6 @@ public final class FileLifecycleTraceSink: LifecycleTraceSink {
 
 /// Process-wide ownership for the single Swift stream declared by a capture manifest.
 public enum LifecycleTraceHarness {
-    private static let contextEnvironmentKeys = [
-        "CIO_LIFECYCLE_MANIFEST_ID",
-        "CIO_LIFECYCLE_RUN_ID",
-        "CIO_LIFECYCLE_STREAM_ID",
-        "CIO_LIFECYCLE_PROCESS_INSTANCE_ID",
-        "CIO_LIFECYCLE_SCENARIO",
-        "CIO_LIFECYCLE_EVIDENCE_LEVEL",
-        "CIO_LIFECYCLE_INTEGRATION",
-        "CIO_LIFECYCLE_RUNTIME",
-        "CIO_LIFECYCLE_PROVIDER",
-    ]
-
     private final class State: @unchecked Sendable {
         let lock = NSLock()
         var recorder: LifecycleTraceRecorder?
@@ -97,9 +100,7 @@ public enum LifecycleTraceHarness {
         defer { state.lock.unlock() }
         if let recorder = state.recorder { return recorder }
         guard let context = context(environment: environment, processID: processID), context.runtime == .swift else {
-            if contextEnvironmentKeys.contains(where: { environment[$0] != nil }) {
-                fallbackSink().write(line: "CIO-LIFECYCLE-DIAGNOSTIC disabled: invalid or incomplete harness context")
-            }
+            fallbackSink().write(line: "CIO-LIFECYCLE-DIAGNOSTIC disabled: invalid or incomplete harness context")
             return nil
         }
         let sink: LifecycleTraceSink
@@ -123,20 +124,61 @@ public enum LifecycleTraceHarness {
 
     @discardableResult
     public static func startScenario() -> Bool {
-        sharedRecorder?.startScenario() ?? false
+        let hasSceneManifest = Bundle.main.object(forInfoDictionaryKey: "UIApplicationSceneManifest") != nil
+        return sharedRecorder?.startScenario(
+            observation: LifecycleTraceObservation(
+                flags: [.sceneManifestActive: hasSceneManifest]
+            )
+        ) ?? false
+    }
+
+    /// Records a canonical host or Customer.io URL-routing seat.
+    public static func recordURLRoute(
+        callback: LifecycleTraceCallback,
+        phase: LifecycleTracePhase,
+        evidence: LifecycleTraceObservation,
+        routingResult: LifecycleTraceRoutingResult? = nil
+    ) {
+        let attribution: (owner: LifecycleTraceOwner, kind: LifecycleTraceKind)
+        switch callback {
+        case .hostRouteURL:
+            attribution = (.host, .hostRouting)
+        case .customerIORouteDeepLink:
+            attribution = (.customerIOSDK, .sdkRouting)
+        default:
+            return
+        }
+        if let routingResult = routingResult {
+            sharedRecorder?.record(
+                callback: callback,
+                owner: attribution.owner,
+                kind: attribution.kind,
+                phase: phase,
+                observations: evidence,
+                LifecycleTraceEvidence.observe(routingResult: routingResult)
+            )
+        } else {
+            sharedRecorder?.record(
+                callback: callback,
+                owner: attribution.owner,
+                kind: attribution.kind,
+                phase: phase,
+                observations: evidence
+            )
+        }
     }
 
     /// Closes a scenario after an already-instrumented terminal seat and emits its receipt.
     public static func endScenario(after terminal: LifecycleTraceTerminal) {
-        guard let recorder = sharedRecorder else {
-            runEndCleanups()
-            return
+        guard let recorder = sharedRecorder else { return }
+        let accepted = recorder.endScenario(after: terminal) { _ in
+            handleEndCompletion()
         }
-        guard recorder.endScenario(after: terminal, completion: { _ in
-            runEndCleanups()
-        }) else {
-            return
-        }
+        guard accepted else { return }
+    }
+
+    static func handleEndCompletion() {
+        runEndCleanups()
     }
 
     static func registerEndCleanup(_ cleanup: @escaping () -> Void) {
@@ -166,13 +208,15 @@ public enum LifecycleTraceHarness {
               let scenario = LifecycleTraceScenario(rawValue: scenarioValue),
               let evidenceValue = value("EVIDENCE_LEVEL"),
               let evidence = LifecycleTraceEvidenceLevel(rawValue: evidenceValue),
+              let hostTopologyValue = value("HOST_TOPOLOGY"),
+              let hostTopology = LifecycleTraceHostTopology(rawValue: hostTopologyValue),
+              let activationOccurrenceIdentity = value("ACTIVATION_OCCURRENCE_ID"),
               let integrationValue = value("INTEGRATION"),
               let integration = LifecycleTraceIntegration(rawValue: integrationValue),
               let runtimeValue = value("RUNTIME"),
               let runtime = LifecycleTraceRuntime(rawValue: runtimeValue),
               let providerValue = value("PROVIDER"),
-              let provider = LifecycleTraceProvider(rawValue: providerValue)
-        else {
+              let provider = LifecycleTraceProvider(rawValue: providerValue) else {
             return nil
         }
         return LifecycleTraceContext(
@@ -185,7 +229,9 @@ public enum LifecycleTraceHarness {
             runtime: runtime,
             provider: provider,
             scenario: scenario,
-            evidenceLevel: evidence
+            evidenceLevel: evidence,
+            hostTopology: hostTopology,
+            activationOccurrenceIdentity: activationOccurrenceIdentity
         )
     }
 }

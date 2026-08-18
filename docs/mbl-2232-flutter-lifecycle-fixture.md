@@ -8,7 +8,7 @@ MBL-2277.
 
 The complete 18-file canonical bundle is vendored byte-identically from
 `customerio-ios` reviewed content commit
-`ce73b1a4ef2b16e178a31ebbda1620034570c0af` under `docs/dev-notes/`. The v2
+`45009f814e8183a8feccb884efd50c4a2aff020a` under `docs/dev-notes/`. The v2
 lock pins that immutable content commit while allowing the native owner to add
 its descendant relock commit without a self-reference. The owning lock and
 verifier are:
@@ -56,6 +56,13 @@ The scene configuration uses `LifecycleTraceSceneDelegate`, a fixture subclass
 of `FlutterSceneDelegate` that observes only its inherited will-connect seat. It
 records raw and Flutter-forward entry before `super.scene(...)`, with identical
 facts from the real scene, connected-scene set, and connection options.
+
+The capture runner declares `app-delegate-only` for the legacy plist and
+`ui-scene` for the scene plist. It passes that topology and one opaque
+activation-occurrence UUID into the Swift recorder, while the scenario-start
+record independently reports whether the built app actually contains a scene
+manifest. The canonical validator rejects any declared-versus-compiled
+topology mismatch.
 
 The Dart producer attaches at the actual Dart main entry. It uses Flutter build
 defines because iOS does not expose the native process environment through

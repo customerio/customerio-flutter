@@ -5,7 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const String _nativeLockSha256 =
-    '92717a34e20e4d8d595a7d757475847c44b2fc85b8b2de8953c05a006f80d84e';
+    '4571d00d89f8175cf29098e77f2cf863827d400a1f381b8f729b787fc7fcc64a';
 const String _nativeToolSha256 =
     '03c48a30b287c58e5b611388980928ea08eb91385b52ac5e4dbdb1d32a23db28';
 
@@ -44,7 +44,7 @@ void main() {
     expect(files.length, 18);
     expect(
       lock['pinned_content_commit'],
-      'ce73b1a4ef2b16e178a31ebbda1620034570c0af',
+      '45009f814e8183a8feccb884efd50c4a2aff020a',
     );
     expect(lock['relock_note'], isNotEmpty);
   });

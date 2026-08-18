@@ -27,7 +27,14 @@ from dependency_content_snapshot import SnapshotError, content_snapshot
 TRACE_PREFIX = "CIO-LIFECYCLE-TRACE "
 CONTRACT_TOOL = Path("scripts/ios27_lifecycle_contract.py")
 VALIDATOR = Path("docs/dev-notes/validate_ios27_lifecycle_trace.py")
-UUID_KEYS = ("MANIFEST_ID", "RUN_ID", "STREAM_ID", "DART_STREAM_ID", "PROCESS_INSTANCE_ID")
+UUID_KEYS = (
+    "MANIFEST_ID",
+    "RUN_ID",
+    "STREAM_ID",
+    "DART_STREAM_ID",
+    "PROCESS_INSTANCE_ID",
+    "ACTIVATION_OCCURRENCE_ID",
+)
 
 
 class CaptureError(RuntimeError):
@@ -153,6 +160,27 @@ def _host_topology(mode: str) -> str:
     if mode == "scene":
         return "ui-scene"
     raise CaptureError(f"unsupported lifecycle mode: {mode}")
+
+
+def _swift_runtime_environment(
+    identifiers: dict[str, str], mode: str, output_path: Path, evidence_level: str
+) -> dict[str, str]:
+    return {
+        "CIO_LIFECYCLE_MANIFEST_ID": identifiers["MANIFEST_ID"],
+        "CIO_LIFECYCLE_RUN_ID": identifiers["RUN_ID"],
+        "CIO_LIFECYCLE_STREAM_ID": identifiers["STREAM_ID"],
+        "CIO_LIFECYCLE_PROCESS_INSTANCE_ID": identifiers["PROCESS_INSTANCE_ID"],
+        "CIO_LIFECYCLE_ACTIVATION_OCCURRENCE_ID": identifiers[
+            "ACTIVATION_OCCURRENCE_ID"
+        ],
+        "CIO_LIFECYCLE_HOST_TOPOLOGY": _host_topology(mode),
+        "CIO_LIFECYCLE_SCENARIO": "icon-cold-launch",
+        "CIO_LIFECYCLE_EVIDENCE_LEVEL": evidence_level,
+        "CIO_LIFECYCLE_INTEGRATION": "flutter",
+        "CIO_LIFECYCLE_RUNTIME": "swift",
+        "CIO_LIFECYCLE_PROVIDER": "none",
+        "CIO_LIFECYCLE_OUTPUT_PATH": str(output_path),
+    }
 
 
 def _content_snapshot(
@@ -689,18 +717,9 @@ def capture(arguments: argparse.Namespace) -> None:
     container = Path(_run(["xcrun", "simctl", "get_app_container", arguments.simulator_id, bundle, "data"], cwd=source_root))
     swift_path = container / "Documents/lifecycle-swift.ndjson"
     dart_path = container / "tmp" / dart_basename
-    injected = {
-        "CIO_LIFECYCLE_MANIFEST_ID": identifiers["MANIFEST_ID"],
-        "CIO_LIFECYCLE_RUN_ID": identifiers["RUN_ID"],
-        "CIO_LIFECYCLE_STREAM_ID": identifiers["STREAM_ID"],
-        "CIO_LIFECYCLE_PROCESS_INSTANCE_ID": identifiers["PROCESS_INSTANCE_ID"],
-        "CIO_LIFECYCLE_SCENARIO": "icon-cold-launch",
-        "CIO_LIFECYCLE_EVIDENCE_LEVEL": evidence_level,
-        "CIO_LIFECYCLE_INTEGRATION": "flutter",
-        "CIO_LIFECYCLE_RUNTIME": "swift",
-        "CIO_LIFECYCLE_PROVIDER": "none",
-        "CIO_LIFECYCLE_OUTPUT_PATH": str(swift_path),
-    }
+    injected = _swift_runtime_environment(
+        identifiers, arguments.mode, swift_path, evidence_level
+    )
     started_at = _timestamp()
     stimulus_initiated_at = started_at
     launched_pid: int | None = None

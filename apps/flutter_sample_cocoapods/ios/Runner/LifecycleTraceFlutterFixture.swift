@@ -108,7 +108,11 @@ enum LifecycleTraceFlutterFixture {
                 phase: .stateChange,
                 observations: LifecycleTraceEvidence.observe(applicationState: UIApplication.shared.applicationState)
             )
-            LifecycleTraceHarness.endScenario(after: .activeScene)
+            guard let recorder = LifecycleTraceHarness.sharedRecorder else { return }
+            let terminal: LifecycleTraceTerminal = recorder.hostTopology == .appDelegateOnly
+                ? .activeApplication
+                : .activeScene
+            LifecycleTraceHarness.endScenario(after: terminal)
         }
 
         LifecycleTraceHarness.registerEndCleanup {

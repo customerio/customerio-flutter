@@ -24,6 +24,7 @@ IDS = {
     "STREAM_ID": "32345678-1234-4123-8123-123456789abc",
     "DART_STREAM_ID": "42345678-1234-4123-8123-123456789abc",
     "PROCESS_INSTANCE_ID": "52345678-1234-4123-8123-123456789abc",
+    "ACTIVATION_OCCURRENCE_ID": "62345678-1234-4123-8123-123456789abc",
 }
 
 
@@ -94,6 +95,21 @@ class FlutterLifecycleCaptureTests(unittest.TestCase):
         self.assertEqual(MODULE._host_topology("scene"), "ui-scene")
         with self.assertRaisesRegex(MODULE.CaptureError, "unsupported lifecycle mode"):
             MODULE._host_topology("inferred")
+
+    def testSwiftRuntimeEnvironment_bindsTopologyAndOccurrenceIdentity(self):
+        environment = MODULE._swift_runtime_environment(
+            IDS, "scene", Path("/tmp/swift.ndjson"), "L2"
+        )
+
+        self.assertEqual(environment["CIO_LIFECYCLE_HOST_TOPOLOGY"], "ui-scene")
+        self.assertEqual(
+            environment["CIO_LIFECYCLE_ACTIVATION_OCCURRENCE_ID"],
+            IDS["ACTIVATION_OCCURRENCE_ID"],
+        )
+        self.assertEqual(environment["CIO_LIFECYCLE_EVIDENCE_LEVEL"], "L2")
+        self.assertEqual(
+            environment["CIO_LIFECYCLE_OUTPUT_PATH"], "/tmp/swift.ndjson"
+        )
 
     def testManualAppIconMode_neverInvokesSimctlLaunch(self):
         with patch.object(MODULE, "_set_simulator_environment", return_value=["KEY"]), patch.object(

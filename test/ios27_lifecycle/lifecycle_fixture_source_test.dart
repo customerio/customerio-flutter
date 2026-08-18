@@ -67,7 +67,8 @@ void main() {
         expect(
           helper,
           contains(
-              'preconditionFailure("permission channel registrar unavailable")'),
+            'lifecycleLogger.error("Permission channel registrar unavailable; registration will retry on the next engine seat")',
+          ),
         );
         expect(
           bootstrap,
@@ -303,12 +304,18 @@ void main() {
   });
 
   for (final String sample in samples) {
-    test('$sample stays silent without lifecycle harness context', () {
+    test('$sample records the compiled scene-manifest state at start', () {
       final String probe = read(
         '${appDir(sample)}/ios/Runner/LifecycleTraceProbe.swift',
       );
-      expect(probe, contains('contextEnvironmentKeys.contains'));
-      expect(probe, contains('environment[\$0] != nil'));
+      expect(
+        probe,
+        contains(
+          'Bundle.main.object(forInfoDictionaryKey: "UIApplicationSceneManifest") != nil',
+        ),
+      );
+      expect(
+          probe, contains('flags: [.sceneManifestActive: hasSceneManifest]'));
     });
   }
 
@@ -322,7 +329,8 @@ void main() {
       );
       expect(model, contains('case occurrence'));
       expect(recorder, contains('observation.correlations[.occurrence]'));
-      expect(recorder, contains('.string(context.runID)'));
+      expect(
+          recorder, contains('.string(context.activationOccurrenceIdentity)'));
       expect(recorder, contains('occurrence: aliasTables[.occurrence]'));
     });
 
@@ -334,10 +342,10 @@ void main() {
       expect(
         endScenario,
         contains(
-          'guard recorder.endScenario(after: terminal, completion: { _ in\n'
-          '            runEndCleanups()\n'
-          '        }) else {\n'
-          '            return',
+          'let accepted = recorder.endScenario(after: terminal) { _ in\n'
+          '            handleEndCompletion()\n'
+          '        }\n'
+          '        guard accepted else { return }',
         ),
       );
       final String recorder = read(
@@ -365,6 +373,18 @@ void main() {
         recorder,
         isNot(contains('@discardableResult\n    public func endScenario(')),
       );
+    });
+
+    test('$sample closes icon launch with the declared topology terminal', () {
+      final String fixture = read(
+        '${appDir(sample)}/ios/Runner/LifecycleTraceFlutterFixture.swift',
+      );
+      expect(
+        fixture,
+        contains('recorder.hostTopology == .appDelegateOnly'),
+      );
+      expect(fixture, contains('? .activeApplication'));
+      expect(fixture, contains(': .activeScene'));
     });
 
     test('$sample recorder drops only the oldest pending record on overflow',
@@ -444,7 +464,7 @@ void main() {
       expect(
         lock,
         contains(
-          '"pinned_content_commit": "ce73b1a4ef2b16e178a31ebbda1620034570c0af"',
+          '"pinned_content_commit": "45009f814e8183a8feccb884efd50c4a2aff020a"',
         ),
       );
     });
