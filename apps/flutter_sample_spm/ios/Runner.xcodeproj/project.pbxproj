@@ -17,6 +17,7 @@
 		5AE1C3437204E2D906BF49A6 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DC59BBB23D6A532BD30539D /* Foundation.framework */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		D21000012F88000000000001 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D21000112F88000000000001 /* SceneDelegate.swift */; };
+		D21000022F88000000000001 /* LiveActivities_Attributes in Frameworks */ = {isa = PBXBuildFile; productRef = A9A0791B2FB8CCF3498BCB38 /* LiveActivities_Attributes */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
@@ -124,6 +125,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */,
+				D21000022F88000000000001 /* LiveActivities_Attributes in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -287,6 +289,7 @@
 			name = Runner;
 			packageProductDependencies = (
 				78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */,
+				A9A0791B2FB8CCF3498BCB38 /* LiveActivities_Attributes */,
 			);
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;

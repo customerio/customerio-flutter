@@ -121,7 +121,7 @@ jobs:
         id: legacy-launch
         continue-on-error: true
         # TODO(MBL-2232): switch to @main after customerio/mobile-ci-tools#16 merges.
-        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@14d1d9b39c9b28e84d99f6e8e4e2c46ddd8096df
+        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@973084092fbe9a46b35aa8876137dca5bfde6c40
         with:
           app-path: apps/${{ matrix.app }}/build/ios/iphonesimulator/Runner.app
           expected-ios-major: '27'
@@ -142,7 +142,7 @@ jobs:
       - name: Launch the UIScene fixture
         id: scene-launch
         # TODO(MBL-2232): switch to @main after customerio/mobile-ci-tools#16 merges.
-        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@14d1d9b39c9b28e84d99f6e8e4e2c46ddd8096df
+        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@973084092fbe9a46b35aa8876137dca5bfde6c40
         with:
           app-path: ${{ runner.temp }}/${{ matrix.app }}-scene-xcode-27/Build/Products/Debug-iphonesimulator/Runner.app
           expected-ios-major: '27'

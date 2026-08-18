@@ -21,7 +21,7 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
     )
     private let permissionHandler = PermissionChannelHandler()
     // Flutter stores plugin scene delegates weakly. The AppDelegate owns one handler and
-    // registers it once in every engine registry that can host the scene.
+    // registers it only with the implicit UI engine that owns scene forwarding.
     private let liveActivitySceneHandler = CustomerIOLiveActivitySceneHandler()
 
     /// Registry key for this app's permission channel. This helper owns every generated
@@ -62,7 +62,6 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
         // FlutterAppDelegate drives a headless launch engine when iOS wakes the app before
         // a FlutterViewController exists. Register that engine here, then reuse the same
         // registry-key guard if Flutter later reports an implicit engine callback.
-        registerLiveActivitySceneHandlerIfNeeded(with: self)
         registerPluginsIfNeeded(with: self)
 
         #if CIO_SCENE_CONTRACT_SELF_TEST

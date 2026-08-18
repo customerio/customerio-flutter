@@ -54,7 +54,7 @@ void main() {
       );
       expect(
         source,
-        contains('registerLiveActivitySceneHandlerIfNeeded(with: self)'),
+        isNot(contains('registerLiveActivitySceneHandlerIfNeeded(with: self)')),
       );
       expect(
         source,
@@ -91,13 +91,7 @@ void main() {
         'registerPluginsIfNeeded(with: self)',
         launch,
       );
-      final sceneHandlerRegistration = source.indexOf(
-        'registerLiveActivitySceneHandlerIfNeeded(with: self)',
-        launch,
-      );
       final launchForward = source.indexOf('return super.application', launch);
-      expect(sceneHandlerRegistration, greaterThan(launch));
-      expect(launchRegistration, greaterThan(sceneHandlerRegistration));
       expect(launchRegistration, greaterThan(launch));
       expect(launchForward, greaterThan(launchRegistration));
     });
@@ -171,14 +165,22 @@ void main() {
         expect(
           sceneDelegate,
           contains(
-            'Flutter URL forwarding retry budget exhausted; URLs were discarded for this activation',
+            'Flutter URL forwarding retry budget exhausted; URLs remain queued for the next activation',
           ),
         );
         expect(
           sceneDelegate,
           contains(
-            'Discarded URLs that Flutter did not accept during the current activation',
+            'Deferred pending Flutter URLs until the next scene activation',
           ),
+        );
+        expect(
+          sceneDelegate,
+          contains('sceneIsActive: sceneIsActive'),
+        );
+        expect(
+          sceneDelegate,
+          contains('if sceneIsActive, forwardToFlutter(routableURL)'),
         );
         expect(sceneDelegate, contains('urlsToRetry'));
         expect(sceneDelegate, contains('&& nestedHandled'));
@@ -220,6 +222,12 @@ void main() {
         );
         expect(projectSource, contains('Info-Scene.plist'));
         expect(projectSource, contains('SceneDelegate.swift in Sources'));
+        if (sample == 'spm') {
+          expect(
+            projectSource,
+            contains('LiveActivities_Attributes in Frameworks'),
+          );
+        }
         expect(
           projectSource,
           contains(
@@ -292,7 +300,7 @@ void main() {
     expect(
       occurrences(
         workflow,
-        'launch-simulator-app/v1@14d1d9b39c9b28e84d99f6e8e4e2c46ddd8096df',
+        'launch-simulator-app/v1@973084092fbe9a46b35aa8876137dca5bfde6c40',
       ),
       2,
     );

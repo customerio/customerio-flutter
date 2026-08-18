@@ -68,8 +68,12 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
 
     func scene(_ scene: UIScene, openURLContexts urlContexts: Set<UIOpenURLContext>) -> Bool {
         logger.notice("customerio-flutter-scene-open-url-contexts")
-        let consumed = handleOpenURLs(urlContexts.map(\.url))
-        if scene.activationState == .foregroundActive {
+        let sceneIsActive = scene.activationState == .foregroundActive
+        let consumed = handleOpenURLs(
+            urlContexts.map(\.url),
+            sceneIsActive: sceneIsActive
+        )
+        if sceneIsActive {
             schedulePendingURLDrain(attempt: 0)
         }
         return consumed
@@ -83,9 +87,9 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
     func sceneWillResignActive(_ scene: UIScene) {
         forwardingRetryWorkItem?.cancel()
         forwardingRetryWorkItem = nil
-        guard !pendingForwardingURLs.isEmpty else { return }
-        pendingForwardingURLs.removeAll()
-        logger.error("Discarded URLs that Flutter did not accept during the current activation")
+        if !pendingForwardingURLs.isEmpty {
+            logger.notice("Deferred pending Flutter URLs until the next scene activation")
+        }
     }
 
     private func schedulePendingURLDrain(attempt: Int) {
@@ -114,19 +118,19 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
         }
         guard !urlsToRetry.isEmpty else { return }
 
+        pendingForwardingURLs.insert(contentsOf: urlsToRetry, at: 0)
         let nextAttempt = attempt + 1
         guard nextAttempt < Self.maximumQueuedForwardingAttempts else {
-            logger.error("Flutter URL forwarding retry budget exhausted; URLs were discarded for this activation")
+            logger.error("Flutter URL forwarding retry budget exhausted; URLs remain queued for the next activation")
             return
         }
-        pendingForwardingURLs.insert(contentsOf: urlsToRetry, at: 0)
         schedulePendingURLDrain(attempt: nextAttempt)
     }
 
-    private func handleOpenURLs(_ urls: [URL]) -> Bool {
+    private func handleOpenURLs(_ urls: [URL], sceneIsActive: Bool) -> Bool {
         routeCustomerIOURLs(urls) { [weak self] routableURL in
             guard let self else { return false }
-            if forwardToFlutter(routableURL) {
+            if sceneIsActive, forwardToFlutter(routableURL) {
                 return true
             }
             pendingForwardingURLs.append(routableURL)
@@ -238,14 +242,27 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
             hasUserActivities: true
         )
         let mixedStayedUnqueued = failedForwardingHandler.pendingForwardingURLs.isEmpty
-        let warmConsumed = failedForwardingHandler.handleOpenURLs([tracking])
+        let inactiveWarmConsumed = failedForwardingHandler.handleOpenURLs(
+            [tracking],
+            sceneIsActive: false
+        )
         let warmQueued = failedForwardingHandler.pendingForwardingURLs == [redirect]
         failedForwardingHandler.forwardingRetryWorkItem?.cancel()
         failedForwardingHandler.forwardingRetryWorkItem = nil
         failedForwardingHandler.drainPendingURLs(
             attempt: Self.maximumQueuedForwardingAttempts - 1
         )
-        let exhaustedQueueWasDiscarded = failedForwardingHandler.pendingForwardingURLs.isEmpty
+        let exhaustedQueueWasPreserved = failedForwardingHandler.pendingForwardingURLs == [redirect]
+        let successfulForwardingHandler = CustomerIOLiveActivitySceneHandler(
+            isCustomerIOURL: { $0 == tracking },
+            handleWidgetURL: { _ in redirect },
+            forwardURL: { _ in true }
+        )
+        let activeWarmConsumed = successfulForwardingHandler.handleOpenURLs(
+            [tracking],
+            sceneIsActive: true
+        )
+        let successfulForwardLeftNoQueue = successfulForwardingHandler.pendingForwardingURLs.isEmpty
         return handler.responds(to: NSSelectorFromString("scene:willConnectToSession:options:"))
             && handler.responds(to: NSSelectorFromString("scene:openURLContexts:"))
             && handler.responds(to: NSSelectorFromString("sceneDidBecomeActive:"))
@@ -268,9 +285,11 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
             && coldQueued
             && !mixedConsumed
             && mixedStayedUnqueued
-            && warmConsumed
+            && inactiveWarmConsumed
             && warmQueued
-            && exhaustedQueueWasDiscarded
+            && exhaustedQueueWasPreserved
+            && activeWarmConsumed
+            && successfulForwardLeftNoQueue
     }
     #endif
 }
