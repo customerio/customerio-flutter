@@ -107,7 +107,7 @@ jobs:
             -destination 'generic/platform=iOS Simulator'
             -derivedDataPath "$RUNNER_TEMP/${{ matrix.app }}-scene-xcode-27"
             CIO_LIFECYCLE_INFOPLIST_SUFFIX=-Scene
-            'SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG CIO_SCENE_CONTRACT_SELF_TEST'
+            CIO_SCENE_CONTRACT_CONDITIONS=CIO_SCENE_CONTRACT_SELF_TEST
             CODE_SIGNING_ALLOWED=NO
             build
           )
@@ -121,7 +121,7 @@ jobs:
         id: legacy-launch
         continue-on-error: true
         # TODO(MBL-2232): switch to @main after customerio/mobile-ci-tools#16 merges.
-        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@a5a10ee48b901234701ac38ff26daeb4b5d9c041
+        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@76855cf3495a2c616d0a5ccc2e53a41d66b6c967
         with:
           app-path: apps/${{ matrix.app }}/build/ios/iphonesimulator/Runner.app
           expected-ios-major: '27'
@@ -142,7 +142,7 @@ jobs:
       - name: Launch the UIScene fixture
         id: scene-launch
         # TODO(MBL-2232): switch to @main after customerio/mobile-ci-tools#16 merges.
-        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@a5a10ee48b901234701ac38ff26daeb4b5d9c041
+        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@76855cf3495a2c616d0a5ccc2e53a41d66b6c967
         with:
           app-path: ${{ runner.temp }}/${{ matrix.app }}-scene-xcode-27/Build/Products/Debug-iphonesimulator/Runner.app
           expected-ios-major: '27'
@@ -169,8 +169,10 @@ jobs:
           xcrun simctl boot "$SIMULATOR_UDID" >/dev/null 2>&1 || true
           xcrun simctl bootstatus "$SIMULATOR_UDID" -b
           xcrun simctl install "$SIMULATOR_UDID" "$APP_PATH"
-          callback_start="$(date -v-5S +'%Y-%m-%d %H:%M:%S')"
+          run_token="${GITHUB_RUN_ID:?}-${GITHUB_RUN_ATTEMPT:?}-${{ matrix.app }}"
+          callback_start="$(date +'%Y-%m-%d %H:%M:%S')"
           SIMCTL_CHILD_CIO_SCENE_HANDLER_SELF_TEST=1 \
+            SIMCTL_CHILD_CIO_SCENE_HANDLER_RUN_TOKEN="$run_token" \
             xcrun simctl launch --terminate-running-process "$SIMULATOR_UDID" "$BUNDLE_ID"
           for _ in {1..10}; do
             xcrun simctl spawn "$SIMULATOR_UDID" log show \
@@ -179,13 +181,13 @@ jobs:
               --predicate 'subsystem == "io.customer.flutter.fixture" AND category == "scene-lifecycle"' \
               > "$callback_log"
             if grep -Fq 'customerio-flutter-scene-will-connect' "$callback_log" \
-              && grep -Fq 'customerio-flutter-scene-handler-contract-passed' "$callback_log"; then
+              && grep -Fq "customerio-flutter-scene-handler-contract-passed token=$run_token" "$callback_log"; then
               break
             fi
             sleep 1
           done
           grep -Fq 'customerio-flutter-scene-will-connect' "$callback_log"
-          grep -Fq 'customerio-flutter-scene-handler-contract-passed' "$callback_log"
+          grep -Fq "customerio-flutter-scene-handler-contract-passed token=$run_token" "$callback_log"
           test "$(grep -Fc 'customerio-flutter-scene-will-connect' "$callback_log")" -eq 1
 
       - name: Record launch result

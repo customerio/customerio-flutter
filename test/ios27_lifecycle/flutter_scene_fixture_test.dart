@@ -58,11 +58,11 @@ void main() {
       );
       expect(
         source,
-        contains('guard !liveActivitySceneHandlerRegistered else { return }'),
+        contains('guard !registry.hasPlugin(Self.liveActivityScenePluginKey)'),
       );
       expect(
-        occurrences(source, 'liveActivitySceneHandlerRegistered = true'),
-        1,
+        source,
+        isNot(contains('liveActivitySceneHandlerRegistered')),
       );
       expect(source,
           contains('registrar.addSceneDelegate(liveActivitySceneHandler)'));
@@ -136,7 +136,7 @@ void main() {
         );
         expect(
           sceneDelegate,
-          contains('openURLContexts URLContexts: Set<UIOpenURLContext>'),
+          contains('openURLContexts urlContexts: Set<UIOpenURLContext>'),
         );
         expect(
           sceneDelegate,
@@ -164,8 +164,11 @@ void main() {
           contains('connectionOptions?.userActivities.isEmpty ?? true'),
         );
         expect(sceneDelegate, contains('sceneDidBecomeActive'));
+        expect(sceneDelegate, contains('sceneWillResignActive'));
         expect(sceneDelegate, contains('pendingColdStartURLs'));
-        expect(sceneDelegate, contains('URLsToRetry'));
+        expect(sceneDelegate, contains('maximumColdStartForwardingAttempts'));
+        expect(sceneDelegate, contains('scheduleColdStartURLDrain'));
+        expect(sceneDelegate, contains('urlsToRetry'));
         expect(sceneDelegate, contains('&& nestedHandled'));
         expect(
           sceneDelegate,
@@ -173,12 +176,14 @@ void main() {
         );
         expect(
           sceneDelegate,
-          contains('return didRoute || consumedTrackingURL'),
+          contains('return consumedTrackingURL'),
         );
         expect(sceneDelegate, contains('routedURLs.count == 2'));
         expect(sceneDelegate, contains('webRoutes.count == 2'));
         expect(sceneDelegate, contains('&& rejectedRouteConsumed'));
         expect(sceneDelegate, contains('&& noRedirectConsumed'));
+        expect(sceneDelegate, contains('&& !ordinaryHandled'));
+        expect(sceneDelegate, contains('&& ordinaryRoutes.isEmpty'));
         expect(
           sceneDelegate,
           contains('#if CIO_SCENE_CONTRACT_SELF_TEST'),
@@ -203,6 +208,12 @@ void main() {
         );
         expect(projectSource, contains('Info-Scene.plist'));
         expect(projectSource, contains('SceneDelegate.swift in Sources'));
+        expect(
+          projectSource,
+          contains(
+            'SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG \$(inherited) \$(CIO_SCENE_CONTRACT_CONDITIONS)";',
+          ),
+        );
       },
     );
   }
@@ -251,13 +262,15 @@ void main() {
     expect(
       workflow,
       contains(
-        'SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG CIO_SCENE_CONTRACT_SELF_TEST',
+        'CIO_SCENE_CONTRACT_CONDITIONS=CIO_SCENE_CONTRACT_SELF_TEST',
       ),
     );
     expect(
       workflow,
       contains('customerio-flutter-scene-handler-contract-passed'),
     );
+    expect(workflow, contains('CIO_SCENE_HANDLER_RUN_TOKEN'));
+    expect(workflow, contains('GITHUB_RUN_ID'));
     expect(
       occurrences(workflow, 'ios/launch-simulator-app/v1@'),
       2,
@@ -266,7 +279,7 @@ void main() {
     expect(
       occurrences(
         workflow,
-        'launch-simulator-app/v1@a5a10ee48b901234701ac38ff26daeb4b5d9c041',
+        'launch-simulator-app/v1@76855cf3495a2c616d0a5ccc2e53a41d66b6c967',
       ),
       2,
     );

@@ -20,9 +20,9 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
         category: "scene-lifecycle"
     )
     private let permissionHandler = PermissionChannelHandler()
-    // Flutter stores plugin scene delegates weakly, so the AppDelegate owns this handler.
+    // Flutter stores plugin scene delegates weakly. The AppDelegate owns one handler and
+    // registers it once in every engine registry that can host the scene.
     private let liveActivitySceneHandler = CustomerIOLiveActivitySceneHandler()
-    private var liveActivitySceneHandlerRegistered = false
 
     /// Registry key for this app's permission channel. This helper owns every generated
     /// plugin registration seat, so claiming the permission channel first is also its
@@ -31,14 +31,12 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
     private static let liveActivityScenePluginKey = "io.customer.testbed.LiveActivitySceneHandler"
 
     private func registerLiveActivitySceneHandlerIfNeeded(with registry: FlutterPluginRegistry) {
-        guard !liveActivitySceneHandlerRegistered else { return }
         guard !registry.hasPlugin(Self.liveActivityScenePluginKey) else { return }
         guard let registrar = registry.registrar(forPlugin: Self.liveActivityScenePluginKey) else {
             lifecycleLogger.error("Live Activity scene registrar unavailable; registration will retry on the next engine seat")
             return
         }
         registrar.addSceneDelegate(liveActivitySceneHandler)
-        liveActivitySceneHandlerRegistered = true
     }
 
     private func registerPluginsIfNeeded(with registry: FlutterPluginRegistry) {
@@ -70,8 +68,8 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
         #if CIO_SCENE_CONTRACT_SELF_TEST
         if ProcessInfo.processInfo.environment["CIO_SCENE_HANDLER_SELF_TEST"] == "1" {
             precondition(CustomerIOLiveActivitySceneHandler.runContractSelfTest())
-            Logger(subsystem: "io.customer.flutter.fixture", category: "scene-lifecycle")
-                .notice("customerio-flutter-scene-handler-contract-passed")
+            let runToken = ProcessInfo.processInfo.environment["CIO_SCENE_HANDLER_RUN_TOKEN"] ?? "missing"
+            lifecycleLogger.notice("customerio-flutter-scene-handler-contract-passed token=\(runToken, privacy: .public)")
         }
         #endif
 

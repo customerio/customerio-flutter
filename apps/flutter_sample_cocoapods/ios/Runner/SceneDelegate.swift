@@ -5,9 +5,13 @@ import UIKit
 import customer_io
 
 final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleDelegate {
+    private static let maximumColdStartForwardingAttempts = 8
+    private static let coldStartRetryDelay = 0.25
+
     private let isCustomerIOURL: (URL) -> Bool
     private let handleWidgetURL: (URL) -> URL?
     private var pendingColdStartURLs: [URL] = []
+    private var coldStartRetryWorkItem: DispatchWorkItem?
     private let logger = Logger(
         subsystem: "io.customer.flutter.fixture",
         category: "scene-lifecycle"
@@ -38,52 +42,79 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
         logger.notice("customerio-flutter-scene-will-connect")
         // Flutter owns universal-link user activities. A plugin cannot partially consume
         // connection options, so leave a mixed URL/user-activity occurrence untouched.
-        guard connectionOptions?.userActivities.isEmpty ?? true else { return false }
-        guard let URLContexts = connectionOptions?.urlContexts else { return false }
-        return routeCustomerIOURLs(URLContexts.map(\.url)) { [weak self] routableURL in
+        guard connectionOptions?.userActivities.isEmpty ?? true else {
+            logger.notice("customerio-flutter-scene-mixed-connection-options-not-consumed")
+            return false
+        }
+        guard let urlContexts = connectionOptions?.urlContexts else { return false }
+        return routeCustomerIOURLs(urlContexts.map(\.url)) { [weak self] routableURL in
             guard let self = self else { return false }
             pendingColdStartURLs.append(routableURL)
             return true
         }
     }
 
-    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) -> Bool {
+    func scene(_ scene: UIScene, openURLContexts urlContexts: Set<UIOpenURLContext>) -> Bool {
         logger.notice("customerio-flutter-scene-open-url-contexts")
-        return handleCustomerIOURLs(URLContexts)
+        return handleCustomerIOURLs(urlContexts)
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
+        scheduleColdStartURLDrain(attempt: 0)
+    }
+
+    func sceneWillResignActive(_ scene: UIScene) {
+        coldStartRetryWorkItem?.cancel()
+        coldStartRetryWorkItem = nil
+    }
+
+    private func scheduleColdStartURLDrain(attempt: Int) {
         guard !pendingColdStartURLs.isEmpty else { return }
-        let URLs = pendingColdStartURLs
+        guard coldStartRetryWorkItem == nil else { return }
+
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.drainColdStartURLs(attempt: attempt)
+        }
+        coldStartRetryWorkItem = workItem
+        let delay = attempt == 0 ? 0 : Self.coldStartRetryDelay
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
+    }
+
+    private func drainColdStartURLs(attempt: Int) {
+        coldStartRetryWorkItem = nil
+        let urls = pendingColdStartURLs
         pendingColdStartURLs.removeAll()
         logger.notice("customerio-flutter-scene-flushing-cold-start-urls")
 
-        // Wait until FlutterSceneDelegate has completed the activation callback. The launch
-        // engine/view controller is attached by this point, unlike during willConnectTo.
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            var URLsToRetry: [URL] = []
-            for URL in URLs {
-                if !forwardToFlutter(URL) {
-                    URLsToRetry.append(URL)
-                }
-            }
-            if !URLsToRetry.isEmpty {
-                pendingColdStartURLs.insert(contentsOf: URLsToRetry, at: 0)
+        var urlsToRetry: [URL] = []
+        for url in urls {
+            if !forwardToFlutter(url) {
+                urlsToRetry.append(url)
             }
         }
+        guard !urlsToRetry.isEmpty else { return }
+
+        pendingColdStartURLs.insert(contentsOf: urlsToRetry, at: 0)
+        let nextAttempt = attempt + 1
+        guard nextAttempt < Self.maximumColdStartForwardingAttempts else {
+            logger.error("Flutter URL forwarding retry budget exhausted; URLs remain queued for the next activation")
+            return
+        }
+        scheduleColdStartURLDrain(attempt: nextAttempt)
     }
 
-    private func handleCustomerIOURLs(_ URLContexts: Set<UIOpenURLContext>) -> Bool {
-        routeCustomerIOURLs(URLContexts.map(\.url)) { [weak self] routableURL in
+    private func handleCustomerIOURLs(_ urlContexts: Set<UIOpenURLContext>) -> Bool {
+        routeCustomerIOURLs(urlContexts.map(\.url)) { [weak self] routableURL in
             self?.forwardToFlutter(routableURL) ?? false
         }
     }
 
-    private func forwardToFlutter(_ URL: URL) -> Bool {
+    private func forwardToFlutter(_ url: URL) -> Bool {
+        // Both sample manifests explicitly disable multiple scenes. The application delegate
+        // therefore owns the one Flutter engine route for this reference integration.
         let handled = UIApplication.shared.delegate?.application?(
             UIApplication.shared,
-            open: URL,
+            open: url,
             options: [:]
         ) ?? false
         if !handled {
@@ -101,7 +132,6 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
         // Consuming this callback prevents Flutter from routing the Customer.io tracking URL.
         // Replay every routable URL through FlutterAppDelegate so both custom-scheme and web
         // redirects reach Flutter instead of being handed back to the OS by UIScene.open.
-        var didRoute = false
         var consumedTrackingURL = false
         for url in urls {
             let isTrackingURL = isCustomerIOURL(url)
@@ -112,9 +142,9 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
                 logger.error("Customer.io Live Activity redirect resolved to another tracking URL")
                 continue
             }
-            didRoute = route(routableURL) || didRoute
+            _ = route(routableURL)
         }
-        return didRoute || consumedTrackingURL
+        return consumedTrackingURL
     }
 
     #if CIO_SCENE_CONTRACT_SELF_TEST
@@ -157,9 +187,15 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
             webRoutes.append($0)
             return true
         }
+        var ordinaryRoutes: [URL] = []
+        let ordinaryHandled = handler.routeCustomerIOURLs([ordinary]) {
+            ordinaryRoutes.append($0)
+            return true
+        }
         return handler.responds(to: NSSelectorFromString("scene:willConnectToSession:options:"))
             && handler.responds(to: NSSelectorFromString("scene:openURLContexts:"))
             && handler.responds(to: NSSelectorFromString("sceneDidBecomeActive:"))
+            && handler.responds(to: NSSelectorFromString("sceneWillResignActive:"))
             && handled
             && routedURLs.count == 2
             && Set(routedURLs) == Set([redirect, ordinary])
@@ -172,6 +208,8 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
             && webHandled
             && webRoutes.count == 2
             && Set(webRoutes) == Set([redirect, web])
+            && !ordinaryHandled
+            && ordinaryRoutes.isEmpty
     }
     #endif
 }
