@@ -142,7 +142,7 @@ let package = Package(
         // Temporary stacked-PR pin. Replace with the released native SDK version before merge.
         .package(
             url: "https://github.com/customerio/customerio-ios.git",
-            revision: "09dc5fad234045098923863565a59b26a3ecabb5"
+            revision: "e02214af7dffbb5c8ec3eb14071233d6dc55595e"
         ),
         .package(url: "https://github.com/customerio/customerio-ios-fcm.git", from: "1.0.0")
     ],
