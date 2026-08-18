@@ -19,10 +19,11 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
         subsystem: "io.customer.flutter.fixture",
         category: "scene-lifecycle"
     )
-    private let permissionHandler = PermissionChannelHandler()
+    private var permissionHandlers: [ObjectIdentifier: PermissionChannelHandler] = [:]
     // Flutter stores plugin scene delegates weakly. The AppDelegate owns one handler and
     // registers it only with the implicit UI engine that owns scene forwarding.
     private let liveActivitySceneHandler = CustomerIOLiveActivitySceneHandler()
+    private var liveActivitySceneHandlerRegistered = false
 
     /// Registry key for this app's permission channel. This helper owns every generated
     /// plugin registration seat, so claiming the permission channel first is also its
@@ -31,12 +32,15 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
     private static let liveActivityScenePluginKey = "io.customer.testbed.LiveActivitySceneHandler"
 
     private func registerLiveActivitySceneHandlerIfNeeded(with registry: FlutterPluginRegistry) {
+        guard !liveActivitySceneHandlerRegistered else { return }
         guard !registry.hasPlugin(Self.liveActivityScenePluginKey) else { return }
         guard let registrar = registry.registrar(forPlugin: Self.liveActivityScenePluginKey) else {
             lifecycleLogger.error("Live Activity scene registrar unavailable; registration will retry on the next engine seat")
             return
         }
         registrar.addSceneDelegate(liveActivitySceneHandler)
+        liveActivitySceneHandlerRegistered = true
+        liveActivitySceneHandler.flutterEngineDidBecomeReady()
     }
 
     private func registerPluginsIfNeeded(with registry: FlutterPluginRegistry) {
@@ -47,10 +51,15 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
         }
 
         GeneratedPluginRegistrant.register(with: registry)
+        let permissionHandler = PermissionChannelHandler()
         permissionHandler.register(with: registrar.messenger())
+        permissionHandlers[ObjectIdentifier(registry as AnyObject)] = permissionHandler
     }
 
     func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+        // Scene connection options are consume-once. Register the Customer.io scene delegate
+        // before generated plugins so it sees the cold Live Activity URL before another plugin
+        // can consume the connection options.
         registerLiveActivitySceneHandlerIfNeeded(with: engineBridge.pluginRegistry)
         registerPluginsIfNeeded(with: engineBridge.pluginRegistry)
     }

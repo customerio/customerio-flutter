@@ -45,13 +45,15 @@ override func application(_ app: UIApplication, open url: URL, options: [UIAppli
 
 Apps with a `UIApplicationSceneManifest` receive opened URLs through their scene lifecycle instead
 of the AppDelegate callback above. Register one retained `FlutterSceneLifeCycleDelegate` on the
-app's primary Flutter engine registry, retrying from the implicit-engine callback if the launch
-registry is not ready, and forward `scene(_:willConnectTo:options:)` plus
+app's primary implicit UI-engine registry, and forward `scene(_:willConnectTo:options:)` plus
 `scene(_:openURLContexts:)`. The
 [SwiftPM sample](apps/flutter_sample_spm/ios/Runner/SceneDelegate.swift) and
 [CocoaPods sample](apps/flutter_sample_cocoapods/ios/Runner/SceneDelegate.swift) show the complete
 registration and routing pattern. The samples deliberately keep AppDelegate-only behavior by
 default; CI selects their scene manifests with `CIO_LIFECYCLE_INFOPLIST_SUFFIX=-Scene`. The
+launch registration creates Flutter's launch engine, and the storyboard controller adopts that
+same engine; the implicit-engine callback therefore becomes a guarded no-op for generated plugins
+on the primary engine while still supporting a genuinely distinct later engine. The
 `CIO_SCENE_CONTRACT_SELF_TEST` block is fixture-only, and the sample imports its Live Activities
 attributes module because that extension is included in the sample app. Flutter exposes one
 consume-or-forward decision for all cold connection options, so a mixed user-activity and URL

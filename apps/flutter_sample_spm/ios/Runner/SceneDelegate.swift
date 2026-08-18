@@ -5,7 +5,7 @@ import UIKit
 import customer_io
 
 final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleDelegate {
-    private static let maximumQueuedForwardingAttempts = 8
+    private static let maximumQueuedForwardingAttempts = 40
     private static let forwardingRetryDelay = 0.25
 
     private let isCustomerIOURL: (URL) -> Bool
@@ -13,6 +13,7 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
     private let forwardURLForSelfTest: ((URL) -> Bool)?
     private var pendingForwardingURLs: [URL] = []
     private var forwardingRetryWorkItem: DispatchWorkItem?
+    private var flutterEngineIsReady = false
     private let runToken = ProcessInfo.processInfo.environment["CIO_SCENE_HANDLER_RUN_TOKEN"] ?? "none"
     private let logger = Logger(
         subsystem: "io.customer.flutter.fixture",
@@ -84,6 +85,13 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
         schedulePendingURLDrain(attempt: 0)
     }
 
+    func flutterEngineDidBecomeReady() {
+        flutterEngineIsReady = true
+        // The registry exists before the Dart navigation handler necessarily answers. Retain the
+        // bounded retry below so a slow cold start does not strand the URL until reactivation.
+        schedulePendingURLDrain(attempt: 0)
+    }
+
     func sceneWillResignActive(_ scene: UIScene) {
         forwardingRetryWorkItem?.cancel()
         forwardingRetryWorkItem = nil
@@ -94,6 +102,7 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
 
     private func schedulePendingURLDrain(attempt: Int) {
         guard !pendingForwardingURLs.isEmpty else { return }
+        guard flutterEngineIsReady else { return }
         guard forwardingRetryWorkItem == nil else { return }
 
         let workItem = DispatchWorkItem { [weak self] in
@@ -263,6 +272,16 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
             sceneIsActive: true
         )
         let successfulForwardLeftNoQueue = successfulForwardingHandler.pendingForwardingURLs.isEmpty
+        let readinessHandler = CustomerIOLiveActivitySceneHandler(
+            isCustomerIOURL: { $0 == tracking },
+            handleWidgetURL: { _ in redirect },
+            forwardURL: { _ in true }
+        )
+        _ = readinessHandler.handleConnectionURLs([tracking], hasUserActivities: false)
+        let readinessWaitedForEngine = readinessHandler.forwardingRetryWorkItem == nil
+        readinessHandler.flutterEngineDidBecomeReady()
+        let readinessScheduledDrain = readinessHandler.forwardingRetryWorkItem != nil
+        readinessHandler.forwardingRetryWorkItem?.cancel()
         return handler.responds(to: NSSelectorFromString("scene:willConnectToSession:options:"))
             && handler.responds(to: NSSelectorFromString("scene:openURLContexts:"))
             && handler.responds(to: NSSelectorFromString("sceneDidBecomeActive:"))
@@ -290,6 +309,8 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
             && exhaustedQueueWasPreserved
             && activeWarmConsumed
             && successfulForwardLeftNoQueue
+            && readinessWaitedForEngine
+            && readinessScheduledDrain
     }
     #endif
 }

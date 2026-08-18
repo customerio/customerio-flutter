@@ -62,10 +62,14 @@ void main() {
       );
       expect(
         source,
-        isNot(contains('liveActivitySceneHandlerRegistered')),
+        contains('private var liveActivitySceneHandlerRegistered = false'),
       );
       expect(source,
           contains('registrar.addSceneDelegate(liveActivitySceneHandler)'));
+      expect(
+        source,
+        contains('liveActivitySceneHandler.flutterEngineDidBecomeReady()'),
+      );
       expect(source, contains('registerPluginsIfNeeded(with: self)'));
       expect(source, isNot(contains('rootViewController')));
 
@@ -94,6 +98,20 @@ void main() {
       final launchForward = source.indexOf('return super.application', launch);
       expect(launchRegistration, greaterThan(launch));
       expect(launchForward, greaterThan(launchRegistration));
+
+      final implicitCallback = source.indexOf(
+        'func didInitializeImplicitFlutterEngine',
+      );
+      final sceneRegistration = source.indexOf(
+        'registerLiveActivitySceneHandlerIfNeeded(with: engineBridge.pluginRegistry)',
+        implicitCallback,
+      );
+      final generatedRegistration = source.indexOf(
+        'registerPluginsIfNeeded(with: engineBridge.pluginRegistry)',
+        implicitCallback,
+      );
+      expect(sceneRegistration, greaterThan(implicitCallback));
+      expect(generatedRegistration, greaterThan(sceneRegistration));
     });
 
     test(
@@ -161,7 +179,15 @@ void main() {
         expect(sceneDelegate, contains('sceneWillResignActive'));
         expect(sceneDelegate, contains('pendingForwardingURLs'));
         expect(sceneDelegate, contains('maximumQueuedForwardingAttempts'));
+        expect(
+          sceneDelegate,
+          contains('maximumQueuedForwardingAttempts = 40'),
+        );
         expect(sceneDelegate, contains('schedulePendingURLDrain'));
+        expect(sceneDelegate, contains('guard flutterEngineIsReady else'));
+        expect(sceneDelegate, contains('flutterEngineDidBecomeReady()'));
+        expect(sceneDelegate, contains('readinessWaitedForEngine'));
+        expect(sceneDelegate, contains('readinessScheduledDrain'));
         expect(
           sceneDelegate,
           contains(

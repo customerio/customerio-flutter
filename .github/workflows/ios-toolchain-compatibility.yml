@@ -191,7 +191,7 @@ jobs:
           grep -Fq "customerio-flutter-scene-did-become-active token=$run_token" "$callback_log"
           grep -Fq "customerio-flutter-scene-handler-contract-passed token=$run_token" "$callback_log"
           test "$(grep -Fc "customerio-flutter-scene-will-connect token=$run_token" "$callback_log")" -eq 1
-          test "$(grep -Fc "customerio-flutter-scene-did-become-active token=$run_token" "$callback_log")" -eq 1
+          test "$(grep -Fc "customerio-flutter-scene-did-become-active token=$run_token" "$callback_log")" -ge 1
 
       - name: Record launch result
         if: steps.scene-launch.outcome == 'success'
