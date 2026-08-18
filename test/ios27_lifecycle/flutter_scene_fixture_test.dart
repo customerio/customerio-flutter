@@ -322,11 +322,10 @@ void main() {
       occurrences(workflow, 'ios/launch-simulator-app/v1@'),
       2,
     );
-    // This exact pin is an intentional tripwire until customerio/mobile-ci-tools#16 merges.
     expect(
       occurrences(
         workflow,
-        'launch-simulator-app/v1@973084092fbe9a46b35aa8876137dca5bfde6c40',
+        'launch-simulator-app/v1@main',
       ),
       2,
     );
