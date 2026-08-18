@@ -53,7 +53,11 @@ registry is not ready, and forward `scene(_:willConnectTo:options:)` plus
 registration and routing pattern. The samples deliberately keep AppDelegate-only behavior by
 default; CI selects their scene manifests with `CIO_LIFECYCLE_INFOPLIST_SUFFIX=-Scene`. The
 `CIO_SCENE_CONTRACT_SELF_TEST` block is fixture-only, and the sample imports its Live Activities
-attributes module because that extension is included in the sample app.
+attributes module because that extension is included in the sample app. Flutter exposes one
+consume-or-forward decision for all cold connection options, so a mixed user-activity and URL
+occurrence is left wholly to Flutter rather than partially consumed. CI proves scene callback
+delivery and URL classification, but real URL delivery into the Flutter engine remains part of
+device-level validation.
 
 Android needs no equivalent step.
 

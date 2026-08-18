@@ -5,13 +5,15 @@ import UIKit
 import customer_io
 
 final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleDelegate {
-    private static let maximumColdStartForwardingAttempts = 8
-    private static let coldStartRetryDelay = 0.25
+    private static let maximumQueuedForwardingAttempts = 8
+    private static let forwardingRetryDelay = 0.25
 
     private let isCustomerIOURL: (URL) -> Bool
     private let handleWidgetURL: (URL) -> URL?
-    private var pendingColdStartURLs: [URL] = []
-    private var coldStartRetryWorkItem: DispatchWorkItem?
+    private let forwardURLForSelfTest: ((URL) -> Bool)?
+    private var pendingForwardingURLs: [URL] = []
+    private var forwardingRetryWorkItem: DispatchWorkItem?
+    private let runToken = ProcessInfo.processInfo.environment["CIO_SCENE_HANDLER_RUN_TOKEN"] ?? "none"
     private let logger = Logger(
         subsystem: "io.customer.flutter.fixture",
         category: "scene-lifecycle"
@@ -20,16 +22,19 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
     override init() {
         isCustomerIOURL = { CioLiveActivityWidgetUrl.parse($0) != nil }
         handleWidgetURL = CustomerIOLiveActivities.handleWidgetUrl
+        forwardURLForSelfTest = nil
         super.init()
     }
 
     #if CIO_SCENE_CONTRACT_SELF_TEST
     private init(
         isCustomerIOURL: @escaping (URL) -> Bool,
-        handleWidgetURL: @escaping (URL) -> URL?
+        handleWidgetURL: @escaping (URL) -> URL?,
+        forwardURL: ((URL) -> Bool)? = nil
     ) {
         self.isCustomerIOURL = isCustomerIOURL
         self.handleWidgetURL = handleWidgetURL
+        forwardURLForSelfTest = forwardURL
         super.init()
     }
     #endif
@@ -39,52 +44,64 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
         willConnectTo session: UISceneSession,
         options connectionOptions: UIScene.ConnectionOptions?
     ) -> Bool {
-        logger.notice("customerio-flutter-scene-will-connect")
+        logger.notice("customerio-flutter-scene-will-connect token=\(self.runToken, privacy: .public)")
+        guard let urlContexts = connectionOptions?.urlContexts else { return false }
+        return handleConnectionURLs(
+            urlContexts.map(\.url),
+            hasUserActivities: !(connectionOptions?.userActivities.isEmpty ?? true)
+        )
+    }
+
+    private func handleConnectionURLs(_ urls: [URL], hasUserActivities: Bool) -> Bool {
         // Flutter owns universal-link user activities. A plugin cannot partially consume
         // connection options, so leave a mixed URL/user-activity occurrence untouched.
-        guard connectionOptions?.userActivities.isEmpty ?? true else {
+        guard !hasUserActivities else {
             logger.notice("customerio-flutter-scene-mixed-connection-options-not-consumed")
             return false
         }
-        guard let urlContexts = connectionOptions?.urlContexts else { return false }
-        return routeCustomerIOURLs(urlContexts.map(\.url)) { [weak self] routableURL in
+        return routeCustomerIOURLs(urls) { [weak self] routableURL in
             guard let self = self else { return false }
-            pendingColdStartURLs.append(routableURL)
+            pendingForwardingURLs.append(routableURL)
             return true
         }
     }
 
     func scene(_ scene: UIScene, openURLContexts urlContexts: Set<UIOpenURLContext>) -> Bool {
         logger.notice("customerio-flutter-scene-open-url-contexts")
-        return handleCustomerIOURLs(urlContexts)
+        let consumed = handleOpenURLs(urlContexts.map(\.url))
+        schedulePendingURLDrain(attempt: 0)
+        return consumed
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
-        scheduleColdStartURLDrain(attempt: 0)
+        schedulePendingURLDrain(attempt: 0)
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
-        coldStartRetryWorkItem?.cancel()
-        coldStartRetryWorkItem = nil
+        forwardingRetryWorkItem?.cancel()
+        forwardingRetryWorkItem = nil
+        guard !pendingForwardingURLs.isEmpty else { return }
+        pendingForwardingURLs.removeAll()
+        logger.error("Discarded URLs that Flutter did not accept during the current activation")
     }
 
-    private func scheduleColdStartURLDrain(attempt: Int) {
-        guard !pendingColdStartURLs.isEmpty else { return }
-        guard coldStartRetryWorkItem == nil else { return }
+    private func schedulePendingURLDrain(attempt: Int) {
+        guard !pendingForwardingURLs.isEmpty else { return }
+        guard forwardingRetryWorkItem == nil else { return }
 
         let workItem = DispatchWorkItem { [weak self] in
-            self?.drainColdStartURLs(attempt: attempt)
+            self?.drainPendingURLs(attempt: attempt)
         }
-        coldStartRetryWorkItem = workItem
-        let delay = attempt == 0 ? 0 : Self.coldStartRetryDelay
+        forwardingRetryWorkItem = workItem
+        let delay = attempt == 0 ? 0 : Self.forwardingRetryDelay
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
     }
 
-    private func drainColdStartURLs(attempt: Int) {
-        coldStartRetryWorkItem = nil
-        let urls = pendingColdStartURLs
-        pendingColdStartURLs.removeAll()
-        logger.notice("customerio-flutter-scene-flushing-cold-start-urls")
+    private func drainPendingURLs(attempt: Int) {
+        forwardingRetryWorkItem = nil
+        let urls = pendingForwardingURLs
+        pendingForwardingURLs.removeAll()
+        logger.notice("customerio-flutter-scene-flushing-pending-urls")
 
         var urlsToRetry: [URL] = []
         for url in urls {
@@ -94,29 +111,39 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
         }
         guard !urlsToRetry.isEmpty else { return }
 
-        pendingColdStartURLs.insert(contentsOf: urlsToRetry, at: 0)
         let nextAttempt = attempt + 1
-        guard nextAttempt < Self.maximumColdStartForwardingAttempts else {
-            logger.error("Flutter URL forwarding retry budget exhausted; URLs remain queued for the next activation")
+        guard nextAttempt < Self.maximumQueuedForwardingAttempts else {
+            logger.error("Flutter URL forwarding retry budget exhausted; URLs were discarded for this activation")
             return
         }
-        scheduleColdStartURLDrain(attempt: nextAttempt)
+        pendingForwardingURLs.insert(contentsOf: urlsToRetry, at: 0)
+        schedulePendingURLDrain(attempt: nextAttempt)
     }
 
-    private func handleCustomerIOURLs(_ urlContexts: Set<UIOpenURLContext>) -> Bool {
-        routeCustomerIOURLs(urlContexts.map(\.url)) { [weak self] routableURL in
-            self?.forwardToFlutter(routableURL) ?? false
+    private func handleOpenURLs(_ urls: [URL]) -> Bool {
+        routeCustomerIOURLs(urls) { [weak self] routableURL in
+            guard let self else { return false }
+            if forwardToFlutter(routableURL) {
+                return true
+            }
+            pendingForwardingURLs.append(routableURL)
+            return true
         }
     }
 
     private func forwardToFlutter(_ url: URL) -> Bool {
         // Both sample manifests explicitly disable multiple scenes. The application delegate
         // therefore owns the one Flutter engine route for this reference integration.
-        let handled = UIApplication.shared.delegate?.application?(
-            UIApplication.shared,
-            open: url,
-            options: [:]
-        ) ?? false
+        let handled: Bool
+        if let forwardURLForSelfTest {
+            handled = forwardURLForSelfTest(url)
+        } else {
+            handled = UIApplication.shared.delegate?.application?(
+                UIApplication.shared,
+                open: url,
+                options: [:]
+            ) ?? false
+        }
         if !handled {
             logger.error("Flutter did not handle a URL received with a Customer.io Live Activity tap")
         }
@@ -192,6 +219,30 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
             ordinaryRoutes.append($0)
             return true
         }
+        let failedForwardingHandler = CustomerIOLiveActivitySceneHandler(
+            isCustomerIOURL: { $0 == tracking },
+            handleWidgetURL: { _ in redirect },
+            forwardURL: { _ in false }
+        )
+        let coldConsumed = failedForwardingHandler.handleConnectionURLs(
+            [tracking],
+            hasUserActivities: false
+        )
+        let coldQueued = failedForwardingHandler.pendingForwardingURLs == [redirect]
+        failedForwardingHandler.pendingForwardingURLs.removeAll()
+        let mixedConsumed = failedForwardingHandler.handleConnectionURLs(
+            [tracking],
+            hasUserActivities: true
+        )
+        let mixedStayedUnqueued = failedForwardingHandler.pendingForwardingURLs.isEmpty
+        let warmConsumed = failedForwardingHandler.handleOpenURLs([tracking])
+        let warmQueued = failedForwardingHandler.pendingForwardingURLs == [redirect]
+        failedForwardingHandler.forwardingRetryWorkItem?.cancel()
+        failedForwardingHandler.forwardingRetryWorkItem = nil
+        failedForwardingHandler.drainPendingURLs(
+            attempt: Self.maximumQueuedForwardingAttempts - 1
+        )
+        let exhaustedQueueWasDiscarded = failedForwardingHandler.pendingForwardingURLs.isEmpty
         return handler.responds(to: NSSelectorFromString("scene:willConnectToSession:options:"))
             && handler.responds(to: NSSelectorFromString("scene:openURLContexts:"))
             && handler.responds(to: NSSelectorFromString("sceneDidBecomeActive:"))
@@ -210,6 +261,13 @@ final class CustomerIOLiveActivitySceneHandler: NSObject, FlutterSceneLifeCycleD
             && Set(webRoutes) == Set([redirect, web])
             && !ordinaryHandled
             && ordinaryRoutes.isEmpty
+            && coldConsumed
+            && coldQueued
+            && !mixedConsumed
+            && mixedStayedUnqueued
+            && warmConsumed
+            && warmQueued
+            && exhaustedQueueWasDiscarded
     }
     #endif
 }

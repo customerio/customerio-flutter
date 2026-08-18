@@ -165,9 +165,21 @@ void main() {
         );
         expect(sceneDelegate, contains('sceneDidBecomeActive'));
         expect(sceneDelegate, contains('sceneWillResignActive'));
-        expect(sceneDelegate, contains('pendingColdStartURLs'));
-        expect(sceneDelegate, contains('maximumColdStartForwardingAttempts'));
-        expect(sceneDelegate, contains('scheduleColdStartURLDrain'));
+        expect(sceneDelegate, contains('pendingForwardingURLs'));
+        expect(sceneDelegate, contains('maximumQueuedForwardingAttempts'));
+        expect(sceneDelegate, contains('schedulePendingURLDrain'));
+        expect(
+          sceneDelegate,
+          contains(
+            'Flutter URL forwarding retry budget exhausted; URLs were discarded for this activation',
+          ),
+        );
+        expect(
+          sceneDelegate,
+          contains(
+            'Discarded URLs that Flutter did not accept during the current activation',
+          ),
+        );
         expect(sceneDelegate, contains('urlsToRetry'));
         expect(sceneDelegate, contains('&& nestedHandled'));
         expect(
@@ -279,7 +291,7 @@ void main() {
     expect(
       occurrences(
         workflow,
-        'launch-simulator-app/v1@76855cf3495a2c616d0a5ccc2e53a41d66b6c967',
+        'launch-simulator-app/v1@7dae70961c011b4ab475ec0b01860f2597b7cba2',
       ),
       2,
     );
