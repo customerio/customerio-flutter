@@ -20,28 +20,10 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
         category: "scene-lifecycle"
     )
     private var permissionHandlers: [ObjectIdentifier: PermissionChannelHandler] = [:]
-    // Flutter stores plugin scene delegates weakly. The AppDelegate owns one handler and
-    // registers it only with the implicit UI engine that owns scene forwarding.
-    private let liveActivitySceneHandler = CustomerIOLiveActivitySceneHandler()
-    private var liveActivitySceneHandlerRegistered = false
-
     /// Registry key for this app's permission channel. This helper owns every generated
     /// plugin registration seat, so claiming the permission channel first is also its
     /// once-per-engine guard.
     private static let permissionChannelPluginKey = "io.customer.testbed.PermissionChannelHandler"
-    private static let liveActivityScenePluginKey = "io.customer.testbed.LiveActivitySceneHandler"
-
-    private func registerLiveActivitySceneHandlerIfNeeded(with registry: FlutterPluginRegistry) {
-        guard !liveActivitySceneHandlerRegistered else { return }
-        guard !registry.hasPlugin(Self.liveActivityScenePluginKey) else { return }
-        guard let registrar = registry.registrar(forPlugin: Self.liveActivityScenePluginKey) else {
-            lifecycleLogger.error("Live Activity scene registrar unavailable; registration will retry on the next engine seat")
-            return
-        }
-        registrar.addSceneDelegate(liveActivitySceneHandler)
-        liveActivitySceneHandlerRegistered = true
-        liveActivitySceneHandler.flutterEngineDidBecomeReady()
-    }
 
     private func registerPluginsIfNeeded(with registry: FlutterPluginRegistry) {
         guard !registry.hasPlugin(Self.permissionChannelPluginKey) else { return }
@@ -57,10 +39,6 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
     }
 
     func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
-        // Scene connection options are consume-once. Register the Customer.io scene delegate
-        // before generated plugins so it sees the cold Live Activity URL before another plugin
-        // can consume the connection options.
-        registerLiveActivitySceneHandlerIfNeeded(with: engineBridge.pluginRegistry)
         registerPluginsIfNeeded(with: engineBridge.pluginRegistry)
     }
 
@@ -72,14 +50,6 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
         // a FlutterViewController exists. Register that engine here, then reuse the same
         // registry-key guard if Flutter later reports an implicit engine callback.
         registerPluginsIfNeeded(with: self)
-
-        #if CIO_SCENE_CONTRACT_SELF_TEST
-        if ProcessInfo.processInfo.environment["CIO_SCENE_HANDLER_SELF_TEST"] == "1" {
-            precondition(CustomerIOLiveActivitySceneHandler.runContractSelfTest())
-            let runToken = ProcessInfo.processInfo.environment["CIO_SCENE_HANDLER_RUN_TOKEN"] ?? "missing"
-            lifecycleLogger.notice("customerio-flutter-scene-handler-contract-passed token=\(runToken, privacy: .public)")
-        }
-        #endif
 
         #if canImport(CioLocationGeofence)
         // iOS can cold-wake the app for a geofence transition before the Dart runtime
