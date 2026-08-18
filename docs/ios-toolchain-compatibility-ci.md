@@ -6,7 +6,7 @@ The regular sample-app, API, lint, and test workflows remain the required stable
 
 The regular Ubuntu lint job runs the inexpensive Flutter-pin verifier on every pull request. Pin drift therefore fails before merge without consuming a macOS runner.
 
-Preview failures are recorded as failed scheduled or manually dispatched runs. They cannot block ordinary pull requests because those pull requests do not trigger this workflow. The native iOS repository owns a separate [Ubuntu watchdog](https://github.com/customerio/customerio-ios/blob/main/.github/workflows/xcode27-nightly-watchdog.yml) that checks the iOS, Flutter, and Expo scheduled results after their normal completion window and alerts the Mobile team for a failed, incomplete, or missing run. A hosted preview label can become unavailable before a job starts, and job timeouts do not cover queue time, so a missing or persistently queued nightly is an infrastructure alert rather than a pass.
+Preview failures are recorded as failed scheduled or manually dispatched runs. They cannot block ordinary pull requests because those pull requests do not trigger this workflow. This repository's Actions history is the monitoring source of truth. A hosted preview label can become unavailable before a job starts, and job timeouts do not cover queue time, so failed, incomplete, or missing scheduled runs must be investigated rather than treated as passes.
 
 The workflow records the hosted image, macOS, architecture, exact Xcode build, SDK versions, and installed runtimes through the shared `mobile-ci-tools` action. It verifies toolchain families rather than copying an exact beta-image pin into this repository.
 
