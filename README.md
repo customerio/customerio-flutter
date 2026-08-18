@@ -30,20 +30,39 @@ iOS also requires `NSSupportsLiveActivities` in `ios/Runner/Info.plist`. Without
 
 For an activity of your own, set `customType` to your reverse-DNS identifier and start it with `LiveActivityPayload.custom(data: {...})`. You supply the view: `CIOCustomAttributes` in your iOS Widget Extension, and the `createLiveNotification` callback on Android.
 
-**One manual step is required on iOS.** Forward every opened URL to the SDK from your `AppDelegate`, or taps on a Live Activity are not attributed. `CustomerIOLiveActivities` comes from the plugin, so import it — and note this only compiles once Live Activities are opted in above:
+The plugin automatically attributes Live Activity taps. If a tap carries a redirect, the plugin
+first passes it through the existing Flutter and host URL handlers, then asks iOS to open it when
+those handlers decline it. No AppDelegate URL override is required. Remove the earlier manual
+Customer.io Live Activity URL override after upgrading so one tap has one routing owner.
 
-```swift
-import customer_io
-
-override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-  // Reports an `opened` metric and returns the deep link to route to. A non-Customer.io URL comes
-  // back unchanged; `nil` means the activity carried no deep link, so there is nothing to open.
-  guard let routableUrl = CustomerIOLiveActivities.handleWidgetUrl(url) else { return true }
-  return super.application(app, open: routableUrl, options: options)
-}
-```
+Apps with a `UIApplicationSceneManifest` receive opened URLs through their scene lifecycle instead
+of the AppDelegate callback above. The Customer.io plugin registers that scene routing owner; do
+not add another Customer.io URL handler to your host `SceneDelegate`. The samples deliberately keep
+AppDelegate-only behavior by default, while CI selects their scene manifests with
+`CIO_LIFECYCLE_INFOPLIST_SUFFIX=-Scene`. Flutter exposes one consume-or-forward decision for all
+cold connection options, so a mixed user-activity and URL occurrence is left wholly to Flutter
+rather than partially consumed. CI proves scene launch and callback delivery, but real URL delivery
+into the Flutter engine remains part of device-level validation.
 
 Android needs no equivalent step.
+
+# iOS application lifecycle
+
+Existing AppDelegate-only applications remain the default and require no new configuration. A
+UIScene application must explicitly declare its lifecycle owner in `ios/Runner/Info.plist`:
+
+```xml
+<key>CustomerIOAppLifecycleHostTopology</key>
+<string>ui-scene</string>
+```
+
+Keep `CioAppDelegateWrapper` as the application delegate. It continues to own SDK initialization,
+APNs token registration, and the global notification-center delegate. Flutter's scene delegate owns
+UI activation callbacks. For existing AppDelegate-only hosts, the plugin calls the Live Activity URL
+primitive directly. For UIScene hosts, it validates callbacks with the native scene coordinator.
+Both paths leave ordinary links and user activities to Flutter. Applications that declare UIScene
+must use Flutter 3.44.8 or newer; older Flutter registrars log an error and leave scene routing
+unclaimed.
 
 # Contributing
 

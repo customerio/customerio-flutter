@@ -967,8 +967,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/customerio/customerio-ios.git";
 			requirement = {
-				kind = exactVersion;
-				version = 4.7.2;
+				kind = revision;
+				revision = 09dc5fad234045098923863565a59b26a3ecabb5;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

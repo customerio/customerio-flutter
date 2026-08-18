@@ -11,6 +11,16 @@ import CioLocationGeofence
 #endif
 
 public class CustomerIOPlugin: NSObject, FlutterPlugin {
+    private static let lifecycleRegistrationLock = NSLock()
+    // UIApplication callbacks are global, so exactly one plugin instance owns that registration.
+    // Retaining that owner for the process lifetime is intentional because Flutter stores
+    // application lifecycle delegates weakly.
+    // Scene callbacks are registered per engine and deduplicated by their UIKit occurrence object
+    // in CustomerIOFlutterLifecycle.
+    private static var applicationLifecycleRegistrationOwner: CustomerIOPlugin?
+
+    let lifecycleHandler = CustomerIOFlutterLifecycle()
+
     private var methodChannel: FlutterMethodChannel!
     private var inAppMessagingChannelHandler: CustomerIOInAppMessaging!
     #if canImport(CioLocation)
@@ -27,6 +37,9 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
     public static func register(with registrar: FlutterPluginRegistrar) {
         let instance = CustomerIOPlugin()
 
+        registerApplicationLifecycleDelegateIfNeeded(instance, with: registrar)
+        registerSceneDelegateIfSupported(instance, with: registrar)
+
         instance.methodChannel = FlutterMethodChannel(name: "customer_io", binaryMessenger: registrar.messenger())
         registrar.addMethodCallDelegate(instance, channel: instance.methodChannel)
 
@@ -39,6 +52,42 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
         #endif
         instance.messagingPushChannelHandler = CustomerIOMessagingPush(with: registrar)
         instance.liveActivitiesChannelHandler = CustomerIOLiveActivities(with: registrar)
+    }
+
+    private static func registerApplicationLifecycleDelegateIfNeeded(
+        _ instance: CustomerIOPlugin,
+        with registrar: FlutterPluginRegistrar
+    ) {
+        guard instance.lifecycleHandler.shouldRegisterApplicationDelegate else { return }
+
+        lifecycleRegistrationLock.lock()
+        let isFirstApplicationOwner = applicationLifecycleRegistrationOwner == nil
+        if isFirstApplicationOwner {
+            applicationLifecycleRegistrationOwner = instance
+        }
+        lifecycleRegistrationLock.unlock()
+
+        guard isFirstApplicationOwner else { return }
+        registrar.addApplicationDelegate(instance)
+    }
+
+    /// Flutter added scene-delegate registration after this package's original minimum Flutter
+    /// version. Invoke the optional registrar API dynamically so existing AppDelegate-only apps
+    /// continue to compile on older Flutter releases, while newer Flutter hosts can opt into
+    /// UIScene routing with `CustomerIOAppLifecycleHostTopology`.
+    private static func registerSceneDelegateIfSupported(
+        _ instance: CustomerIOPlugin,
+        with registrar: FlutterPluginRegistrar
+    ) {
+        guard instance.lifecycleHandler.shouldRegisterSceneDelegate else { return }
+        guard #available(iOS 13.0, *) else { return }
+
+        let selector = NSSelectorFromString("addSceneDelegate:")
+        guard registrar.responds(to: selector) else {
+            instance.lifecycleHandler.reportUnavailableSceneRegistration()
+            return
+        }
+        _ = registrar.perform(selector, with: instance.lifecycleHandler)
     }
 
     deinit {

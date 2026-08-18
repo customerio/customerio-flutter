@@ -65,8 +65,14 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
     public static func handleWidgetUrl(_ url: URL) -> URL? {
         CustomerIO.liveActivities.handleWidgetUrl(url)
     }
+
+    static func isWidgetTrackingURL(_ url: URL) -> Bool {
+        CioLiveActivityWidgetUrl.parse(url) != nil
+    }
     #else
     public static func handleWidgetUrl(_ url: URL) -> URL? { url }
+
+    static func isWidgetTrackingURL(_: URL) -> Bool { false }
     #endif
 
     init(with registrar: FlutterPluginRegistrar) {

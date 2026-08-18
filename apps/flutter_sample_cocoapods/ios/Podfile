@@ -49,7 +49,8 @@ target 'Runner' do
   pod 'customer_io/liveactivities', :path => '.symlinks/plugins/customer_io/ios' # opt in to Live Activities
 
   # install_non_production_ios_sdk_local_path(local_path: '~/code/customerio-ios/', is_app_extension: false, push_service: "fcm")
-  # install_non_production_ios_sdk_git_branch(branch_name: 'feature/wrappers-inline-support', is_app_extension: false, push_service: "fcm")
+  # Review-only stack pin. Remove it and use the released coordinator version before merge.
+  install_non_production_ios_sdk_git_branch(branch_name: 'codex/mbl-2231-scene-coordinator', is_app_extension: false, push_service: "fcm")
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
@@ -60,7 +61,7 @@ target 'NotificationServiceExtension' do
   # We may not need to install non-production SDK to app extension separately
   pod 'customer_io_richpush/fcm', :path => '.symlinks/plugins/customer_io/ios' # install podspec bundled with the plugin
   # install_non_production_ios_sdk_local_path(local_path: '~/code/customerio-ios/', is_app_extension: true, push_service: "fcm")
-  # install_non_production_ios_sdk_git_branch(branch_name: 'feature/wrappers-inline-support', is_app_extension: true, push_service: "fcm")
+  # The scene coordinator is host-app-only. Keep the extension on the released native SDK.
 end
 
 # Live Activities Widget Extension: renders the built-in SDK templates plus the app-owned custom
@@ -71,7 +72,7 @@ target 'LiveActivityWidget' do
   # A widget extension cannot link the Flutter plugin pod, so it names the rendering pods itself.
   # Keep the version in step with pubspec.yaml's native_sdk_version.
   %w[CustomerIOLiveActivitiesTemplates CustomerIOLiveActivitiesAttributes].each do |cio_pod|
-    pod cio_pod, '4.7.2'
+    pod cio_pod, '4.7.3'
   end
 end
 
