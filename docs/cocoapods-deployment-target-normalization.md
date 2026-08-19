@@ -102,7 +102,9 @@ Ruby environment. Its stable report includes the target, matching project, and e
 Pass the `Pods` directory so the audit discovers every `.xcodeproj` directly under it, including
 CocoaPods multi-project output, while ignoring unrelated example projects vendored inside
 downloaded pod sources. It fails if a supplied path is missing or contains no projects. The
-audit examines every target in each passed project, including non-integrated targets that the
+audit fails before printing the table when a selected precedence contains a qualified
+deployment-target key because it cannot determine one effective value for that configuration. It
+examines every target in each passed project, including non-integrated targets that the
 normalizer intentionally does not change; set those targets to the host minimum explicitly.
 
 ```sh
