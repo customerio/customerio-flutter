@@ -66,6 +66,14 @@ configuration line with the original effective value and final value. It fails t
 selected effective value is non-numeric, such as `$(CUSTOM_IOS_FLOOR)`, because the
 generated-project audit cannot prove its resolved value. A non-numeric value at a lower precedence
 does not fail when an explicit target setting already determines the effective value.
+SDK-, architecture-, or configuration-qualified keys such as
+`IPHONEOS_DEPLOYMENT_TARGET[sdk=iphoneos*]` also fail before mutation at the selected precedence.
+Xcode can choose a qualified key over an unconditional value, so adding a numeric override would
+not prove the effective floor and could lower a higher conditional project setting. Replace the
+selected conditional matrix with one numeric, unconditional deployment target before rerunning the
+helper.
+For a generated Pods target, make that correction in the Podfile or dependency podspec rather than
+editing `Pods.xcodeproj`, which CocoaPods regenerates.
 
 If an error says a selected xcconfig cannot be read or parsed, repair or remove the reported base
 configuration file reference for the reported project, target, and configuration. Lower-precedence
@@ -94,7 +102,9 @@ Ruby environment. Its stable report includes the target, matching project, and e
 Pass the `Pods` directory so the audit discovers every `.xcodeproj` directly under it, including
 CocoaPods multi-project output, while ignoring unrelated example projects vendored inside
 downloaded pod sources. It fails if a supplied path is missing or contains no projects. The
-audit examines every target in each passed project, including non-integrated targets that the
+audit fails before printing the table when a selected precedence contains a qualified
+deployment-target key because it cannot determine one effective value for that configuration. It
+examines every target in each passed project, including non-integrated targets that the
 normalizer intentionally does not change; set those targets to the host minimum explicitly.
 
 ```sh
