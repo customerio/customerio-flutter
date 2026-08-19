@@ -6,7 +6,6 @@ import CioMessagingPushFCM
 import FirebaseMessaging
 import FirebaseCore
 import CioFirebaseWrapper
-import customer_io
 #if canImport(CioLocationGeofence)
 import CioLocationGeofence
 #endif

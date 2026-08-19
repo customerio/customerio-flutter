@@ -70,8 +70,6 @@ void main() {
 
       expect(legacy, isNot(contains('UIApplicationSceneManifest')));
       expect(scene, contains('UIApplicationSceneManifest'));
-      expect(legacy, isNot(contains('CustomerIOAppLifecycleHostTopology')));
-      expect(scene, isNot(contains('CustomerIOAppLifecycleHostTopology')));
       expect(scene, contains(r'$(PRODUCT_MODULE_NAME).SceneDelegate'));
       expect(scene, contains('<string>fetch</string>'));
       expect(scene, contains('<string>remote-notification</string>'));

@@ -6,38 +6,53 @@ import UIKit
 /// Routes Flutter application and scene activation callbacks through the lifecycle declared by
 /// the host application's standard `UIApplicationSceneManifest`.
 final class CustomerIOFlutterLifecycle: NSObject {
-    private final class SceneOccurrenceResult {
-        weak var occurrence: AnyObject?
-        var handled = false
-
-        init(occurrence: AnyObject) {
-            self.occurrence = occurrence
-        }
-    }
-
     private static let sceneManifestInfoPlistKey = "UIApplicationSceneManifest"
 
     @MainActor
-    private static var sceneOccurrenceResults: [ObjectIdentifier: SceneOccurrenceResult] = [:]
+    private static let sceneOccurrenceResults = CustomerIOSceneOccurrenceResults()
 
     private let usesUIScene: Bool
+    private let usesFlutterDeepLinking: Bool
 
     var shouldRegisterApplicationDelegate: Bool {
-        !usesUIScene
+        CustomerIOLifecycleSeatSelection.shouldRegisterApplicationDelegate(
+            hasSceneManifest: usesUIScene,
+            flutterDeepLinkingEnabled: usesFlutterDeepLinking
+        )
     }
 
     var shouldRegisterSceneDelegate: Bool {
-        usesUIScene
+        CustomerIOLifecycleSeatSelection.shouldRegisterSceneDelegate(
+            hasSceneManifest: usesUIScene,
+            flutterDeepLinkingEnabled: usesFlutterDeepLinking
+        )
     }
 
-    @MainActor
-    private var isForwardingRedirectToApplication = false
+    private var deepLinkRouter: CustomerIOFlutterDeepLinkRouter?
 
     init(bundle: Bundle = .main) {
-        self.usesUIScene = bundle.object(
+        usesUIScene = bundle.object(
             forInfoDictionaryKey: Self.sceneManifestInfoPlistKey
         ) != nil
+        let configuredValue = bundle.object(
+            forInfoDictionaryKey: "FlutterDeepLinkingEnabled"
+        )
+        usesFlutterDeepLinking = CustomerIOURLRouting.isFlutterDeepLinkingEnabled(configuredValue)
         super.init()
+    }
+
+    func configureRedirectRouting(with registrar: FlutterPluginRegistrar) {
+        if shouldRegisterApplicationDelegate {
+            // FlutterAppDelegate owns one application-level route target. Resolve its current root
+            // controller at delivery time, with this registration's controller as an add-to-app
+            // fallback when Flutter is embedded below the window root.
+            deepLinkRouter = CustomerIOFlutterDeepLinkRouter(
+                registrar: registrar,
+                usesApplicationRoot: true
+            )
+        } else if shouldRegisterSceneDelegate {
+            deepLinkRouter = CustomerIOFlutterDeepLinkRouter(registrar: registrar)
+        }
     }
 
     func reportUnavailableSceneRegistration() {
@@ -49,155 +64,142 @@ final class CustomerIOFlutterLifecycle: NSObject {
 
     func handleApplicationOpenURL(
         _ url: URL,
-        options: [UIApplication.OpenURLOptionsKey: Any]
+        options _: [UIApplication.OpenURLOptionsKey: Any]
     ) -> Bool {
-        return MainActor.assumeIsolated {
-            // Redirect forwarding below re-enters FlutterAppDelegate so Flutter can deliver the
-            // unwrapped customer URL to its plugin and Dart routing chain. That nested callback is
-            // host forwarding, not a second Customer.io activation occurrence.
-            guard !isForwardingRedirectToApplication else { return false }
+        MainActor.assumeIsolated {
             guard !usesUIScene else { return false }
-            return routeURL(url, applicationOptions: options)
+            return routeURL(url)
         }
     }
 
     @available(iOS 13.0, *)
-    func handleSceneConnection(_ connectionOptions: UIScene.ConnectionOptions?) -> Bool {
-        return MainActor.assumeIsolated {
+    func handleSceneConnection(
+        _ connectionOptions: UIScene.ConnectionOptions?,
+        in _: UIScene
+    ) -> Bool {
+        MainActor.assumeIsolated {
             guard usesUIScene, let connectionOptions else { return false }
-            guard connectionOptions.urlContexts.count == 1,
-                  connectionOptions.userActivities.isEmpty,
-                  connectionOptions.shortcutItem == nil,
-                  let urlContext = connectionOptions.urlContexts.first else {
+            guard CustomerIOURLRouting.canClaimColdConnection(
+                urlCount: connectionOptions.urlContexts.count,
+                userActivityCount: connectionOptions.userActivities.count,
+                hasShortcut: connectionOptions.shortcutItem != nil,
+                hasNotificationResponse: connectionOptions.notificationResponse != nil
+            ),
+                let urlContext = connectionOptions.urlContexts.first
+            else {
+                logUnclaimedTrackingURLIfPresent(in: connectionOptions.urlContexts)
                 return false
             }
-            return Self.handleSceneOccurrence(urlContext) { [weak self] in
-                guard let self else { return false }
-                return routeURL(
-                    urlContext.url,
-                    applicationOptions: Self.applicationOptions(from: urlContext.options)
-                )
-            }
+            return routeSceneURL(urlContext.url, occurrence: urlContext)
         }
     }
 
     @available(iOS 13.0, *)
-    func handleSceneOpenURLContexts(_ urlContexts: Set<UIOpenURLContext>) -> Bool {
-        return MainActor.assumeIsolated {
+    func handleSceneOpenURLContexts(
+        _ urlContexts: Set<UIOpenURLContext>,
+        in _: UIScene
+    ) -> Bool {
+        MainActor.assumeIsolated {
             guard usesUIScene else { return false }
-            guard urlContexts.count == 1, let urlContext = urlContexts.first else { return false }
+            guard urlContexts.count == 1, let urlContext = urlContexts.first else {
+                logUnclaimedTrackingURLIfPresent(in: urlContexts)
+                return false
+            }
 
             // Flutter's Boolean claims the entire set for this engine. A set with multiple URLs
             // cannot be partially claimed, so do not perform Customer.io routing before returning
             // false and handing the intact set to Flutter. This avoids routing a Customer.io URL
             // once here and then letting Flutter process that same URL again.
-            return Self.handleSceneOccurrence(urlContext) { [weak self] in
-                guard let self else { return false }
-                return routeURL(
-                    urlContext.url,
-                    applicationOptions: Self.applicationOptions(from: urlContext.options)
-                )
-            }
+            return routeSceneURL(urlContext.url, occurrence: urlContext)
         }
     }
 
     @MainActor
-    private static func handleSceneOccurrence(
-        _ occurrence: UIOpenURLContext,
-        route: () -> Bool
-    ) -> Bool {
-        sceneOccurrenceResults = sceneOccurrenceResults.filter { $0.value.occurrence != nil }
-        let identifier = ObjectIdentifier(occurrence)
-        if let existing = sceneOccurrenceResults[identifier] {
-            return existing.handled
-        }
-
-        // Flutter forwards the same UIKit occurrence object to every registered engine. Keep a
-        // weak identity result for that object's lifetime so each engine sees the same handled
-        // answer while Customer.io metrics and host routing execute only once. A later activation
-        // receives a new UIKit occurrence object, even when its URL payload is identical.
-        let result = SceneOccurrenceResult(occurrence: occurrence)
-        sceneOccurrenceResults[identifier] = result
-        result.handled = route()
-        return result.handled
-    }
-
-    @MainActor
-    private func routeURL(
+    private func routeSceneURL(
         _ url: URL,
-        applicationOptions: [UIApplication.OpenURLOptionsKey: Any] = [:]
+        occurrence: UIOpenURLContext
     ) -> Bool {
-        guard let destination = CustomerIOLiveActivities.handleWidgetUrl(url) else {
-            return true
+        // Flutter's scene provider passes this UIKit occurrence through each engine's plugin
+        // chain. Resolve the native metric once, then let each engine route the same destination.
+        let resolution = Self.sceneOccurrenceResults.resolution(for: occurrence) {
+            CustomerIOURLRouting.resolve(
+                url,
+                handleWidgetURL: CustomerIOLiveActivities.handleWidgetUrl,
+                isWidgetTrackingURL: CustomerIOLiveActivities.isWidgetTrackingURL
+            )
         }
-        guard destination != url else { return false }
-        guard !CustomerIOLiveActivities.isWidgetTrackingURL(destination) else {
+        return handleResolution(resolution)
+    }
+
+    @MainActor
+    private func logUnclaimedTrackingURLIfPresent(in urlContexts: Set<UIOpenURLContext>) {
+        guard urlContexts.contains(where: {
+            CustomerIOLiveActivities.isWidgetTrackingURL($0.url)
+        }) else { return }
+        DIGraphShared.shared.logger.info(
+            "Customer.io left an ambiguous scene URL occurrence for Flutter or the host to handle"
+        )
+    }
+
+    @MainActor
+    private func routeURL(_ url: URL) -> Bool {
+        handleResolution(CustomerIOURLRouting.resolve(
+            url,
+            handleWidgetURL: CustomerIOLiveActivities.handleWidgetUrl,
+            isWidgetTrackingURL: CustomerIOLiveActivities.isWidgetTrackingURL
+        ))
+    }
+
+    @MainActor
+    private func handleResolution(_ resolution: CustomerIOURLRoutingResolution) -> Bool {
+        switch resolution {
+        case .notHandled:
+            return false
+        case .handled:
+            return true
+        case .invalidTrackingRedirect:
             DIGraphShared.shared.logger.error(
                 "Customer.io Live Activity redirect cannot target another tracking URL"
             )
-            return false
+            return true
+        case let .redirect(destination):
+            return forwardRedirect(destination)
         }
-
-        if let appDelegate = UIApplication.shared.delegate {
-            isForwardingRedirectToApplication = true
-            defer { isForwardingRedirectToApplication = false }
-            if appDelegate.application?(
-                UIApplication.shared,
-                open: destination,
-                options: applicationOptions
-            ) == true {
-                return true
-            }
-        }
-
-        UIApplication.shared.open(destination, options: [:]) { success in
-            guard !success else { return }
-            DIGraphShared.shared.logger.error(
-                "Customer.io could not open the Live Activity redirect URL"
-            )
-        }
-        return true
     }
 
-    @available(iOS 13.0, *)
-    private static func applicationOptions(
-        from sceneOptions: UIScene.OpenURLOptions
-    ) -> [UIApplication.OpenURLOptionsKey: Any] {
-        var applicationOptions: [UIApplication.OpenURLOptionsKey: Any] = [
-            .openInPlace: sceneOptions.openInPlace,
-        ]
-        if let sourceApplication = sceneOptions.sourceApplication {
-            applicationOptions[.sourceApplication] = sourceApplication
+    @MainActor
+    private func forwardRedirect(_ destination: URL) -> Bool {
+        guard let deepLinkRouter else {
+            DIGraphShared.shared.logger.error(
+                "Customer.io could not access the Flutter redirect router"
+            )
+            return true
         }
-        if let annotation = sceneOptions.annotation {
-            applicationOptions[.annotation] = annotation
-        }
-        if #available(iOS 14.5, *), let eventAttribution = sceneOptions.eventAttribution {
-            applicationOptions[.eventAttribution] = eventAttribution
-        }
-        return applicationOptions
+        deepLinkRouter.route(destination)
+        return true
     }
 
     @available(iOS 13.0, *)
     @objc(scene:willConnectToSession:options:)
     func scene(
         _ scene: UIScene,
-        willConnectTo session: UISceneSession,
+        willConnectTo _: UISceneSession,
         options connectionOptions: UIScene.ConnectionOptions?
     ) -> Bool {
-        handleSceneConnection(connectionOptions)
+        handleSceneConnection(connectionOptions, in: scene)
     }
 
     @available(iOS 13.0, *)
     @objc(scene:openURLContexts:)
     func scene(_ scene: UIScene, openURLContexts urlContexts: Set<UIOpenURLContext>) -> Bool {
-        handleSceneOpenURLContexts(urlContexts)
+        handleSceneOpenURLContexts(urlContexts, in: scene)
     }
 }
 
-extension CustomerIOPlugin: FlutterApplicationLifeCycleDelegate {
-    public func application(
-        _ application: UIApplication,
+public extension CustomerIOPlugin {
+    @objc(application:openURL:options:)
+    func application(
+        _: UIApplication,
         open url: URL,
         options: [UIApplication.OpenURLOptionsKey: Any] = [:]
     ) -> Bool {

@@ -13,10 +13,10 @@ import CioLocationGeofence
 public class CustomerIOPlugin: NSObject, FlutterPlugin {
     private static let lifecycleRegistrationLock = NSLock()
     // UIApplication callbacks are global, so exactly one plugin instance owns that registration.
-    // Retaining that owner for the process lifetime is intentional because Flutter stores
-    // application lifecycle delegates weakly.
-    // Scene callbacks are registered per engine and deduplicated by their UIKit occurrence object
-    // in CustomerIOFlutterLifecycle.
+    // Flutter's lifecycle providers store delegates weakly. The registrar publication below owns
+    // each engine's plugin instance, while this process-wide reference keeps the one application
+    // delegate independent of the engine whose registrar first installed it. Scene callbacks are
+    // registered per engine and deduplicated by their UIKit occurrence object.
     private static var applicationLifecycleRegistrationOwner: CustomerIOPlugin?
 
     let lifecycleHandler = CustomerIOFlutterLifecycle()
@@ -37,11 +37,13 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
     public static func register(with registrar: FlutterPluginRegistrar) {
         let instance = CustomerIOPlugin()
 
-        registerApplicationLifecycleDelegateIfNeeded(instance, with: registrar)
-        registerSceneDelegateIfSupported(instance, with: registrar)
-
         instance.methodChannel = FlutterMethodChannel(name: "customer_io", binaryMessenger: registrar.messenger())
         registrar.addMethodCallDelegate(instance, channel: instance.methodChannel)
+        registrar.publish(instance)
+
+        instance.lifecycleHandler.configureRedirectRouting(with: registrar)
+        registerApplicationLifecycleDelegateIfNeeded(instance, with: registrar)
+        registerSceneDelegateIfSupported(instance, with: registrar)
 
         instance.inAppMessagingChannelHandler = CustomerIOInAppMessaging(with: registrar)
         #if canImport(CioLocation)

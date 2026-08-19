@@ -90,4 +90,12 @@ The standard Apple scene manifest is the lifecycle source of truth; no Customer.
 topology key is required. `CioAppDelegateWrapper` continues to own SDK initialization, APNs
 registration, and notification-center callbacks in both modes. The standard Flutter
 `SceneDelegate` owns the host scene, while the Customer.io plugin registers its own scene adapter
-with each supported Flutter engine. Do not add a second host-owned Customer.io URL handler.
+with each supported Flutter engine. A custom scene delegate must provide the equivalent Flutter
+scene lifecycle forwarding. Multi-scene hosts must also follow Flutter's manual engine-registration
+requirement when the engine is not the scene's root view controller during connection. Do not add a
+second host-owned Customer.io URL handler.
+
+Automatic redirect delivery uses Flutter's standard deep-link handling. A host that sets
+`FlutterDeepLinkingEnabled` to `false` keeps its existing lifecycle handler and resolves the
+Customer.io tracking URL with `CustomerIOLiveActivities.handleWidgetUrl` before forwarding the
+result to its custom router.
