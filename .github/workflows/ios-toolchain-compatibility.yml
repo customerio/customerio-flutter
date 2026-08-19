@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -62,11 +62,11 @@ jobs:
 
       - name: Install locked Ruby dependencies for CocoaPods
         if: matrix.manager == 'CocoaPods'
-        uses: ruby/setup-ruby@922ebc4c5262cd14e07bb0e1db020984b6c064fe # v1.226.0
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
         env:
           BUNDLE_FROZEN: 'true'
         with:
-          ruby-version: '3.1'
+          ruby-version: '3.4'
           bundler-cache: true
           working-directory: apps/${{ matrix.app }}
 
@@ -94,15 +94,101 @@ jobs:
         env:
           DEPENDENCY_MANAGER: ${{ matrix.manager }}
         run: |
-          set -o pipefail
+          set -euo pipefail
+          build_log="$RUNNER_TEMP/${{ matrix.app }}-build.log"
           if [[ "$DEPENDENCY_MANAGER" == 'CocoaPods' ]]; then
-            bundle exec flutter --verbose build ios --simulator --debug --no-pub 2>&1 | tee "$RUNNER_TEMP/${{ matrix.app }}-build.log"
+            bundle exec flutter --verbose build ios --simulator --debug --no-pub 2>&1 | tee "$build_log"
           else
-            flutter --verbose build ios --simulator --debug --no-pub 2>&1 | tee "$RUNNER_TEMP/${{ matrix.app }}-build.log"
+            flutter --verbose build ios --simulator --debug --no-pub 2>&1 | tee "$build_log"
+          fi
+          build_arguments=(
+            -scheme Runner
+            -configuration Debug
+            -destination 'generic/platform=iOS Simulator'
+            -derivedDataPath "$RUNNER_TEMP/${{ matrix.app }}-scene-xcode-27"
+            CIO_LIFECYCLE_INFOPLIST_SUFFIX=-Scene
+            CODE_SIGNING_ALLOWED=NO
+            build
+          )
+          if [[ "$DEPENDENCY_MANAGER" == 'CocoaPods' ]]; then
+            xcodebuild -workspace ios/Runner.xcworkspace "${build_arguments[@]}" 2>&1 | tee -a "$build_log"
+          else
+            xcodebuild -project ios/Runner.xcodeproj "${build_arguments[@]}" 2>&1 | tee -a "$build_log"
           fi
 
-      - name: Record compile result
-        if: steps.compile.outcome == 'success'
+      - name: Confirm the AppDelegate-only control reproduces the Xcode 27 launch failure
+        id: legacy-launch
+        continue-on-error: true
+        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@main
+        with:
+          app-path: apps/${{ matrix.app }}/build/ios/iphonesimulator/Runner.app
+          expected-ios-major: '27'
+          survival-seconds: '10'
+          log-path: ${{ runner.temp }}/${{ matrix.app }}-legacy-launch.log
+
+      - name: Verify the AppDelegate-only control failed for the UIScene requirement
+        id: verify-legacy-control
+        shell: bash
+        env:
+          LAUNCH_OUTCOME: ${{ steps.legacy-launch.outcome }}
+          LAUNCH_LOG: ${{ runner.temp }}/${{ matrix.app }}-legacy-launch.log
+        run: |
+          set -euo pipefail
+          test "$LAUNCH_OUTCOME" = 'failure'
+          grep -Eq 'UIScene life cycle is required|_UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption' "$LAUNCH_LOG"
+
+      - name: Launch the UIScene fixture
+        id: scene-launch
+        uses: customerio/mobile-ci-tools/github-actions/ios/launch-simulator-app/v1@main
+        with:
+          app-path: ${{ runner.temp }}/${{ matrix.app }}-scene-xcode-27/Build/Products/Debug-iphonesimulator/Runner.app
+          expected-ios-major: '27'
+          survival-seconds: '10'
+          log-path: ${{ runner.temp }}/${{ matrix.app }}-scene-launch.log
+
+      - name: Verify Flutter scene callbacks
+        id: verify-scene-callbacks
+        shell: bash
+        env:
+          APP_PATH: ${{ runner.temp }}/${{ matrix.app }}-scene-xcode-27/Build/Products/Debug-iphonesimulator/Runner.app
+          BUNDLE_ID: ${{ steps.scene-launch.outputs.bundle-id }}
+          SIMULATOR_UDID: ${{ steps.scene-launch.outputs.simulator-udid }}
+        run: |
+          set -euo pipefail
+          [[ "$SIMULATOR_UDID" =~ ^[A-Za-z0-9-]+$ ]]
+          [[ "$BUNDLE_ID" =~ ^[A-Za-z0-9.-]+$ ]]
+          callback_log="$RUNNER_TEMP/${{ matrix.app }}-scene-callbacks.log"
+          cleanup() {
+            xcrun simctl terminate "$SIMULATOR_UDID" "$BUNDLE_ID" >/dev/null 2>&1 || true
+            xcrun simctl uninstall "$SIMULATOR_UDID" "$BUNDLE_ID" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          xcrun simctl boot "$SIMULATOR_UDID" >/dev/null 2>&1 || true
+          xcrun simctl bootstatus "$SIMULATOR_UDID" -b
+          xcrun simctl install "$SIMULATOR_UDID" "$APP_PATH"
+          run_token="${GITHUB_RUN_ID:?}-${GITHUB_RUN_ATTEMPT:?}-${{ matrix.app }}"
+          callback_start="$(date +'%Y-%m-%d %H:%M:%S')"
+          SIMCTL_CHILD_CIO_SCENE_HANDLER_RUN_TOKEN="$run_token" \
+            xcrun simctl launch --terminate-running-process "$SIMULATOR_UDID" "$BUNDLE_ID"
+          for _ in {1..10}; do
+            xcrun simctl spawn "$SIMULATOR_UDID" log show \
+              --start "$callback_start" \
+              --style compact \
+              --predicate 'subsystem == "io.customer.flutter.fixture" AND category == "scene-lifecycle"' \
+              > "$callback_log"
+            if grep -Fq "customerio-flutter-scene-will-connect token=$run_token" "$callback_log" \
+              && grep -Fq "customerio-flutter-scene-did-become-active token=$run_token" "$callback_log"; then
+              break
+            fi
+            sleep 1
+          done
+          grep -Fq "customerio-flutter-scene-will-connect token=$run_token" "$callback_log"
+          grep -Fq "customerio-flutter-scene-did-become-active token=$run_token" "$callback_log"
+          test "$(grep -Fc "customerio-flutter-scene-will-connect token=$run_token" "$callback_log")" -eq 1
+          test "$(grep -Fc "customerio-flutter-scene-did-become-active token=$run_token" "$callback_log")" -ge 1
+
+      - name: Record launch result
+        if: steps.scene-launch.outcome == 'success'
         shell: bash
         env:
           APP: ${{ matrix.app }}
@@ -118,12 +204,13 @@ jobs:
           : "${XCODE_BUILD:?missing xcode-build output}"
           : "${IOS_SIMULATOR_SDK:?missing iphonesimulator-sdk output}"
           {
-            echo '## Flutter fixture compile'
+            echo '## Flutter fixture launch'
             echo
-            echo '**Classification:** compile-passed'
+            echo '**Classification:** launch-passed'
             echo "**Dependency manager:** $DEPENDENCY_MANAGER"
             echo "**Toolchain:** Flutter $FLUTTER_VERSION, Xcode $XCODE_VERSION build $XCODE_BUILD, iphonesimulator $IOS_SIMULATOR_SDK"
-            echo '**Scope:** simulator compile only; no launch, lifecycle callback, push-delivery, signing, or App Store claim'
+            echo '**Host topologies:** AppDelegate-only compile plus expected Xcode 27 launch rejection; UIScene compile, launch survival, cold connection, and active callback delivery'
+            echo '**Scope:** simulator compile, install, launch, 10-second process survival, and standard Flutter scene callback forwarding; no URL-routing, push-delivery, signing, or App Store claim'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Record compile failure
@@ -139,6 +226,50 @@ jobs:
             echo "**Dependency manager:** $DEPENDENCY_MANAGER"
             echo '**Toolchain family:** Xcode 27 / iOS SDK 27'
             echo '**Next step:** inspect the uploaded verbose build log for the exact compiler failure'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record launch failure
+        if: failure() && steps.compile.outcome == 'success' && steps.scene-launch.outcome == 'failure'
+        shell: bash
+        env:
+          DEPENDENCY_MANAGER: ${{ matrix.manager }}
+        run: |
+          {
+            echo '## Flutter fixture launch'
+            echo
+            echo '**Classification:** scene-fixture-launch-failed'
+            echo "**Dependency manager:** $DEPENDENCY_MANAGER"
+            echo '**Toolchain family:** Xcode 27 / iOS SDK 27'
+            echo '**Next step:** inspect the uploaded legacy and scene launch logs; the scene-enabled app did not survive the launch window'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record scene callback verification failure
+        if: failure() && steps.scene-launch.outcome == 'success' && steps.verify-scene-callbacks.outcome == 'failure'
+        shell: bash
+        env:
+          DEPENDENCY_MANAGER: ${{ matrix.manager }}
+        run: |
+          {
+            echo '## Flutter fixture scene callbacks'
+            echo
+            echo '**Classification:** scene-callback-verification-failed'
+            echo "**Dependency manager:** $DEPENDENCY_MANAGER"
+            echo '**Next step:** inspect the uploaded scene callback log; the app survived but did not prove Flutter scene forwarding'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record invalid negative control
+        if: failure() && steps.verify-legacy-control.outcome == 'failure'
+        shell: bash
+        env:
+          DEPENDENCY_MANAGER: ${{ matrix.manager }}
+        run: |
+          {
+            echo '## Flutter AppDelegate-only control'
+            echo
+            echo '**Classification:** legacy-negative-control-invalid'
+            echo "**Dependency manager:** $DEPENDENCY_MANAGER"
+            echo '**Expected result:** the AppDelegate-only app must fail with the Xcode 27 UIScene runtime signature'
+            echo '**Next step:** inspect the uploaded legacy launch log before trusting the scene-fixture result'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Record setup failure
@@ -176,6 +307,6 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: xcode-27-preview-${{ matrix.app }}-build-log
-          path: ${{ runner.temp }}/${{ matrix.app }}-build.log
+          path: ${{ runner.temp }}/${{ matrix.app }}-*.log
           if-no-files-found: ignore
           retention-days: 7

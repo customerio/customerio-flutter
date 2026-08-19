@@ -1,5 +1,6 @@
 import UIKit
 import Flutter
+import OSLog
 import CioDataPipelines
 import CioMessagingPushFCM
 import FirebaseMessaging
@@ -13,23 +14,48 @@ import CioLocationGeofence
 @main
 class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
 
-@objc class AppDelegate: FlutterAppDelegate {
-    private let permissionHandler = PermissionChannelHandler()
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+    private let lifecycleLogger = Logger(
+        subsystem: "io.customer.flutter.fixture",
+        category: "scene-lifecycle"
+    )
+    private var permissionHandlers: [ObjectIdentifier: PermissionChannelHandler] = [:]
+    /// Registry key for this app's permission channel. This helper owns every generated
+    /// plugin registration seat, so claiming the permission channel first is also its
+    /// once-per-engine guard.
+    private static let permissionChannelPluginKey = "io.customer.testbed.PermissionChannelHandler"
+
+    private func registerPluginsIfNeeded(with registry: FlutterPluginRegistry) {
+        guard !registry.hasPlugin(Self.permissionChannelPluginKey) else { return }
+        guard let registrar = registry.registrar(forPlugin: Self.permissionChannelPluginKey) else {
+            lifecycleLogger.error("Permission channel registrar unavailable; registration will retry on the next engine seat")
+            return
+        }
+
+        GeneratedPluginRegistrant.register(with: registry)
+        let permissionHandler = PermissionChannelHandler()
+        permissionHandler.register(with: registrar.messenger())
+        permissionHandlers[ObjectIdentifier(registry as AnyObject)] = permissionHandler
+    }
+
+    func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+        registerPluginsIfNeeded(with: engineBridge.pluginRegistry)
+    }
 
     override func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        GeneratedPluginRegistrant.register(with: self)
+        // FlutterAppDelegate drives a headless launch engine when iOS wakes the app before
+        // a FlutterViewController exists. Register that engine here, then reuse the same
+        // registry-key guard if Flutter later reports an implicit engine callback.
+        registerPluginsIfNeeded(with: self)
 
         #if canImport(CioLocationGeofence)
         // iOS can cold-wake the app for a geofence transition before the Dart runtime
         // starts, so bootstrap here rather than relying on CustomerIO.initialize.
         GeofenceModule.bootstrapForBackgroundDelivery(launchOptions: launchOptions)
         #endif
-
-        let controller = window?.rootViewController as! FlutterViewController
-        permissionHandler.register(with: controller.binaryMessenger)
 
         // Depending on the method you choose to install Firebase in your app,
         // you may need to add functions to this file, such as the following:
