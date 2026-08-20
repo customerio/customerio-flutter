@@ -36,7 +36,7 @@ This remains the supported legacy behavior and avoids a second automatic observe
 same tap.
 
 For UIScene apps using Flutter's standard deep-link handling, the plugin automatically attributes
-Live Activity taps. If a tap carries a redirect, it waits for the owning Flutter engine and sends
+Live Activity taps. If a tap carries a redirect, it waits for Flutter UI in that scene and sends
 the URL through Flutter's route-information channel. If Flutter declines the route, the plugin logs
 the result and does not ask iOS to reopen the URL; reopening an app's own universal link can send it
 to the website instead. Do not add another Customer.io URL handler to the host `SceneDelegate`.

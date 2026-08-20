@@ -7,15 +7,6 @@ enum CustomerIOURLRoutingResolution: Equatable {
     case redirect(URL)
 }
 
-enum CustomerIOLifecycleSeatSelection {
-    static func shouldRegisterSceneDelegate(
-        hasSceneManifest: Bool,
-        flutterDeepLinkingEnabled: Bool
-    ) -> Bool {
-        hasSceneManifest && flutterDeepLinkingEnabled
-    }
-}
-
 enum CustomerIOURLRouting {
     /// Mirrors Flutter's documented default: a missing `FlutterDeepLinkingEnabled` key enables
     /// framework deep-link routing.

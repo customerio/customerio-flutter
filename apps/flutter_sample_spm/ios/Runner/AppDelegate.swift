@@ -104,10 +104,6 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
     // For a Customer.io widget URL this returns the customer's redirect target to route to (nil
     // when it carries none); any other URL comes back unchanged, so existing deep links still work.
     override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        // The UIScene adapter owns this URL when the scene manifest is active.
-        guard Bundle.main.object(forInfoDictionaryKey: "UIApplicationSceneManifest") == nil else {
-            return false
-        }
         guard let routableUrl = CustomerIOLiveActivities.handleWidgetUrl(url) else { return true }
         return super.application(app, open: routableUrl, options: options)
     }

@@ -6,38 +6,11 @@ private final class Occurrence {}
 enum CustomerIOURLRoutingBehaviorTests {
     @MainActor
     static func main() {
-        testLifecycleSeatSelection()
         testFlutterDeepLinkingConfiguration()
         testRoutingResolution()
         testColdConnectionOwnership()
         testOccurrenceDeduplication()
         print("CustomerIOURLRoutingBehaviorTests passed")
-    }
-
-    private static func testLifecycleSeatSelection() {
-        expect(
-            !CustomerIOLifecycleSeatSelection.shouldRegisterSceneDelegate(
-                hasSceneManifest: false,
-                flutterDeepLinkingEnabled: true
-            ),
-            "an AppDelegate host must keep its existing URL lifecycle integration"
-        )
-        expect(
-            CustomerIOLifecycleSeatSelection.shouldRegisterSceneDelegate(
-                hasSceneManifest: true,
-                flutterDeepLinkingEnabled: true
-            ),
-            "a UIScene host must register only the scene lifecycle seat"
-        )
-        for hasSceneManifest in [false, true] {
-            expect(
-                !CustomerIOLifecycleSeatSelection.shouldRegisterSceneDelegate(
-                    hasSceneManifest: hasSceneManifest,
-                    flutterDeepLinkingEnabled: false
-                ),
-                "a host that disables Flutter deep linking must retain lifecycle ownership"
-            )
-        }
     }
 
     private static func testFlutterDeepLinkingConfiguration() {

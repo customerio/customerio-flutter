@@ -14,44 +14,38 @@ final class CustomerIOFlutterLifecycle: NSObject {
     private let usesFlutterDeepLinking: Bool
 
     var shouldRegisterSceneDelegate: Bool {
-        CustomerIOLifecycleSeatSelection.shouldRegisterSceneDelegate(
-            hasSceneManifest: usesUIScene,
-            flutterDeepLinkingEnabled: usesFlutterDeepLinking
-        )
+        #if canImport(CioLiveActivities)
+            usesUIScene && usesFlutterDeepLinking
+        #else
+            false
+        #endif
     }
 
-    private var deepLinkRouter: CustomerIOFlutterDeepLinkRouter?
+    private let deepLinkRouter = CustomerIOFlutterDeepLinkRouter()
 
-    init(bundle: Bundle = .main) {
-        usesUIScene = bundle.object(
+    override init() {
+        usesUIScene = Bundle.main.object(
             forInfoDictionaryKey: Self.sceneManifestInfoPlistKey
         ) != nil
-        let configuredValue = bundle.object(
+        let configuredValue = Bundle.main.object(
             forInfoDictionaryKey: "FlutterDeepLinkingEnabled"
         )
         usesFlutterDeepLinking = CustomerIOURLRouting.isFlutterDeepLinkingEnabled(configuredValue)
         super.init()
     }
 
-    func configureRedirectRouting(with registrar: FlutterPluginRegistrar) {
-        guard shouldRegisterSceneDelegate else { return }
-        deepLinkRouter = CustomerIOFlutterDeepLinkRouter(registrar: registrar)
-    }
-
     func reportUnavailableSceneRegistration() {
-        guard usesUIScene else { return }
         DIGraphShared.shared.logger.error(
-            "Customer.io UIScene routing requires Flutter 3.44.8 or newer"
+            "This Flutter plugin registrar does not support Customer.io UIScene routing; Flutter 3.44.8 or newer is required"
         )
     }
 
-    @available(iOS 13.0, *)
     @MainActor
     func handleSceneConnection(
         _ connectionOptions: UIScene.ConnectionOptions?,
         in scene: UIScene
     ) -> Bool {
-        guard usesUIScene, let connectionOptions else { return false }
+        guard let connectionOptions else { return false }
         guard CustomerIOURLRouting.canClaimColdConnection(
             urlCount: connectionOptions.urlContexts.count,
             userActivityCount: connectionOptions.userActivities.count,
@@ -67,13 +61,11 @@ final class CustomerIOFlutterLifecycle: NSObject {
         return routeSceneURL(urlContext.url, occurrence: urlContext, in: scene)
     }
 
-    @available(iOS 13.0, *)
     @MainActor
     func handleSceneOpenURLContexts(
         _ urlContexts: Set<UIOpenURLContext>,
         in scene: UIScene
     ) -> Bool {
-        guard usesUIScene else { return false }
         // Flutter's Boolean claims the entire set for this engine. A set with multiple URLs
         // cannot be partially claimed. Attribute one unambiguous Customer.io tracking URL,
         // but do not route its redirect before returning false and handing the intact set to
@@ -94,12 +86,7 @@ final class CustomerIOFlutterLifecycle: NSObject {
         in scene: UIScene
     ) -> Bool {
         let resolution = resolveSceneURL(url, occurrence: occurrence)
-        if case .redirect = resolution,
-           !Self.sceneOccurrenceResults.claimRedirectDelivery(for: occurrence)
-        {
-            return true
-        }
-        return handleResolution(resolution, in: scene)
+        return handleResolution(resolution, occurrence: occurrence, in: scene)
     }
 
     @MainActor
@@ -138,6 +125,7 @@ final class CustomerIOFlutterLifecycle: NSObject {
     @MainActor
     private func handleResolution(
         _ resolution: CustomerIOURLRoutingResolution,
+        occurrence: UIOpenURLContext,
         in scene: UIScene
     ) -> Bool {
         switch resolution {
@@ -151,23 +139,22 @@ final class CustomerIOFlutterLifecycle: NSObject {
             )
             return true
         case let .redirect(destination):
-            return forwardRedirect(destination, in: scene)
+            return forwardRedirect(destination, occurrence: occurrence, in: scene)
         }
     }
 
     @MainActor
-    private func forwardRedirect(_ destination: URL, in scene: UIScene) -> Bool {
-        guard let deepLinkRouter else {
-            DIGraphShared.shared.logger.error(
-                "Customer.io could not access the Flutter redirect router"
-            )
-            return true
-        }
+    private func forwardRedirect(
+        _ destination: URL,
+        occurrence: UIOpenURLContext,
+        in scene: UIScene
+    ) -> Bool {
+        guard Self.sceneOccurrenceResults.claimRedirectDelivery(for: occurrence) else { return true }
+
         deepLinkRouter.route(destination, in: scene)
         return true
     }
 
-    @available(iOS 13.0, *)
     @MainActor
     @objc(scene:willConnectToSession:options:)
     func scene(
@@ -178,7 +165,6 @@ final class CustomerIOFlutterLifecycle: NSObject {
         handleSceneConnection(connectionOptions, in: scene)
     }
 
-    @available(iOS 13.0, *)
     @MainActor
     @objc(scene:openURLContexts:)
     func scene(_ scene: UIScene, openURLContexts urlContexts: Set<UIOpenURLContext>) -> Bool {

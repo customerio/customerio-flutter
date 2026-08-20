@@ -11,7 +11,7 @@ import CioLocationGeofence
 #endif
 
 public class CustomerIOPlugin: NSObject, FlutterPlugin {
-    let lifecycleHandler = CustomerIOFlutterLifecycle()
+    private let lifecycleHandler = CustomerIOFlutterLifecycle()
 
     private var methodChannel: FlutterMethodChannel!
     private var inAppMessagingChannelHandler: CustomerIOInAppMessaging!
@@ -31,9 +31,7 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
 
         instance.methodChannel = FlutterMethodChannel(name: "customer_io", binaryMessenger: registrar.messenger())
         registrar.addMethodCallDelegate(instance, channel: instance.methodChannel)
-        registrar.publish(instance)
 
-        instance.lifecycleHandler.configureRedirectRouting(with: registrar)
         registerSceneDelegateIfSupported(instance, with: registrar)
 
         instance.inAppMessagingChannelHandler = CustomerIOInAppMessaging(with: registrar)
@@ -55,7 +53,6 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
         with registrar: FlutterPluginRegistrar
     ) {
         guard instance.lifecycleHandler.shouldRegisterSceneDelegate else { return }
-        guard #available(iOS 13.0, *) else { return }
 
         let selector = NSSelectorFromString("addSceneDelegate:")
         guard registrar.responds(to: selector) else {
