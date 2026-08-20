@@ -13,35 +13,20 @@ final class CustomerIOFlutterDeepLinkRouter {
     private static let readinessAttempts = 60
 
     private weak var registrar: FlutterPluginRegistrar?
-    private let usesApplicationRoot: Bool
 
-    init(registrar: FlutterPluginRegistrar, usesApplicationRoot: Bool = false) {
+    init(registrar: FlutterPluginRegistrar) {
         self.registrar = registrar
-        self.usesApplicationRoot = usesApplicationRoot
     }
 
     @MainActor
-    func route(_ url: URL) {
-        route(url, remainingAttempts: Self.readinessAttempts)
+    func route(_ url: URL, in scene: UIScene) {
+        route(url, in: scene, remainingAttempts: Self.readinessAttempts)
     }
 
     @MainActor
-    private func route(_ url: URL, remainingAttempts: Int) {
-        let registeredViewController = registrar?.viewController as? FlutterViewController
-        let viewController: FlutterViewController?
-        if usesApplicationRoot {
-            viewController = UIApplication.shared.delegate?
-                .window??.rootViewController as? FlutterViewController ?? registeredViewController
-        } else {
-            viewController = registeredViewController
-        }
-        guard let viewController else {
-            retryOrReportUnavailable(url, remainingAttempts: remainingAttempts)
-            return
-        }
-
-        guard viewController.isDisplayingFlutterUI else {
-            retryOrReportUnavailable(url, remainingAttempts: remainingAttempts)
+    private func route(_ url: URL, in scene: UIScene, remainingAttempts: Int) {
+        guard let viewController = readyViewController(in: scene) else {
+            retryOrReportUnavailable(url, in: scene, remainingAttempts: remainingAttempts)
             return
         }
 
@@ -56,8 +41,51 @@ final class CustomerIOFlutterDeepLinkRouter {
         }
     }
 
+    private var registeredViewController: FlutterViewController? {
+        let selector = NSSelectorFromString("viewController")
+        guard let registrar, registrar.responds(to: selector) else { return nil }
+        return registrar.perform(selector)?.takeUnretainedValue() as? FlutterViewController
+    }
+
     @MainActor
-    private func retryOrReportUnavailable(_ url: URL, remainingAttempts: Int) {
+    private func readyViewController(in scene: UIScene) -> FlutterViewController? {
+        var candidates: [FlutterViewController] = []
+        if let registeredViewController {
+            candidates.append(registeredViewController)
+        }
+        candidates.append(contentsOf: sceneFlutterViewControllers(in: scene))
+
+        var seen: Set<ObjectIdentifier> = []
+        return candidates.first { candidate in
+            seen.insert(ObjectIdentifier(candidate)).inserted && candidate.isDisplayingFlutterUI
+        }
+    }
+
+    @MainActor
+    private func sceneFlutterViewControllers(in scene: UIScene) -> [FlutterViewController] {
+        guard let windowScene = scene as? UIWindowScene else { return [] }
+
+        var pending = windowScene.windows.compactMap(\.rootViewController)
+        var matches: [FlutterViewController] = []
+        while !pending.isEmpty {
+            let viewController = pending.removeFirst()
+            if let flutterViewController = viewController as? FlutterViewController {
+                matches.append(flutterViewController)
+            }
+            if let presented = viewController.presentedViewController {
+                pending.append(presented)
+            }
+            pending.append(contentsOf: viewController.children)
+        }
+        return matches
+    }
+
+    @MainActor
+    private func retryOrReportUnavailable(
+        _ url: URL,
+        in scene: UIScene,
+        remainingAttempts: Int
+    ) {
         guard remainingAttempts > 0 else {
             DIGraphShared.shared.logger.error(
                 "Customer.io could not access a ready Flutter engine for the Live Activity redirect"
@@ -65,10 +93,9 @@ final class CustomerIOFlutterDeepLinkRouter {
             return
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + Self.retryInterval) { [weak self, url] in
-            MainActor.assumeIsolated {
-                self?.route(url, remainingAttempts: remainingAttempts - 1)
-            }
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.retryInterval) { [weak self, weak scene, url] in
+            guard let scene else { return }
+            self?.route(url, in: scene, remainingAttempts: remainingAttempts - 1)
         }
     }
 }

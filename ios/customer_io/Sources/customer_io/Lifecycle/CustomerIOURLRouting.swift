@@ -8,13 +8,6 @@ enum CustomerIOURLRoutingResolution: Equatable {
 }
 
 enum CustomerIOLifecycleSeatSelection {
-    static func shouldRegisterApplicationDelegate(
-        hasSceneManifest: Bool,
-        flutterDeepLinkingEnabled: Bool
-    ) -> Bool {
-        !hasSceneManifest && flutterDeepLinkingEnabled
-    }
-
     static func shouldRegisterSceneDelegate(
         hasSceneManifest: Bool,
         flutterDeepLinkingEnabled: Bool
@@ -24,6 +17,8 @@ enum CustomerIOLifecycleSeatSelection {
 }
 
 enum CustomerIOURLRouting {
+    /// Mirrors Flutter's documented default: a missing `FlutterDeepLinkingEnabled` key enables
+    /// framework deep-link routing.
     static func isFlutterDeepLinkingEnabled(_ configuredValue: Any?) -> Bool {
         guard let configuredValue else { return true }
         if let configuredValue = configuredValue as? NSNumber {
@@ -65,14 +60,14 @@ enum CustomerIOURLRouting {
     }
 }
 
-/// Flutter's scene provider forwards one UIKit occurrence through each engine's plugin chain.
-/// Cache only the native resolution so Customer.io reports its metric once while each engine may
-/// still receive the resolved destination.
+/// Flutter can forward one UIKit occurrence through more than one engine's plugin chain. Cache the
+/// native resolution so Customer.io reports its metric once for that occurrence.
 @MainActor
 final class CustomerIOSceneOccurrenceResults {
     private final class Entry {
         weak var occurrence: AnyObject?
         let resolution: CustomerIOURLRoutingResolution
+        var redirectDeliveryClaimed = false
 
         init(occurrence: AnyObject, resolution: CustomerIOURLRoutingResolution) {
             self.occurrence = occurrence
@@ -95,5 +90,15 @@ final class CustomerIOSceneOccurrenceResults {
         let resolution = resolve()
         entries[identifier] = Entry(occurrence: occurrence, resolution: resolution)
         return resolution
+    }
+
+    func claimRedirectDelivery(for occurrence: AnyObject) -> Bool {
+        entries = entries.filter { $0.value.occurrence != nil }
+        let identifier = ObjectIdentifier(occurrence)
+        guard let entry = entries[identifier], entry.occurrence === occurrence else { return false }
+        guard !entry.redirectDeliveryClaimed else { return false }
+
+        entry.redirectDeliveryClaimed = true
+        return true
     }
 }

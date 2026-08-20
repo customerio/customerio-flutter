@@ -16,18 +16,11 @@ enum CustomerIOURLRoutingBehaviorTests {
 
     private static func testLifecycleSeatSelection() {
         expect(
-            CustomerIOLifecycleSeatSelection.shouldRegisterApplicationDelegate(
-                hasSceneManifest: false,
-                flutterDeepLinkingEnabled: true
-            ),
-            "an AppDelegate host must register only the application lifecycle seat"
-        )
-        expect(
             !CustomerIOLifecycleSeatSelection.shouldRegisterSceneDelegate(
                 hasSceneManifest: false,
                 flutterDeepLinkingEnabled: true
             ),
-            "an AppDelegate host must not register the scene lifecycle seat"
+            "an AppDelegate host must keep its existing URL lifecycle integration"
         )
         expect(
             CustomerIOLifecycleSeatSelection.shouldRegisterSceneDelegate(
@@ -36,19 +29,9 @@ enum CustomerIOURLRoutingBehaviorTests {
             ),
             "a UIScene host must register only the scene lifecycle seat"
         )
-        expect(
-            !CustomerIOLifecycleSeatSelection.shouldRegisterApplicationDelegate(
-                hasSceneManifest: true,
-                flutterDeepLinkingEnabled: true
-            ),
-            "a UIScene host must not register the application lifecycle seat"
-        )
         for hasSceneManifest in [false, true] {
             expect(
-                !CustomerIOLifecycleSeatSelection.shouldRegisterApplicationDelegate(
-                    hasSceneManifest: hasSceneManifest,
-                    flutterDeepLinkingEnabled: false
-                ) && !CustomerIOLifecycleSeatSelection.shouldRegisterSceneDelegate(
+                !CustomerIOLifecycleSeatSelection.shouldRegisterSceneDelegate(
                     hasSceneManifest: hasSceneManifest,
                     flutterDeepLinkingEnabled: false
                 ),
@@ -182,6 +165,14 @@ enum CustomerIOURLRoutingBehaviorTests {
             "one occurrence must return one stable resolution"
         )
         expect(routeCount == 1, "one occurrence must resolve exactly once")
+        expect(
+            results.claimRedirectDelivery(for: first),
+            "the first engine must claim redirect delivery"
+        )
+        expect(
+            !results.claimRedirectDelivery(for: first),
+            "later engines must not deliver the same redirect again"
+        )
 
         let second = Occurrence()
         let secondResult = results.resolution(for: second) {

@@ -13,13 +13,11 @@ void main() {
   const String deepLinkRouterPath =
       'ios/customer_io/Sources/customer_io/Lifecycle/CustomerIOFlutterDeepLinkRouter.swift';
 
-  test('plugin registers the lifecycle seat selected by the host topology', () {
+  test('plugin registers scene routing only for a UIScene host', () {
     final String plugin = read(pluginPath);
     final String lifecycle = read(lifecyclePath);
 
     for (final String expected in <String>[
-      'guard instance.lifecycleHandler.shouldRegisterApplicationDelegate',
-      'registrar.addApplicationDelegate(instance)',
       'registrar.publish(instance)',
       'guard instance.lifecycleHandler.shouldRegisterSceneDelegate',
       'NSSelectorFromString("addSceneDelegate:")',
@@ -30,14 +28,17 @@ void main() {
     for (final String expected in <String>[
       'sceneManifestInfoPlistKey = "UIApplicationSceneManifest"',
       'forInfoDictionaryKey: "FlutterDeepLinkingEnabled"',
-      'CustomerIOLifecycleSeatSelection.shouldRegisterApplicationDelegate(',
       'CustomerIOLifecycleSeatSelection.shouldRegisterSceneDelegate(',
-      '@objc(application:openURL:options:)',
       '@objc(scene:willConnectToSession:options:)',
       '@objc(scene:openURLContexts:)',
+      '@MainActor',
+      'attributeUnambiguousTrackingURL(in: connectionOptions.urlContexts)',
+      'attributeUnambiguousTrackingURL(in: urlContexts)',
+      'claimRedirectDelivery(for: occurrence)',
     ]) {
       expect(lifecycle, contains(expected));
     }
+    expect(plugin, isNot(contains('registrar.addApplicationDelegate')));
   });
 
   test('adapter owns only Customer.io URL routing', () {
@@ -48,8 +49,11 @@ void main() {
       'CustomerIOLiveActivities.handleWidgetUrl',
       'hasNotificationResponse: connectionOptions.notificationResponse != nil',
       'viewController.engine.navigationChannel.invokeMethod(',
-      'retryOrReportUnavailable(url, remainingAttempts: remainingAttempts)',
-      'deepLinkRouter.route(destination)',
+      'NSSelectorFromString("viewController")',
+      'readyViewController(in: scene)',
+      'sceneFlutterViewControllers(in: scene)',
+      'retryOrReportUnavailable(url, in: scene, remainingAttempts: remainingAttempts)',
+      'deepLinkRouter.route(destination, in: scene)',
     ]) {
       expect('$lifecycle\n$router', contains(expected));
     }
@@ -78,8 +82,13 @@ void main() {
       expect(legacy, isNot(contains('UIApplicationSceneManifest')));
       expect(scene, contains('UIApplicationSceneManifest'));
       expect(sceneDelegate, contains('FlutterSceneDelegate'));
+      expect(appDelegate, contains('CustomerIOLiveActivities.handleWidgetUrl'));
       expect(
-        '$appDelegate\n$sceneDelegate',
+        appDelegate,
+        contains('forInfoDictionaryKey: "UIApplicationSceneManifest"'),
+      );
+      expect(
+        sceneDelegate,
         isNot(contains('CustomerIOLiveActivities.handleWidgetUrl')),
       );
     }
