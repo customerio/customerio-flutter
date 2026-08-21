@@ -15,7 +15,7 @@ This is the official Customer.io Flutter plugin.
 You'll find our complete [SDK documentation here](https://customer.io/docs/sdk/flutter/). 
 
 If a CocoaPods build reports that a generated dependency target is below the deployment range
-supported by Xcode, follow the [deployment-target normalization guide](docs/cocoapods-deployment-target-normalization.md).
+supported by Xcode, follow the [deployment-target normalization guide](doc/cocoapods-deployment-target-normalization.md).
 
 # Live Activities
 
