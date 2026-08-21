@@ -6,3 +6,10 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   exclude:
     - apps/scripts/**
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
