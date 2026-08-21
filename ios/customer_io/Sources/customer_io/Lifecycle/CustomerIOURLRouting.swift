@@ -74,7 +74,7 @@ final class CustomerIOSceneOccurrenceResults {
     ) -> CustomerIOURLRoutingResolution {
         entries = entries.filter { $0.value.occurrence != nil }
         let identifier = ObjectIdentifier(occurrence)
-        if let existing = entries[identifier] {
+        if let existing = entries[identifier], existing.occurrence === occurrence {
             return existing.resolution
         }
 
