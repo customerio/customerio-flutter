@@ -55,7 +55,9 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
     public static func register(with _: FlutterPluginRegistrar) {}
 
     /// Reports an `opened` metric for a tapped Live Activity and returns the deep link to route to.
-    /// Call this from the app's `openURL` entry point so a Live Activity tap is attributed.
+    /// AppDelegate-only Flutter hosts call this from their URL entry point. UIScene hosts call it
+    /// directly only when they disable the plugin's automatic deep-link handling and keep URL
+    /// lifecycle ownership in the host application.
     ///
     /// - Returns: the customer's redirect URL for a Customer.io widget URL (`nil` when it carries
     ///   none), or `url` unchanged when it isn't a Customer.io URL — so existing routing still
@@ -65,8 +67,14 @@ public class CustomerIOLiveActivities: NSObject, FlutterPlugin {
     public static func handleWidgetUrl(_ url: URL) -> URL? {
         CustomerIO.liveActivities.handleWidgetUrl(url)
     }
+
+    static func isWidgetTrackingURL(_ url: URL) -> Bool {
+        CioLiveActivityWidgetUrl.parse(url) != nil
+    }
     #else
     public static func handleWidgetUrl(_ url: URL) -> URL? { url }
+
+    static func isWidgetTrackingURL(_: URL) -> Bool { false }
     #endif
 
     init(with registrar: FlutterPluginRegistrar) {

@@ -35,9 +35,10 @@ jobs:
         uses: cycjimmy/semantic-release-action@0a51e81a6baff2acad3ee88f4121c589c73d0f0e # v4.2.0
         id: semantic-release
         with:
-          semantic_version: latest
+          # Keep semantic-release and its changelog preset on a compatible writer version.
+          semantic_version: 25.0.9
           extra_plugins: |
-            conventional-changelog-conventionalcommits
+            conventional-changelog-conventionalcommits@9.3.1
             @semantic-release/github
             @semantic-release/exec
         env:

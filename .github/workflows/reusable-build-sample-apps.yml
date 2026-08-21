@@ -247,6 +247,18 @@ jobs:
           echo "COMMIT_HASH=${COMMIT_HASH:0:7}" >> $GITHUB_ENV
           echo "LATEST_TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
 
+      - name: Test iOS lifecycle routing behavior
+        if: ${{ inputs.is_primary_app }}
+        working-directory: ${{ github.workspace }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcrun swiftc \
+            ios/customer_io/Sources/customer_io/Lifecycle/CustomerIOURLRouting.swift \
+            test/ios27_lifecycle/swift/CustomerIOURLRoutingBehaviorTests.swift \
+            -o "$RUNNER_TEMP/customer-io-lifecycle-routing-tests"
+          "$RUNNER_TEMP/customer-io-lifecycle-routing-tests"
+
       - name: Set Default Firebase Distribution Groups
         shell: bash
         env:

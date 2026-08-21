@@ -79,3 +79,29 @@ Objective-C protocol conformance and forwarding behavior.
 
 Run the check on both the SPM and CocoaPods samples whenever the native iOS SDK
 pin or app delegate integration changes.
+
+## UIScene sample configuration
+
+Both samples keep AppDelegate-only behavior in `Runner/Info.plist` and provide an explicit UIScene
+configuration in `Runner/Info-Scene.plist`. The Runner target selects the scene configuration when
+`CIO_LIFECYCLE_INFOPLIST_SUFFIX=-Scene` is passed to Xcode.
+
+The standard Apple scene manifest is the lifecycle source of truth; no Customer.io-specific
+topology key is required. `CioAppDelegateWrapper` continues to own SDK initialization, APNs
+registration, and notification-center callbacks in both modes. The standard Flutter
+`SceneDelegate` owns the host scene, while the Customer.io plugin registers its own scene adapter
+with each supported Flutter engine. A custom scene delegate must provide the equivalent Flutter
+scene lifecycle forwarding. Flutter requires manual registration only when multiple scenes are
+enabled and the target engine is not represented by the scene's root `FlutterViewController`
+during connection; the host scene delegate owns that scene-to-engine association. Do not add a
+second Customer.io URL handler to the scene delegate. AppDelegate-only samples keep their existing
+`application(_:open:options:)` handler unchanged.
+
+When upgrading an existing UIScene app that manually calls
+`CustomerIOLiveActivities.handleWidgetUrl`, remove that call before enabling the automatic scene
+adapter to avoid reporting the same tap twice.
+
+Automatic UIScene redirect delivery uses Flutter's standard deep-link handling. A scene host that
+sets `FlutterDeepLinkingEnabled` to `false` keeps its existing lifecycle handler and resolves the
+Customer.io tracking URL with `CustomerIOLiveActivities.handleWidgetUrl` before forwarding the
+result to its custom router.

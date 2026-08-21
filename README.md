@@ -30,20 +30,62 @@ iOS also requires `NSSupportsLiveActivities` in `ios/Runner/Info.plist`. Without
 
 For an activity of your own, set `customType` to your reverse-DNS identifier and start it with `LiveActivityPayload.custom(data: {...})`. You supply the view: `CIOCustomAttributes` in your iOS Widget Extension, and the `createLiveNotification` callback on Android.
 
-**One manual step is required on iOS.** Forward every opened URL to the SDK from your `AppDelegate`, or taps on a Live Activity are not attributed. `CustomerIOLiveActivities` comes from the plugin, so import it — and note this only compiles once Live Activities are opted in above:
+AppDelegate-only apps keep the existing `application(_:open:options:)` integration: call
+`CustomerIOLiveActivities.handleWidgetUrl` before forwarding its returned URL to the host router.
+This remains the supported legacy behavior and avoids a second automatic observer reporting the
+same tap.
 
-```swift
-import customer_io
+For UIScene apps using Flutter's standard deep-link handling, the plugin automatically attributes
+Live Activity taps. If a tap carries a redirect, it waits for Flutter UI in that scene and sends
+the URL through Flutter's route-information channel. If Flutter declines the route, the plugin logs
+the result and does not ask iOS to reopen the URL; reopening an app's own universal link can send it
+to the website instead. Do not add another Customer.io URL handler to the host `SceneDelegate`.
+When upgrading an existing UIScene app that added this handler manually, remove that call before
+upgrading to avoid reporting the same tap twice.
 
-override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-  // Reports an `opened` metric and returns the deep link to route to. A non-Customer.io URL comes
-  // back unchanged; `nil` means the activity carried no deep link, so there is nothing to open.
-  guard let routableUrl = CustomerIOLiveActivities.handleWidgetUrl(url) else { return true }
-  return super.application(app, open: routableUrl, options: options)
-}
-```
+If a UIScene app sets `FlutterDeepLinkingEnabled` to `false` and owns routing through another
+plugin, keep the host scene lifecycle handler. Call `CustomerIOLiveActivities.handleWidgetUrl`
+there before forwarding its returned URL to that router. Customer.io does not register an
+automatic URL owner in this configuration.
+
+Apps with a `UIApplicationSceneManifest` receive opened URLs through their scene lifecycle instead
+of the AppDelegate callback. The host scene delegate must extend Flutter's `FlutterSceneDelegate`,
+or forward the equivalent lifecycle callbacks through Flutter's scene lifecycle provider. The
+Customer.io plugin then registers its scene routing owner; do not add another Customer.io URL
+handler to the host `SceneDelegate`. The samples deliberately keep AppDelegate-only behavior by
+default, while CI selects their scene manifests with
+`CIO_LIFECYCLE_INFOPLIST_SUFFIX=-Scene`. Flutter exposes one consume-or-forward decision for all
+cold connection options, so an occurrence that also contains a user activity, notification
+response, or shortcut is not consumed by Customer.io. Customer.io still records the opened metric
+when the occurrence contains exactly one tracking URL, then returns the complete original
+occurrence to Flutter; it does not route the redirect from that mixed occurrence. Depending on
+which other input Flutter handles first, its router may also receive the original
+`cio-live-activity` URL; treat that internal URL as unhandled.
+Warm URL callbacks are offered to every engine associated with the scene, while Flutter gives cold
+connection options to the first engine that claims them. CI proves scene launch and callback
+delivery, but real URL delivery into the Flutter engine remains part of device-level validation.
 
 Android needs no equivalent step.
+
+# iOS application lifecycle
+
+Existing AppDelegate-only applications remain supported and require no new Customer.io
+configuration when built with toolchains that still permit that lifecycle. Apps built with Xcode
+27 must adopt UIScene to launch. The plugin uses scene routing when the app declares Apple's
+standard `UIApplicationSceneManifest`; no Customer.io-specific lifecycle key is required.
+
+Keep `CioAppDelegateWrapper` as the application delegate. It continues to own SDK initialization,
+APNs token registration, and the global notification-center delegate. Flutter's scene delegate owns
+UI activation callbacks. In UIScene hosts, the plugin passes Customer.io Live Activity URLs to the
+released native URL handler and leaves ordinary links and user activities to Flutter.
+AppDelegate-only hosts keep the existing manual URL handler described above.
+Applications that declare UIScene must use Flutter 3.44.8 or newer and use
+`FlutterSceneDelegate`, or forward its lifecycle callbacks through Flutter's scene lifecycle
+provider. Customer.io cannot receive or diagnose callbacks that a custom scene delegate does not
+forward. Flutter requires manual engine registration only when both multiple scenes are enabled
+and the target engine is not represented by the scene's root `FlutterViewController` during
+connection. That registration belongs in the host scene delegate because only it knows the scene
+and engine pairing. Older Flutter registrars log an error and leave scene routing unclaimed.
 
 # Contributing
 
