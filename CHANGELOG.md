@@ -1,3 +1,9 @@
+## [4.3.0](https://github.com/customerio/customerio-flutter/compare/4.2.1...4.3.0) (2026-08-21)
+
+### Features
+
+* add Flutter UIScene lifecycle adapter (MBL-2277) ([#394](https://github.com/customerio/customerio-flutter/issues/394)) ([febd7ed](https://github.com/customerio/customerio-flutter/commit/febd7ed72c309fbab70ca61ac45c8f2d5120de72))
+
 ## [4.2.1](https://github.com/customerio/customerio-flutter/compare/4.2.0...4.2.1) (2026-08-07)
 
 ## [4.2.0](https://github.com/customerio/customerio-flutter/compare/4.1.3...4.2.0) (2026-07-30)
