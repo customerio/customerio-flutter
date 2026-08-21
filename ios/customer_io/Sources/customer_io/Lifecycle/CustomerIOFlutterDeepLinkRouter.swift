@@ -38,12 +38,7 @@ final class CustomerIOFlutterDeepLinkRouter {
             return
         }
 
-        guard let navigationChannel = viewController.engine.navigationChannel as FlutterMethodChannel? else {
-            DIGraphShared.shared.logger.error(
-                "Customer.io could not access the Flutter navigation channel for the Live Activity redirect"
-            )
-            return
-        }
+        let navigationChannel = viewController.engine.navigationChannel
         navigationChannel.invokeMethod(
             "pushRouteInformation",
             arguments: ["location": url.absoluteString]
