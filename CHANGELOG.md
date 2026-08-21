@@ -1,3 +1,9 @@
+## [4.3.1](https://github.com/customerio/customerio-flutter/compare/4.3.0...4.3.1) (2026-08-21)
+
+### Bug Fixes
+
+* restore Flutter package publishing ([#398](https://github.com/customerio/customerio-flutter/issues/398)) ([545b47b](https://github.com/customerio/customerio-flutter/commit/545b47b9e82af21d8642ba2d7b9f4a9e51629653))
+
 ## [4.3.0](https://github.com/customerio/customerio-flutter/compare/4.2.1...4.3.0) (2026-08-21)
 
 ### Features
