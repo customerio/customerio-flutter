@@ -198,6 +198,13 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
             // Initialize native SDK with provided config
             let sdkConfigBuilder = try SDKConfigBuilder.create(from: params)
 
+            if lifecycleHandler.shouldRegisterSDKDeepLinkCallback {
+                _ = sdkConfigBuilder.deepLinkCallback { [lifecycleHandler] url in
+                    lifecycleHandler.handleSDKDeepLink(url)
+                    return true
+                }
+            }
+
             #if canImport(CioLocation)
             let locationConfig = params["location"] as? [String: AnyHashable]
             #if canImport(CioLocationGeofence)

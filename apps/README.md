@@ -105,3 +105,10 @@ Automatic UIScene redirect delivery uses Flutter's standard deep-link handling. 
 sets `FlutterDeepLinkingEnabled` to `false` keeps its existing lifecycle handler and resolves the
 Customer.io tracking URL with `CustomerIOLiveActivities.handleWidgetUrl` before forwarding the
 result to its custom router.
+
+For a UIScene host with Flutter deep linking enabled, the plugin also registers the native
+Customer.io `deepLinkCallback` during SDK initialization. This routes SDK-triggered push, in-app,
+and inbox destinations through a foreground Flutter scene. If Flutter declines the destination or
+no foreground engine becomes available, the plugin opens it with `UIApplication.open`.
+AppDelegate-only hosts keep their existing handoff, and setting `FlutterDeepLinkingEnabled` to
+`false` leaves routing with the host.

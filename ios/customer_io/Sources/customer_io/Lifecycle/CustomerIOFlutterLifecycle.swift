@@ -21,6 +21,10 @@ final class CustomerIOFlutterLifecycle: NSObject {
         #endif
     }
 
+    var shouldRegisterSDKDeepLinkCallback: Bool {
+        usesUIScene && usesFlutterDeepLinking
+    }
+
     private let deepLinkRouter = CustomerIOFlutterDeepLinkRouter()
 
     override init() {
@@ -32,6 +36,10 @@ final class CustomerIOFlutterLifecycle: NSObject {
         )
         usesFlutterDeepLinking = CustomerIOURLRouting.isFlutterDeepLinkingEnabled(configuredValue)
         super.init()
+    }
+
+    func handleSDKDeepLink(_ url: URL) {
+        deepLinkRouter.routeSDKDeepLink(url)
     }
 
     func reportUnavailableSceneRegistration() {
