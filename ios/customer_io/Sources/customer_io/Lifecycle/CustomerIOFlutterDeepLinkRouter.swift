@@ -119,7 +119,7 @@ final class CustomerIOFlutterDeepLinkRouter {
             }
             if useHiddenFallback,
                let hiddenController = candidates.first(where: {
-                    $0.viewIfLoaded?.window?.isKeyWindow == true
+                   $0.viewIfLoaded?.window?.isKeyWindow == true
                }) ?? candidates.first
             {
                 return hiddenController
@@ -139,8 +139,10 @@ final class CustomerIOFlutterDeepLinkRouter {
             "pushRouteInformation",
             arguments: ["location": url.absoluteString]
         ) { result in
-            guard (result as? NSNumber)?.boolValue != true else { return }
-            onUnhandled()
+            guard CustomerIOURLRouting.didFlutterHandle(result) else {
+                onUnhandled()
+                return
+            }
         }
     }
 
@@ -163,18 +165,10 @@ final class CustomerIOFlutterDeepLinkRouter {
 
     @MainActor
     private func flutterViewControllers(from roots: [UIViewController]) -> [FlutterViewController] {
-        var pending = roots
-        var matches: [FlutterViewController] = []
-        while !pending.isEmpty {
-            let viewController = pending.removeFirst()
-            if let flutterViewController = viewController as? FlutterViewController {
-                matches.append(flutterViewController)
-            }
-            if let presented = viewController.presentedViewController {
-                pending.append(presented)
-            }
-            pending.append(contentsOf: viewController.children)
-        }
-        return matches
+        CustomerIOViewControllerTraversal.topmostFirst(
+            roots: roots,
+            presentedViewController: \.presentedViewController,
+            children: \.children
+        ).compactMap { $0 as? FlutterViewController }
     }
 }

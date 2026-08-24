@@ -2,6 +2,16 @@ import Foundation
 
 private final class Occurrence {}
 
+private final class ViewControllerNode {
+    let name: String
+    var presentedViewController: ViewControllerNode?
+    var children: [ViewControllerNode] = []
+
+    init(_ name: String) {
+        self.name = name
+    }
+}
+
 @main
 enum CustomerIOURLRoutingBehaviorTests {
     @MainActor
@@ -9,6 +19,8 @@ enum CustomerIOURLRoutingBehaviorTests {
         testFlutterDeepLinkingConfiguration()
         testRoutingResolution()
         testColdConnectionOwnership()
+        testFlutterDeliveryResult()
+        testTopmostViewControllerTraversal()
         testOccurrenceDeduplication()
         print("CustomerIOURLRoutingBehaviorTests passed")
     }
@@ -116,6 +128,46 @@ enum CustomerIOURLRoutingBehaviorTests {
                 "mixed or ambiguous connection options must remain unclaimed"
             )
         }
+    }
+
+    private static func testFlutterDeliveryResult() {
+        expect(
+            CustomerIOURLRouting.didFlutterHandle(NSNumber(value: true)),
+            "a true Flutter result must consume the destination"
+        )
+        expect(
+            !CustomerIOURLRouting.didFlutterHandle(NSNumber(value: false)),
+            "a false Flutter result must use the native fallback"
+        )
+        expect(
+            !CustomerIOURLRouting.didFlutterHandle(nil),
+            "a missing Flutter result must use the native fallback"
+        )
+    }
+
+    private static func testTopmostViewControllerTraversal() {
+        let underlyingFlutter = ViewControllerNode("underlying Flutter")
+        let container = ViewControllerNode("container")
+        let presentedFlutter = ViewControllerNode("presented Flutter")
+
+        container.children = [underlyingFlutter]
+        container.presentedViewController = presentedFlutter
+        // UIKit may expose an ancestor's presented controller through its descendants.
+        underlyingFlutter.presentedViewController = presentedFlutter
+
+        let ordered = CustomerIOViewControllerTraversal.topmostFirst(
+            roots: [container],
+            presentedViewController: \.presentedViewController,
+            children: \.children
+        )
+        expect(
+            ordered.map(\.name) == ["presented Flutter", "underlying Flutter", "container"],
+            "the topmost controller must be considered before the underlying Flutter engine"
+        )
+        expect(
+            ordered.filter { $0 === presentedFlutter }.count == 1,
+            "a presented controller reachable through an ancestor and child must be visited once"
+        )
     }
 
     @MainActor
