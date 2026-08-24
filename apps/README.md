@@ -107,8 +107,9 @@ Customer.io tracking URL with `CustomerIOLiveActivities.handleWidgetUrl` before 
 result to its custom router.
 
 For a UIScene host with Flutter deep linking enabled, the native plugin registers Customer.io's
-`deepLinkCallback` as Flutter registers its plugins. This routes SDK-triggered push, in-app, and
-inbox destinations through a foreground Flutter scene, including taps delivered before Dart calls
+`deepLinkCallback` as Flutter registers its plugins. This routes SDK-triggered push and in-app
+destinations, plus native-default inbox actions when no Dart inbox listener owns the action,
+through a foreground Flutter scene, including taps delivered before Dart calls
 `CustomerIO.initialize`. If Flutter declines the destination or no foreground engine becomes
 available, the plugin opens it with `UIApplication.open`.
 AppDelegate-only hosts keep their existing handoff, and setting `FlutterDeepLinkingEnabled` to
