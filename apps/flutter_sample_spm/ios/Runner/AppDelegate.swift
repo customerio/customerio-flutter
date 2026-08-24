@@ -91,7 +91,7 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
 //        MessagingPush.shared.application(application, didFailToRegisterForRemoteNotificationsWithError: error)
     }
     
-    // IMPORTANT: This method is necessary to have CIO deep linking working!
+    // IMPORTANT: This method is necessary for CIO deep linking in AppDelegate-only mode.
     // Putting `return false` in the body is sufficient, as this is an indicator for the CIO SDK to forward the link to iOS for processing.
     // This will open the browser or the associated app.
     // If this method is not overriden, default Flutter's deep link processing will just discard CIO deep links.

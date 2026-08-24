@@ -1,5 +1,5 @@
 import CioDataPipelines
-import CioInternalCommon
+@_spi(Internal) import CioInternalCommon
 import CioMessagingInApp
 import Flutter
 import UIKit
@@ -33,6 +33,7 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
         registrar.addMethodCallDelegate(instance, channel: instance.methodChannel)
 
         registerSceneDelegateIfSupported(instance, with: registrar)
+        registerSDKDeepLinkCallbackIfNeeded(instance)
 
         instance.inAppMessagingChannelHandler = CustomerIOInAppMessaging(with: registrar)
         #if canImport(CioLocation)
@@ -60,6 +61,18 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
             return
         }
         _ = registrar.perform(selector, with: instance.lifecycleHandler)
+    }
+
+    /// Install the callback while Flutter registers its native plugins. A cold push tap can reach
+    /// the native SDK before Dart calls `CustomerIO.initialize`, so initialization is too late.
+    private static func registerSDKDeepLinkCallbackIfNeeded(_ instance: CustomerIOPlugin) {
+        let lifecycleHandler = instance.lifecycleHandler
+        guard lifecycleHandler.shouldRegisterSDKDeepLinkCallback else { return }
+
+        DIGraphShared.shared.deepLinkUtil.setDeepLinkCallback { [lifecycleHandler] url in
+            lifecycleHandler.handleSDKDeepLink(url)
+            return true
+        }
     }
 
     deinit {
@@ -197,13 +210,6 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
             CustomerIOSdkClient.configure(using: params)
             // Initialize native SDK with provided config
             let sdkConfigBuilder = try SDKConfigBuilder.create(from: params)
-
-            if lifecycleHandler.shouldRegisterSDKDeepLinkCallback {
-                _ = sdkConfigBuilder.deepLinkCallback { [lifecycleHandler] url in
-                    lifecycleHandler.handleSDKDeepLink(url)
-                    return true
-                }
-            }
 
             #if canImport(CioLocation)
             let locationConfig = params["location"] as? [String: AnyHashable]

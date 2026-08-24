@@ -106,9 +106,15 @@ sets `FlutterDeepLinkingEnabled` to `false` keeps its existing lifecycle handler
 Customer.io tracking URL with `CustomerIOLiveActivities.handleWidgetUrl` before forwarding the
 result to its custom router.
 
-For a UIScene host with Flutter deep linking enabled, the plugin also registers the native
-Customer.io `deepLinkCallback` during SDK initialization. This routes SDK-triggered push, in-app,
-and inbox destinations through a foreground Flutter scene. If Flutter declines the destination or
-no foreground engine becomes available, the plugin opens it with `UIApplication.open`.
+For a UIScene host with Flutter deep linking enabled, the native plugin registers Customer.io's
+`deepLinkCallback` as Flutter registers its plugins. This routes SDK-triggered push, in-app, and
+inbox destinations through a foreground Flutter scene, including taps delivered before Dart calls
+`CustomerIO.initialize`. If Flutter declines the destination or no foreground engine becomes
+available, the plugin opens it with `UIApplication.open`.
 AppDelegate-only hosts keep their existing handoff, and setting `FlutterDeepLinkingEnabled` to
 `false` leaves routing with the host.
+
+An SDK-triggered destination does not carry a source `UIScene`. When more than one Flutter scene is
+foregrounded, the plugin prefers an active key window and otherwise makes a deterministic
+best-effort selection. Hosts that require a specific window to own SDK-triggered navigation should
+set `FlutterDeepLinkingEnabled` to `false` and route the destination themselves.

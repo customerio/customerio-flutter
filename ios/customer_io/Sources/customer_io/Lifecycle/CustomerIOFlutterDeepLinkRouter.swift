@@ -21,8 +21,8 @@ final class CustomerIOFlutterDeepLinkRouter {
     /// Delivers an SDK-triggered destination to an eligible foreground Flutter scene. If Flutter
     /// declines it or no scene becomes eligible, the destination is opened through UIKit.
     func routeSDKDeepLink(_ url: URL) {
-        DispatchQueue.main.async { [url] in
-            self.routeSDKDeepLink(url, remainingAttempts: Self.readinessAttempts)
+        DispatchQueue.main.async { [weak self, url] in
+            self?.routeSDKDeepLink(url, remainingAttempts: Self.readinessAttempts)
         }
     }
 
@@ -39,8 +39,8 @@ final class CustomerIOFlutterDeepLinkRouter {
                 openExternally(url)
                 return
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + Self.retryInterval) { [url] in
-                self.routeSDKDeepLink(url, remainingAttempts: remainingAttempts - 1)
+            DispatchQueue.main.asyncAfter(deadline: .now() + Self.retryInterval) { [weak self, url] in
+                self?.routeSDKDeepLink(url, remainingAttempts: remainingAttempts - 1)
             }
             return
         }
