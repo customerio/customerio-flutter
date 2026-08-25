@@ -18,7 +18,7 @@ and does not require changing a shared Customer.io campaign. It validates the
 client routing path, not backend `sent`, `delivered`, or `opened` metrics. Those
 metrics remain a separate remote E2E lane using a real workspace and APNs.
 
-Run with Flutter 3.44.8, Maestro 2.6.0 or newer, and a booted simulator:
+Run with Flutter 3.44.8, Maestro 2.8.0, and a booted simulator:
 
 ```bash
 apps/flutter_sample_spm/.maestro/run_scene_push.sh
