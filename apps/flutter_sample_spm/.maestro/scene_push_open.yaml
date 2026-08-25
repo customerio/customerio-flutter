@@ -1,0 +1,14 @@
+appId: io.customer.testbed.flutter.spm
+name: Flutter UIScene push routing, open
+---
+- pressKey: Home
+- extendedWaitUntil:
+    visible:
+      id: "NotificationShortLookView"
+    timeout: 30000
+- tapOn:
+    id: "NotificationShortLookView"
+    retryTapIfNoChange: false
+- extendedWaitUntil:
+    visible: "Device Token Input"
+    timeout: 15000

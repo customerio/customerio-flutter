@@ -1,0 +1,16 @@
+{
+  "aps": {
+    "alert": {
+      "title": "Customer.io scene routing",
+      "body": "Open Flutter settings"
+    },
+    "sound": "default"
+  },
+  "CIO-Delivery-ID": "maestro-scene-route",
+  "CIO-Delivery-Token": "maestro-scene-token",
+  "CIO": {
+    "push": {
+      "link": "flutter-spm:///settings"
+    }
+  }
+}
