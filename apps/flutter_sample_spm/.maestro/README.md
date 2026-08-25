@@ -2,7 +2,7 @@
 
 `run_scene_push.sh` builds the checked-in single-scene host, or accepts the
 prebuilt scene app from CI, installs it on a
-booted iPhone simulator, grants notification permission through the UI, and
+booted iPhone simulator, grants notification permission through Maestro, and
 opens a Customer.io-shaped system notification. The final assertion
 proves that the notification tap passed through the native SDK callback and
 Flutter's router to the Settings destination.
