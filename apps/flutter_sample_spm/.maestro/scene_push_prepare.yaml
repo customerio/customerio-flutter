@@ -22,3 +22,6 @@ name: Flutter UIScene push routing, prepare
 - tapOn:
     text: "Allow"
     optional: true
+- extendedWaitUntil:
+    visible: "Push notifications are enabled on this device"
+    timeout: 15000

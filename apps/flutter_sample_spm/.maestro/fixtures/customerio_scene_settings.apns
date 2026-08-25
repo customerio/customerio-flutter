@@ -10,7 +10,7 @@
   "CIO-Delivery-Token": "maestro-scene-token",
   "CIO": {
     "push": {
-      "link": "flutter-spm:///settings"
+      "link": "https://www.flutter-spm.com/settings"
     }
   }
 }

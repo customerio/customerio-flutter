@@ -121,7 +121,17 @@ run_notification_flow() {
     return 1
   fi
 
-  xcrun simctl push "$device_id" "$APP_ID" "$payload"
+  local push_output
+  if ! push_output="$(xcrun simctl push "$device_id" "$APP_ID" "$payload" 2>&1)"; then
+    printf '%s\n' "$push_output" >&2
+    if grep -q 'UNErrorDomain.*2003\|Source is not authorized' <<< "$push_output"; then
+      echo "error: simulator notification authorization was not granted; notification routing was not exercised" >&2
+    else
+      echo "error: simctl could not inject the notification fixture" >&2
+    fi
+    return 1
+  fi
+  printf '%s\n' "$push_output"
   if ! wait "$flow_pid"; then
     flow_pid=""
     return 1
@@ -166,6 +176,16 @@ xcrun simctl uninstall "$device_id" "$APP_ID" >/dev/null 2>&1 || true
 xcrun simctl install "$device_id" "$app_path"
 installed_app=true
 
-maestro --device "$device_id" test .maestro/scene_push_prepare.yaml
+prepare_args=(--device "$device_id" test .maestro/scene_push_prepare.yaml)
+if [[ -n "${RUNNER_TEMP:-}" ]]; then
+  prepare_args=(
+    --device "$device_id"
+    test
+    --debug-output "$RUNNER_TEMP/flutter_sample_spm-maestro-scene_push_prepare"
+    --flatten-debug-output
+    .maestro/scene_push_prepare.yaml
+  )
+fi
+maestro "${prepare_args[@]}"
 xcrun simctl terminate "$device_id" "$APP_ID"
 run_notification_flow .maestro/scene_push_open.yaml .maestro/fixtures/customerio_scene_settings.apns

@@ -5,6 +5,9 @@ on:
     paths:
       - '.github/workflows/ios-toolchain-compatibility.yml'
       - 'apps/flutter_sample_spm/.maestro/**'
+      - 'apps/flutter_sample_spm/lib/**'
+      - 'apps/flutter_sample_spm/ios/Runner/Info-Scene.plist'
+      - 'ios/customer_io/Sources/**'
   schedule:
     # Native runs one hour earlier; Expo runs one hour later.
     - cron: '17 6 * * *'
@@ -65,9 +68,16 @@ jobs:
         if: matrix.manager == 'SwiftPM'
         shell: bash
         run: |
-          export MAESTRO_VERSION=2.6.0
-          curl -Ls https://get.maestro.mobile.dev | bash
-          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+          set -euo pipefail
+          maestro_zip="$RUNNER_TEMP/maestro-2.6.0.zip"
+          maestro_dir="$RUNNER_TEMP/maestro-2.6.0"
+          curl -fsSL \
+            https://github.com/mobile-dev-inc/Maestro/releases/download/cli-2.6.0/maestro.zip \
+            -o "$maestro_zip"
+          echo '80185105a5d7e227e3b3fbcf225f45b312508ea676a9fc8e1b1aa1cac8b9ff6e  '"$maestro_zip" \
+            | shasum -a 256 -c -
+          unzip -q "$maestro_zip" -d "$maestro_dir"
+          echo "$maestro_dir/maestro/bin" >> "$GITHUB_PATH"
 
       - name: Install locked Ruby dependencies for CocoaPods
         if: matrix.manager == 'CocoaPods'
@@ -199,6 +209,7 @@ jobs:
       - name: Test terminated notification routing through Flutter
         id: push-routing
         if: matrix.manager == 'SwiftPM'
+        timeout-minutes: 10
         shell: bash
         env:
           CIO_E2E_APP_PATH: ${{ runner.temp }}/${{ matrix.app }}-scene-xcode-27/Build/Products/Debug-iphonesimulator/Runner.app
@@ -252,7 +263,7 @@ jobs:
             echo
             echo '**Classification:** terminated-notification-routing-failed'
             echo '**Dependency manager:** SwiftPM'
-            echo '**Next step:** inspect the uploaded Maestro diagnostics; the notification was not tapped or its destination did not reach Flutter'
+            echo '**Next step:** inspect the uploaded Maestro diagnostics; notification authorization or injection failed, the notification was not tapped, or its destination did not reach Flutter'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Record compile failure
