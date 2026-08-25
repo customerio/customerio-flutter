@@ -115,8 +115,7 @@ available, the plugin opens it with `UIApplication.open`.
 AppDelegate-only hosts keep their existing handoff, and setting `FlutterDeepLinkingEnabled` to
 `false` leaves routing with the host.
 
-An SDK-triggered destination does not carry a source `UIScene`. When more than one Flutter scene is
-foregrounded, the plugin prefers an active key window and otherwise makes a deterministic
-best-effort selection to avoid dropping the URL, but that defensive behavior is not a multi-window
-support guarantee. Customer.io cannot guarantee which window receives an SDK-triggered destination
-when the host enables multiple simultaneous window scenes.
+An SDK-triggered destination does not carry a source `UIScene`. Within the supported one-window
+scope, the plugin routes it through the foreground application scene. Hosts that enable multiple
+simultaneous window scenes own scene-to-engine routing; which window receives an SDK-triggered
+destination is unspecified.

@@ -21,8 +21,8 @@ final class CustomerIOFlutterDeepLinkRouter {
     /// Delivers an SDK-triggered destination to an eligible foreground Flutter scene. If Flutter
     /// declines it or no scene becomes eligible, the destination is opened through UIKit.
     func routeSDKDeepLink(_ url: URL) {
-        DispatchQueue.main.async { [url] in
-            self.routeSDKDeepLink(url, remainingAttempts: Self.readinessAttempts)
+        DispatchQueue.main.async { [weak self, url] in
+            self?.routeSDKDeepLink(url, remainingAttempts: Self.readinessAttempts)
         }
     }
 
@@ -39,17 +39,17 @@ final class CustomerIOFlutterDeepLinkRouter {
                 openExternally(url)
                 return
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + Self.retryInterval) { [url] in
-                self.routeSDKDeepLink(url, remainingAttempts: remainingAttempts - 1)
+            DispatchQueue.main.asyncAfter(deadline: .now() + Self.retryInterval) { [weak self, url] in
+                self?.routeSDKDeepLink(url, remainingAttempts: remainingAttempts - 1)
             }
             return
         }
 
-        deliver(url, to: viewController) {
+        deliver(url, to: viewController) { [weak self] in
             DIGraphShared.shared.logger.info(
                 "Customer.io is opening an SDK deep link externally because Flutter did not handle it"
             )
-            self.openExternally(url)
+            self?.openExternally(url)
         }
     }
 
@@ -94,39 +94,18 @@ final class CustomerIOFlutterDeepLinkRouter {
     private func applicationFlutterViewController(
         useHiddenFallback: Bool
     ) -> FlutterViewController? {
-        let foregroundScenes = UIApplication.shared.connectedScenes
+        let windowScenes = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
-            .filter {
-                $0.activationState == .foregroundActive ||
-                    $0.activationState == .foregroundInactive
-            }
-            .sorted {
-                $0.session.persistentIdentifier < $1.session.persistentIdentifier
+            .filter { $0.session.role == .windowApplication }
+        let candidates = [UIScene.ActivationState.foregroundActive, .foregroundInactive]
+            .flatMap { activationState in
+                windowScenes
+                    .filter { $0.activationState == activationState }
+                    .flatMap(sceneFlutterViewControllers)
             }
 
-        for activationState in [UIScene.ActivationState.foregroundActive, .foregroundInactive] {
-            let candidates = foregroundScenes
-                .filter { $0.activationState == activationState }
-                .flatMap(sceneFlutterViewControllers)
-
-            if let keyController = candidates.first(where: {
-                $0.isDisplayingFlutterUI && $0.viewIfLoaded?.window?.isKeyWindow == true
-            }) {
-                return keyController
-            }
-            if let displayingController = candidates.first(where: \.isDisplayingFlutterUI) {
-                return displayingController
-            }
-            if useHiddenFallback,
-               let hiddenController = candidates.first(where: {
-                   $0.viewIfLoaded?.window?.isKeyWindow == true
-               }) ?? candidates.first
-            {
-                return hiddenController
-            }
-        }
-
-        return nil
+        return candidates.first(where: \.isDisplayingFlutterUI) ??
+            (useHiddenFallback ? candidates.first : nil)
     }
 
     @MainActor

@@ -71,6 +71,9 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
 
         DIGraphShared.shared.deepLinkUtil.setDeepLinkCallback { [lifecycleHandler] url in
             lifecycleHandler.handleSDKDeepLink(url)
+            // The native callback is synchronous, while Flutter reports its routing result
+            // asynchronously. Claim this handoff once; the Flutter router owns the final system-
+            // open fallback so the native SDK does not run a second fallback at the same time.
             return true
         }
     }
