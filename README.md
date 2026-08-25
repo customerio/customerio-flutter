@@ -82,10 +82,11 @@ AppDelegate-only hosts keep the existing manual URL handler described above.
 Applications that declare UIScene must use Flutter 3.44.8 or newer and use
 `FlutterSceneDelegate`, or forward its lifecycle callbacks through Flutter's scene lifecycle
 provider. Customer.io cannot receive or diagnose callbacks that a custom scene delegate does not
-forward. Flutter requires manual engine registration only when both multiple scenes are enabled
-and the target engine is not represented by the scene's root `FlutterViewController` during
-connection. That registration belongs in the host scene delegate because only it knows the scene
-and engine pairing. Older Flutter registrars log an error and leave scene routing unclaimed.
+forward. This release's compatibility scope is one simultaneous window scene, matching the native
+and Flutter samples' `UIApplicationSupportsMultipleScenes=false` configuration. Multiple
+simultaneous window scenes are not supported. Hosts that enable them retain ownership of Flutter's
+scene-to-engine registration and any window-specific routing. Older Flutter registrars log an error
+and leave scene routing unclaimed.
 
 # Contributing
 

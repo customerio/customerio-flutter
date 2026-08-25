@@ -91,10 +91,10 @@ topology key is required. `CioAppDelegateWrapper` continues to own SDK initializ
 registration, and notification-center callbacks in both modes. The standard Flutter
 `SceneDelegate` owns the host scene, while the Customer.io plugin registers its own scene adapter
 with each supported Flutter engine. A custom scene delegate must provide the equivalent Flutter
-scene lifecycle forwarding. Flutter requires manual registration only when multiple scenes are
-enabled and the target engine is not represented by the scene's root `FlutterViewController`
-during connection; the host scene delegate owns that scene-to-engine association. Do not add a
-second Customer.io URL handler to the scene delegate. AppDelegate-only samples keep their existing
+scene lifecycle forwarding. This release's compatibility scope is one simultaneous window scene,
+and both scene fixtures set `UIApplicationSupportsMultipleScenes=false`. Multiple simultaneous
+window scenes are not supported and remain host-owned. Do not add a second Customer.io URL handler
+to the scene delegate. AppDelegate-only samples keep their existing
 `application(_:open:options:)` handler unchanged.
 
 When upgrading an existing UIScene app that manually calls
@@ -117,5 +117,6 @@ AppDelegate-only hosts keep their existing handoff, and setting `FlutterDeepLink
 
 An SDK-triggered destination does not carry a source `UIScene`. When more than one Flutter scene is
 foregrounded, the plugin prefers an active key window and otherwise makes a deterministic
-best-effort selection. Hosts that require a specific window to own SDK-triggered navigation should
-set `FlutterDeepLinkingEnabled` to `false` and route the destination themselves.
+best-effort selection to avoid dropping the URL, but that defensive behavior is not a multi-window
+support guarantee. Customer.io cannot guarantee which window receives an SDK-triggered destination
+when the host enables multiple simultaneous window scenes.
