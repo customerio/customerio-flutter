@@ -81,8 +81,12 @@ released native URL handler and leaves ordinary links and user activities to Flu
 AppDelegate-only hosts keep the existing manual URL handler described above.
 When UIScene and Flutter deep linking are enabled, the plugin also becomes the native SDK's
 deep-link callback during plugin registration. The native callback is synchronous but Flutter's
-routing result is asynchronous, so the plugin claims the handoff, offers the destination to Flutter,
-and uses `UIApplication.open` only if Flutter declines it or no foreground engine becomes available.
+routing result is asynchronous, so the plugin claims the handoff and offers every SDK destination
+to Flutter, including `http` and `https` URLs. Flutter's standard navigation APIs report a delivered
+route as handled, so the host's Dart router owns unknown-route and browser-opening policy. The plugin
+uses `UIApplication.open` only when the navigation channel reports the route as unhandled or no
+foreground engine becomes available. This plugin callback and a native `SDKConfigBuilder`
+`deepLinkCallback` cannot be combined because the native SDK has one callback slot.
 This replaces the native SDK's AppDelegate continuation fallback only in that UIScene configuration;
 set `FlutterDeepLinkingEnabled` to `false` when the host owns a different scene router.
 Applications that declare UIScene must use Flutter 3.44.8 or newer and use

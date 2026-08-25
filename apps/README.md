@@ -110,8 +110,11 @@ For a UIScene host with Flutter deep linking enabled, the native plugin register
 `deepLinkCallback` as Flutter registers its plugins. This routes SDK-triggered push and in-app
 destinations, plus native-default inbox actions when no Dart inbox listener owns the action,
 through a foreground Flutter scene, including taps delivered before Dart calls
-`CustomerIO.initialize`. If Flutter declines the destination or no foreground engine becomes
-available, the plugin opens it with `UIApplication.open`.
+`CustomerIO.initialize`. This includes `http` and `https` destinations. Flutter's standard
+navigation APIs report delivered routes as handled, so the Dart router owns unknown-route and
+browser-opening policy. The plugin uses `UIApplication.open` only when the navigation channel
+reports the route as unhandled or no foreground engine becomes available. Do not also configure a
+native `SDKConfigBuilder.deepLinkCallback`; the native SDK exposes one callback slot.
 AppDelegate-only hosts keep their existing handoff, and setting `FlutterDeepLinkingEnabled` to
 `false` leaves routing with the host.
 

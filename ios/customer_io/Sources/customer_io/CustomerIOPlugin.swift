@@ -69,6 +69,9 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
         let lifecycleHandler = instance.lifecycleHandler
         guard lifecycleHandler.shouldRegisterSDKDeepLinkCallback else { return }
 
+        DIGraphShared.shared.logger.info(
+            "Customer.io is routing SDK deep links through Flutter"
+        )
         DIGraphShared.shared.deepLinkUtil.setDeepLinkCallback { [lifecycleHandler] url in
             lifecycleHandler.handleSDKDeepLink(url)
             // The native callback is synchronous, while Flutter reports its routing result
