@@ -1,0 +1,118 @@
+appId: ${APP_ID}
+name: Flutter FCM delivery and opened attribution
+---
+- launchApp:
+    clearState: false
+
+- extendedWaitUntil:
+    visible: "First Name Input"
+    timeout: 15000
+- tapOn: "First Name Input"
+- eraseText
+- inputText: "Maestro Campaign Tester"
+- tapOn: "Email Input"
+- eraseText
+- inputText: ${RUN_EMAIL}
+- tapOn: "Login Button"
+
+- extendedWaitUntil:
+    visible: "Custom Event Button"
+    timeout: 15000
+- scrollUntilVisible:
+    element: "Show Push Prompt Button"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Show Push Prompt Button"
+- tapOn:
+    text: "^Allow$"
+    optional: true
+- extendedWaitUntil:
+    visible: "Push notifications are enabled on this device"
+    timeout: 15000
+- runFlow:
+    when:
+      visible: "OK"
+    commands:
+      - tapOn: "OK"
+
+- runScript:
+    file: ../scripts/assert_customer_activity.js
+    env:
+      RUN_EMAIL: ${RUN_EMAIL}
+      EXPECTED_ACTIVITY_TYPE: "device_change"
+      EXPECTED_PROPERTY_NAME: "devices.0.platform"
+      EXPECTED_PROPERTY_VALUE: "ios"
+      MIN_TIMESTAMP_SECONDS: ${RUN_STARTED_AT_SECONDS}
+      MAX_WAIT_MS: "45000"
+- assertTrue: ${output.assert_ok === "true"}
+
+- runFlow:
+    when:
+      visible: "Inline Message Test"
+    commands:
+      - tapOn: "Back"
+- scrollUntilVisible:
+    element: "Custom Event Button"
+    direction: UP
+    timeout: 10000
+- tapOn: "Custom Event Button"
+- extendedWaitUntil:
+    visible: "Event Name Input"
+    timeout: 10000
+- tapOn: "Event Name Input"
+- inputText: "send_push"
+- tapOn: "Property Name Input"
+- inputText: "run_id"
+- tapOn: "Property Value Input"
+- inputText: ${RUN_ID}
+- tapOn: "Send Event Button"
+- extendedWaitUntil:
+    visible: "Event sent successfully"
+    timeout: 10000
+
+- runScript:
+    file: ../scripts/assert_customer_activity.js
+    env:
+      RUN_EMAIL: ${RUN_EMAIL}
+      EXPECTED_ACTIVITY_TYPE: "event"
+      EXPECTED_ACTIVITY_NAME: "send_push"
+      EXPECTED_PROPERTY_NAME: "run_id"
+      EXPECTED_PROPERTY_VALUE: ${RUN_ID}
+      MIN_TIMESTAMP_SECONDS: ${RUN_STARTED_AT_SECONDS}
+      MAX_WAIT_MS: "45000"
+- assertTrue: ${output.assert_ok === "true"}
+- pressKey: Home
+
+- runScript:
+    file: ../scripts/assert_message_delivered.js
+    env:
+      RUN_EMAIL: ${RUN_EMAIL}
+      EXPECTED_TYPE: "push"
+      MIN_METRIC: "delivered"
+      CAMPAIGN_ID: "18"
+      MAX_WAIT_MS: "60000"
+- assertTrue: ${output.assert_ok === "true"}
+- assertTrue: ${output.message_id.length > 0}
+
+- swipe:
+    start: 50%, 1%
+    end: 50%, 75%
+    duration: 800
+- extendedWaitUntil:
+    visible: "This is a rich push.*"
+    timeout: 15000
+- tapOn: "This is a rich push.*"
+- extendedWaitUntil:
+    visible: "Custom Event Button"
+    timeout: 15000
+
+- runScript:
+    file: ../scripts/assert_message_delivered.js
+    env:
+      RUN_EMAIL: ${RUN_EMAIL}
+      EXPECTED_TYPE: "push"
+      MIN_METRIC: "opened"
+      CAMPAIGN_ID: "18"
+      EXPECTED_MESSAGE_ID: ${output.message_id}
+      MAX_WAIT_MS: "60000"
+- assertTrue: ${output.assert_ok === "true"}
