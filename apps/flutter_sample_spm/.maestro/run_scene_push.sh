@@ -117,6 +117,7 @@ run_notification_flow() {
   else
     flow_log="$(mktemp "${TMPDIR:-/tmp}/cio-flutter-maestro-flow.XXXXXX")"
   fi
+  : > "$flow_log"
   maestro "${maestro_args[@]}" > >(tee "$flow_log") 2>&1 &
   flow_pid=$!
 
