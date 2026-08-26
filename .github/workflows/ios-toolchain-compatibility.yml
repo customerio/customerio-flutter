@@ -5,9 +5,6 @@ on:
     paths:
       - '.github/workflows/ios-toolchain-compatibility.yml'
       - 'apps/flutter_sample_spm/.maestro/**'
-      - 'apps/flutter_sample_spm/lib/**'
-      - 'apps/flutter_sample_spm/ios/Runner/Info-Scene.plist'
-      - 'ios/customer_io/Sources/**'
   schedule:
     # Native runs one hour earlier; Expo runs one hour later.
     - cron: '17 6 * * *'

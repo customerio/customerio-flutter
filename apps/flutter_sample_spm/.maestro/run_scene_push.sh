@@ -8,6 +8,7 @@ flow_log=""
 flow_pid=""
 installed_app=false
 config_backup=""
+config_replacement_started=false
 had_dotenv=false
 had_native_env=false
 DEVELOPER_DIR="${DEVELOPER_DIR:-$(xcode-select -p)}"
@@ -59,17 +60,19 @@ cleanup() {
     xcrun simctl uninstall "$device_id" "$APP_ID" >/dev/null 2>&1 || true
   fi
   if [[ -n "$config_backup" ]]; then
-    if [[ "$had_dotenv" == true ]]; then
-      cp "$config_backup/dotenv" .env
-    else
-      rm -f .env
+    if [[ "$config_replacement_started" == true ]]; then
+      if [[ "$had_dotenv" == true ]]; then
+        cp "$config_backup/dotenv" .env
+      else
+        rm -f .env
+      fi
+      if [[ "$had_native_env" == true ]]; then
+        cp "$config_backup/Env.swift" ios/Env.swift
+      else
+        rm -f ios/Env.swift
+      fi
+      cp "$config_backup/pubspec.lock" pubspec.lock
     fi
-    if [[ "$had_native_env" == true ]]; then
-      cp "$config_backup/Env.swift" ios/Env.swift
-    else
-      rm -f ios/Env.swift
-    fi
-    cp "$config_backup/pubspec.lock" pubspec.lock
     find "$config_backup" -depth -delete
   fi
 }
@@ -94,6 +97,8 @@ run_notification_flow() {
     )
   fi
 
+  # Injection must happen after Maestro's iOS driver is active; starting a second
+  # Maestro session after injection dismisses the notification banner.
   flow_log="$(mktemp "${TMPDIR:-/tmp}/cio-flutter-maestro-flow.XXXXXX")"
   maestro "${maestro_args[@]}" > >(tee "$flow_log") 2>&1 &
   flow_pid=$!
@@ -153,6 +158,7 @@ if [[ -z "$app_path" ]]; then
     cp ios/Env.swift "$config_backup/Env.swift"
     had_native_env=true
   fi
+  config_replacement_started=true
   cp .env.example .env
   cp ios/Env.swift.example ios/Env.swift
   flutter clean
