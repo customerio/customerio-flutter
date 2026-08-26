@@ -8,6 +8,10 @@ the notification tap passed through the native SDK callback and Flutter's
 router to the Settings destination. Without the callback bridge in #399, the
 same URL opens outside the app and the assertion fails.
 
+The test-only launch argument makes the sample call the system authorization
+API, and Maestro accepts the real system prompt. A missing grant is then caught
+before the notification-routing assertion can pass.
+
 The runner temporarily builds with the checked-in placeholder workspace
 configuration, then restores any developer-local configuration before exit.
 When it builds locally, it runs `flutter clean` to prevent stale Flutter/Xcode
