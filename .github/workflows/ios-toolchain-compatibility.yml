@@ -4,6 +4,30 @@ on:
   pull_request:
     paths:
       - '.github/workflows/ios-toolchain-compatibility.yml'
+      - 'apps/flutter_sample_spm/.maestro/fixtures/customerio_scene_settings.apns'
+      - 'apps/flutter_sample_spm/.maestro/run_scene_push.sh'
+      - 'apps/flutter_sample_spm/.maestro/scene_push_open.yaml'
+      - 'apps/flutter_sample_spm/.maestro/scene_push_prepare.yaml'
+      - 'apps/flutter_sample_spm/.flutter-version'
+      - 'apps/flutter_sample_spm/.env.example'
+      - 'apps/flutter_sample_spm/lib/**'
+      - 'apps/flutter_sample_spm/ios/Runner/AppDelegate.swift'
+      - 'apps/flutter_sample_spm/ios/Runner/PermissionChannelHandler.swift'
+      - 'apps/flutter_sample_spm/ios/Runner/SceneDelegate.swift'
+      - 'apps/flutter_sample_spm/ios/Runner/Info.plist'
+      - 'apps/flutter_sample_spm/ios/Runner/Info-Scene.plist'
+      - 'apps/flutter_sample_spm/ios/Runner.xcodeproj/project.pbxproj'
+      - 'apps/flutter_sample_spm/ios/Env.swift.example'
+      - 'apps/flutter_sample_spm/pubspec.yaml'
+      - 'apps/flutter_sample_spm/pubspec.lock'
+      - 'apps/flutter_sample_cocoapods/.flutter-version'
+      - 'apps/scripts/setup_env.sh'
+      - 'apps/scripts/verify_xcode27_flutter_version.sh'
+      - 'ios/customer_io/Package.swift'
+      - 'ios/customer_io/Sources/customer_io/CustomerIOPlugin.swift'
+      - 'ios/customer_io/Sources/customer_io/Lifecycle/**'
+      - 'ios/customer_io/Sources/customer_io/LiveActivities/**'
+      - 'pubspec.yaml'
   schedule:
     # Native runs one hour earlier; Expo runs one hour later.
     - cron: '17 6 * * *'
@@ -59,6 +83,21 @@ jobs:
       - name: Verify installed Flutter
         shell: bash
         run: ./apps/scripts/verify_xcode27_flutter_version.sh --installed
+
+      - name: Install Maestro for scene routing E2E
+        if: matrix.manager == 'SwiftPM'
+        shell: bash
+        run: |
+          set -euo pipefail
+          maestro_zip="$RUNNER_TEMP/maestro-2.8.0.zip"
+          maestro_dir="$RUNNER_TEMP/maestro-2.8.0"
+          curl -fsSL \
+            https://github.com/mobile-dev-inc/Maestro/releases/download/cli-2.8.0/maestro.zip \
+            -o "$maestro_zip"
+          echo 'b3e561161904fb391875ca5834d5b22cf0b01c052dd1b408ad83e30d8f8951b3  '"$maestro_zip" \
+            | shasum -a 256 -c -
+          unzip -q "$maestro_zip" -d "$maestro_dir"
+          echo "$maestro_dir/maestro/bin" >> "$GITHUB_PATH"
 
       - name: Install locked Ruby dependencies for CocoaPods
         if: matrix.manager == 'CocoaPods'
@@ -187,8 +226,42 @@ jobs:
           test "$(grep -Fc "customerio-flutter-scene-will-connect token=$run_token" "$callback_log")" -eq 1
           test "$(grep -Fc "customerio-flutter-scene-did-become-active token=$run_token" "$callback_log")" -ge 1
 
+      - name: Test terminated notification routing through Flutter
+        id: push-routing
+        if: matrix.manager == 'SwiftPM'
+        timeout-minutes: 10
+        shell: bash
+        env:
+          CIO_E2E_APP_PATH: ${{ runner.temp }}/${{ matrix.app }}-scene-xcode-27/Build/Products/Debug-iphonesimulator/Runner.app
+          SOURCE_SIMULATOR_UDID: ${{ steps.scene-launch.outputs.simulator-udid }}
+        run: |
+          set -euo pipefail
+          devices_json="$(xcrun simctl list devices available -j)"
+          runtime_id="$(jq -r --arg id "$SOURCE_SIMULATOR_UDID" \
+            '[.devices | to_entries[] | select(any(.value[]; .udid == $id))][0].key // empty' \
+            <<< "$devices_json")"
+          device_type_id="$(jq -r --arg id "$SOURCE_SIMULATOR_UDID" \
+            '[.devices[][] | select(.udid == $id)][0].deviceTypeIdentifier // empty' \
+            <<< "$devices_json")"
+          test -n "$runtime_id"
+          test -n "$device_type_id"
+          # The preview image can fail first-boot data migration when two iOS 27
+          # simulators are booted concurrently. The source simulator is no longer
+          # needed after the launch assertions above.
+          xcrun simctl shutdown "$SOURCE_SIMULATOR_UDID"
+          simulator_udid="$(xcrun simctl create \
+            "CIO Flutter E2E ${GITHUB_RUN_ID:?}-${GITHUB_RUN_ATTEMPT:?}" \
+            "$device_type_id" \
+            "$runtime_id")"
+          cleanup() {
+            xcrun simctl shutdown "$simulator_udid" >/dev/null 2>&1 || true
+            xcrun simctl delete "$simulator_udid" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          E2E_DEVICE_ID="$simulator_udid" apps/flutter_sample_spm/.maestro/run_scene_push.sh
+
       - name: Record launch result
-        if: steps.scene-launch.outcome == 'success'
+        if: always() && steps.scene-launch.outcome == 'success'
         shell: bash
         env:
           APP: ${{ matrix.app }}
@@ -210,8 +283,41 @@ jobs:
             echo "**Dependency manager:** $DEPENDENCY_MANAGER"
             echo "**Toolchain:** Flutter $FLUTTER_VERSION, Xcode $XCODE_VERSION build $XCODE_BUILD, iphonesimulator $IOS_SIMULATOR_SDK"
             echo '**Host topologies:** AppDelegate-only compile plus expected Xcode 27 launch rejection; UIScene compile, launch survival, cold connection, and active callback delivery'
-            echo '**Scope:** simulator compile, install, launch, 10-second process survival, and standard Flutter scene callback forwarding; no URL-routing, push-delivery, signing, or App Store claim'
+            echo '**Scope:** simulator compile, install, launch, process survival, and Flutter scene callback forwarding; no backend delivery, signing, or App Store claim'
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record push routing result
+        if: steps.push-routing.outcome == 'success'
+        shell: bash
+        run: |
+          {
+            echo '## Flutter notification routing'
+            echo
+            echo '**Classification:** terminated-notification-routing-passed'
+            echo '**Dependency manager:** SwiftPM'
+            echo '**Scope:** simulator notification presentation, tap, and destination routing through Flutter; no real APNs/FCM backend sent, delivered, or opened claim'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record push routing failure
+        if: failure() && steps.push-routing.outcome == 'failure'
+        shell: bash
+        run: |
+          {
+            echo '## Flutter notification routing'
+            echo
+            echo '**Classification:** terminated-notification-routing-failed'
+            echo '**Dependency manager:** SwiftPM'
+            echo '**Next step:** inspect the uploaded Maestro diagnostics; notification authorization or injection failed, the notification was not tapped, or its destination did not reach Flutter'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Maestro diagnostics
+        if: always() && matrix.manager == 'SwiftPM'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: xcode-27-preview-${{ matrix.app }}-maestro-diagnostics
+          path: ${{ runner.temp }}/flutter_sample_spm-maestro-*
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Record compile failure
         if: failure() && steps.compile.outcome == 'failure'

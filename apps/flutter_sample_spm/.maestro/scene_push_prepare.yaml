@@ -1,0 +1,22 @@
+appId: io.customer.testbed.flutter.spm
+name: Flutter UIScene push routing, prepare
+---
+- launchApp:
+    clearState: false
+    arguments:
+      "--cio-e2e-request-notification-permission": true
+    permissions:
+      location: never
+- extendedWaitUntil:
+    visible: "^(Allow|Allow Notifications)$"
+    timeout: 15000
+- tapOn: "^(Allow|Allow Notifications)$"
+- assertVisible: "First Name Input"
+- tapOn: "First Name Input"
+- inputText: "Maestro Scene Tester"
+- tapOn: "Email Input"
+- inputText: "maestro+flutter-scene@cio.test"
+- tapOn: "Login Button"
+- extendedWaitUntil:
+    visible: "Custom Event Button"
+    timeout: 10000
