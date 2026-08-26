@@ -1,3 +1,9 @@
+## [4.4.0](https://github.com/customerio/customerio-flutter/compare/4.3.1...4.4.0) (2026-08-26)
+
+### Features
+
+* route SDK deep links through Flutter scenes ([#399](https://github.com/customerio/customerio-flutter/issues/399)) ([6dbd5f3](https://github.com/customerio/customerio-flutter/commit/6dbd5f3bbbf5685c719c2bf3d678c52c2cc47630))
+
 ## [4.3.1](https://github.com/customerio/customerio-flutter/compare/4.3.0...4.3.1) (2026-08-21)
 
 ### Bug Fixes
