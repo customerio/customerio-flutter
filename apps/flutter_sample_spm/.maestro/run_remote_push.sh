@@ -13,14 +13,12 @@ fi
 export DEVELOPER_DIR
 
 if [[ -f "$MAESTRO_DIR/.env" ]]; then
-  set -a
   # shellcheck disable=SC1091
   source "$MAESTRO_DIR/.env"
-  set +a
 fi
 : "${MAESTRO_APP_API_KEY:=${MAESTRO_EXT_API_KEY:-}}"
 : "${MAESTRO_EXT_API_BASE_URL:=https://api.customer.io/v1}"
-export MAESTRO_APP_API_KEY MAESTRO_EXT_API_BASE_URL
+export -n MAESTRO_APP_API_KEY MAESTRO_EXT_API_BASE_URL FLUTTER_CDP_API_KEY 2>/dev/null || true
 
 die() {
   echo "error: $*" >&2
@@ -110,7 +108,8 @@ cp "$lockfile" "$lockfile_backup"
 cleanup() {
   set +e
   if [[ -d "$harness" && -d "$artifacts" ]]; then
-    python3 "$harness/scripts/redact_artifacts.py" "$artifacts" >/dev/null 2>&1 || true
+    MAESTRO_APP_API_KEY="$MAESTRO_APP_API_KEY" IOS_CDP_API_KEY="$IOS_CDP_API_KEY" \
+      python3 "$harness/scripts/redact_artifacts.py" "$artifacts" >/dev/null 2>&1 || true
   fi
   if [[ "$installed_app" == true && "${CIO_E2E_KEEP_APP:-false}" != "true" ]]; then
     xcrun simctl terminate "$device_id" "$APP_ID" >/dev/null 2>&1 || true
@@ -149,7 +148,7 @@ fi
 config_replacement_started=true
 printf 'SITE_ID=\nCDP_API_KEY=%s\nWORKSPACE_NAME=Mobile: Flutter\nSDK_VERSION=\n' "$FLUTTER_CDP_API_KEY" >"$dotenv"
 printf 'import Foundation\n\nclass Env {\n    static let cdpApiKey: String = "%s"\n}\n' "$FLUTTER_CDP_API_KEY" >"$native_env"
-export IOS_CDP_API_KEY="$FLUTTER_CDP_API_KEY"
+IOS_CDP_API_KEY="$FLUTTER_CDP_API_KEY"
 
 git init -q "$harness"
 git -C "$harness" remote add origin https://github.com/customerio/mobile-e2e.git
@@ -174,7 +173,7 @@ xcodebuild -quiet \
   CODE_SIGNING_ALLOWED=YES \
   CODE_SIGNING_REQUIRED=YES \
   build >"$run_root/xcodebuild.log" 2>&1 || {
-    if ruby -e '
+    if IOS_CDP_API_KEY="$IOS_CDP_API_KEY" ruby -e '
       key = ENV.fetch("IOS_CDP_API_KEY")
       path = ARGV[0]
       File.write(path, File.read(path).gsub(key, "[REDACTED]"))
@@ -232,8 +231,10 @@ maestro --device "$device_id" test \
 result=$?
 set -e
 
-python3 "$harness/scripts/redact_artifacts.py" "$artifacts"
-python3 "$harness/scripts/redact_artifacts.py" "$artifacts" --check
+MAESTRO_APP_API_KEY="$MAESTRO_APP_API_KEY" IOS_CDP_API_KEY="$IOS_CDP_API_KEY" \
+  python3 "$harness/scripts/redact_artifacts.py" "$artifacts"
+MAESTRO_APP_API_KEY="$MAESTRO_APP_API_KEY" IOS_CDP_API_KEY="$IOS_CDP_API_KEY" \
+  python3 "$harness/scripts/redact_artifacts.py" "$artifacts" --check
 if [[ -n "$artifact_export_dir" ]]; then
   mkdir -p "$artifact_export_dir"
   cp -R "$artifacts/." "$artifact_export_dir/"

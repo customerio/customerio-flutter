@@ -35,6 +35,10 @@ name: Flutter FCM delivery and opened attribution
       visible: "^Allow$"
     commands:
       - tapOn: "^Allow$"
+      - extendedWaitUntil:
+          visible: "Show Push Prompt Button"
+          timeout: 10000
+      - tapOn: "Show Push Prompt Button"
 - extendedWaitUntil:
     visible: "Push notifications are enabled on this device"
     timeout: 15000
@@ -125,8 +129,12 @@ name: Flutter FCM delivery and opened attribution
     point: "50%,82%"
 - waitForAnimationToEnd:
     timeout: 1000
-- tapOn:
-    point: "15%,82%"
+- runFlow:
+    when:
+      notVisible: "Custom Event Button"
+    commands:
+      - tapOn:
+          point: "15%,82%"
 - extendedWaitUntil:
     visible: "Custom Event Button"
     timeout: 15000

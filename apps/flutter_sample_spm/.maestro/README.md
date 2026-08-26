@@ -34,15 +34,15 @@ apps/flutter_sample_spm/.maestro/run_remote_push.sh
 
 The remote flow identifies a fresh customer, registers an iOS FCM device,
 triggers the existing `send_push` automation (campaign 18), requires a matching
-backend `delivered` metric, and verifies that the notification is visible in
-Notification Center. It then attempts the real system-notification activation
-and requires the app to reopen plus the same message's `opened` metric.
+backend `delivered` metric, and captures Notification Center diagnostics. It
+then attempts the real system-notification activation and requires the same
+message's `opened` metric.
 Terminated scene routing is covered separately by `run_scene_push.sh`.
 
 The activation gate is intentionally strict and requires an iPhone 17 Pro
 simulator. Notification Center is not exposed reliably through iOS
 accessibility, so the flow selects the notification and its system Open action
-by coordinate. The runner accepts that interaction only when the app reopens
-and Customer.io records `opened` for the exact delivered message.
+by coordinate. Customer.io must record `opened` for the exact delivered message
+before the runner accepts that interaction.
 Pull requests do not receive the required workspace credentials, so this stays
 a local or trusted pre-release check rather than a required PR lane.
