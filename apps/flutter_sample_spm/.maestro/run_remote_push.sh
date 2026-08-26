@@ -94,6 +94,7 @@ lockfile="$APP_DIR/pubspec.lock"
 lockfile_backup="$run_root/pubspec.lock.original"
 had_dotenv=false
 had_native_env=false
+config_replacement_started=false
 installed_app=false
 cp "$lockfile" "$lockfile_backup"
 
@@ -110,17 +111,19 @@ cleanup() {
   if [[ "$simulator_started_by_runner" == true ]]; then
     xcrun simctl shutdown "$device_id" >/dev/null 2>&1 || true
   fi
-  if [[ "$had_dotenv" == true ]]; then
-    cp "$dotenv_backup" "$dotenv"
-  else
-    rm -f -- "$dotenv"
+  if [[ "$config_replacement_started" == true ]]; then
+    if [[ "$had_dotenv" == true ]]; then
+      cp "$dotenv_backup" "$dotenv"
+    else
+      rm -f -- "$dotenv"
+    fi
+    if [[ "$had_native_env" == true ]]; then
+      cp "$native_env_backup" "$native_env"
+    else
+      rm -f -- "$native_env"
+    fi
+    cp "$lockfile_backup" "$lockfile"
   fi
-  if [[ "$had_native_env" == true ]]; then
-    cp "$native_env_backup" "$native_env"
-  else
-    rm -f -- "$native_env"
-  fi
-  cp "$lockfile_backup" "$lockfile"
   case "$run_root" in
     "$temp_base"/cio-flutter-remote-push.*) rm -rf -- "$run_root" ;;
   esac
@@ -135,6 +138,7 @@ if [[ -f "$native_env" ]]; then
   cp "$native_env" "$native_env_backup"
   had_native_env=true
 fi
+config_replacement_started=true
 printf 'SITE_ID=\nCDP_API_KEY=%s\nWORKSPACE_NAME=Mobile: Flutter\nSDK_VERSION=\n' "$FLUTTER_CDP_API_KEY" >"$dotenv"
 printf 'import Foundation\n\nclass Env {\n    static let cdpApiKey: String = "%s"\n}\n' "$FLUTTER_CDP_API_KEY" >"$native_env"
 export IOS_CDP_API_KEY="$FLUTTER_CDP_API_KEY"

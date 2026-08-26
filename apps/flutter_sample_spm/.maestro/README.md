@@ -36,7 +36,8 @@ The remote flow identifies a fresh customer, registers an iOS FCM device,
 triggers the existing `send_push` automation (campaign 18), requires a matching
 backend `delivered` metric, and verifies that the notification is visible in
 Notification Center. It then attempts the real system-notification activation
-and requires the app to open plus the same message's `opened` metric.
+and requires the app to reopen plus the same message's `opened` metric.
+Terminated scene routing is covered separately by `run_scene_push.sh`.
 
 The activation gate is intentionally strict. Maestro 2.8.0 currently locates
 and taps the iOS 26.5 SpringBoard notification without activating the app, so

@@ -3,6 +3,9 @@ name: Flutter FCM delivery and opened attribution
 ---
 - launchApp:
     clearState: false
+    permissions:
+      location: never
+      notifications: unset
 
 - extendedWaitUntil:
     visible: "First Name Input"
@@ -23,9 +26,10 @@ name: Flutter FCM delivery and opened attribution
     direction: DOWN
     timeout: 10000
 - tapOn: "Show Push Prompt Button"
-- tapOn:
-    text: "^Allow$"
-    optional: true
+- extendedWaitUntil:
+    visible: "^Allow$"
+    timeout: 15000
+- tapOn: "^Allow$"
 - extendedWaitUntil:
     visible: "Push notifications are enabled on this device"
     timeout: 15000
