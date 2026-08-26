@@ -13,6 +13,7 @@ on:
       - 'apps/flutter_sample_spm/lib/main.dart'
       - 'apps/flutter_sample_spm/lib/src/app.dart'
       - 'apps/flutter_sample_spm/lib/src/auth.dart'
+      - 'apps/flutter_sample_spm/lib/src/components/text_field_label.dart'
       - 'apps/flutter_sample_spm/lib/src/customer_io.dart'
       - 'apps/flutter_sample_spm/lib/src/data/config.dart'
       - 'apps/flutter_sample_spm/lib/src/data/screen.dart'
