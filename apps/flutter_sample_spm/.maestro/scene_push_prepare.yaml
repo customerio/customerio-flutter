@@ -4,7 +4,10 @@ name: Flutter UIScene push routing, prepare
 - launchApp:
     clearState: false
     permissions:
-      notifications: allow
+      notifications: unset
+- tapOn:
+    text: "Don.t Allow"
+    optional: true
 - assertVisible: "First Name Input"
 - tapOn: "First Name Input"
 - inputText: "Maestro Scene Tester"
