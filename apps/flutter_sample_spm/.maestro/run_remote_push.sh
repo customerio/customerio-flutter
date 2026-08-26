@@ -31,6 +31,10 @@ for required_command in curl flutter git jq maestro plutil python3 ruby xcodebui
   command -v "$required_command" >/dev/null 2>&1 || die "required command '$required_command' is not installed"
 done
 
+"$APP_DIR/../scripts/verify_xcode27_flutter_version.sh" --installed
+maestro_version="$(MAESTRO_CLI_NO_ANALYTICS=1 maestro --version | tr -d '\r')"
+[[ "$maestro_version" == "2.8.0" ]] || die "Maestro 2.8.0 is required; found '$maestro_version'"
+
 [[ -n "${MAESTRO_APP_API_KEY:-}" ]] || die "MAESTRO_APP_API_KEY is missing; set it or create .maestro/.env"
 [[ "$MAESTRO_APP_API_KEY" != *paste-* ]] || die "MAESTRO_APP_API_KEY still contains a placeholder"
 [[ -n "${FLUTTER_CDP_API_KEY:-}" ]] || die "FLUTTER_CDP_API_KEY is missing; set it or create .maestro/.env"

@@ -26,7 +26,7 @@ apps/flutter_sample_spm/.maestro/run_scene_push.sh
 `run_remote_push.sh` covers that separate backend boundary through the sample's
 existing FCM integration. Put a read-only App API key and the `Flutter Testbed`
 Pipelines source API key in `.maestro/.env` as shown by
-`.maestro/.env.example`, then run:
+`.maestro/.env.example`. Use Flutter 3.44.8 and Maestro 2.8.0, then run:
 
 ```bash
 apps/flutter_sample_spm/.maestro/run_remote_push.sh
