@@ -245,6 +245,10 @@ jobs:
             <<< "$devices_json")"
           test -n "$runtime_id"
           test -n "$device_type_id"
+          # The preview image can fail first-boot data migration when two iOS 27
+          # simulators are booted concurrently. The source simulator is no longer
+          # needed after the launch assertions above.
+          xcrun simctl shutdown "$SOURCE_SIMULATOR_UDID"
           simulator_udid="$(xcrun simctl create \
             "CIO Flutter E2E ${GITHUB_RUN_ID:?}-${GITHUB_RUN_ATTEMPT:?}" \
             "$device_type_id" \
