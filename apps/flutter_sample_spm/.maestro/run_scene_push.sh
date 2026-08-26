@@ -230,9 +230,11 @@ maestro "${prepare_args[@]}"
 xcrun simctl terminate "$device_id" "$APP_ID"
 terminated=false
 for _ in {1..20}; do
-  if ! xcrun simctl spawn "$device_id" launchctl list | grep -Fq "$APP_ID"; then
-    terminated=true
-    break
+  if launch_jobs="$(xcrun simctl spawn "$device_id" launchctl list 2>/dev/null)"; then
+    if ! grep -Fq "$APP_ID" <<< "$launch_jobs"; then
+      terminated=true
+      break
+    fi
   fi
   sleep 0.25
 done
