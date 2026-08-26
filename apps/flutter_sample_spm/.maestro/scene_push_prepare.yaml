@@ -3,6 +3,8 @@ name: Flutter UIScene push routing, prepare
 ---
 - launchApp:
     clearState: false
+    arguments:
+      "--cio-e2e-request-notification-permission": true
     permissions:
       location: never
       notifications: allow
