@@ -3,9 +3,14 @@ name: Flutter UIScene push routing, prepare
 ---
 - launchApp:
     clearState: false
+    arguments:
+      "--cio-e2e-request-notification-permission": true
     permissions:
       location: never
-      notifications: unset
+- extendedWaitUntil:
+    visible: "^(Allow|Allow Notifications)$"
+    timeout: 15000
+- tapOn: "^(Allow|Allow Notifications)$"
 - assertVisible: "First Name Input"
 - tapOn: "First Name Input"
 - inputText: "Maestro Scene Tester"
@@ -15,28 +20,3 @@ name: Flutter UIScene push routing, prepare
 - extendedWaitUntil:
     visible: "Custom Event Button"
     timeout: 10000
-- scrollUntilVisible:
-    element: "Show Push Prompt Button"
-    direction: DOWN
-    timeout: 10000
-    centerElement: true
-- tapOn: "Show Push Prompt Button"
-- extendedWaitUntil:
-    visible: "^(Allow|Push notifications are enabled on this device)$"
-    timeout: 15000
-- runFlow:
-    when:
-      visible: "^Allow$"
-    commands:
-      - tapOn: "^Allow$"
-      - extendedWaitUntil:
-          visible: "Show Push Prompt Button"
-          timeout: 10000
-      - extendedWaitUntil:
-          notVisible: "Push notifications are enabled on this device"
-          timeout: 10000
-      - tapOn: "Show Push Prompt Button"
-- extendedWaitUntil:
-    visible: "Push notifications are enabled on this device"
-    timeout: 15000
-- assertVisible: "Push Permission"

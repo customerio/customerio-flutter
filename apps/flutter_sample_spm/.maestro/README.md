@@ -8,6 +8,10 @@ the notification tap passed through the native SDK callback and Flutter's
 router to the Settings destination. Without the callback bridge in #399, the
 same URL opens outside the app and the assertion fails.
 
+The test-only launch argument makes the sample call the system authorization
+API, and Maestro accepts the real system prompt. A missing grant is then caught
+before the notification-routing assertion can pass.
+
 The runner temporarily builds with the checked-in placeholder workspace
 configuration, then restores any developer-local configuration before exit.
 When it builds locally, it runs `flutter clean` to prevent stale Flutter/Xcode
@@ -15,7 +19,8 @@ module caches from invalidating the result.
 
 The checked-in payload uses `simctl push` so the destination is deterministic
 and does not require changing a shared Customer.io campaign. It validates the
-client routing path, not backend `sent`, `delivered`, or `opened` metrics.
+client routing path, not backend `sent`, `delivered`, or `opened` metrics. Those
+metrics remain a separate remote E2E lane using a real workspace and APNs.
 
 Run with Flutter 3.44.8, Maestro 2.8.0, and a booted simulator:
 
