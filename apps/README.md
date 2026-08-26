@@ -91,10 +91,10 @@ topology key is required. `CioAppDelegateWrapper` continues to own SDK initializ
 registration, and notification-center callbacks in both modes. The standard Flutter
 `SceneDelegate` owns the host scene, while the Customer.io plugin registers its own scene adapter
 with each supported Flutter engine. A custom scene delegate must provide the equivalent Flutter
-scene lifecycle forwarding. Flutter requires manual registration only when multiple scenes are
-enabled and the target engine is not represented by the scene's root `FlutterViewController`
-during connection; the host scene delegate owns that scene-to-engine association. Do not add a
-second Customer.io URL handler to the scene delegate. AppDelegate-only samples keep their existing
+scene lifecycle forwarding. This release's compatibility scope is one simultaneous window scene,
+and both scene fixtures set `UIApplicationSupportsMultipleScenes=false`. Multiple simultaneous
+window scenes are not supported and remain host-owned. Do not add a second Customer.io URL handler
+to the scene delegate. AppDelegate-only samples keep their existing
 `application(_:open:options:)` handler unchanged.
 
 When upgrading an existing UIScene app that manually calls
@@ -105,3 +105,20 @@ Automatic UIScene redirect delivery uses Flutter's standard deep-link handling. 
 sets `FlutterDeepLinkingEnabled` to `false` keeps its existing lifecycle handler and resolves the
 Customer.io tracking URL with `CustomerIOLiveActivities.handleWidgetUrl` before forwarding the
 result to its custom router.
+
+For a UIScene host with Flutter deep linking enabled, the native plugin registers Customer.io's
+`deepLinkCallback` as Flutter registers its plugins. This routes SDK-triggered push and in-app
+destinations, plus native-default inbox actions when no Dart inbox listener owns the action,
+through a foreground Flutter scene, including taps delivered before Dart calls
+`CustomerIO.initialize`. This includes `http` and `https` destinations. Flutter's standard
+navigation APIs report delivered routes as handled, so the Dart router owns unknown-route and
+browser-opening policy. The plugin uses `UIApplication.open` only when the navigation channel
+reports the route as unhandled or no foreground engine becomes available. Do not also configure a
+native `SDKConfigBuilder.deepLinkCallback`; the native SDK exposes one callback slot.
+AppDelegate-only hosts keep their existing handoff, and setting `FlutterDeepLinkingEnabled` to
+`false` leaves routing with the host.
+
+An SDK-triggered destination does not carry a source `UIScene`. Within the supported one-window
+scope, the plugin routes it through the foreground application scene. Hosts that enable multiple
+simultaneous window scenes own scene-to-engine routing; which window receives an SDK-triggered
+destination is unspecified.

@@ -1,5 +1,5 @@
 import CioDataPipelines
-import CioInternalCommon
+@_spi(Internal) import CioInternalCommon
 import CioMessagingInApp
 import Flutter
 import UIKit
@@ -33,6 +33,7 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
         registrar.addMethodCallDelegate(instance, channel: instance.methodChannel)
 
         registerSceneDelegateIfSupported(instance, with: registrar)
+        registerSDKDeepLinkCallbackIfNeeded(instance)
 
         instance.inAppMessagingChannelHandler = CustomerIOInAppMessaging(with: registrar)
         #if canImport(CioLocation)
@@ -60,6 +61,24 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
             return
         }
         _ = registrar.perform(selector, with: instance.lifecycleHandler)
+    }
+
+    /// Install the callback while Flutter registers its native plugins. A cold push tap can reach
+    /// the native SDK before Dart calls `CustomerIO.initialize`, so initialization is too late.
+    private static func registerSDKDeepLinkCallbackIfNeeded(_ instance: CustomerIOPlugin) {
+        let lifecycleHandler = instance.lifecycleHandler
+        guard lifecycleHandler.shouldRegisterSDKDeepLinkCallback else { return }
+
+        DIGraphShared.shared.logger.info(
+            "Customer.io is routing SDK deep links through Flutter"
+        )
+        DIGraphShared.shared.deepLinkUtil.setDeepLinkCallback { [lifecycleHandler] url in
+            lifecycleHandler.handleSDKDeepLink(url)
+            // The native callback is synchronous, while Flutter reports its routing result
+            // asynchronously. Claim this handoff once; the Flutter router owns the final system-
+            // open fallback so the native SDK does not run a second fallback at the same time.
+            return true
+        }
     }
 
     deinit {

@@ -79,13 +79,24 @@ APNs token registration, and the global notification-center delegate. Flutter's 
 UI activation callbacks. In UIScene hosts, the plugin passes Customer.io Live Activity URLs to the
 released native URL handler and leaves ordinary links and user activities to Flutter.
 AppDelegate-only hosts keep the existing manual URL handler described above.
+When UIScene and Flutter deep linking are enabled, the plugin also becomes the native SDK's
+deep-link callback during plugin registration. The native callback is synchronous but Flutter's
+routing result is asynchronous, so the plugin claims the handoff and offers every SDK destination
+to Flutter, including `http` and `https` URLs. Flutter's standard navigation APIs report a delivered
+route as handled, so the host's Dart router owns unknown-route and browser-opening policy. The plugin
+uses `UIApplication.open` only when the navigation channel reports the route as unhandled or no
+foreground engine becomes available. This plugin callback and a native `SDKConfigBuilder`
+`deepLinkCallback` cannot be combined because the native SDK has one callback slot.
+This replaces the native SDK's AppDelegate continuation fallback only in that UIScene configuration;
+set `FlutterDeepLinkingEnabled` to `false` when the host owns a different scene router.
 Applications that declare UIScene must use Flutter 3.44.8 or newer and use
 `FlutterSceneDelegate`, or forward its lifecycle callbacks through Flutter's scene lifecycle
 provider. Customer.io cannot receive or diagnose callbacks that a custom scene delegate does not
-forward. Flutter requires manual engine registration only when both multiple scenes are enabled
-and the target engine is not represented by the scene's root `FlutterViewController` during
-connection. That registration belongs in the host scene delegate because only it knows the scene
-and engine pairing. Older Flutter registrars log an error and leave scene routing unclaimed.
+forward. This release's compatibility scope is one simultaneous window scene, matching the native
+and Flutter samples' `UIApplicationSupportsMultipleScenes=false` configuration. Multiple
+simultaneous window scenes are not supported. Hosts that enable them retain ownership of Flutter's
+scene-to-engine registration and any window-specific routing. Older Flutter registrars log an error
+and leave scene routing unclaimed.
 
 # Contributing
 

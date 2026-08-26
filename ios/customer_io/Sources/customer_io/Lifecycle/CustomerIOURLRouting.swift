@@ -49,6 +49,36 @@ enum CustomerIOURLRouting {
             !hasShortcut &&
             !hasNotificationResponse
     }
+
+    static func didFlutterHandle(_ result: Any?) -> Bool {
+        (result as? NSNumber)?.boolValue == true
+    }
+}
+
+enum CustomerIOViewControllerTraversal {
+    static func topmostFirst<Node: AnyObject>(
+        roots: [Node],
+        presentedViewController: (Node) -> Node?,
+        children: (Node) -> [Node]
+    ) -> [Node] {
+        var visited = Set<ObjectIdentifier>()
+        var ordered: [Node] = []
+
+        func visit(_ node: Node) {
+            guard visited.insert(ObjectIdentifier(node)).inserted else { return }
+
+            if let presented = presentedViewController(node) {
+                visit(presented)
+            }
+            for child in children(node).reversed() {
+                visit(child)
+            }
+            ordered.append(node)
+        }
+
+        roots.forEach(visit)
+        return ordered
+    }
 }
 
 /// Flutter can forward one UIKit occurrence through more than one engine's plugin chain. Cache the
