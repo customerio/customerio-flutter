@@ -9,26 +9,36 @@ on:
       - 'apps/flutter_sample_spm/.maestro/scene_push_open.yaml'
       - 'apps/flutter_sample_spm/.maestro/scene_push_prepare.yaml'
       - 'apps/flutter_sample_spm/.flutter-version'
+      - 'apps/flutter_sample_spm/.env.example'
       - 'apps/flutter_sample_spm/lib/main.dart'
       - 'apps/flutter_sample_spm/lib/src/app.dart'
+      - 'apps/flutter_sample_spm/lib/src/auth.dart'
+      - 'apps/flutter_sample_spm/lib/src/customer_io.dart'
+      - 'apps/flutter_sample_spm/lib/src/data/config.dart'
       - 'apps/flutter_sample_spm/lib/src/data/screen.dart'
+      - 'apps/flutter_sample_spm/lib/src/quick_action_probe.dart'
       - 'apps/flutter_sample_spm/lib/src/screens/dashboard.dart'
       - 'apps/flutter_sample_spm/lib/src/screens/login.dart'
       - 'apps/flutter_sample_spm/lib/src/screens/settings.dart'
       - 'apps/flutter_sample_spm/lib/src/utils/extensions.dart'
+      - 'apps/flutter_sample_spm/lib/src/widgets/settings_form_field.dart'
       - 'apps/flutter_sample_spm/ios/Runner/AppDelegate.swift'
       - 'apps/flutter_sample_spm/ios/Runner/PermissionChannelHandler.swift'
       - 'apps/flutter_sample_spm/ios/Runner/SceneDelegate.swift'
       - 'apps/flutter_sample_spm/ios/Runner/Info.plist'
       - 'apps/flutter_sample_spm/ios/Runner/Info-Scene.plist'
       - 'apps/flutter_sample_spm/ios/Runner.xcodeproj/project.pbxproj'
+      - 'apps/flutter_sample_spm/ios/Env.swift.example'
       - 'apps/flutter_sample_spm/pubspec.yaml'
       - 'apps/flutter_sample_spm/pubspec.lock'
       - 'apps/flutter_sample_cocoapods/.flutter-version'
+      - 'apps/scripts/setup_env.sh'
       - 'apps/scripts/verify_xcode27_flutter_version.sh'
+      - 'ios/customer_io/Package.swift'
       - 'ios/customer_io/Sources/customer_io/CustomerIOPlugin.swift'
       - 'ios/customer_io/Sources/customer_io/Lifecycle/**'
       - 'ios/customer_io/Sources/customer_io/LiveActivities/**'
+      - 'pubspec.yaml'
   schedule:
     # Native runs one hour earlier; Expo runs one hour later.
     - cron: '17 6 * * *'
@@ -48,10 +58,6 @@ jobs:
     timeout-minutes: 45
     strategy:
       fail-fast: false
-      # The launch helper explicitly does not support shared simulator ownership.
-      # Serializing the matrix prevents one fixture from interrupting the other's
-      # launch, permission prompt, or notification interaction.
-      max-parallel: 1
       matrix:
         include:
           - app: flutter_sample_spm

@@ -29,32 +29,39 @@ if [[ "$maestro_version" != '2.8.0' ]]; then
   exit 2
 fi
 
+runtime_major="${E2E_IOS_RUNTIME_MAJOR:-27}"
+runtime_fragment=".iOS-${runtime_major}-"
+simulator_devices="$(xcrun simctl list devices available -j)"
 device_id="${E2E_DEVICE_ID:-}"
 simulator_name="${E2E_SIMULATOR_NAME:-}"
 if [[ -z "$device_id" && -n "$simulator_name" ]]; then
-  device_id="$(xcrun simctl list devices available -j | jq -r --arg name "$simulator_name" \
-    '[.devices[][] | select(.name == $name)][0].udid // empty')"
+  device_id="$(jq -r --arg name "$simulator_name" --arg runtime "$runtime_fragment" \
+    '[.devices | to_entries[] | select(.key | contains($runtime)) | .value[] | select(.name == $name)][0].udid // empty' \
+    <<< "$simulator_devices")"
 fi
 if [[ -z "$device_id" && -z "$simulator_name" ]]; then
-  device_id="$(xcrun simctl list devices booted -j | jq -r \
-    '[.devices[][] | select(.state == "Booted") | select(.name | startswith("iPhone"))][0].udid // empty')"
+  device_id="$(jq -r --arg runtime "$runtime_fragment" \
+    '[.devices | to_entries[] | select(.key | contains($runtime)) | .value[] | select(.state == "Booted") | select(.name | startswith("iPhone"))][0].udid // empty' \
+    <<< "$simulator_devices")"
 fi
 if [[ -z "$device_id" ]]; then
   simulator_name="${simulator_name:-iPhone 17 Pro}"
-  device_id="$(xcrun simctl list devices available -j | jq -r --arg name "$simulator_name" \
-    '[.devices[][] | select(.name == $name)][0].udid // empty')"
+  device_id="$(jq -r --arg name "$simulator_name" --arg runtime "$runtime_fragment" \
+    '[.devices | to_entries[] | select(.key | contains($runtime)) | .value[] | select(.name == $name)][0].udid // empty' \
+    <<< "$simulator_devices")"
   if [[ -z "$device_id" ]]; then
-    echo "error: no available '$simulator_name' simulator; set E2E_DEVICE_ID or E2E_SIMULATOR_NAME" >&2
+    echo "error: no available '$simulator_name' simulator on iOS $runtime_major; set E2E_DEVICE_ID or E2E_SIMULATOR_NAME" >&2
     exit 2
   fi
 fi
-simulator_started_by_runner=false
-if ! xcrun simctl list devices booted -j | jq -e --arg id "$device_id" \
-  'any(.devices[][]; .udid == $id and .state == "Booted")' >/dev/null; then
-  xcrun simctl boot "$device_id"
-  simulator_started_by_runner=true
+runtime_id="$(jq -r --arg id "$device_id" \
+  '[.devices | to_entries[] | select(any(.value[]; .udid == $id))][0].key // empty' \
+  <<< "$simulator_devices")"
+if [[ "$runtime_id" != *"$runtime_fragment"* ]]; then
+  echo "error: selected simulator runtime '$runtime_id' is not iOS $runtime_major" >&2
+  exit 2
 fi
-xcrun simctl bootstatus "$device_id" -b
+simulator_started_by_runner=false
 
 cd "$APP_DIR"
 cleanup() {
@@ -90,6 +97,13 @@ cleanup() {
   fi
 }
 trap cleanup EXIT
+
+if ! jq -e --arg id "$device_id" \
+  'any(.devices[][]; .udid == $id and .state == "Booted")' <<< "$simulator_devices" >/dev/null; then
+  xcrun simctl boot "$device_id"
+  simulator_started_by_runner=true
+fi
+xcrun simctl bootstatus "$device_id" -b
 
 run_notification_flow() {
   local flow="$1"
@@ -213,5 +227,17 @@ if [[ -n "${RUNNER_TEMP:-}" ]]; then
   )
 fi
 maestro "${prepare_args[@]}"
-xcrun simctl terminate "$device_id" "$APP_ID" >/dev/null 2>&1 || true
+xcrun simctl terminate "$device_id" "$APP_ID"
+terminated=false
+for _ in {1..20}; do
+  if ! xcrun simctl spawn "$device_id" launchctl list | grep -Fq "$APP_ID"; then
+    terminated=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$terminated" != true ]]; then
+  echo "error: app was still running after simctl terminate; cold notification routing was not exercised" >&2
+  exit 1
+fi
 run_notification_flow .maestro/scene_push_open.yaml .maestro/fixtures/customerio_scene_settings.apns

@@ -32,6 +32,9 @@ name: Flutter UIScene push routing, prepare
       - extendedWaitUntil:
           visible: "Show Push Prompt Button"
           timeout: 10000
+      - extendedWaitUntil:
+          notVisible: "Push notifications are enabled on this device"
+          timeout: 10000
       - tapOn: "Show Push Prompt Button"
 - extendedWaitUntil:
     visible: "Push notifications are enabled on this device"
