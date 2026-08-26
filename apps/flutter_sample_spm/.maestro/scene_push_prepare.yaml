@@ -3,8 +3,6 @@ name: Flutter UIScene push routing, prepare
 ---
 - launchApp:
     clearState: false
-    arguments:
-      "--cio-e2e-request-notification-permission": true
     permissions:
       location: never
       notifications: allow
@@ -25,4 +23,6 @@ name: Flutter UIScene push routing, prepare
 - extendedWaitUntil:
     visible: "Push notifications are enabled on this device"
     timeout: 15000
-- tapOn: "^OK$"
+- tapOn:
+    text: "^OK$"
+    optional: true

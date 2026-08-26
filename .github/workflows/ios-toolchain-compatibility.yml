@@ -5,7 +5,6 @@ on:
     paths:
       - '.github/workflows/ios-toolchain-compatibility.yml'
       - 'apps/flutter_sample_spm/.maestro/**'
-      - 'apps/flutter_sample_spm/ios/Runner/AppDelegate.swift'
   schedule:
     # Native runs one hour earlier; Expo runs one hour later.
     - cron: '17 6 * * *'
@@ -25,6 +24,10 @@ jobs:
     timeout-minutes: 45
     strategy:
       fail-fast: false
+      # The launch helper explicitly does not support shared simulator ownership.
+      # Serializing the matrix prevents one fixture from interrupting the other's
+      # launch, permission prompt, or notification interaction.
+      max-parallel: 1
       matrix:
         include:
           - app: flutter_sample_spm
