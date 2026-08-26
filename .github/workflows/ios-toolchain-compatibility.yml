@@ -6,6 +6,12 @@ on:
       - '.github/workflows/ios-toolchain-compatibility.yml'
       - 'apps/flutter_sample_spm/.maestro/**'
       - 'apps/flutter_sample_spm/ios/Runner/AppDelegate.swift'
+      - 'apps/flutter_sample_spm/ios/Runner/SceneDelegate.swift'
+      - 'apps/flutter_sample_spm/ios/Runner/Info-Scene.plist'
+      - 'apps/flutter_sample_spm/ios/Runner.xcodeproj/project.pbxproj'
+      - 'ios/customer_io/Sources/customer_io/CustomerIOPlugin.swift'
+      - 'ios/customer_io/Sources/customer_io/Lifecycle/**'
+      - 'ios/customer_io/Sources/customer_io/LiveActivities/**'
   schedule:
     # Native runs one hour earlier; Expo runs one hour later.
     - cron: '17 6 * * *'
