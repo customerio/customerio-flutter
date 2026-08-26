@@ -75,14 +75,6 @@ class AppDelegateWithCioIntegration: CioAppDelegateWrapper<AppDelegate> {}
         // Setting the AppDelegate to be the handler will internally use `flutter_local_notifications` to handle the push event.
         UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
 
-        if ProcessInfo.processInfo.arguments.contains(where: {
-            $0.hasPrefix("--cio-e2e-request-notification-permission")
-        }) {
-            UNUserNotificationCenter.current().requestAuthorization(
-                options: [.alert, .badge, .sound]
-            ) { _, _ in }
-        }
-
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
     
