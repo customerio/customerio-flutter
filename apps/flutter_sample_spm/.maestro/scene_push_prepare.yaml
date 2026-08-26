@@ -19,10 +19,16 @@ name: Flutter UIScene push routing, prepare
     element: "Show Push Prompt Button"
     direction: DOWN
     timeout: 10000
+    centerElement: true
 - tapOn: "Show Push Prompt Button"
-- tapOn:
-    text: "^Allow$"
-    optional: true
+- extendedWaitUntil:
+    visible: "^(Allow|Push notifications are enabled on this device)$"
+    timeout: 15000
+- runFlow:
+    when:
+      visible: "^Allow$"
+    commands:
+      - tapOn: "^Allow$"
 - extendedWaitUntil:
     visible: "Push notifications are enabled on this device"
     timeout: 15000

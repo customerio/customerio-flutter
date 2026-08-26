@@ -21,9 +21,8 @@ permissions:
   contents: read
 
 concurrency:
-  # The shared Xcode 27 host does not support concurrent simulator ownership.
-  group: ${{ github.workflow }}-shared-simulator
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   compile:

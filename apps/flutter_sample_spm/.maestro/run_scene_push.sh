@@ -48,7 +48,12 @@ if [[ -z "$device_id" ]]; then
     exit 2
   fi
 fi
-xcrun simctl boot "$device_id" >/dev/null 2>&1 || true
+simulator_started_by_runner=false
+if ! xcrun simctl list devices booted -j | jq -e --arg id "$device_id" \
+  'any(.devices[][]; .udid == $id and .state == "Booted")' >/dev/null; then
+  xcrun simctl boot "$device_id"
+  simulator_started_by_runner=true
+fi
 xcrun simctl bootstatus "$device_id" -b
 
 cd "$APP_DIR"
@@ -63,6 +68,9 @@ cleanup() {
   if [[ "$installed_app" == true ]]; then
     xcrun simctl terminate "$device_id" "$APP_ID" >/dev/null 2>&1 || true
     xcrun simctl uninstall "$device_id" "$APP_ID" >/dev/null 2>&1 || true
+  fi
+  if [[ "$simulator_started_by_runner" == true ]]; then
+    xcrun simctl shutdown "$device_id" >/dev/null 2>&1 || true
   fi
   if [[ -n "$config_backup" ]]; then
     if [[ "$config_replacement_started" == true ]]; then
