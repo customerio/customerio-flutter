@@ -62,7 +62,7 @@ cleanup() {
     kill "$flow_pid" >/dev/null 2>&1 || true
     wait "$flow_pid" 2>/dev/null || true
   fi
-  if [[ -n "$flow_log" ]]; then
+  if [[ -n "$flow_log" && -z "${RUNNER_TEMP:-}" ]]; then
     rm -f "$flow_log"
   fi
   if [[ "$installed_app" == true ]]; then
@@ -112,7 +112,11 @@ run_notification_flow() {
 
   # Injection must happen after Maestro's iOS driver is active; starting a second
   # Maestro session after injection dismisses the notification banner.
-  flow_log="$(mktemp "${TMPDIR:-/tmp}/cio-flutter-maestro-flow.XXXXXX")"
+  if [[ -n "${RUNNER_TEMP:-}" ]]; then
+    flow_log="$RUNNER_TEMP/flutter_sample_spm-maestro-$flow_name.log"
+  else
+    flow_log="$(mktemp "${TMPDIR:-/tmp}/cio-flutter-maestro-flow.XXXXXX")"
+  fi
   maestro "${maestro_args[@]}" > >(tee "$flow_log") 2>&1 &
   flow_pid=$!
 
@@ -155,7 +159,9 @@ run_notification_flow() {
     return 1
   fi
   flow_pid=""
-  rm -f "$flow_log"
+  if [[ -z "${RUNNER_TEMP:-}" ]]; then
+    rm -f "$flow_log"
+  fi
   flow_log=""
 }
 
