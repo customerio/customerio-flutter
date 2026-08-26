@@ -99,9 +99,11 @@ name: Flutter FCM delivery and opened attribution
 - assertTrue: ${output.message_id.length > 0}
 
 - swipe:
-    start: 50%, 1%
-    end: 50%, 75%
-    duration: 800
+    start: 20%, 1%
+    end: 20%, 90%
+    duration: 900
+- waitForAnimationToEnd:
+    timeout: 2000
 - extendedWaitUntil:
     visible: "This is a rich push.*"
     timeout: 15000
