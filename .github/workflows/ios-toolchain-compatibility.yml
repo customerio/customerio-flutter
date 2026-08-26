@@ -4,7 +4,10 @@ on:
   pull_request:
     paths:
       - '.github/workflows/ios-toolchain-compatibility.yml'
-      - 'apps/flutter_sample_spm/.maestro/**'
+      - 'apps/flutter_sample_spm/.maestro/fixtures/customerio_scene_settings.apns'
+      - 'apps/flutter_sample_spm/.maestro/run_scene_push.sh'
+      - 'apps/flutter_sample_spm/.maestro/scene_push_open.yaml'
+      - 'apps/flutter_sample_spm/.maestro/scene_push_prepare.yaml'
       - 'apps/flutter_sample_spm/ios/Runner/AppDelegate.swift'
       - 'apps/flutter_sample_spm/ios/Runner/SceneDelegate.swift'
       - 'apps/flutter_sample_spm/ios/Runner/Info-Scene.plist'
