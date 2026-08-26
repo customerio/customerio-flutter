@@ -39,9 +39,10 @@ Notification Center. It then attempts the real system-notification activation
 and requires the app to reopen plus the same message's `opened` metric.
 Terminated scene routing is covered separately by `run_scene_push.sh`.
 
-The activation gate is intentionally strict. On the supported simulator,
-Notification Center requires selecting the notification and then its system
-Open action by coordinate. The runner accepts that interaction only when the
-app reopens and Customer.io records `opened` for the exact delivered message.
+The activation gate is intentionally strict and requires an iPhone 17 Pro
+simulator. Notification Center is not exposed reliably through iOS
+accessibility, so the flow selects the notification and its system Open action
+by coordinate. The runner accepts that interaction only when the app reopens
+and Customer.io records `opened` for the exact delivered message.
 Pull requests do not receive the required workspace credentials, so this stays
 a local or trusted pre-release check rather than a required PR lane.

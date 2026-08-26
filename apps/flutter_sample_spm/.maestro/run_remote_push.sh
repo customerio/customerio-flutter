@@ -75,6 +75,10 @@ if [[ -z "$device_id" ]]; then
     '[.devices[][] | select(.name == $name)][0].udid // empty')"
 fi
 [[ -n "$device_id" ]] || die "no available iPhone simulator; set E2E_DEVICE_ID or E2E_SIMULATOR_NAME"
+device_type="$(xcrun simctl list devices available -j | jq -r --arg id "$device_id" \
+  '[.devices[][] | select(.udid == $id)][0].deviceTypeIdentifier // empty')"
+[[ "$device_type" == "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro" ]] || \
+  die "remote push activation requires an iPhone 17 Pro simulator; selected device type is '${device_type:-unknown}'"
 simulator_started_by_runner=false
 if ! xcrun simctl list devices booted -j | jq -e --arg id "$device_id" \
   'any(.devices[][]; .udid == $id and .state == "Booted")' >/dev/null; then
@@ -218,6 +222,7 @@ maestro --device "$device_id" test \
   --debug-output "$artifacts" \
   --flatten-debug-output \
   -e "APP_ID=$APP_ID" \
+  -e "ARTIFACT_DIR=$artifacts" \
   -e "MAESTRO_APP_API_KEY=$MAESTRO_APP_API_KEY" \
   -e "MAESTRO_EXT_API_BASE_URL=$MAESTRO_EXT_API_BASE_URL" \
   -e "RUN_EMAIL=$run_email" \
