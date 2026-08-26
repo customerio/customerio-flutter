@@ -233,8 +233,28 @@ jobs:
         shell: bash
         env:
           CIO_E2E_APP_PATH: ${{ runner.temp }}/${{ matrix.app }}-scene-xcode-27/Build/Products/Debug-iphonesimulator/Runner.app
-          E2E_DEVICE_ID: ${{ steps.scene-launch.outputs.simulator-udid }}
-        run: apps/flutter_sample_spm/.maestro/run_scene_push.sh
+          SOURCE_SIMULATOR_UDID: ${{ steps.scene-launch.outputs.simulator-udid }}
+        run: |
+          set -euo pipefail
+          devices_json="$(xcrun simctl list devices available -j)"
+          runtime_id="$(jq -r --arg id "$SOURCE_SIMULATOR_UDID" \
+            '[.devices | to_entries[] | select(any(.value[]; .udid == $id))][0].key // empty' \
+            <<< "$devices_json")"
+          device_type_id="$(jq -r --arg id "$SOURCE_SIMULATOR_UDID" \
+            '[.devices[][] | select(.udid == $id)][0].deviceTypeIdentifier // empty' \
+            <<< "$devices_json")"
+          test -n "$runtime_id"
+          test -n "$device_type_id"
+          simulator_udid="$(xcrun simctl create \
+            "CIO Flutter E2E ${GITHUB_RUN_ID:?}-${GITHUB_RUN_ATTEMPT:?}" \
+            "$device_type_id" \
+            "$runtime_id")"
+          cleanup() {
+            xcrun simctl shutdown "$simulator_udid" >/dev/null 2>&1 || true
+            xcrun simctl delete "$simulator_udid" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          E2E_DEVICE_ID="$simulator_udid" apps/flutter_sample_spm/.maestro/run_scene_push.sh
 
       - name: Record launch result
         if: always() && steps.scene-launch.outcome == 'success'
