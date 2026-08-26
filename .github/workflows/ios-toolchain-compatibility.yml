@@ -264,6 +264,14 @@ jobs:
             echo '**Next step:** inspect the uploaded Maestro diagnostics; notification authorization or injection failed, the notification was not tapped, or its destination did not reach Flutter'
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Upload Maestro diagnostics
+        if: always() && matrix.manager == 'SwiftPM'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: xcode-27-preview-${{ matrix.app }}-maestro-diagnostics
+          path: ${{ runner.temp }}/flutter_sample_spm-maestro-*
+          if-no-files-found: ignore
+
       - name: Record compile failure
         if: failure() && steps.compile.outcome == 'failure'
         shell: bash
