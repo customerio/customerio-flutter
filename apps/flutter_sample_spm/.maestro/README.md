@@ -42,7 +42,8 @@ Terminated scene routing is covered separately by `run_scene_push.sh`.
 The activation gate is intentionally strict and requires an iPhone 17 Pro
 simulator. Notification Center is not exposed reliably through iOS
 accessibility, so the flow selects the notification and its system Open action
-by coordinate. Customer.io must record `opened` for the exact delivered message
-before the runner accepts that interaction.
+by coordinate. The sample must return to its foreground screen and Customer.io
+must record `opened` for the exact delivered message before the runner accepts
+that interaction.
 Pull requests do not receive the required workspace credentials, so this stays
 a local or trusted pre-release check rather than a required PR lane.

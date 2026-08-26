@@ -42,6 +42,7 @@ name: Flutter FCM delivery and opened attribution
 - extendedWaitUntil:
     visible: "Push notifications are enabled on this device"
     timeout: 15000
+- assertVisible: "Push Permission"
 - runFlow:
     when:
       visible: "OK"
@@ -128,7 +129,7 @@ name: Flutter FCM delivery and opened attribution
 - tapOn:
     point: "50%,82%"
 - waitForAnimationToEnd:
-    timeout: 1000
+    timeout: 4000
 - runFlow:
     when:
       notVisible: "Custom Event Button"

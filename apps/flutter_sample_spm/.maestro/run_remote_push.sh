@@ -18,7 +18,8 @@ if [[ -f "$MAESTRO_DIR/.env" ]]; then
 fi
 : "${MAESTRO_APP_API_KEY:=${MAESTRO_EXT_API_KEY:-}}"
 : "${MAESTRO_EXT_API_BASE_URL:=https://api.customer.io/v1}"
-export -n MAESTRO_APP_API_KEY MAESTRO_EXT_API_BASE_URL FLUTTER_CDP_API_KEY 2>/dev/null || true
+export -n MAESTRO_APP_API_KEY MAESTRO_EXT_API_KEY MAESTRO_EXT_API_BASE_URL \
+  FLUTTER_CDP_API_KEY IOS_CDP_API_KEY 2>/dev/null || true
 
 die() {
   echo "error: $*" >&2
