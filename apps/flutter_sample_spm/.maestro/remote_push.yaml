@@ -105,7 +105,17 @@ name: Flutter FCM delivery and opened attribution
 - extendedWaitUntil:
     visible: "This is a rich push.*"
     timeout: 15000
-- tapOn: "This is a rich push.*"
+- takeScreenshot: remote_push_notification_center
+# Notification Center exposes the notification text to Maestro, but a text tap
+# does not activate the SpringBoard cell on the supported simulator runtime.
+# Select the visible notification, then use its system Open action. The exact
+# message-id assertion below prevents a coordinate tap from producing a false pass.
+- tapOn:
+    point: "50%,82%"
+- waitForAnimationToEnd:
+    timeout: 1000
+- tapOn:
+    point: "15%,82%"
 - extendedWaitUntil:
     visible: "Custom Event Button"
     timeout: 15000

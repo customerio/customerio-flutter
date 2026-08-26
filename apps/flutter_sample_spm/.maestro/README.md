@@ -39,8 +39,9 @@ Notification Center. It then attempts the real system-notification activation
 and requires the app to reopen plus the same message's `opened` metric.
 Terminated scene routing is covered separately by `run_scene_push.sh`.
 
-The activation gate is intentionally strict. Maestro 2.8.0 currently locates
-and taps the iOS 26.5 SpringBoard notification without activating the app, so
-the runner remains a local reproducer rather than a mergeable CI lane until
-that automation boundary is resolved. Pull requests also do not receive the
-required workspace credentials.
+The activation gate is intentionally strict. On the supported simulator,
+Notification Center requires selecting the notification and then its system
+Open action by coordinate. The runner accepts that interaction only when the
+app reopens and Customer.io records `opened` for the exact delivered message.
+Pull requests do not receive the required workspace credentials, so this stays
+a local or trusted pre-release check rather than a required PR lane.
