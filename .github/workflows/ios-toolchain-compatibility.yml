@@ -14,8 +14,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
-  cancel-in-progress: true
+  # The shared Xcode 27 host does not support concurrent simulator ownership.
+  group: ${{ github.workflow }}-shared-simulator
+  cancel-in-progress: false
 
 jobs:
   compile:
@@ -274,6 +275,7 @@ jobs:
           name: xcode-27-preview-${{ matrix.app }}-maestro-diagnostics
           path: ${{ runner.temp }}/flutter_sample_spm-maestro-*
           if-no-files-found: ignore
+          retention-days: 7
 
       - name: Record compile failure
         if: failure() && steps.compile.outcome == 'failure'
@@ -369,8 +371,6 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: xcode-27-preview-${{ matrix.app }}-build-log
-          path: |
-            ${{ runner.temp }}/${{ matrix.app }}-*.log
-            ${{ runner.temp }}/${{ matrix.app }}-maestro-*
+          path: ${{ runner.temp }}/${{ matrix.app }}-*.log
           if-no-files-found: ignore
           retention-days: 7

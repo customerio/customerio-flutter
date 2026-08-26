@@ -23,6 +23,11 @@ for command in flutter jq maestro xcodebuild xcrun; do
     exit 2
   }
 done
+maestro_version="$(maestro --version | tr -d '\r')"
+if [[ "$maestro_version" != '2.8.0' ]]; then
+  echo "error: Maestro 2.8.0 is required; found '$maestro_version'" >&2
+  exit 2
+fi
 
 device_id="${E2E_DEVICE_ID:-}"
 simulator_name="${E2E_SIMULATOR_NAME:-}"
@@ -193,5 +198,5 @@ if [[ -n "${RUNNER_TEMP:-}" ]]; then
   )
 fi
 maestro "${prepare_args[@]}"
-xcrun simctl terminate "$device_id" "$APP_ID"
+xcrun simctl terminate "$device_id" "$APP_ID" >/dev/null 2>&1 || true
 run_notification_flow .maestro/scene_push_open.yaml .maestro/fixtures/customerio_scene_settings.apns
