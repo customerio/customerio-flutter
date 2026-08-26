@@ -23,7 +23,7 @@ for command in flutter jq maestro xcodebuild xcrun; do
     exit 2
   }
 done
-maestro_version="$(maestro --version | tr -d '\r')"
+maestro_version="$(MAESTRO_CLI_NO_ANALYTICS=1 maestro --version | tr -d '\r')"
 if [[ "$maestro_version" != '2.8.0' ]]; then
   echo "error: Maestro 2.8.0 is required; found '$maestro_version'" >&2
   exit 2
