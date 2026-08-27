@@ -31,7 +31,8 @@ apps/flutter_sample_spm/.maestro/run_scene_push.sh
 `run_remote_push.sh` covers that separate backend boundary through the sample's
 existing FCM integration. Put a read-only App API key and the `Flutter Testbed`
 Pipelines source API key in `.maestro/.env` as shown by
-`.maestro/.env.example`. Use Flutter 3.44.8 and Maestro 2.8.0, then run:
+`.maestro/.env.example`. Use Flutter 3.44.8, Maestro 2.8.0, and an installed
+iPhone 17 Pro simulator runtime, then run:
 
 ```bash
 apps/flutter_sample_spm/.maestro/run_remote_push.sh
@@ -44,11 +45,13 @@ then attempts the real system-notification activation and requires the same
 message's `opened` metric.
 Terminated scene routing is covered separately by `run_scene_push.sh`.
 
-The activation gate is intentionally strict and requires an iPhone 17 Pro
-simulator. Notification Center is not exposed reliably through iOS
-accessibility, so the flow selects the notification and its system Open action
-by coordinate. The sample must return to its foreground screen and Customer.io
-must record `opened` for the exact delivered message before the runner accepts
-that interaction.
-Pull requests do not receive the required workspace credentials, so this stays
-a local or trusted pre-release check rather than a required PR lane.
+The activation gate creates a disposable iPhone 17 Pro simulator so stale
+notifications cannot alter SpringBoard grouping. It locates the Flutter
+notification through accessibility, reveals its system `Open` action, and
+activates that action without screen coordinates. The sample must return to its
+foreground screen and Customer.io must record `opened` for the exact delivered
+message before the runner accepts that interaction.
+
+In GitHub Actions, apply the `run-remote-push-e2e` label to a trusted,
+same-repository pull request to run this release check once for its current
+head. It does not run for ordinary pull-request updates or on a schedule.

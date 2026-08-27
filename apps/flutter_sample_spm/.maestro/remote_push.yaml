@@ -110,10 +110,6 @@ name: Flutter FCM delivery and opened attribution
 - assertTrue: ${output.assert_ok === "true"}
 - assertTrue: ${output.message_id.length > 0}
 
-- runScript:
-    file: ../scripts/wait.js
-    env:
-      WAIT_MS: "5000"
 - waitForAnimationToEnd:
     timeout: 3000
 - swipe:
@@ -122,20 +118,29 @@ name: Flutter FCM delivery and opened attribution
     duration: 900
 - waitForAnimationToEnd:
     timeout: 2000
+- extendedWaitUntil:
+    visible:
+      id: "ListCell"
+      text: "(?i)^flutter,.*"
+    timeout: 60000
 - takeScreenshot: ${ARTIFACT_DIR}/remote_push_notification_center
-# Notification Center is not exposed reliably through iOS accessibility.
-# Select the notification and its system Open action using the proven iPhone 17
-# Pro coordinates. The exact message-id assertion below prevents a false pass.
+# SpringBoard exposes the notification row and its swipe action through
+# accessibility. Reveal the action from the Flutter notification itself so the
+# flow does not depend on notification order, screen size, or fixed coordinates.
+- swipe:
+    from:
+      id: "ListCell"
+      text: "(?i)^flutter,.*"
+    direction: RIGHT
+    duration: 500
+- extendedWaitUntil:
+    visible:
+      id: "swipe-action-button-identifier"
+      text: "^Open$"
+    timeout: 10000
 - tapOn:
-    point: "50%,82%"
-- waitForAnimationToEnd:
-    timeout: 4000
-- runFlow:
-    when:
-      notVisible: "Custom Event Button"
-    commands:
-      - tapOn:
-          point: "15%,82%"
+    id: "swipe-action-button-identifier"
+    text: "^Open$"
 - extendedWaitUntil:
     visible: "Custom Event Button"
     timeout: 15000

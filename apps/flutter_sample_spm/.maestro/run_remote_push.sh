@@ -58,32 +58,40 @@ campaign_event="$(printf '%s' "$campaign_body" | jq -r '.campaign.event_name // 
 [[ "$campaign_name" == "send_push" && "$campaign_event" == "send_push" ]] || \
   die "campaign 18 is not the expected Mobile: Flutter send_push automation"
 
-device_id="${E2E_DEVICE_ID:-}"
-simulator_name="${E2E_SIMULATOR_NAME:-}"
-if [[ -z "$device_id" && -n "$simulator_name" ]]; then
-  device_id="$(xcrun simctl list devices available -j | jq -r --arg name "$simulator_name" \
-    '[.devices[][] | select(.name == $name)][0].udid // empty')"
+device_type="com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro"
+runtime_id=""
+if [[ -n "${E2E_DEVICE_ID:-}" ]]; then
+  devices_json="$(xcrun simctl list devices available -j)"
+  selected_device_type="$(jq -r --arg id "$E2E_DEVICE_ID" \
+    '[.devices[][] | select(.udid == $id)][0].deviceTypeIdentifier // empty' <<<"$devices_json")"
+  [[ "$selected_device_type" == "$device_type" ]] || \
+    die "E2E_DEVICE_ID must identify an available iPhone 17 Pro simulator"
+  runtime_id="$(jq -r --arg id "$E2E_DEVICE_ID" \
+    '[.devices | to_entries[] | select(any(.value[]; .udid == $id))][0].key // empty' <<<"$devices_json")"
+else
+  runtime_id="$(xcrun simctl list runtimes available -j | jq -r '
+    [.runtimes[]
+      | select(.isAvailable == true)
+      | select(.identifier | contains("SimRuntime.iOS-"))]
+    | sort_by(.version | split(".") | map(tonumber))
+    | last.identifier // empty
+  ')"
 fi
-if [[ -z "$device_id" ]]; then
-  device_id="$(xcrun simctl list devices booted -j | jq -r \
-    '[.devices[][] | select(.state == "Booted") | select(.name | startswith("iPhone"))][0].udid // empty')"
-fi
-if [[ -z "$device_id" ]]; then
-  simulator_name="${simulator_name:-iPhone 17 Pro}"
-  device_id="$(xcrun simctl list devices available -j | jq -r --arg name "$simulator_name" \
-    '[.devices[][] | select(.name == $name)][0].udid // empty')"
-fi
-[[ -n "$device_id" ]] || die "no available iPhone simulator; set E2E_DEVICE_ID or E2E_SIMULATOR_NAME"
-device_type="$(xcrun simctl list devices available -j | jq -r --arg id "$device_id" \
-  '[.devices[][] | select(.udid == $id)][0].deviceTypeIdentifier // empty')"
-[[ "$device_type" == "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro" ]] || \
-  die "remote push activation requires an iPhone 17 Pro simulator; selected device type is '${device_type:-unknown}'"
-simulator_started_by_runner=false
-if ! xcrun simctl list devices booted -j | jq -e --arg id "$device_id" \
-  'any(.devices[][]; .udid == $id and .state == "Booted")' >/dev/null; then
-  xcrun simctl boot "$device_id"
-  simulator_started_by_runner=true
-fi
+[[ -n "$runtime_id" ]] || die "could not resolve the selected simulator runtime"
+simulator_run_id="${GITHUB_RUN_ID:-$(date +%s)}-${GITHUB_RUN_ATTEMPT:-1}"
+device_id="$(xcrun simctl create \
+  "CIO Flutter Remote Push $simulator_run_id" \
+  "$device_type" \
+  "$runtime_id")"
+[[ -n "$device_id" ]] || die "failed to create a disposable iPhone 17 Pro simulator"
+
+# shellcheck disable=SC2329
+cleanup_created_simulator() {
+  xcrun simctl shutdown "$device_id" >/dev/null 2>&1 || true
+  xcrun simctl delete "$device_id" >/dev/null 2>&1 || true
+}
+trap cleanup_created_simulator EXIT
+xcrun simctl boot "$device_id"
 xcrun simctl bootstatus "$device_id" -b
 
 temp_base="${TMPDIR:-/tmp}"
@@ -116,9 +124,8 @@ cleanup() {
     xcrun simctl terminate "$device_id" "$APP_ID" >/dev/null 2>&1 || true
     xcrun simctl uninstall "$device_id" "$APP_ID" >/dev/null 2>&1 || true
   fi
-  if [[ "$simulator_started_by_runner" == true ]]; then
-    xcrun simctl shutdown "$device_id" >/dev/null 2>&1 || true
-  fi
+  xcrun simctl shutdown "$device_id" >/dev/null 2>&1 || true
+  xcrun simctl delete "$device_id" >/dev/null 2>&1 || true
   if [[ "$config_replacement_started" == true ]]; then
     if [[ "$had_dotenv" == true ]]; then
       cp "$dotenv_backup" "$dotenv"
