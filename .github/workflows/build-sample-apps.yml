@@ -81,6 +81,7 @@ jobs:
       sample_app_name: flutter_sample_cocoapods
       cio_workspace_name: "Mobile: Flutter"
       should_distribute: ${{ github.event_name == 'push' }}
+      build_android_app: false
     secrets: inherit
 
   update-pr-comment-after-apps-built:
@@ -114,3 +115,23 @@ jobs:
           body: |
             * flutter_sample_spm: Build failed. See [CI job logs](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to determine the issue and try re-building.
           edit-mode: append # append new line to the existing PR comment to build a list of all sample app builds.
+
+      - name: Report CocoaPods sample build success
+        if: ${{ needs.build-secondary-app.result == 'success' }}
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
+        with:
+          comment-id: ${{ needs.update-pr-comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            * flutter_sample_cocoapods: Build succeeded.
+          edit-mode: append
+
+      - name: Report CocoaPods sample build failure
+        if: ${{ needs.build-secondary-app.result == 'failure' }}
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
+        with:
+          comment-id: ${{ needs.update-pr-comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            * flutter_sample_cocoapods: Build failed. See [CI job logs](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}).
+          edit-mode: append

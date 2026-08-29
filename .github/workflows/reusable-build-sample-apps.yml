@@ -27,6 +27,11 @@ on:
         type: boolean
         required: false
         default: true
+      build_android_app:
+        description: "Whether to build the Android variant of this sample app"
+        type: boolean
+        required: false
+        default: true
     outputs:
       APP_VERSION_NAME:
         description: "The version name of the built app"
@@ -37,6 +42,7 @@ on:
 
 jobs:
   build-android-sample-app:
+    if: ${{ inputs.build_android_app }}
     defaults:
       run:
         working-directory: apps/${{ inputs.sample_app_name }}
@@ -151,6 +157,8 @@ jobs:
 
       - name: Setup flutter environment and install dependencies
         uses: ./.github/actions/setup-flutter
+        with:
+          install-sample-dependencies: 'false'
 
       - name: Use SDK release version for sample app (if needed)
         working-directory: apps/${{ inputs.sample_app_name }}
@@ -356,6 +364,8 @@ jobs:
 
       - name: Setup flutter environment and install dependencies
         uses: ./.github/actions/setup-flutter
+        with:
+          install-sample-dependencies: 'false'
 
       - name: Use SDK release version for sample app (if needed)
         working-directory: apps/${{ inputs.sample_app_name }}
@@ -383,10 +393,13 @@ jobs:
         if: ${{ inputs.sample_app_name != 'flutter_sample_spm' }}
         uses: actions/cache@v4
         with:
-          path: Pods
-          key: ${{ runner.os }}-${{ inputs.sample_app_name }}-Pods-${{ github.ref }}
+          path: |
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+            apps/${{ inputs.sample_app_name }}/ios/Pods
+          key: ${{ runner.os }}-${{ inputs.sample_app_name }}-Pods-${{ hashFiles('apps/flutter_sample_cocoapods/pubspec.lock', 'apps/flutter_sample_cocoapods/ios/Podfile', 'apps/flutter_sample_cocoapods/Gemfile.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ inputs.sample_app_name }}-Pods
+            ${{ runner.os }}-${{ inputs.sample_app_name }}-Pods-
 
       - name: pod install
         if: ${{ inputs.sample_app_name != 'flutter_sample_spm' }}

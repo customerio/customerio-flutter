@@ -19,6 +19,7 @@ runs:
     uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046 # v2.19.0
     with:
       channel: stable
+      cache: true
 
   - name: Install exact stable Flutter
     if: inputs.flutter-version != ''
@@ -26,6 +27,7 @@ runs:
     with:
       channel: stable
       flutter-version: ${{ inputs.flutter-version }}
+      cache: true
 
   - run: flutter --version
     shell: bash
