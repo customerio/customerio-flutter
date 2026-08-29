@@ -207,7 +207,7 @@ jobs:
           echo "APP_VERSION_CODE=${{ env.APP_VERSION_CODE }}" >> $GITHUB_OUTPUT
 
       - name: Send Slack Notification for Sample App Builds (Android)
-        if: ${{ always() && inputs.is_primary_app }}
+        if: ${{ always() && inputs.is_primary_app && inputs.should_distribute }}
         uses: customerio/mobile-ci-tools/github-actions/slack-notify-sample-app/v1@main
         with:
           build_status: ${{ steps.android_build.outcome }}
@@ -435,7 +435,7 @@ jobs:
           echo "APP_VERSION_CODE=${{ env.APP_VERSION_CODE }}" >> $GITHUB_OUTPUT
 
       - name: Send Slack Notification for Sample App Builds (iOS)
-        if: ${{ always() && inputs.is_primary_app }}
+        if: ${{ always() && inputs.is_primary_app && inputs.should_distribute }}
         uses: customerio/mobile-ci-tools/github-actions/slack-notify-sample-app/v1@main
         with:
           build_status: ${{ steps.ios_build.outcome }}

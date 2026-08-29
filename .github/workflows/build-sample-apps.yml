@@ -1,17 +1,25 @@
 name: Build sample apps
 
 on:
-  pull_request: # build sample apps for every commit pushed to an open pull request (including drafts)
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+    paths-ignore:
+      - '**/*.md'
   push:
-    branches: [ main, feature/* ]
+    branches: [ main ]
+  workflow_dispatch:
 
 concurrency: # cancel previous workflow run if one exists.
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ (github.event.action == 'labeled' && github.event.label.name != 'ci:full') && github.run_id || 'validation' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   update-pr-comment:
-    if: ${{ github.event_name == 'pull_request' }}
+    if: >-
+      (github.event.action != 'labeled' || github.event.label.name == 'ci:full') &&
+      github.event_name == 'pull_request' &&
+      contains(github.event.pull_request.labels.*.name, 'ci:full') &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write # to be able to comment on PR
@@ -39,12 +47,15 @@ jobs:
             Below you will find the list of the latest versions of the sample apps. It's recommended to always download the latest builds of the sample apps to accurately test the pull request.
 
             ---
-            ${{ steps.build.outputs.build-log }}
+            Builds are in progress. This comment will be updated when they finish.
           edit-mode: replace # replace the existing comment with new content since we are creating new builds
 
-  # Primary app (SPM) - builds on all PRs and pushes
+  # Keep one unsigned SPM compile smoke per platform on normal PRs. The
+  # distributable and redundant CocoaPods builds move to the `ci:full` lane.
   build-primary-app:
-    if: ${{ always() }} # do not skip running this step if update-pr-comment does not run
+    if: >-
+      always() &&
+      (github.event.action != 'labeled' || github.event.label.name == 'ci:full')
     needs: [ update-pr-comment ] # wait for PR comment to be created saying new builds are being made.
     uses: ./.github/workflows/reusable-build-sample-apps.yml
     with:
@@ -52,12 +63,17 @@ jobs:
       sample_app_name: flutter_sample_spm
       cio_workspace_name: "Mobile: Flutter"
       is_primary_app: true
+      should_distribute: ${{ github.event_name != 'pull_request' || (contains(github.event.pull_request.labels.*.name, 'ci:full') && github.event.pull_request.head.repo.full_name == github.repository) }}
     secrets: inherit
 
-  # Secondary app (CocoaPods) - builds on all PRs and pushes to verify CocoaPods compatibility
-  # Only distributes to Firebase on pushes, not on PRs
+  # CocoaPods is retained on main and in the explicitly requested full PR lane.
   build-secondary-app:
-    if: ${{ always() }}
+    if: >-
+      always() &&
+      (github.event.action != 'labeled' || github.event.label.name == 'ci:full') &&
+      (github.event_name != 'pull_request' ||
+      (contains(github.event.pull_request.labels.*.name, 'ci:full') &&
+      github.event.pull_request.head.repo.full_name == github.repository))
     needs: [ update-pr-comment ]
     uses: ./.github/workflows/reusable-build-sample-apps.yml
     with:
@@ -68,8 +84,13 @@ jobs:
     secrets: inherit
 
   update-pr-comment-after-apps-built:
-    if: always() && ${{ github.event_name == 'pull_request' }}
-    needs: [ update-pr-comment, build-primary-app ] # only wait for primary app since secondary doesn't build on PRs
+    if: >-
+      always() &&
+      (github.event.action != 'labeled' || github.event.label.name == 'ci:full') &&
+      github.event_name == 'pull_request' &&
+      contains(github.event.pull_request.labels.*.name, 'ci:full') &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    needs: [ update-pr-comment, build-primary-app, build-secondary-app ]
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write # to be able to comment on PR
