@@ -6,12 +6,11 @@ on:
     paths-ignore:
       - '**/*.md'
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ main, feature/* ]
 
 concurrency: # cancel previous workflow run if one exists.
   group: ${{ github.workflow }}-${{ github.ref }}-${{ (github.event.action == 'labeled' && github.event.label.name != 'ci:full') && github.run_id || 'validation' }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: true
 
 jobs:
   update-pr-comment:
@@ -64,6 +63,7 @@ jobs:
       cio_workspace_name: "Mobile: Flutter"
       is_primary_app: true
       should_distribute: ${{ github.event_name != 'pull_request' || (contains(github.event.pull_request.labels.*.name, 'ci:full') && github.event.pull_request.head.repo.full_name == github.repository) }}
+      verification_only: ${{ github.event_name == 'pull_request' }}
     secrets: inherit
 
   # CocoaPods is retained on main and in the explicitly requested full PR lane.
@@ -81,7 +81,8 @@ jobs:
       sample_app_name: flutter_sample_cocoapods
       cio_workspace_name: "Mobile: Flutter"
       should_distribute: ${{ github.event_name == 'push' }}
-      build_android_app: false
+      build_android_app: ${{ github.event_name == 'push' }}
+      verification_only: ${{ github.event_name == 'pull_request' }}
     secrets: inherit
 
   update-pr-comment-after-apps-built:

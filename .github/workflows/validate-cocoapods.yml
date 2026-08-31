@@ -1,0 +1,32 @@
+name: Validate CocoaPods integration
+
+on:
+  pull_request:
+    paths:
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - 'ios/**'
+      - 'apps/flutter_sample_cocoapods/**'
+      - 'scripts/test_cocoapods_deployment_target.rb'
+      - 'scripts/audit_cocoapods_deployment_targets.rb'
+      - 'apps/scripts/update_sample_app_sdk_version.dart'
+      - '.github/actions/setup-flutter/**'
+      - '.github/workflows/reusable-build-sample-apps.yml'
+      - '.github/workflows/validate-cocoapods.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-cocoapods:
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'ci:full') }}
+    uses: ./.github/workflows/reusable-build-sample-apps.yml
+    with:
+      use_latest_sdk_version: false
+      sample_app_name: flutter_sample_cocoapods
+      cio_workspace_name: "Mobile: Flutter"
+      should_distribute: false
+      build_android_app: false
+      verification_only: true
+    secrets: inherit
