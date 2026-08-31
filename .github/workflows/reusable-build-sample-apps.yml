@@ -37,6 +37,11 @@ on:
         type: boolean
         required: false
         default: false
+      sdk_version:
+        description: "Published SDK version to build sample apps with. Falls back to the latest git tag when empty."
+        type: string
+        required: false
+        default: ""
     outputs:
       APP_VERSION_NAME:
         description: "The version name of the built app"
@@ -65,11 +70,21 @@ jobs:
       - name: Capture Git Context
         shell: bash
         id: git-context
+        env:
+          SDK_VERSION_INPUT: ${{ inputs.sdk_version }}
         run: |
           echo "BRANCH_NAME=${{ github.head_ref || github.ref_name }}" >> $GITHUB_ENV
           COMMIT_HASH="${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}"
           echo "COMMIT_HASH=${COMMIT_HASH:0:7}" >> $GITHUB_ENV
-          echo "LATEST_TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+          # Last tag reachable from this commit. This answers an ancestry question ("how far ahead
+          # of the last release is this build?"), so it always comes from git.
+          LATEST_TAG=$(git describe --tags --abbrev=0 || true)
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          # Published version the sample app is pinned to. The release workflow passes the version
+          # semantic-release just published; `git describe` cannot resolve it, because
+          # semantic-release tags a new child commit and walking ancestors from this run's commit
+          # always returns the previous release.
+          echo "SDK_RELEASE_VERSION=${SDK_VERSION_INPUT:-$LATEST_TAG}" >> $GITHUB_ENV
 
       - name: Set Default Firebase Distribution Groups
         shell: bash
@@ -135,7 +150,7 @@ jobs:
         with:
           subdirectory: apps/${{ inputs.sample_app_name }}
           lane: "update_flutter_android_app_version"
-          options: ${{ inputs.use_latest_sdk_version == true && format('{{"version_name":"{0}"}}', env.LATEST_TAG) || '' }}
+          options: ${{ inputs.use_latest_sdk_version == true && format('{{"version_name":"{0}"}}', env.SDK_RELEASE_VERSION) || '' }}
         env:
           SDK_VERSION_NAME: ${{ env.SDK_VERSION_NAME }}
           APP_VERSION_NAME: ${{ env.APP_VERSION_NAME }}
@@ -155,7 +170,7 @@ jobs:
           COMMITS_AHEAD=$(git rev-list $LAST_TAG..HEAD --count 2>/dev/null || echo "untracked")
           echo "COMMITS_AHEAD_COUNT=$COMMITS_AHEAD" >> "$ENV_FILE"
           if [ "${{ inputs.use_latest_sdk_version }}" == "true" ]; then
-            echo "SDK_VERSION=${{ env.LATEST_TAG }}" >> "$ENV_FILE"
+            echo "SDK_VERSION=${{ env.SDK_RELEASE_VERSION }}" >> "$ENV_FILE"
           fi
 
       # Make sure to fetch dependencies only after updating the version numbers and workspace credentials
@@ -208,7 +223,7 @@ jobs:
         id: determine-sdk-version
         run: |
           if [[ "${{ inputs.use_latest_sdk_version }}" == "true" ]]; then
-            echo "APP_SDK_BUILD_VERSION=${{ env.LATEST_TAG }}" >> $GITHUB_ENV
+            echo "APP_SDK_BUILD_VERSION=${{ env.SDK_RELEASE_VERSION }}" >> $GITHUB_ENV
           else
             echo "APP_SDK_BUILD_VERSION=${{ env.SDK_VERSION_NAME }}" >> $GITHUB_ENV
           fi
@@ -254,11 +269,21 @@ jobs:
       - name: Capture Git Context
         shell: bash
         id: git-context
+        env:
+          SDK_VERSION_INPUT: ${{ inputs.sdk_version }}
         run: |
           echo "BRANCH_NAME=${{ github.head_ref || github.ref_name }}" >> $GITHUB_ENV
           COMMIT_HASH="${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}"
           echo "COMMIT_HASH=${COMMIT_HASH:0:7}" >> $GITHUB_ENV
-          echo "LATEST_TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+          # Last tag reachable from this commit. This answers an ancestry question ("how far ahead
+          # of the last release is this build?"), so it always comes from git.
+          LATEST_TAG=$(git describe --tags --abbrev=0 || true)
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          # Published version the sample app is pinned to. The release workflow passes the version
+          # semantic-release just published; `git describe` cannot resolve it, because
+          # semantic-release tags a new child commit and walking ancestors from this run's commit
+          # always returns the previous release.
+          echo "SDK_RELEASE_VERSION=${SDK_VERSION_INPUT:-$LATEST_TAG}" >> $GITHUB_ENV
 
       - name: Test iOS lifecycle routing behavior
         if: ${{ inputs.is_primary_app }}
@@ -337,7 +362,7 @@ jobs:
         with:
           subdirectory: apps/${{ inputs.sample_app_name }}
           lane: "update_flutter_ios_app_version"
-          options: ${{ inputs.use_latest_sdk_version == true && format('{{"version_name":"{0}"}}', env.LATEST_TAG) || '' }}
+          options: ${{ inputs.use_latest_sdk_version == true && format('{{"version_name":"{0}"}}', env.SDK_RELEASE_VERSION) || '' }}
         env:
           SDK_VERSION_NAME: ${{ env.SDK_VERSION_NAME }}
           APP_VERSION_NAME: ${{ env.APP_VERSION_NAME }}
@@ -357,7 +382,7 @@ jobs:
           COMMITS_AHEAD=$(git rev-list $LAST_TAG..HEAD --count 2>/dev/null || echo "untracked")
           echo "COMMITS_AHEAD_COUNT=$COMMITS_AHEAD" >> "$ENV_FILE"
           if [ "${{ inputs.use_latest_sdk_version }}" == "true" ]; then
-            echo "SDK_VERSION=${{ env.LATEST_TAG }}" >> "$ENV_FILE"
+            echo "SDK_VERSION=${{ env.SDK_RELEASE_VERSION }}" >> "$ENV_FILE"
           fi
 
       - name: Setup workspace credentials in iOS environment files
@@ -450,7 +475,7 @@ jobs:
         id: determine-sdk-version
         run: |
           if [[ "${{ inputs.use_latest_sdk_version }}" == "true" ]]; then
-            echo "APP_SDK_BUILD_VERSION=${{ env.LATEST_TAG }}" >> $GITHUB_ENV
+            echo "APP_SDK_BUILD_VERSION=${{ env.SDK_RELEASE_VERSION }}" >> $GITHUB_ENV
           else
             echo "APP_SDK_BUILD_VERSION=${{ env.SDK_VERSION_NAME }}" >> $GITHUB_ENV
           fi

@@ -31,6 +31,16 @@ jobs:
       - name: Install sd CLI
         uses: kenji-miyake/setup-sd@08c14e27d65a1c215342ef00c81583ae67f4c5ef # v2.0.0
 
+      - uses: ./.github/actions/setup-flutter
+        with:
+          install-sample-dependencies: 'false'
+
+      # Run the same validation pub.dev enforces at publish time *before* the tag is created.
+      # `dart-package-publisher` fails on any dry-run warning, and it only runs after the tag
+      # exists, so a warning used to leave behind a tag for a version that was never published.
+      - name: Validate package can be published
+        run: flutter pub publish --dry-run
+
       - name: Deploy git tag via semantic-release
         uses: cycjimmy/semantic-release-action@0a51e81a6baff2acad3ee88f4121c589c73d0f0e # v4.2.0
         id: semantic-release
@@ -103,7 +113,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "Flutter SDK failed deployment during step *create git tag*. View <https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|CI server logs> to learn why and fix the issue. <https://github.com/customerio/mobile/blob/main/GIT-WORKFLOW.md|Learn more about the deployment process and how to fix errors>."
+                    "text": "Flutter SDK failed deployment during step *validate package & create git tag*. View <https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|CI server logs> to learn why and fix the issue. <https://github.com/customerio/mobile/blob/main/GIT-WORKFLOW.md|Learn more about the deployment process and how to fix errors>."
                   }
                 }
               ]
@@ -199,6 +209,8 @@ jobs:
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
   publish-sample-apps-public-builds:
-    needs: deploy-to-pub-dev
+    needs: [deploy-git-tag, deploy-to-pub-dev]
     uses: ./.github/workflows/build-sample-app-for-sdk-release.yml
+    with:
+      sdk_version: ${{ needs.deploy-git-tag.outputs.new_release_version }}
     secrets: inherit

@@ -2,7 +2,19 @@ name: Publish test apps for SDK release
 
 on:
   workflow_dispatch:
+    inputs:
+      sdk_version:
+        description: "Published SDK version to build sample apps with. Falls back to the latest git tag when empty."
+        required: false
+        type: string
+        default: ""
   workflow_call:
+    inputs:
+      sdk_version:
+        description: "Published SDK version to build sample apps with. Falls back to the latest git tag when empty."
+        required: false
+        type: string
+        default: ""
 
 jobs:
   build-primary-app:
@@ -12,4 +24,5 @@ jobs:
       sample_app_name: flutter_sample_spm
       cio_workspace_name: "Mobile: Flutter"
       is_primary_app: true
+      sdk_version: ${{ inputs.sdk_version }}
     secrets: inherit
