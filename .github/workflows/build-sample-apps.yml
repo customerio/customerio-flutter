@@ -16,8 +16,8 @@ concurrency: # cancel previous workflow run if one exists.
       github.event_name == 'pull_request' &&
       ((github.event.action == 'labeled' && github.event.label.name != 'ci:full') ||
       (github.event.action == 'edited' &&
-      !github.event.changes.title &&
-      !github.event.changes.base)) &&
+      github.event.changes.title == null &&
+      github.event.changes.base == null)) &&
       'metadata' || 'validation'
     }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/feature/') }}
@@ -39,7 +39,9 @@ jobs:
       always() &&
       github.event_name == 'pull_request' &&
       needs.release_policy.outputs.full_validation == 'true' &&
-      (github.event.action != 'edited' || github.event.changes.title.from != '') &&
+      (github.event.action != 'edited' ||
+      github.event.changes.title != null ||
+      github.event.changes.base != null) &&
       (github.event.action != 'labeled' || github.event.label.name == 'ci:full') &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.user.login != 'dependabot[bot]'
@@ -87,8 +89,8 @@ jobs:
       sample_app_name: flutter_sample_spm
       cio_workspace_name: "Mobile: Flutter"
       is_primary_app: true
-      should_distribute: ${{ github.event_name != 'pull_request' || (needs.release_policy.outputs.full_validation == 'true' && (github.event.action != 'edited' || github.event.changes.title.from != '') && (github.event.action != 'labeled' || github.event.label.name == 'ci:full') && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]') }}
-      verification_only: ${{ github.event_name == 'pull_request' && !(needs.release_policy.outputs.full_validation == 'true' && (github.event.action != 'edited' || github.event.changes.title.from != '') && (github.event.action != 'labeled' || github.event.label.name == 'ci:full') && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]') }}
+      should_distribute: ${{ github.event_name != 'pull_request' || (needs.release_policy.outputs.full_validation == 'true' && (github.event.action != 'edited' || github.event.changes.title != null || github.event.changes.base != null) && (github.event.action != 'labeled' || github.event.label.name == 'ci:full') && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]') }}
+      verification_only: ${{ github.event_name == 'pull_request' && !(needs.release_policy.outputs.full_validation == 'true' && (github.event.action != 'edited' || github.event.changes.title != null || github.event.changes.base != null) && (github.event.action != 'labeled' || github.event.label.name == 'ci:full') && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]') }}
     secrets: inherit
 
   # CocoaPods is retained on main. PR-time CocoaPods correctness is owned by the
@@ -111,7 +113,9 @@ jobs:
       always() &&
       github.event_name == 'pull_request' &&
       needs.release_policy.outputs.full_validation == 'true' &&
-      (github.event.action != 'edited' || github.event.changes.title.from != '') &&
+      (github.event.action != 'edited' ||
+      github.event.changes.title != null ||
+      github.event.changes.base != null) &&
       (github.event.action != 'labeled' || github.event.label.name == 'ci:full') &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.user.login != 'dependabot[bot]'
