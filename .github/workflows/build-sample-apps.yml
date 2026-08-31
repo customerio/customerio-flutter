@@ -20,22 +20,17 @@ jobs:
       contents: read
     with:
       pr_title: ${{ github.event.pull_request.title }}
-      pr_body: ${{ github.event.pull_request.body || '' }}
       base_sha: ${{ github.event.pull_request.base.sha }}
       head_sha: ${{ github.event.pull_request.head.sha }}
-      head_repository: ${{ github.event.pull_request.head.repo.full_name }}
-      target_repository: ${{ github.repository }}
-      pr_author: ${{ github.event.pull_request.user.login }}
       ci_full: ${{ contains(github.event.pull_request.labels.*.name, 'ci:full') }}
 
-  # Metadata edits rerun full so a newer skipped check cannot replace a failure.
   update-pr-comment:
     if: >-
       always() &&
       github.event_name == 'pull_request' &&
-      (github.event.action == 'edited' ||
-      github.event.action == 'labeled' ||
-      needs.release_policy.outputs.full_validation == 'true') &&
+      needs.release_policy.outputs.full_validation == 'true' &&
+      (github.event.action != 'edited' || github.event.changes.title.from != '') &&
+      (github.event.action != 'labeled' || github.event.label.name == 'ci:full') &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.user.login != 'dependabot[bot]'
     needs: release_policy
@@ -69,9 +64,11 @@ jobs:
             Builds are in progress. This comment will be updated when they finish.
           edit-mode: replace # replace the existing comment with new content since we are creating new builds
 
-  # Keep one unsigned SPM compile smoke per platform on normal PRs. A
-  # release-bearing title or `ci:full` adds distribution and CocoaPods coverage.
+  # Keep unsigned SPM compilation on every code PR. Release intent or ci:full
+  # changes only whether the same primary app is signed and distributed.
   build-primary-app:
+    # Fail closed on metadata events: an edited or unrelated-label run repeats
+    # unsigned verification instead of replacing a failed check with a skip.
     if: always()
     needs: [ release_policy, update-pr-comment ] # wait for PR comment to be created saying new builds are being made.
     uses: ./.github/workflows/reusable-build-sample-apps.yml
@@ -80,18 +77,14 @@ jobs:
       sample_app_name: flutter_sample_spm
       cio_workspace_name: "Mobile: Flutter"
       is_primary_app: true
-      should_distribute: ${{ github.event_name != 'pull_request' || ((github.event.action == 'edited' || github.event.action == 'labeled' || needs.release_policy.outputs.full_validation == 'true') && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]') }}
-      verification_only: ${{ github.event_name == 'pull_request' && !((github.event.action == 'edited' || github.event.action == 'labeled' || needs.release_policy.outputs.full_validation == 'true') && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]') }}
+      should_distribute: ${{ github.event_name != 'pull_request' || (needs.release_policy.outputs.full_validation == 'true' && (github.event.action != 'edited' || github.event.changes.title.from != '') && (github.event.action != 'labeled' || github.event.label.name == 'ci:full') && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]') }}
+      verification_only: ${{ github.event_name == 'pull_request' && !(needs.release_policy.outputs.full_validation == 'true' && (github.event.action != 'edited' || github.event.changes.title.from != '') && (github.event.action != 'labeled' || github.event.label.name == 'ci:full') && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]') }}
     secrets: inherit
 
-  # CocoaPods is retained on main and automatically validates release-bearing PRs.
+  # CocoaPods is retained on main. PR-time CocoaPods correctness is owned by the
+  # path-filtered Validate CocoaPods integration workflow to avoid duplicates.
   build-secondary-app:
-    if: >-
-      always() &&
-      (github.event_name != 'pull_request' ||
-      github.event.action == 'edited' ||
-      github.event.action == 'labeled' ||
-      needs.release_policy.outputs.full_validation == 'true')
+    if: always() && github.event_name != 'pull_request'
     needs: [ release_policy, update-pr-comment ]
     uses: ./.github/workflows/reusable-build-sample-apps.yml
     with:
@@ -107,9 +100,9 @@ jobs:
     if: >-
       always() &&
       github.event_name == 'pull_request' &&
-      (github.event.action == 'edited' ||
-      github.event.action == 'labeled' ||
-      needs.release_policy.outputs.full_validation == 'true') &&
+      needs.release_policy.outputs.full_validation == 'true' &&
+      (github.event.action != 'edited' || github.event.changes.title.from != '') &&
+      (github.event.action != 'labeled' || github.event.label.name == 'ci:full') &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.user.login != 'dependabot[bot]'
     needs: [ release_policy, update-pr-comment, build-primary-app, build-secondary-app ]
@@ -136,23 +129,3 @@ jobs:
           body: |
             * flutter_sample_spm: Build failed. See [CI job logs](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to determine the issue and try re-building.
           edit-mode: append # append new line to the existing PR comment to build a list of all sample app builds.
-
-      - name: Report CocoaPods sample build success
-        if: ${{ needs.build-secondary-app.result == 'success' }}
-        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
-        with:
-          comment-id: ${{ needs.update-pr-comment.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            * flutter_sample_cocoapods: Build succeeded.
-          edit-mode: append
-
-      - name: Report CocoaPods sample build failure
-        if: ${{ needs.build-secondary-app.result == 'failure' }}
-        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
-        with:
-          comment-id: ${{ needs.update-pr-comment.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            * flutter_sample_cocoapods: Build failed. See [CI job logs](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}).
-          edit-mode: append

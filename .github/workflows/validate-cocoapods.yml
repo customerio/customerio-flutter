@@ -2,7 +2,7 @@ name: Validate CocoaPods integration
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, edited]
+    types: [opened, synchronize, reopened]
     paths:
       - 'pubspec.yaml'
       - 'pubspec.lock'
@@ -20,29 +20,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  release_policy:
-    uses: ./.github/workflows/reusable-release-policy.yml
-    permissions:
-      contents: read
-    with:
-      pr_title: ${{ github.event.pull_request.title }}
-      pr_body: ${{ github.event.pull_request.body || '' }}
-      base_sha: ${{ github.event.pull_request.base.sha }}
-      head_sha: ${{ github.event.pull_request.head.sha }}
-      head_repository: ${{ github.event.pull_request.head.repo.full_name }}
-      target_repository: ${{ github.repository }}
-      pr_author: ${{ github.event.pull_request.user.login }}
-      ci_full: ${{ contains(github.event.pull_request.labels.*.name, 'ci:full') }}
-
   validate-cocoapods:
-    # The main sample workflow owns this verification for release-bearing and
-    # explicitly full PRs, avoiding a duplicate CocoaPods build.
-    if: >-
-      always() &&
-      needs.release_policy.result == 'success' &&
-      github.event.action != 'edited' &&
-      needs.release_policy.outputs.full_validation != 'true'
-    needs: release_policy
+    # CocoaPods integration is correctness coverage selected by changed paths,
+    # independently of release naming or distribution intent.
     uses: ./.github/workflows/reusable-build-sample-apps.yml
     with:
       use_latest_sdk_version: false
