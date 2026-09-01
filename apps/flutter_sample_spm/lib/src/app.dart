@@ -44,15 +44,22 @@ class _AmiAppState extends State<AmiApp> {
 
   AmiAppAuth get _auth => widget.auth;
 
-  final PageTransitionsTheme _pageTransitionsTheme = const PageTransitionsTheme(
-    builders: {
-      TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
-      TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-      TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
-      TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
-      TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
-    },
-  );
+  final PageTransitionsTheme _pageTransitionsTheme =
+      _buildPageTransitionsTheme();
+
+  static PageTransitionsTheme _buildPageTransitionsTheme() {
+    final defaultBuilders = const PageTransitionsTheme().builders;
+
+    return PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: const FadeUpwardsPageTransitionsBuilder(),
+        TargetPlatform.iOS: defaultBuilders[TargetPlatform.iOS]!,
+        TargetPlatform.linux: const FadeUpwardsPageTransitionsBuilder(),
+        TargetPlatform.macOS: defaultBuilders[TargetPlatform.macOS]!,
+        TargetPlatform.windows: const FadeUpwardsPageTransitionsBuilder(),
+      },
+    );
+  }
   final List<ThemeExtension<dynamic>> _themeExtensions = [
     const Sizes.defaults(),
   ];
