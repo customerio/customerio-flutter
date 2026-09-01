@@ -1,17 +1,51 @@
 name: Build sample apps
 
 on:
-  pull_request: # build sample apps for every commit pushed to an open pull request (including drafts)
+  pull_request:
+    types: [opened, synchronize, reopened, edited, labeled]
+    paths-ignore:
+      - '**/*.md'
   push:
     branches: [ main, feature/* ]
 
 concurrency: # cancel previous workflow run if one exists.
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Unrelated labels and body-only edits must not cancel an in-flight release or
+  # ci:full run. They share a separate group, where unsigned validation repeats.
+  group: >-
+    ${{ github.workflow }}-${{ github.ref }}-${{
+      github.event_name == 'pull_request' &&
+      ((github.event.action == 'labeled' && github.event.label.name != 'ci:full') ||
+      (github.event.action == 'edited' &&
+      github.event.changes.title == null &&
+      github.event.changes.base == null)) &&
+      'metadata' || 'validation'
+    }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/feature/') }}
 
 jobs:
+  release_policy:
+    if: github.event_name == 'pull_request'
+    uses: ./.github/workflows/reusable-release-policy.yml
+    permissions:
+      contents: read
+    with:
+      pr_title: ${{ github.event.pull_request.title }}
+      base_sha: ${{ github.event.pull_request.base.sha }}
+      head_sha: ${{ github.event.pull_request.head.sha }}
+      ci_full: ${{ contains(github.event.pull_request.labels.*.name, 'ci:full') }}
+
   update-pr-comment:
-    if: ${{ github.event_name == 'pull_request' }}
+    if: >-
+      always() &&
+      github.event_name == 'pull_request' &&
+      needs.release_policy.outputs.full_validation == 'true' &&
+      (github.event.action != 'edited' ||
+      github.event.changes.title != null ||
+      github.event.changes.base != null) &&
+      (github.event.action != 'labeled' || github.event.label.name == 'ci:full') &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login != 'dependabot[bot]'
+    needs: release_policy
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write # to be able to comment on PR
@@ -39,37 +73,53 @@ jobs:
             Below you will find the list of the latest versions of the sample apps. It's recommended to always download the latest builds of the sample apps to accurately test the pull request.
 
             ---
-            ${{ steps.build.outputs.build-log }}
+            Builds are in progress. This comment will be updated when they finish.
           edit-mode: replace # replace the existing comment with new content since we are creating new builds
 
-  # Primary app (SPM) - builds on all PRs and pushes
+  # Keep unsigned SPM compilation on every code PR. Release intent or ci:full
+  # changes only whether the same primary app is signed and distributed.
   build-primary-app:
-    if: ${{ always() }} # do not skip running this step if update-pr-comment does not run
-    needs: [ update-pr-comment ] # wait for PR comment to be created saying new builds are being made.
+    # Fail closed on metadata events: an edited or unrelated-label run repeats
+    # unsigned verification instead of replacing a failed check with a skip.
+    if: always()
+    needs: [ release_policy, update-pr-comment ] # wait for PR comment to be created saying new builds are being made.
     uses: ./.github/workflows/reusable-build-sample-apps.yml
     with:
       use_latest_sdk_version: false
       sample_app_name: flutter_sample_spm
       cio_workspace_name: "Mobile: Flutter"
       is_primary_app: true
+      should_distribute: ${{ github.event_name != 'pull_request' || (needs.release_policy.outputs.full_validation == 'true' && (github.event.action != 'edited' || github.event.changes.title != null || github.event.changes.base != null) && (github.event.action != 'labeled' || github.event.label.name == 'ci:full') && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]') }}
+      verification_only: ${{ github.event_name == 'pull_request' && !(needs.release_policy.outputs.full_validation == 'true' && (github.event.action != 'edited' || github.event.changes.title != null || github.event.changes.base != null) && (github.event.action != 'labeled' || github.event.label.name == 'ci:full') && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]') }}
     secrets: inherit
 
-  # Secondary app (CocoaPods) - builds on all PRs and pushes to verify CocoaPods compatibility
-  # Only distributes to Firebase on pushes, not on PRs
+  # CocoaPods is retained on main. PR-time CocoaPods correctness is owned by the
+  # path-filtered Validate CocoaPods integration workflow to avoid duplicates.
   build-secondary-app:
-    if: ${{ always() }}
-    needs: [ update-pr-comment ]
+    if: always() && github.event_name != 'pull_request'
+    needs: [ release_policy, update-pr-comment ]
     uses: ./.github/workflows/reusable-build-sample-apps.yml
     with:
       use_latest_sdk_version: false
       sample_app_name: flutter_sample_cocoapods
       cio_workspace_name: "Mobile: Flutter"
       should_distribute: ${{ github.event_name == 'push' }}
+      build_android_app: ${{ github.event_name == 'push' }}
+      verification_only: ${{ github.event_name == 'pull_request' }}
     secrets: inherit
 
   update-pr-comment-after-apps-built:
-    if: always() && ${{ github.event_name == 'pull_request' }}
-    needs: [ update-pr-comment, build-primary-app ] # only wait for primary app since secondary doesn't build on PRs
+    if: >-
+      always() &&
+      github.event_name == 'pull_request' &&
+      needs.release_policy.outputs.full_validation == 'true' &&
+      (github.event.action != 'edited' ||
+      github.event.changes.title != null ||
+      github.event.changes.base != null) &&
+      (github.event.action != 'labeled' || github.event.label.name == 'ci:full') &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login != 'dependabot[bot]'
+    needs: [ release_policy, update-pr-comment, build-primary-app, build-secondary-app ]
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write # to be able to comment on PR

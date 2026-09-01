@@ -27,6 +27,16 @@ on:
         type: boolean
         required: false
         default: true
+      build_android_app:
+        description: "Whether to build the Android variant of this sample app"
+        type: boolean
+        required: false
+        default: true
+      verification_only:
+        description: "Use PR-only dependency and cache optimizations without changing release callers"
+        type: boolean
+        required: false
+        default: false
     outputs:
       APP_VERSION_NAME:
         description: "The version name of the built app"
@@ -37,6 +47,7 @@ on:
 
 jobs:
   build-android-sample-app:
+    if: ${{ inputs.build_android_app }}
     defaults:
       run:
         working-directory: apps/${{ inputs.sample_app_name }}
@@ -151,6 +162,8 @@ jobs:
 
       - name: Setup flutter environment and install dependencies
         uses: ./.github/actions/setup-flutter
+        with:
+          install-sample-dependencies: ${{ inputs.verification_only && 'false' || 'true' }}
 
       - name: Use SDK release version for sample app (if needed)
         working-directory: apps/${{ inputs.sample_app_name }}
@@ -207,7 +220,7 @@ jobs:
           echo "APP_VERSION_CODE=${{ env.APP_VERSION_CODE }}" >> $GITHUB_OUTPUT
 
       - name: Send Slack Notification for Sample App Builds (Android)
-        if: ${{ always() && inputs.is_primary_app }}
+        if: ${{ always() && inputs.is_primary_app && inputs.should_distribute }}
         uses: customerio/mobile-ci-tools/github-actions/slack-notify-sample-app/v1@main
         with:
           build_status: ${{ steps.android_build.outcome }}
@@ -356,6 +369,8 @@ jobs:
 
       - name: Setup flutter environment and install dependencies
         uses: ./.github/actions/setup-flutter
+        with:
+          install-sample-dependencies: ${{ inputs.verification_only && 'false' || 'true' }}
 
       - name: Use SDK release version for sample app (if needed)
         working-directory: apps/${{ inputs.sample_app_name }}
@@ -380,13 +395,25 @@ jobs:
         uses: customerio/mobile-ci-tools/github-actions/ios/setup-ios/v1@main
 
       - name: Cache CocoaPods downloaded dependencies for faster builds in the future
-        if: ${{ inputs.sample_app_name != 'flutter_sample_spm' }}
+        if: ${{ inputs.sample_app_name != 'flutter_sample_spm' && !inputs.verification_only }}
         uses: actions/cache@v4
         with:
           path: Pods
           key: ${{ runner.os }}-${{ inputs.sample_app_name }}-Pods-${{ github.ref }}
           restore-keys: |
             ${{ runner.os }}-${{ inputs.sample_app_name }}-Pods
+
+      - name: Cache CocoaPods dependencies for verification builds
+        if: ${{ inputs.sample_app_name != 'flutter_sample_spm' && inputs.verification_only }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+            apps/${{ inputs.sample_app_name }}/ios/Pods
+          key: ${{ runner.os }}-${{ inputs.sample_app_name }}-Pods-v2-${{ hashFiles('pubspec.lock', 'ios/customer_io.podspec', 'apps/flutter_sample_cocoapods/pubspec.lock', 'apps/flutter_sample_cocoapods/ios/Podfile', 'apps/flutter_sample_cocoapods/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ inputs.sample_app_name }}-Pods-v2-
 
       - name: pod install
         if: ${{ inputs.sample_app_name != 'flutter_sample_spm' }}
@@ -435,7 +462,7 @@ jobs:
           echo "APP_VERSION_CODE=${{ env.APP_VERSION_CODE }}" >> $GITHUB_OUTPUT
 
       - name: Send Slack Notification for Sample App Builds (iOS)
-        if: ${{ always() && inputs.is_primary_app }}
+        if: ${{ always() && inputs.is_primary_app && inputs.should_distribute }}
         uses: customerio/mobile-ci-tools/github-actions/slack-notify-sample-app/v1@main
         with:
           build_status: ${{ steps.ios_build.outcome }}

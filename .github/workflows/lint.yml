@@ -1,6 +1,9 @@
 name: Lint
 
-on: [pull_request]
+on:
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
 
 # Cancel jobs and just run the last one
 concurrency:
@@ -15,7 +18,7 @@ jobs:
     - name: Verify Xcode 27 Flutter sample pins
       run: apps/scripts/verify_xcode27_flutter_version.sh
     - uses: ./.github/actions/setup-flutter
+    # This analyzes the root package and installed sample apps with fatal infos
+    # and warnings. A second root-level `dart analyze` covers the same sources.
     - name: Run flutter analyze
       run: flutter analyze
-    - name: Run dart analyze as deployment process also runs it
-      run: dart analyze
