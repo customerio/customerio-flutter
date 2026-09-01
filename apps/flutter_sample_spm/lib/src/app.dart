@@ -1,5 +1,4 @@
 import 'package:customer_io/customer_io.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';

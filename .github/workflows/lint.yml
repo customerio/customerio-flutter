@@ -18,5 +18,7 @@ jobs:
     - name: Verify Xcode 27 Flutter sample pins
       run: apps/scripts/verify_xcode27_flutter_version.sh
     - uses: ./.github/actions/setup-flutter
+    # This analyzes the root package and installed sample apps with fatal infos
+    # and warnings. A second root-level `dart analyze` covers the same sources.
     - name: Run flutter analyze
       run: flutter analyze
