@@ -103,7 +103,7 @@ GEM
       logger
     excon (1.7.0)
       logger
-    faraday (1.10.5)
+    faraday (1.10.6)
       faraday-em_http (~> 1.0)
       faraday-em_synchrony (~> 1.0)
       faraday-excon (~> 1.1)
@@ -346,7 +346,7 @@ DEPENDENCIES
   addressable (= 2.9.0)
   aws-sdk-s3 (= 1.208.0)
   cocoapods
-  faraday (= 1.10.5)
+  faraday (= 1.10.6)
   fastlane
   fastlane-plugin-find_firebase_app_id
   fastlane-plugin-firebase_app_distribution
