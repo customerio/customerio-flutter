@@ -17,6 +17,7 @@ import io.customer.messaginginapp.inbox.NotificationInbox
 import io.customer.messaginginapp.type.InAppEventListener
 import io.customer.messaginginapp.type.InAppMessage
 import io.customer.messaginginapp.type.InboxEventListener
+import io.customer.messaginginapp.type.NotificationInboxAccessibilityLabels
 import io.customer.sdk.CustomerIO
 import io.customer.sdk.CustomerIOBuilder
 import io.customer.sdk.core.di.SDKComponent
@@ -28,6 +29,15 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.lang.ref.WeakReference
+
+/** Key of the accessibility labels sub-map inside the Dart `inApp` configuration. */
+private const val ACCESSIBILITY_LABELS_KEY = "notificationInboxAccessibilityLabels"
+
+/**
+ * Replaced with the unread count inside the `bellWithUnreadCount` template. Kept in sync with
+ * `NotificationInboxAccessibilityLabels.countPlaceholder` on the Dart side.
+ */
+private const val COUNT_PLACEHOLDER = "{count}"
 
 /**
  * Flutter module implementation for messaging in-app module in native SDKs. All functionality
@@ -221,9 +231,41 @@ internal class CustomerIOInAppMessaging(
                         flutterCommunicationChannel.invokeMethod(method, args)
                     }
                 })
+                .apply {
+                    inboxAccessibilityLabelsFrom(config)?.let { labels ->
+                        setNotificationInboxAccessibilityLabels(labels)
+                    }
+                }
                 .build(),
         )
         builder.addCustomerIOModule(module)
+    }
+
+    /**
+     * Builds the host's inbox accessibility labels from the Dart configuration, or null when the
+     * app provided none — in which case the SDK keeps its default of emitting no labels at all
+     * rather than falling back to English.
+     *
+     * `bellWithUnreadCount` arrives as a template string because the platform channel carries data
+     * but not functions; it is converted here into the `(Int) -> String` the native SDK expects. A
+     * template without the placeholder is returned verbatim for every count.
+     */
+    private fun inboxAccessibilityLabelsFrom(
+        config: Map<String, Any>
+    ): NotificationInboxAccessibilityLabels? {
+        val labels = config.getAs<Map<String, Any>>(
+            ACCESSIBILITY_LABELS_KEY
+        ) ?: return null
+
+        val unreadCountTemplate = labels.getAs<String>("bellWithUnreadCount")
+        return NotificationInboxAccessibilityLabels(
+            bell = labels.getAs<String>("bell"),
+            bellWithUnreadCount = unreadCountTemplate?.let { template ->
+                { count: Int -> template.replace(COUNT_PLACEHOLDER, count.toString()) }
+            },
+            loadingIndicator = labels.getAs<String>("loadingIndicator"),
+            emptyState = labels.getAs<String>("emptyState")
+        )
     }
 
     /**
