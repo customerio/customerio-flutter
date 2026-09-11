@@ -226,8 +226,12 @@ public final class GeofenceLocationMode {
 }
 
 public final class InAppConfig {
-	public fun new(required String siteId): InAppConfig;
+	public fun new(
+		required String siteId,
+		NotificationInboxAccessibilityLabels? accessibilityLabels
+	): InAppConfig;
 	public fun toMap(): Map<String, dynamic>;
+	public val accessibilityLabels: NotificationInboxAccessibilityLabels?;
 	public val siteId: String;
 }
 
@@ -418,6 +422,21 @@ public final class NotificationInbox {
 		InboxMessage message,
 		String? actionName
 	);
+}
+
+public final class NotificationInboxAccessibilityLabels {
+	public fun new(
+		String? bell,
+		String? bellWithUnreadCount,
+		String? loadingIndicator,
+		String? emptyState
+	): NotificationInboxAccessibilityLabels;
+	public fun toMap(): Map<String, dynamic>;
+	public val bell: String?;
+	public val bellWithUnreadCount: String?;
+	static public val countPlaceholder: String;
+	public val emptyState: String?;
+	public val loadingIndicator: String?;
 }
 
 public final class NotificationInboxBell {
