@@ -2,6 +2,7 @@ package io.customer.customer_io.messaginginapp
 
 import io.customer.customer_io.utils.getAs
 import io.customer.messaginginapp.type.NotificationInboxAccessibilityLabels
+import io.customer.sdk.core.di.SDKComponent
 
 /** Key of the accessibility labels sub-map inside the Dart `inApp` configuration. */
 internal const val ACCESSIBILITY_LABELS_KEY = "notificationInboxAccessibilityLabels"
@@ -29,6 +30,15 @@ internal fun inboxAccessibilityLabelsFrom(
     val labels = config.getAs<Map<String, Any>>(ACCESSIBILITY_LABELS_KEY) ?: return null
 
     val unreadCountTemplate = labels.getAs<String>("bellWithUnreadCount")
+    // A mistyped placeholder (`{COUNT}`, `{{count}}`, `%d`) substitutes nothing and is read aloud
+    // verbatim, braces included, with the count never announced. Nothing else in the stack can
+    // surface that, so say it here.
+    if (unreadCountTemplate != null && !unreadCountTemplate.contains(COUNT_PLACEHOLDER)) {
+        SDKComponent.logger.debug(
+            "Inbox accessibility label 'bellWithUnreadCount' has no '$COUNT_PLACEHOLDER' " +
+                "placeholder, so the unread count will not be announced."
+        )
+    }
     return NotificationInboxAccessibilityLabels(
         bell = labels.getAs<String>("bell"),
         bellWithUnreadCount = unreadCountTemplate?.let { template ->

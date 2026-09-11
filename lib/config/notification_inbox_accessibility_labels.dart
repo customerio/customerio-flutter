@@ -40,8 +40,12 @@ class NotificationInboxAccessibilityLabels {
   /// plural rules need a distinct form per count.
   final String? bellWithUnreadCount;
 
-  /// Label announced for the loading spinner. null → no label, leaving only the indeterminate
-  /// progress role that the platform describes in the device's own language.
+  /// Label announced for the loading spinner.
+  ///
+  /// null behaves differently per platform: on Android the spinner keeps its indeterminate
+  /// progress role, which TalkBack describes in the device's own language, while on iOS it is not
+  /// an accessibility element at all, so VoiceOver skips it rather than focusing an unnamed
+  /// control. Set a label if you want the loading state announced on both.
   final String? loadingIndicator;
 
   /// Label announced for the empty-state icon. null → the icon is treated as decorative.
