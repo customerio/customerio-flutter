@@ -56,7 +56,18 @@ class CustomerIOSDK extends ChangeNotifier {
       final InAppConfig? inAppConfig;
       final migrationSiteId = _sdkConfig?.migrationSiteId;
       if (migrationSiteId != null) {
-        inAppConfig = InAppConfig(siteId: migrationSiteId);
+        inAppConfig = InAppConfig(
+          siteId: migrationSiteId,
+          // The SDK ships no text of its own in the visual inbox, so these are the only strings
+          // it can announce. A real app would resolve them through its own localizations so they
+          // follow the user's language; hardcoded here to keep the sample self-contained.
+          accessibilityLabels: const NotificationInboxAccessibilityLabels(
+            bell: 'Notifications',
+            bellWithUnreadCount: 'Notifications, {count} unread',
+            loadingIndicator: 'Loading inbox',
+            emptyState: 'No notifications',
+          ),
+        );
       } else {
         inAppConfig = null;
       }

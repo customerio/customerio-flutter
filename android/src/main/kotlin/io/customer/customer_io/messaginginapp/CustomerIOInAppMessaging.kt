@@ -221,6 +221,11 @@ internal class CustomerIOInAppMessaging(
                         flutterCommunicationChannel.invokeMethod(method, args)
                     }
                 })
+                .apply {
+                    inboxAccessibilityLabelsFrom(config)?.let { labels ->
+                        setNotificationInboxAccessibilityLabels(labels)
+                    }
+                }
                 .build(),
         )
         builder.addCustomerIOModule(module)
