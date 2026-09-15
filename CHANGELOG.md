@@ -1,3 +1,9 @@
+## [4.5.0](https://github.com/customerio/customerio-flutter/compare/4.4.0...4.5.0) (2026-09-15)
+
+### Features
+
+* **inbox:** let apps configure visual inbox accessibility labels ([#408](https://github.com/customerio/customerio-flutter/issues/408)) ([b922e67](https://github.com/customerio/customerio-flutter/commit/b922e6758361e240d6e7bf4a13b6f6a744337982))
+
 ## [4.4.0](https://github.com/customerio/customerio-flutter/compare/4.3.1...4.4.0) (2026-08-26)
 
 ### Features
