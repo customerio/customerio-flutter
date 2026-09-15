@@ -84,9 +84,13 @@ class NotificationInboxAccessibilityLabels {
   /// discards, and iOS does not check at all. Warning here reaches the developer's console on both
   /// platforms, whatever the SDK log level. It warns rather than throws: a label typo degrades an
   /// announcement, it must not fail initialization.
+  ///
+  /// Debug builds only, matching every other `debugPrint` diagnostic in this package — the
+  /// developer who can act on it is the one running a debug build, and `debugPrint` would
+  /// otherwise keep writing in release.
   void _warnIfCountPlaceholderMissing() {
     final String? template = bellWithUnreadCount;
-    if (template != null && !template.contains(countPlaceholder)) {
+    if (kDebugMode && template != null && !template.contains(countPlaceholder)) {
       debugPrint(
         'Customer.io: inAppConfig.accessibilityLabels.bellWithUnreadCount has no '
         "'$countPlaceholder' placeholder, so the unread count will not be announced.",
