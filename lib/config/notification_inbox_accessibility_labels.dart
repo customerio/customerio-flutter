@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Host-provided accessibility labels for the Visual Notification Inbox UI.
 ///
 /// The SDK ships no text of its own in the visual inbox — the empty state is an icon and the
@@ -64,11 +66,31 @@ class NotificationInboxAccessibilityLabels {
   /// Only the labels the host actually set are sent, so an unset label stays unset natively
   /// rather than arriving as an explicit null the parsers would have to distinguish.
   Map<String, dynamic> toMap() {
+    _warnIfCountPlaceholderMissing();
     return {
       if (bell != null) 'bell': bell,
       if (bellWithUnreadCount != null) 'bellWithUnreadCount': bellWithUnreadCount,
       if (loadingIndicator != null) 'loadingIndicator': loadingIndicator,
       if (emptyState != null) 'emptyState': emptyState,
     };
+  }
+
+  /// Warns when [bellWithUnreadCount] is set but carries no [countPlaceholder].
+  ///
+  /// The label is a template, not a finished string. A misspelled placeholder (`{COUNT}`,
+  /// `{{count}}`, `%d`) matches nothing, so the template is announced verbatim — braces and all —
+  /// and the count is never spoken. The check lives in Dart rather than in either native layer
+  /// because neither can report it usefully: Android logs at debug, which the default error level
+  /// discards, and iOS does not check at all. Warning here reaches the developer's console on both
+  /// platforms, whatever the SDK log level. It warns rather than throws: a label typo degrades an
+  /// announcement, it must not fail initialization.
+  void _warnIfCountPlaceholderMissing() {
+    final String? template = bellWithUnreadCount;
+    if (template != null && !template.contains(countPlaceholder)) {
+      debugPrint(
+        'Customer.io: inAppConfig.accessibilityLabels.bellWithUnreadCount has no '
+        "'$countPlaceholder' placeholder, so the unread count will not be announced.",
+      );
+    }
   }
 }

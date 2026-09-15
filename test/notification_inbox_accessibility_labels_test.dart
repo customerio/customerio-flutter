@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:customer_io/config/in_app_config.dart';
 import 'package:customer_io/config/notification_inbox_accessibility_labels.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -52,6 +53,61 @@ void main() {
     });
   });
 
+  // A mistyped placeholder substitutes nothing and is announced verbatim, braces included.
+  // Neither native layer can report that usefully — Android logs below the default level and
+  // iOS does not check at all — so the warning is raised from Dart instead.
+  group('count placeholder warning', () {
+    late DebugPrintCallback original;
+    late List<String> printed;
+
+    setUp(() {
+      printed = <String>[];
+      original = debugPrint;
+      debugPrint = (String? message, {int? wrapWidth}) {
+        if (message != null) printed.add(message);
+      };
+    });
+
+    tearDown(() => debugPrint = original);
+
+    test('warns when the template is missing the placeholder', () {
+      const NotificationInboxAccessibilityLabels(
+        bellWithUnreadCount: 'Aviseringar, {COUNT} olasta',
+      ).toMap();
+
+      expect(printed, hasLength(1));
+      expect(printed.single, contains('bellWithUnreadCount'));
+      expect(
+        printed.single,
+        contains(NotificationInboxAccessibilityLabels.countPlaceholder),
+      );
+    });
+
+    test('still serializes a template with a mistyped placeholder', () {
+      // A label typo degrades an announcement; it must never fail initialization.
+      final Map<String, dynamic> map =
+          const NotificationInboxAccessibilityLabels(
+        bellWithUnreadCount: 'Aviseringar, %d olasta',
+      ).toMap();
+
+      expect(map['bellWithUnreadCount'], 'Aviseringar, %d olasta');
+    });
+
+    test('stays quiet when the placeholder is present', () {
+      const NotificationInboxAccessibilityLabels(
+        bellWithUnreadCount: 'Aviseringar, {count} olasta',
+      ).toMap();
+
+      expect(printed, isEmpty);
+    });
+
+    test('stays quiet when bellWithUnreadCount is not configured', () {
+      const NotificationInboxAccessibilityLabels(bell: 'Aviseringar').toMap();
+
+      expect(printed, isEmpty);
+    });
+  });
+
   group('InAppConfig', () {
     test('nests the labels under the key shared with the native parsers', () {
       final config = InAppConfig(
@@ -68,6 +124,18 @@ void main() {
 
     test('omits the labels entirely when the app configures none', () {
       expect(InAppConfig(siteId: 'siteId').toMap(), {'siteId': 'siteId'});
+    });
+
+    test('omits a labels object whose fields are all unset', () {
+      // An all-null object serializes to {}, and sending that would make "configured nothing"
+      // indistinguishable from "configured an empty object" natively, where both parsers key
+      // off the map being present at all.
+      final config = InAppConfig(
+        siteId: 'siteId',
+        accessibilityLabels: const NotificationInboxAccessibilityLabels(),
+      );
+
+      expect(config.toMap(), {'siteId': 'siteId'});
     });
   });
 }

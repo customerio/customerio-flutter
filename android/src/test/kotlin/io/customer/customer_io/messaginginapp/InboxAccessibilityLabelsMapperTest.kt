@@ -9,6 +9,10 @@ import org.junit.Test
  * data but not functions, so this mapper is where it becomes the `(Int) -> String` the native SDK
  * takes. These tests pin that conversion and the absent-means-absent rule — a dropped label is
  * silent at runtime (the SDK emits no text of its own, so the inbox just goes unlabeled).
+ *
+ * The wire keys are spelled out here rather than taken from [LabelKeys] on purpose: these tests
+ * exist to pin the contract with Dart, and reusing the constant would keep them green through a
+ * rename that stops every label from arriving.
  */
 class InboxAccessibilityLabelsMapperTest {
 

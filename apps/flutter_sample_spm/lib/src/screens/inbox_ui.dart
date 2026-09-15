@@ -1,6 +1,5 @@
 import 'dart:developer';
 
-import 'package:customer_io/customer_io.dart';
 import 'package:customer_io/customer_io_widgets.dart';
 import 'package:flutter/material.dart';
 
@@ -117,34 +116,7 @@ class _InboxUiScreenState extends State<InboxUiScreen>
   }
 
   // 2. The Jist-rendered message list, embedded directly.
-  //
-  // The empty state is driven entirely by SDK data — NotificationInboxView takes no
-  // parameters that could force it — so the only way to see the dimmed-bell empty state is a
-  // profile with no messages. The button identifies a fresh random user, which reaches it
-  // through the real SDK path rather than faking a view state.
   Widget _buildListTab() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: OutlinedButton(
-            onPressed: _identifyFreshProfile,
-            child: const Text('Debug: identify a fresh profile (empty inbox)'),
-          ),
-        ),
-        const Expanded(child: NotificationInboxView()),
-      ],
-    );
-  }
-
-  void _identifyFreshProfile() {
-    final userId = 'inbox-empty-${DateTime.now().millisecondsSinceEpoch}';
-    CustomerIO.instance.identify(userId: userId);
-    log('[InboxUi] identified $userId to reach the empty state');
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Identified $userId — inbox should now be empty')),
-      );
-    }
+    return const NotificationInboxView();
   }
 }
