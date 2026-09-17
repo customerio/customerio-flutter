@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import '../customer_io_enums.dart';
 import '../customer_io_inapp.dart';
 import '../extensions/method_channel_extensions.dart';
 import '_native_constants.dart';
@@ -30,6 +31,14 @@ class CustomerIOMessagingInAppMethodChannel
   @override
   void dismissMessage() {
     return methodChannel.invokeNativeMethodVoid(NativeMethods.dismissMessage);
+  }
+
+  @override
+  void setColorScheme(CioColorScheme colorScheme) {
+    methodChannel.invokeNativeMethodVoid(
+      NativeMethods.setColorScheme,
+      {NativeMethodParams.colorScheme: colorScheme.rawValue},
+    );
   }
 
   /// Method to subscribe to the In-App event listener.
