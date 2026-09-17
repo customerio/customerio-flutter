@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+import '../customer_io_enums.dart';
 import '../customer_io_inapp.dart';
 import 'inbox_event_listener.dart';
 import 'inbox_message.dart';
@@ -40,6 +41,18 @@ abstract class CustomerIOMessagingInAppPlatform extends PlatformInterface {
 
   void dismissMessage() {
     throw UnimplementedError('dismissMessage() has not been implemented.');
+  }
+
+  /// Overrides the color scheme used to render in-app messages.
+  ///
+  /// Takes effect immediately: messages already on screen — inline views
+  /// included — are re-themed in place, so this can be called whenever the
+  /// app's appearance setting changes rather than only before a message is
+  /// shown.
+  ///
+  /// Passing [CioColorScheme.auto] returns to following the device appearance.
+  void setColorScheme(CioColorScheme colorScheme) {
+    throw UnimplementedError('setColorScheme() has not been implemented.');
   }
 
   StreamSubscription subscribeToEventsListener(

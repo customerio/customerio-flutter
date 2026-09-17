@@ -69,6 +69,9 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
                 MessagingInApp.shared.dismissMessage()
             }
 
+        case "setColorScheme":
+            setColorScheme(call: call, result: result)
+
         case "subscribeToInboxMessages":
             subscribeToInboxMessages(call: call, result: result)
 
@@ -96,6 +99,44 @@ public class CustomerIOInAppMessaging: NSObject, FlutterPlugin {
 
         default:
             result(FlutterMethodNotImplemented)
+        }
+    }
+
+    /// Overrides the color scheme used to render in-app messages.
+    ///
+    /// The SDK re-themes messages already on screen, inline views included, so this is safe to
+    /// call whenever the host's appearance setting changes.
+    ///
+    /// An absent or unrecognized value leaves the current scheme alone rather than resetting it to
+    /// `.auto`, so a bad value cannot quietly undo a scheme the app set correctly earlier. Note
+    /// this is deliberately stricter than `MessagingInAppConfigBuilder`, which resolves anything
+    /// unrecognized to `.auto`; matching Android's bridge matters more here than matching that.
+    private func setColorScheme(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        call.nativeMapArgs(result: result) { args in
+            let rawValue = args[Self.colorSchemeKey] as? String
+            guard let colorScheme = Self.colorScheme(fromRawValue: rawValue) else {
+                self.logger.error(
+                    "Unrecognized in-app colorScheme '\(rawValue ?? "nil")', expected one of auto, light, dark. Leaving the color scheme unchanged."
+                )
+                return
+            }
+            MessagingInApp.shared.setColorScheme(colorScheme)
+        }
+    }
+
+    /// Key of the color scheme in the setter's arguments, matching the Dart
+    /// `NativeMethodParams.colorScheme`.
+    private static let colorSchemeKey = "colorScheme"
+
+    /// Maps the wire value `CioColorScheme` serializes onto the native `ColorScheme`.
+    ///
+    /// Lowercase values, the same vocabulary the Android bridge and the iOS config parser match.
+    private static func colorScheme(fromRawValue rawValue: String?) -> ColorScheme? {
+        switch rawValue {
+        case "auto": return .auto
+        case "light": return .light
+        case "dark": return .dark
+        default: return nil
         }
     }
 

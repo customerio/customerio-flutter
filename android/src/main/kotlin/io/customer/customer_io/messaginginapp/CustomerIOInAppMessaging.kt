@@ -116,6 +116,7 @@ internal class CustomerIOInAppMessaging(
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "dismissMessage" -> call.nativeNoArgs(result, ::dismissMessage)
+            "setColorScheme" -> call.nativeMapArgs(result, ::setColorScheme)
             "subscribeToInboxMessages" -> setupInboxChangeListener(call, result)
             "getInboxMessages" -> getInboxMessages(call, result)
             "markInboxMessageOpened" -> call.nativeMapArgs(result, ::markInboxMessageOpened)
@@ -130,6 +131,33 @@ internal class CustomerIOInAppMessaging(
 
     private fun dismissMessage() {
         inAppMessagingModule?.dismissMessage()
+    }
+
+    private fun setColorScheme(args: Map<String, Any>) {
+        val rawValue = args.getAs<String>(COLOR_SCHEME_KEY)
+        val colorScheme = colorSchemeFrom(rawValue)
+        if (colorScheme == null) {
+            // Leave the current scheme alone rather than resetting it to AUTO, so a bad value
+            // cannot quietly undo a scheme the app set correctly earlier.
+            logger.error(
+                "Unrecognized in-app colorScheme '$rawValue', expected one of auto, light, dark. " +
+                    "Leaving the color scheme unchanged."
+            )
+            return
+        }
+
+        val module = inAppMessagingModule
+        if (module == null) {
+            // Reachable when the host calls this before CustomerIO.initialize, or without the
+            // in-app module configured. Logged rather than ignored: nothing else surfaces that
+            // the scheme was never applied.
+            logger.error(
+                "In-app messaging is not available, so the color scheme was not applied. " +
+                    "Ensure CustomerIO SDK is initialized with the inApp configuration."
+            )
+            return
+        }
+        module.setColorScheme(colorScheme)
     }
 
     /**
@@ -222,6 +250,9 @@ internal class CustomerIOInAppMessaging(
                     }
                 })
                 .apply {
+                    colorSchemeFrom(config)?.let { colorScheme ->
+                        setColorScheme(colorScheme)
+                    }
                     inboxAccessibilityLabelsFrom(config)?.let { labels ->
                         setNotificationInboxAccessibilityLabels(labels)
                     }

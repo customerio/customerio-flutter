@@ -1,6 +1,7 @@
 /// Methods specific to In-App module.
 class NativeMethods {
   static const String dismissMessage = "dismissMessage";
+  static const String setColorScheme = "setColorScheme";
   static const String subscribeToInboxMessages = "subscribeToInboxMessages";
   static const String getInboxMessages = "getInboxMessages";
   static const String markInboxMessageOpened = "markInboxMessageOpened";
@@ -27,5 +28,6 @@ class NativeMethodParams {
   static const String topic = "topic";
   static const String message = "message";
   static const String actionName = "actionName";
+  static const String colorScheme = "colorScheme";
   static const String messages = "messages";
 }
