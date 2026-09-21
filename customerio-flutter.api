@@ -1,3 +1,11 @@
+public final class CioColorScheme {
+	static public val auto: CioColorScheme;
+	static public val dark: CioColorScheme;
+	static public val light: CioColorScheme;
+	public val rawValue: String;
+	static public val values: List<CioColorScheme>;
+}
+
 public final class CioLogLevel {
 	static public val debug: CioLogLevel;
 	static public val error: CioLogLevel;
@@ -155,6 +163,7 @@ public final class CustomerIOMessagingInAppPlatform {
 	public fun markInboxMessageOpened(required InboxMessage message);
 	public fun markInboxMessageUnopened(required InboxMessage message);
 	public fun messages(String? topic): Stream<List<InboxMessage>>;
+	public fun setColorScheme(CioColorScheme colorScheme);
 	public fun setInboxEventListener(InboxEventListener? listener);
 	public fun subscribeToEventsListener(void Function(InAppEvent) onEvent): StreamSubscription<dynamic>;
 	public fun trackInboxMessageClicked(
@@ -228,10 +237,12 @@ public final class GeofenceLocationMode {
 public final class InAppConfig {
 	public fun new(
 		required String siteId,
+		CioColorScheme? colorScheme,
 		NotificationInboxAccessibilityLabels? accessibilityLabels
 	): InAppConfig;
 	public fun toMap(): Map<String, dynamic>;
 	public val accessibilityLabels: NotificationInboxAccessibilityLabels?;
+	public val colorScheme: CioColorScheme?;
 	public val siteId: String;
 }
 

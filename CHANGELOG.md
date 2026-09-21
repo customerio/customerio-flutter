@@ -1,3 +1,9 @@
+## [4.6.0](https://github.com/customerio/customerio-flutter/compare/4.5.0...4.6.0) (2026-09-17)
+
+### Features
+
+* **in-app:** allow overriding the in-app message color scheme ([#410](https://github.com/customerio/customerio-flutter/issues/410)) ([60a068e](https://github.com/customerio/customerio-flutter/commit/60a068eb9bf0a35dc6f9c9a12c32a8792335b445))
+
 ## [4.5.0](https://github.com/customerio/customerio-flutter/compare/4.4.0...4.5.0) (2026-09-15)
 
 ### Features

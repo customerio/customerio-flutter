@@ -98,3 +98,33 @@ enum GeofenceLocationMode {
 
   final String rawValue;
 }
+
+/// Color scheme used to render in-app messages.
+///
+/// Selects which of the light/dark variants authored in the Customer.io editor
+/// is rendered. Use it when the app has its own appearance setting that can
+/// disagree with the operating system: [auto] follows the device, while [light]
+/// and [dark] pin the variant regardless of it.
+///
+/// Named with the `Cio` prefix because `ColorScheme` is already a Material
+/// class, and hosts import `package:flutter/material.dart` alongside these
+/// enums — an unprefixed name would be an ambiguous import in most apps.
+///
+/// The raw values are the wire contract shared with both native SDKs, which
+/// match them lowercase and resolve anything unrecognized to `auto`. They are
+/// declared explicitly rather than derived from the member names so a rename
+/// cannot silently change what goes over the channel.
+enum CioColorScheme {
+  /// Follow the device's current appearance. The native default when unset.
+  auto(rawValue: 'auto'),
+
+  /// Always render the light variant, whatever the device is set to.
+  light(rawValue: 'light'),
+
+  /// Always render the dark variant, whatever the device is set to.
+  dark(rawValue: 'dark');
+
+  const CioColorScheme({required this.rawValue});
+
+  final String rawValue;
+}
