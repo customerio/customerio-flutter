@@ -1,3 +1,9 @@
+## [4.7.0](https://github.com/customerio/customerio-flutter/compare/4.6.0...4.7.0) (2026-09-25)
+
+### Features
+
+* update Customer.io native SDKs (iOS 4.9.0, Android 4.22.0) ([#412](https://github.com/customerio/customerio-flutter/issues/412)) ([ba9e448](https://github.com/customerio/customerio-flutter/commit/ba9e448a73ced60c3736f4539335d7d1025b0aac))
+
 ## [4.6.0](https://github.com/customerio/customerio-flutter/compare/4.5.0...4.6.0) (2026-09-17)
 
 ### Features
