@@ -1,8 +1,9 @@
 package io.customer.customer_io.messagingpush
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import io.customer.customer_io.bridge.NativeModuleBridge
-import io.customer.customer_io.bridge.nativeMapArgs
 import io.customer.customer_io.bridge.nativeNoArgs
 import io.customer.customer_io.liveactivities.CustomerIOLiveActivities
 import io.customer.customer_io.utils.getAs
@@ -19,6 +20,7 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.util.UUID
+import java.util.concurrent.Executors
 
 /**
  * Flutter module implementation for messaging push module in native SDKs. All functionality
@@ -32,13 +34,24 @@ internal class CustomerIOPushMessaging(
     override val flutterCommunicationChannel: MethodChannel =
         MethodChannel(pluginBinding.binaryMessenger, "customer_io_messaging_push")
     private val logger: Logger = SDKComponent.logger
+    private val pushExecutor = Executors.newSingleThreadExecutor()
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private val pushDispatcher = PushMessageDispatcher(pushExecutor::execute) { callback ->
+        mainHandler.post(callback)
+    }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "getRegisteredDeviceToken" -> call.nativeNoArgs(result, ::getRegisteredDeviceToken)
-            "onMessageReceived" -> call.nativeMapArgs(result, ::onMessageReceived)
+            "onMessageReceived" -> pushDispatcher.dispatch(call, result, ::onMessageReceived)
             else -> super.onMethodCall(call, result)
         }
+    }
+
+    override fun onDetachedFromEngine() {
+        super.onDetachedFromEngine()
+        pushDispatcher.close()
+        pushExecutor.shutdownNow()
     }
 
     private fun getRegisteredDeviceToken(): String? {
