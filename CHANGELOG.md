@@ -1,3 +1,9 @@
+## [4.7.1](https://github.com/customerio/customerio-flutter/compare/4.7.0...4.7.1) (2026-09-29)
+
+### Bug Fixes
+
+* **messagingpush:** handle Flutter rich push off main thread (MBL-2548) ([#414](https://github.com/customerio/customerio-flutter/issues/414)) ([402eb27](https://github.com/customerio/customerio-flutter/commit/402eb2715c326b1ca419b5c3bddbb76d872983ad))
+
 ## [4.7.0](https://github.com/customerio/customerio-flutter/compare/4.6.0...4.7.0) (2026-09-25)
 
 ### Features
