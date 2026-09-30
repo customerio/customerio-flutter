@@ -1,3 +1,9 @@
+## [4.7.2](https://github.com/customerio/customerio-flutter/compare/4.7.1...4.7.2) (2026-09-30)
+
+### Bug Fixes
+
+* **android:** include native rich push image memory fixes ([#415](https://github.com/customerio/customerio-flutter/issues/415)) ([0f0dcd2](https://github.com/customerio/customerio-flutter/commit/0f0dcd2b841cacb24a0731bc635d523c77c92053))
+
 ## [4.7.1](https://github.com/customerio/customerio-flutter/compare/4.7.0...4.7.1) (2026-09-29)
 
 ### Bug Fixes
