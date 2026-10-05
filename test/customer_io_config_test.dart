@@ -173,6 +173,13 @@ void main() {
 
       expect(inAppConfig.toMap(), expectedMap);
     });
+
+    test('should omit siteId from toMap() when not provided', () {
+      final inAppConfig = InAppConfig();
+
+      expect(inAppConfig.siteId, isNull);
+      expect(inAppConfig.toMap(), <String, dynamic>{});
+    });
   });
 
   group('LiveActivitiesConfig', () {
