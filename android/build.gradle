@@ -24,7 +24,6 @@ rootProject.allprojects {
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
 // Compose is required to host the native Visual Notification Inbox Compose components
 // (NotificationInboxOverlay/Bell/View) inside Flutter platform views.
 apply plugin: 'org.jetbrains.kotlin.plugin.compose'
@@ -49,10 +48,6 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = '17'
-    }
-
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
         test.java.srcDirs += 'src/test/kotlin'
@@ -64,14 +59,14 @@ android {
         buildConfigField "boolean", "CIO_GEOFENCE_ENABLED", "$cioGeofenceEnabled"
         consumerProguardFiles 'consumer-rules.pro'
     }
+}
 
-    // instruct kotlin compiler to opt in to the APIs annotated with the kotlin.RequiresOptIn
-    // and io.customer.base.internal.InternalCustomerIOApi annotations
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-        kotlinOptions {
-            freeCompilerArgs += ['-Xopt-in=kotlin.RequiresOptIn',
-                                 '-Xopt-in=io.customer.base.internal.InternalCustomerIOApi',]
-        }
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+        // instruct kotlin compiler to opt in to the APIs annotated with the kotlin.RequiresOptIn
+        // and io.customer.base.internal.InternalCustomerIOApi annotations
+        optIn.addAll('kotlin.RequiresOptIn', 'io.customer.base.internal.InternalCustomerIOApi')
     }
 }
 
