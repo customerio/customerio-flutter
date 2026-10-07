@@ -235,15 +235,14 @@ internal class CustomerIOInAppMessaging(
         config: Map<String, Any>
     ) {
         val siteId = config.getAs<String>("siteId")
-        val regionRawValue = config.getAs<String>("region")
-        val givenRegion = regionRawValue.let { Region.getRegion(it) }
+        val givenRegion = inAppRegionFrom(config)
 
-        if (siteId.isNullOrBlank()) {
+        if (siteId.isNullOrBlank() && !hasPublicKey(config)) {
             SDKComponent.logger.error("Site ID is required to initialize InAppMessaging module")
             return
         }
         val module = ModuleMessagingInApp(
-            MessagingInAppModuleConfig.Builder(siteId = siteId, region = givenRegion)
+            MessagingInAppModuleConfig.Builder(siteId = siteId.orEmpty(), region = givenRegion)
                 .setEventListener(CustomerIOInAppEventListener { method, args ->
                     this.activity?.get()?.runOnUiThread {
                         flutterCommunicationChannel.invokeMethod(method, args)
