@@ -54,7 +54,7 @@ class CustomerIOSDK extends ChangeNotifier {
       }
 
       final migrationSiteId = _sdkConfig?.migrationSiteId;
-      // Site ID is optional: a wk_ key enables in-app on its own.
+      // Site ID is optional: a pk_ key enables in-app on its own.
       final inAppConfig = InAppConfig(
         siteId: migrationSiteId,
         // The SDK ships no text of its own in the visual inbox, so these are the only strings

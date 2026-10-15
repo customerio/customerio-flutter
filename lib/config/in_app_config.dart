@@ -2,7 +2,7 @@ import '../customer_io_enums.dart';
 import 'notification_inbox_accessibility_labels.dart';
 
 class InAppConfig {
-  /// Workspace site ID. Optional; not needed when `cdpApiKey` is a workspace public (`wk_`) key.
+  /// Workspace site ID. Optional; not needed when `cdpApiKey` is a workspace public (`pk_`) key.
   final String? siteId;
 
   /// Color scheme used to render in-app messages. Defaults to
