@@ -31,7 +31,6 @@ Pod::Spec.new do |s|
     ss.dependency "CustomerIO/MessagingPushFCM", native_sdk_version
   end
 
-  # Flutter.framework does not contain a i386 slice.
-  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
+  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
   s.swift_version = '5.0'
 end
