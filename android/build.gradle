@@ -8,8 +8,9 @@ buildscript {
         mavenCentral()
     }
 
+    // AGP comes from the host app. KGP stays on the classpath for hosts that do not declare it,
+    // so Flutter can still apply it to this plugin when built-in Kotlin is off.
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.6.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         // Compose compiler Gradle plugin (Kotlin 2.x bundles it under the kotlin version).
         classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlin_version"
@@ -71,7 +72,6 @@ kotlin {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     // Customer.io SDK
     // Version can be overridden for local/CI verification via -PcioVersion=<version>
     // (e.g. -PcioVersion=local to build against a mavenLocal build). The committed default
