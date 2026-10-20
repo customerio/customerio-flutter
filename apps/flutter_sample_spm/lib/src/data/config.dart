@@ -72,8 +72,8 @@ class CustomerIOSDKConfig {
       flushInterval: prefs.getInt(_PreferencesKey.flushInterval),
       screenViewUse: screenViewUse,
       locationTrackingMode: locationTrackingMode,
-      inAppConfig:
-          InAppConfig(siteId: prefs.getString(_PreferencesKey.migrationSiteId)),
+      inAppConfig: InAppConfig(
+          siteId: prefs.getString(_PreferencesKey.migrationSiteId) ?? ""),
     );
   }
 }

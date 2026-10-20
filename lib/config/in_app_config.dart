@@ -2,8 +2,7 @@ import '../customer_io_enums.dart';
 import 'notification_inbox_accessibility_labels.dart';
 
 class InAppConfig {
-  /// Workspace site ID. Optional; not needed when `cdpApiKey` is a workspace public (`pk_`) key.
-  final String? siteId;
+  final String siteId;
 
   /// Color scheme used to render in-app messages. Defaults to
   /// [CioColorScheme.auto], which follows the device appearance. Set it when the app has its
@@ -18,7 +17,7 @@ class InAppConfig {
   final NotificationInboxAccessibilityLabels? accessibilityLabels;
 
   InAppConfig({
-    this.siteId,
+    required this.siteId,
     this.colorScheme,
     this.accessibilityLabels,
   });
@@ -30,7 +29,7 @@ class InAppConfig {
     // an empty object" on the native side, where both parsers key off the map's presence.
     final Map<String, dynamic>? labels = accessibilityLabels?.toMap();
     return {
-      if (siteId != null) 'siteId': siteId,
+      'siteId': siteId,
       // Omitted rather than defaulted to 'auto': the native SDKs already default to AUTO, and
       // sending a value the host never set would make "follow the device" indistinguishable
       // from an explicit choice.

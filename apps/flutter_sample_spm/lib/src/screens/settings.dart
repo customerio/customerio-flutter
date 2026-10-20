@@ -96,8 +96,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         screenTrackingEnabled: _featureTrackScreens,
         autoTrackDeviceAttributes: _featureTrackDeviceAttributes,
         debugModeEnabled: _featureDebugMode,
-        inAppConfig: InAppConfig(
-            siteId: _siteIDValueController.text.trim().nullIfEmpty()));
+        inAppConfig: InAppConfig(siteId: _siteIDValueController.text.trim()));
     widget._customerIOSDK.saveConfigToPreferences(newConfig).then((success) {
       if (!context.mounted) {
         return;

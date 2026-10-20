@@ -236,14 +236,14 @@ public final class GeofenceLocationMode {
 
 public final class InAppConfig {
 	public fun new(
-		String? siteId,
+		required String siteId,
 		CioColorScheme? colorScheme,
 		NotificationInboxAccessibilityLabels? accessibilityLabels
 	): InAppConfig;
 	public fun toMap(): Map<String, dynamic>;
 	public val accessibilityLabels: NotificationInboxAccessibilityLabels?;
 	public val colorScheme: CioColorScheme?;
-	public val siteId: String?;
+	public val siteId: String;
 }
 
 public final class InAppEvent {
