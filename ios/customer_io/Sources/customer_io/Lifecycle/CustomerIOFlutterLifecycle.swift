@@ -42,12 +42,6 @@ final class CustomerIOFlutterLifecycle: NSObject {
         deepLinkRouter.routeSDKDeepLink(url)
     }
 
-    func reportUnavailableSceneRegistration() {
-        DIGraphShared.shared.logger.error(
-            "This Flutter plugin registrar does not support Customer.io UIScene routing; Flutter 3.44.8 or newer is required"
-        )
-    }
-
     @MainActor
     func handleSceneConnection(
         _ connectionOptions: UIScene.ConnectionOptions?,
@@ -179,3 +173,12 @@ final class CustomerIOFlutterLifecycle: NSObject {
         handleSceneOpenURLContexts(urlContexts, in: scene)
     }
 }
+
+// Flutter's protocol is not actor-isolated, but it forwards UIKit scene callbacks, which arrive on
+// the main thread. Swift 6 compilers need @preconcurrency to accept the main-actor witnesses;
+// Flutter 3.44 still allows Xcode 15, whose Swift 5.9/5.10 compilers do not know that spelling.
+#if compiler(>=6.0)
+extension CustomerIOFlutterLifecycle: @preconcurrency FlutterSceneLifeCycleDelegate {}
+#else
+extension CustomerIOFlutterLifecycle: FlutterSceneLifeCycleDelegate {}
+#endif
