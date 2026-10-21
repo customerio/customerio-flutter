@@ -1,3 +1,9 @@
+## [4.8.0](https://github.com/customerio/customerio-flutter/compare/4.7.2...4.8.0) (2026-10-21)
+
+### Features
+
+* support Firebase Installation IDs (iOS 4.11.0, Android 4.24.0) ([#425](https://github.com/customerio/customerio-flutter/issues/425)) ([2aa85d3](https://github.com/customerio/customerio-flutter/commit/2aa85d3d4b313af8ac73a58e5fbfaea980610646))
+
 ## [4.7.2](https://github.com/customerio/customerio-flutter/compare/4.7.1...4.7.2) (2026-09-30)
 
 ### Bug Fixes
