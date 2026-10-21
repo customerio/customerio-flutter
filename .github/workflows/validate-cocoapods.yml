@@ -11,6 +11,8 @@ on:
       - 'scripts/test_cocoapods_deployment_target.rb'
       - 'scripts/audit_cocoapods_deployment_targets.rb'
       - 'apps/scripts/update_sample_app_sdk_version.dart'
+      - 'apps/flutter_sample_spm/.flutter-version'
+      - 'apps/scripts/verify_xcode27_flutter_version.sh'
       - '.github/actions/setup-flutter/**'
       - '.github/workflows/reusable-build-sample-apps.yml'
       - '.github/workflows/validate-cocoapods.yml'
