@@ -12,9 +12,6 @@ on:
       - '.github/workflows/android-agp9-compatibility.yml'
   push:
     branches: [ main ]
-  schedule:
-    # Nightly, to catch a new Flutter stable whose template moves AGP, Gradle or KGP.
-    - cron: '41 6 * * *'
   workflow_dispatch:
 
 concurrency:
