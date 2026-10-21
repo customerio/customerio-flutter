@@ -31,4 +31,5 @@ jobs:
       should_distribute: false
       build_android_app: false
       verification_only: true
+      ios_flutter_version_source: pinned
     secrets: inherit

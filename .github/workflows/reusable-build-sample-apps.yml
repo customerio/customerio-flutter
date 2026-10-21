@@ -42,6 +42,11 @@ on:
         type: string
         required: false
         default: ""
+      ios_flutter_version_source:
+        description: "Flutter for the iOS build: 'stable' or 'pinned' (the sample apps' .flutter-version)"
+        type: string
+        required: false
+        default: "stable"
     outputs:
       APP_VERSION_NAME:
         description: "The version name of the built app"
@@ -266,7 +271,7 @@ jobs:
     defaults:
       run:
         working-directory: apps/${{ inputs.sample_app_name }}
-    runs-on: macos-26
+    runs-on: xcode-27
     outputs:
       APP_VERSION_NAME: ${{ steps.set_output.outputs.APP_VERSION_NAME }}
       APP_VERSION_CODE: ${{ steps.set_output.outputs.APP_VERSION_CODE }}
@@ -295,6 +300,12 @@ jobs:
           # semantic-release tags a new child commit and walking ancestors from this run's commit
           # always returns the previous release.
           echo "SDK_RELEASE_VERSION=${SDK_VERSION_INPUT:-$LATEST_TAG}" >> $GITHUB_ENV
+
+      - name: Report and verify toolchain family
+        uses: customerio/mobile-ci-tools/github-actions/ios/report-toolchain/v1@main
+        with:
+          expected-xcode-major: '27'
+          expected-ios-sdk-major: '27'
 
       - name: Test iOS lifecycle routing behavior
         if: ${{ inputs.is_primary_app }}
@@ -403,10 +414,26 @@ jobs:
 
       # Make sure to fetch dependencies only after updating the version numbers and workspace credentials
 
+      - name: Select pinned Flutter
+        id: flutter-pin
+        if: ${{ inputs.ios_flutter_version_source == 'pinned' }}
+        working-directory: ${{ github.workspace }}
+        env:
+          SAMPLE_APP_NAME: ${{ inputs.sample_app_name }}
+        run: |
+          ./apps/scripts/verify_xcode27_flutter_version.sh
+          echo "version=$(<"apps/$SAMPLE_APP_NAME/.flutter-version")" >> "$GITHUB_OUTPUT"
+
       - name: Setup flutter environment and install dependencies
         uses: ./.github/actions/setup-flutter
         with:
+          flutter-version: ${{ steps.flutter-pin.outputs.version }}
           install-sample-dependencies: ${{ inputs.verification_only && 'false' || 'true' }}
+
+      - name: Verify installed pinned Flutter
+        if: ${{ inputs.ios_flutter_version_source == 'pinned' }}
+        working-directory: ${{ github.workspace }}
+        run: ./apps/scripts/verify_xcode27_flutter_version.sh --installed
 
       - name: Use SDK release version for sample app (if needed)
         working-directory: apps/${{ inputs.sample_app_name }}
@@ -423,12 +450,10 @@ jobs:
       - name: Install Flutter dependencies for app
         run: flutter pub get
 
-      # No xcode-version here on purpose: the action pins the fleet-wide default
-      # (26.6). This previously passed ${{ env.XCODE_VERSION }}, which was defined
-      # only in the calling workflow — env does not cross a workflow_call boundary,
-      # so it arrived empty and setup-xcode silently resolved `latest` instead.
       - name: Setup iOS environment for sample app
         uses: customerio/mobile-ci-tools/github-actions/ios/setup-ios/v1@main
+        with:
+          xcode-version: ''
 
       - name: Cache CocoaPods downloaded dependencies for faster builds in the future
         if: ${{ inputs.sample_app_name != 'flutter_sample_spm' && !inputs.verification_only }}
@@ -453,7 +478,7 @@ jobs:
 
       - name: pod install
         if: ${{ inputs.sample_app_name != 'flutter_sample_spm' }}
-        run: pod install --project-directory=ios
+        run: bundle exec pod install --project-directory=ios
 
       - name: Audit CocoaPods deployment targets
         if: ${{ inputs.sample_app_name == 'flutter_sample_cocoapods' }}
@@ -480,6 +505,10 @@ jobs:
         if: ${{ !inputs.should_distribute }}
         id: ios_build_verify
         run: flutter build ios --no-codesign
+
+      - name: Build iOS app for the simulator (pinned Flutter)
+        if: ${{ inputs.ios_flutter_version_source == 'pinned' }}
+        run: flutter build ios --simulator --debug
 
       - name: Determine SDK Version
         shell: bash

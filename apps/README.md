@@ -50,7 +50,7 @@ For a guided interactive walkthrough:
 
 ### Xcode 27 Flutter toolchain
 
-The Xcode 27 compile lane must use the exact Flutter version recorded in both
+The pinned Xcode 27 lane must use the exact Flutter version recorded in both
 sample apps' `.flutter-version` files. Flutter `3.44.8` is the first stable
 release containing the [upstream fix](https://github.com/flutter/flutter/pull/188625)
 for Xcode 27 rejecting multi-architecture
