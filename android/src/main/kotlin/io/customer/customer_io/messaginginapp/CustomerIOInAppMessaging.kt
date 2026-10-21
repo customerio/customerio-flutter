@@ -21,7 +21,6 @@ import io.customer.sdk.CustomerIO
 import io.customer.sdk.CustomerIOBuilder
 import io.customer.sdk.core.di.SDKComponent
 import io.customer.sdk.core.util.Logger
-import io.customer.sdk.data.model.Region
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -234,15 +233,15 @@ internal class CustomerIOInAppMessaging(
         builder: CustomerIOBuilder,
         config: Map<String, Any>
     ) {
+        // Site ID is still required. Native in-app reads the key and region from the CustomerIO setup.
         val siteId = config.getAs<String>("siteId")
-        val givenRegion = inAppRegionFrom(config)
 
         if (siteId.isNullOrBlank()) {
             SDKComponent.logger.error("Site ID is required to initialize InAppMessaging module")
             return
         }
         val module = ModuleMessagingInApp(
-            MessagingInAppModuleConfig.Builder(siteId = siteId, region = givenRegion)
+            MessagingInAppModuleConfig.Builder(siteId = siteId)
                 .setEventListener(CustomerIOInAppEventListener { method, args ->
                     this.activity?.get()?.runOnUiThread {
                         flutterCommunicationChannel.invokeMethod(method, args)

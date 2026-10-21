@@ -228,10 +228,7 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 modules.filterIsInstance<CustomerIOInAppMessaging>().forEach {
                     it.configureModule(
                         builder = this,
-                        config = inAppConfig + listOfNotNull(
-                            "cdpApiKey" to cdpApiKey,
-                            regionRawValue?.let { "region" to it },
-                        ),
+                        config = inAppConfig,
                     )
                 }
             }
