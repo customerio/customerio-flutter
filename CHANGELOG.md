@@ -1,3 +1,9 @@
+## [4.9.0](https://github.com/customerio/customerio-flutter/compare/4.8.0...4.9.0) (2026-10-22)
+
+### Features
+
+* **MBL-2546:** accept a public key and read the region from it ([#416](https://github.com/customerio/customerio-flutter/issues/416)) ([8243156](https://github.com/customerio/customerio-flutter/commit/8243156ea6942045ba829cbb1ba4fad326fbb120))
+
 ## [4.8.0](https://github.com/customerio/customerio-flutter/compare/4.7.2...4.8.0) (2026-10-21)
 
 ### Features
