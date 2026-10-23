@@ -65,6 +65,19 @@ android {
             minifyEnabled true
         }
     }
+
+    flavorDimensions = ["push"]
+    productFlavors {
+        // Registers with the FCM token
+        token {
+            dimension "push"
+            isDefault = true
+        }
+        // Registers with the Firebase Installation ID (firebase-messaging 25.1.0+ and the flag in src/fid)
+        fid {
+            dimension "push"
+        }
+    }
 }
 
 flutter {

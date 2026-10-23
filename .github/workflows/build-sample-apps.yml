@@ -87,6 +87,7 @@ jobs:
     with:
       use_latest_sdk_version: false
       sample_app_name: flutter_sample_spm
+      android_flavor: token
       cio_workspace_name: "Mobile: Flutter"
       is_primary_app: true
       should_distribute: ${{ github.event_name != 'pull_request' || (needs.release_policy.outputs.full_validation == 'true' && (github.event.action != 'edited' || github.event.changes.title != null || github.event.changes.base != null) && (github.event.action != 'labeled' || github.event.label.name == 'ci:full') && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]') }}
