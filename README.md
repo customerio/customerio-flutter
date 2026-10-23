@@ -95,8 +95,7 @@ provider. Customer.io cannot receive or diagnose callbacks that a custom scene d
 forward. This release's compatibility scope is one simultaneous window scene, matching the native
 and Flutter samples' `UIApplicationSupportsMultipleScenes=false` configuration. Multiple
 simultaneous window scenes are not supported. Hosts that enable them retain ownership of Flutter's
-scene-to-engine registration and any window-specific routing. Older Flutter registrars log an error
-and leave scene routing unclaimed.
+scene-to-engine registration and any window-specific routing.
 
 # Contributing
 

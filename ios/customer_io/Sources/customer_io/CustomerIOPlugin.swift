@@ -32,7 +32,7 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
         instance.methodChannel = FlutterMethodChannel(name: "customer_io", binaryMessenger: registrar.messenger())
         registrar.addMethodCallDelegate(instance, channel: instance.methodChannel)
 
-        registerSceneDelegateIfSupported(instance, with: registrar)
+        registerSceneDelegateIfNeeded(instance, with: registrar)
         registerSDKDeepLinkCallbackIfNeeded(instance)
 
         instance.inAppMessagingChannelHandler = CustomerIOInAppMessaging(with: registrar)
@@ -46,21 +46,15 @@ public class CustomerIOPlugin: NSObject, FlutterPlugin {
         instance.liveActivitiesChannelHandler = CustomerIOLiveActivities(with: registrar)
     }
 
-    /// Flutter added scene-delegate registration after this package's original minimum Flutter
-    /// version. Invoke the optional registrar API dynamically so existing AppDelegate-only apps
-    /// continue to compile on older Flutter releases, while newer Flutter hosts can use UIScene.
-    private static func registerSceneDelegateIfSupported(
+    /// Receives UIScene callbacks only for hosts that declare a scene manifest and route deep links
+    /// through Flutter. Every supported Flutter version (3.44+) provides `addSceneDelegate`.
+    private static func registerSceneDelegateIfNeeded(
         _ instance: CustomerIOPlugin,
         with registrar: FlutterPluginRegistrar
     ) {
         guard instance.lifecycleHandler.shouldRegisterSceneDelegate else { return }
 
-        let selector = NSSelectorFromString("addSceneDelegate:")
-        guard registrar.responds(to: selector) else {
-            instance.lifecycleHandler.reportUnavailableSceneRegistration()
-            return
-        }
-        _ = registrar.perform(selector, with: instance.lifecycleHandler)
+        registrar.addSceneDelegate(instance.lifecycleHandler)
     }
 
     /// Install the callback while Flutter registers its native plugins. A cold push tap can reach
