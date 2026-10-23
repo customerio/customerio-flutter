@@ -1,3 +1,21 @@
+## [4.10.0](https://github.com/customerio/customerio-flutter/compare/4.9.0...4.10.0) (2026-10-23)
+
+### Features
+
+* update native SDKs to iOS 4.13.0 and Android 4.26.0 (geofence dwell and visit duration) ([#429](https://github.com/customerio/customerio-flutter/issues/429)) ([0981854](https://github.com/customerio/customerio-flutter/commit/09818541e6a898f1210e51c689b7a528a8352300))
+
+## [4.9.0](https://github.com/customerio/customerio-flutter/compare/4.8.0...4.9.0) (2026-10-22)
+
+### Features
+
+* **MBL-2546:** accept a public key and read the region from it ([#416](https://github.com/customerio/customerio-flutter/issues/416)) ([8243156](https://github.com/customerio/customerio-flutter/commit/8243156ea6942045ba829cbb1ba4fad326fbb120))
+
+## [4.8.0](https://github.com/customerio/customerio-flutter/compare/4.7.2...4.8.0) (2026-10-21)
+
+### Features
+
+* support Firebase Installation IDs (iOS 4.11.0, Android 4.24.0) ([#425](https://github.com/customerio/customerio-flutter/issues/425)) ([2aa85d3](https://github.com/customerio/customerio-flutter/commit/2aa85d3d4b313af8ac73a58e5fbfaea980610646))
+
 ## [4.7.2](https://github.com/customerio/customerio-flutter/compare/4.7.1...4.7.2) (2026-09-30)
 
 ### Bug Fixes

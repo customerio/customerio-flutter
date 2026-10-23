@@ -228,7 +228,7 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 modules.filterIsInstance<CustomerIOInAppMessaging>().forEach {
                     it.configureModule(
                         builder = this,
-                        config = inAppConfig.plus("region" to givenRegion.code),
+                        config = inAppConfig,
                     )
                 }
             }
