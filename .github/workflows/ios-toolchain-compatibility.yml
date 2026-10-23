@@ -56,7 +56,7 @@ jobs:
 
     steps:
       - name: Check out Flutter SDK
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # Flutter inspects the selected Xcode when generating its SwiftPM plugin package.
       - name: Report and verify toolchain family
@@ -74,7 +74,7 @@ jobs:
           echo "version=$(<"apps/${{ matrix.app }}/.flutter-version")" >> "$GITHUB_OUTPUT"
 
       - name: Install pinned Flutter
-        uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046 # v2.19.0
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
           flutter-version: ${{ steps.flutter-pin.outputs.version }}
@@ -312,7 +312,7 @@ jobs:
 
       - name: Upload Maestro diagnostics
         if: always() && matrix.manager == 'SwiftPM'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: xcode-27-preview-${{ matrix.app }}-maestro-diagnostics
           path: ${{ runner.temp }}/flutter_sample_spm-maestro-*
@@ -410,7 +410,7 @@ jobs:
 
       - name: Upload build log
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: xcode-27-preview-${{ matrix.app }}-build-log
           path: ${{ runner.temp }}/${{ matrix.app }}-*.log
