@@ -1,3 +1,9 @@
+## [4.10.0](https://github.com/customerio/customerio-flutter/compare/4.9.0...4.10.0) (2026-10-23)
+
+### Features
+
+* update native SDKs to iOS 4.13.0 and Android 4.26.0 (geofence dwell and visit duration) ([#429](https://github.com/customerio/customerio-flutter/issues/429)) ([0981854](https://github.com/customerio/customerio-flutter/commit/09818541e6a898f1210e51c689b7a528a8352300))
+
 ## [4.9.0](https://github.com/customerio/customerio-flutter/compare/4.8.0...4.9.0) (2026-10-22)
 
 ### Features
