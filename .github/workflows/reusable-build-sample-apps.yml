@@ -458,7 +458,8 @@ jobs:
 
       - name: pod install
         if: ${{ inputs.sample_app_name != 'flutter_sample_spm' }}
-        run: pod install --project-directory=ios
+        # The cached ~/.cocoapods index can predate a newly pinned native SDK version.
+        run: pod install --repo-update --project-directory=ios
 
       - name: Audit CocoaPods deployment targets
         if: ${{ inputs.sample_app_name == 'flutter_sample_cocoapods' }}
