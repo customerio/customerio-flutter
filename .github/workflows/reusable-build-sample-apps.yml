@@ -32,6 +32,11 @@ on:
         type: boolean
         required: false
         default: true
+      android_flavor:
+        description: "Android product flavor to build (e.g. token). Empty for apps without flavors."
+        type: string
+        required: false
+        default: ""
       verification_only:
         description: "Use PR-only dependency and cache optimizations without changing release callers"
         type: boolean
@@ -219,7 +224,7 @@ jobs:
         with:
           subdirectory: apps/${{ inputs.sample_app_name }}
           lane: 'android build'
-          options: '{"distribution_groups": "${{ env.firebase_distribution_groups }}"}'
+          options: '{"distribution_groups": "${{ env.firebase_distribution_groups }}", "flavor": "${{ inputs.android_flavor }}"}'
         env:
           FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64: ${{ secrets.FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64 }}
         continue-on-error: true # continue to build iOS app even if Android build fails
@@ -227,7 +232,7 @@ jobs:
       - name: Build Android app (verification only)
         if: ${{ !inputs.should_distribute }}
         id: android_build_verify
-        run: flutter build apk --release
+        run: flutter build apk --release ${{ inputs.android_flavor && format('--flavor {0}', inputs.android_flavor) || '' }}
 
       - name: Determine SDK Version
         shell: bash

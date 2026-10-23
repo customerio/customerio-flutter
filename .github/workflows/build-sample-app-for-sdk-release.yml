@@ -22,6 +22,7 @@ jobs:
     with:
       use_latest_sdk_version: true
       sample_app_name: flutter_sample_spm
+      android_flavor: token
       cio_workspace_name: "Mobile: Flutter"
       is_primary_app: true
       sdk_version: ${{ inputs.sdk_version }}
