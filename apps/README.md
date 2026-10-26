@@ -50,7 +50,7 @@ For a guided interactive walkthrough:
 
 ### Xcode 27 Flutter toolchain
 
-The Xcode 27 compile lane must use the exact Flutter version recorded in both
+The pinned Xcode 27 lane must use the exact Flutter version recorded in both
 sample apps' `.flutter-version` files. Flutter `3.44.8` is the first stable
 release containing the [upstream fix](https://github.com/flutter/flutter/pull/188625)
 for Xcode 27 rejecting multi-architecture
@@ -82,9 +82,9 @@ pin or app delegate integration changes.
 
 ## UIScene sample configuration
 
-Both samples keep AppDelegate-only behavior in `Runner/Info.plist` and provide an explicit UIScene
-configuration in `Runner/Info-Scene.plist`. The Runner target selects the scene configuration when
-`CIO_LIFECYCLE_INFOPLIST_SUFFIX=-Scene` is passed to Xcode.
+Both samples default to the UIScene configuration in `Runner/Info-Scene.plist`. `Runner/Info.plist`
+keeps AppDelegate-only behavior; the Runner target selects it when `CIO_LIFECYCLE_INFOPLIST_SUFFIX=`
+(empty) is passed to Xcode.
 
 The standard Apple scene manifest is the lifecycle source of truth; no Customer.io-specific
 topology key is required. `CioAppDelegateWrapper` continues to own SDK initialization, APNs

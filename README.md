@@ -52,9 +52,7 @@ Apps with a `UIApplicationSceneManifest` receive opened URLs through their scene
 of the AppDelegate callback. The host scene delegate must extend Flutter's `FlutterSceneDelegate`,
 or forward the equivalent lifecycle callbacks through Flutter's scene lifecycle provider. The
 Customer.io plugin then registers its scene routing owner; do not add another Customer.io URL
-handler to the host `SceneDelegate`. The samples deliberately keep AppDelegate-only behavior by
-default, while CI selects their scene manifests with
-`CIO_LIFECYCLE_INFOPLIST_SUFFIX=-Scene`. Flutter exposes one consume-or-forward decision for all
+handler to the host `SceneDelegate`. The samples use their scene manifests by default. Flutter exposes one consume-or-forward decision for all
 cold connection options, so an occurrence that also contains a user activity, notification
 response, or shortcut is not consumed by Customer.io. Customer.io still records the opened metric
 when the occurrence contains exactly one tracking URL, then returns the complete original
