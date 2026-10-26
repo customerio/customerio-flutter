@@ -232,7 +232,6 @@ jobs:
           options: '{"distribution_groups": "${{ env.firebase_distribution_groups }}", "flavor": "${{ inputs.android_flavor }}"}'
         env:
           FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64: ${{ secrets.FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_CREDS_B64 }}
-        continue-on-error: true # continue to build iOS app even if Android build fails
 
       - name: Build Android app (verification only)
         if: ${{ !inputs.should_distribute }}
