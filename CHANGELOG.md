@@ -1,3 +1,13 @@
+## [5.0.0](https://github.com/customerio/customerio-flutter/compare/4.10.0...5.0.0) (2026-10-26)
+
+### ⚠ BREAKING CHANGES
+
+* take native iOS and Android 5.0, migrate the Android plugin to built-in Kotlin, and require Flutter 3.44 (#419)
+
+### Features
+
+* take native iOS and Android 5.0, migrate the Android plugin to built-in Kotlin, and require Flutter 3.44 ([#419](https://github.com/customerio/customerio-flutter/issues/419)) ([61277bd](https://github.com/customerio/customerio-flutter/commit/61277bda8d41986c3b332147bf6e07fcbb48343d))
+
 ## [4.10.0](https://github.com/customerio/customerio-flutter/compare/4.9.0...4.10.0) (2026-10-23)
 
 ### Features
