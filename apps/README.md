@@ -60,7 +60,7 @@ run it again with `--installed` after setup, in the same `PATH` context used by
 the subsequent Flutter build.
 
 This pairing is an Xcode 27 build-tool requirement. It does not raise the
-published `customer_io` package minimum of Flutter `2.5.0`. Any deliberate
+published `customer_io` package minimum of Flutter `3.44.0`. Any deliberate
 older-Flutter compatibility check must remain on an appropriate older Xcode
 lane and must not be represented as Xcode 27-compatible.
 

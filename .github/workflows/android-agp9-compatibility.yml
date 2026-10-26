@@ -1,0 +1,68 @@
+name: Android AGP 9 compatibility
+
+# The sample apps build with AGP 8. This builds a fresh `flutter create` app on AGP 9 so the
+# plugin keeps working with the Gradle setup new Flutter apps get, including built-in Kotlin.
+on:
+  pull_request:
+    paths:
+      - 'android/**'
+      - 'pubspec.yaml'
+      - 'scripts/build_agp9_fixture.sh'
+      - '.github/actions/setup-flutter/**'
+      - '.github/workflows/android-agp9-compatibility.yml'
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-agp9-fixture:
+    name: Flutter ${{ matrix.flutter-label }} (builtInKotlin=${{ matrix.built-in-kotlin }}, newDsl=${{ matrix.new-dsl }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Minimum supported Flutter (pubspec.yaml). 3.44 runs AGP 9 only with built-in Kotlin
+          # off, so Flutter applies KGP to the plugin.
+          - flutter-label: '3.44.0'
+            flutter-version: '3.44.0'
+            built-in-kotlin: 'false'
+            new-dsl: 'false'
+          # Latest stable with the flags Flutter's template writes.
+          - flutter-label: stable
+            flutter-version: ''
+            built-in-kotlin: 'false'
+            new-dsl: 'false'
+          # Latest stable with AGP 9's built-in Kotlin, which needs Flutter 3.47 or later. newDsl
+          # stays off: Flutter's own Gradle plugin fails to apply with it on (flutter/flutter#180137).
+          - flutter-label: stable
+            flutter-version: ''
+            built-in-kotlin: 'true'
+            new-dsl: 'false'
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - uses: ./.github/actions/setup-flutter
+        with:
+          flutter-version: ${{ matrix.flutter-version }}
+          install-sample-dependencies: 'false'
+
+      - name: Build AGP 9 fixture app
+        run: ./scripts/build_agp9_fixture.sh "$RUNNER_TEMP/agp9-fixture" "$BUILT_IN_KOTLIN" "$NEW_DSL"
+        env:
+          BUILT_IN_KOTLIN: ${{ matrix.built-in-kotlin }}
+          NEW_DSL: ${{ matrix.new-dsl }}

@@ -7,7 +7,6 @@ require 'yaml'
 podspec_config = YAML.load_file('../pubspec.yaml')
 # The native_sdk_version is the version of iOS native SDK that the Flutter plugin is compatible with.
 native_sdk_version = podspec_config['flutter']['plugin']['platforms']['ios']['native_sdk_version']
-firebase_wrapper_version = podspec_config['flutter']['plugin']['platforms']['ios']['firebase_wrapper_version']
 
 Pod::Spec.new do |s|
   s.name        = podspec_config['name']
@@ -19,7 +18,7 @@ Pod::Spec.new do |s|
   s.source      = { :path => '.' }
   s.source_files = 'customer_io/Sources/customer_io/**/*.swift'
   s.dependency 'Flutter'
-  s.platform = :ios, '13.0'
+  s.platform = :ios, '15.0'
 
   # Native SDK dependencies that are required for the Flutter plugin to work.
   s.dependency "CustomerIO/DataPipelines", native_sdk_version
@@ -41,7 +40,7 @@ Pod::Spec.new do |s|
   # Note: Subspecs inherit all dependencies specified the parent spec (this file).
   s.subspec 'fcm' do |ss|
     ss.dependency "CustomerIO/MessagingPushFCM", native_sdk_version
-    ss.dependency "CioFirebaseWrapper", firebase_wrapper_version
+    ss.dependency "CioFirebaseWrapper", native_sdk_version
   end
 
   # Location module is optional - customers must opt in by adding this subspec.
@@ -65,7 +64,6 @@ Pod::Spec.new do |s|
     ss.dependency "CustomerIO/LiveActivitiesTemplates", native_sdk_version
   end
 
-  # Flutter.framework does not contain a i386 slice.
-  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
+  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
   s.swift_version = '5.0'
 end

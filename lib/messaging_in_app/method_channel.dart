@@ -194,7 +194,7 @@ class CustomerIOMessagingInAppMethodChannel
       NativeMethods.trackInboxMessageClicked,
       {
         NativeMethodParams.message: message.toMap(),
-        if (actionName != null) NativeMethodParams.actionName: actionName,
+        NativeMethodParams.actionName: ?actionName,
       },
     );
   }
