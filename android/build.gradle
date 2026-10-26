@@ -55,7 +55,7 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 24
         buildConfigField "boolean", "CIO_LOCATION_ENABLED", "$cioLocationLinked"
         buildConfigField "boolean", "CIO_GEOFENCE_ENABLED", "$cioGeofenceEnabled"
         consumerProguardFiles 'consumer-rules.pro'
