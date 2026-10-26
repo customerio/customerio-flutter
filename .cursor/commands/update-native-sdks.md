@@ -6,7 +6,7 @@ Update the Customer.io **iOS** and/or **Android** native SDK versions used by th
 
 | Platform | File | What to change |
 |----------|------|----------------|
-| **iOS** | `pubspec.yaml` | `flutter.plugin.platforms.ios.native_sdk_version` (and optionally `firebase_wrapper_version` if needed) |
+| **iOS** | `pubspec.yaml` | `flutter.plugin.platforms.ios.native_sdk_version` |
 | **iOS** | `ios/customer_io/Package.swift` | Exact `customerio-ios` package version |
 | **iOS** | `apps/flutter_sample_cocoapods/ios/Podfile` | Live Activity widget pod version |
 | **iOS** | `apps/flutter_sample_spm/ios/Runner.xcodeproj/project.pbxproj` | Exact `customerio-ios` package version |
@@ -25,7 +25,6 @@ Update the Customer.io **iOS** and/or **Android** native SDK versions used by th
 2. **Update iOS native SDK**
    - In **`pubspec.yaml`**, under `flutter.plugin.platforms.ios`, set:
      - `native_sdk_version: <new version>` (e.g. `4.1.3`)
-     - Only change `firebase_wrapper_version` if the iOS SDK or docs require it.
    - Set the same native SDK version in `ios/customer_io/Package.swift` and both sample-app locations listed above.
 
 3. **Update Android native SDK**
