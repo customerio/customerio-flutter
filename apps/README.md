@@ -60,9 +60,9 @@ run it again with `--installed` after setup, in the same `PATH` context used by
 the subsequent Flutter build.
 
 This pairing is an Xcode 27 build-tool requirement. It does not raise the
-published `customer_io` package minimum of Flutter `3.44.0`. Any deliberate
-older-Flutter compatibility check must remain on an appropriate older Xcode
-lane and must not be represented as Xcode 27-compatible.
+published `customer_io` package minimum of Flutter `3.44.0`. Every iOS CI lane
+runs on Xcode 27, so iOS builds use Flutter `3.44.8` or later; the Android AGP 9
+compatibility workflow is what builds against the `3.44.0` minimum.
 
 ## iOS App Delegate Regression Check
 
