@@ -2,7 +2,9 @@ import '../customer_io_enums.dart';
 import 'notification_inbox_accessibility_labels.dart';
 
 class InAppConfig {
-  final String siteId;
+  /// Workspace site ID. Optional when the SDK is set up with a public `pk_` key, which
+  /// identifies the workspace.
+  final String? siteId;
 
   /// Color scheme used to render in-app messages. Defaults to
   /// [CioColorScheme.auto], which follows the device appearance. Set it when the app has its
@@ -17,7 +19,7 @@ class InAppConfig {
   final NotificationInboxAccessibilityLabels? accessibilityLabels;
 
   InAppConfig({
-    required this.siteId,
+    this.siteId,
     this.colorScheme,
     this.accessibilityLabels,
   });
@@ -28,8 +30,9 @@ class InAppConfig {
     // that would make "the host configured nothing" indistinguishable from "the host configured
     // an empty object" on the native side, where both parsers key off the map's presence.
     final Map<String, dynamic>? labels = accessibilityLabels?.toMap();
+    final String? siteId = this.siteId;
     return {
-      'siteId': siteId,
+      if (siteId != null && siteId.isNotEmpty) 'siteId': siteId,
       // Omitted rather than defaulted to 'auto': the native SDKs already default to AUTO, and
       // sending a value the host never set would make "follow the device" indistinguishable
       // from an explicit choice.

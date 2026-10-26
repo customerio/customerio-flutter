@@ -126,6 +126,11 @@ void main() {
       expect(InAppConfig(siteId: 'siteId').toMap(), {'siteId': 'siteId'});
     });
 
+    test('omits the site ID when the app sets none', () {
+      expect(InAppConfig().toMap(), <String, dynamic>{});
+      expect(InAppConfig(siteId: '').toMap(), <String, dynamic>{});
+    });
+
     test('omits a labels object whose fields are all unset', () {
       // An all-null object serializes to {}, and sending that would make "configured nothing"
       // indistinguishable from "configured an empty object" natively, where both parsers key
