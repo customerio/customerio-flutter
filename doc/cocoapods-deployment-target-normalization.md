@@ -12,14 +12,14 @@ configuration, preserving a higher inherited app or extension floor. It changes 
 settings in the generated Pods project and CocoaPods-integrated Runner or extension projects. It
 does not rewrite a podspec or change runtime API availability.
 
-Customer.io deliberately continues to publish native SDKs that support iOS versions below 15. A
-podspec can therefore correctly declare that lower library minimum even when the Flutter
-application consuming it has moved to iOS 15 or later. CocoaPods carries deployment metadata from
-Customer.io and third-party podspecs into generated build targets, but Xcode 27 no longer accepts
-targets below the iOS SDK's supported build range. Raising every published podspec to iOS 15 would
-unnecessarily drop older applications and would not control metadata from transitive
-dependencies. The helper instead aligns the generated targets with the host application's chosen
-minimum while leaving the packages' published runtime compatibility unchanged.
+Customer.io's native SDKs declare iOS 15.0 from 5.0.0, but pods they depend on can still declare a
+lower minimum. Jist 0.1.0, which `CustomerIOMessagingInbox` uses to render the inbox, declares iOS
+13.0, and third-party pods can do the same. A podspec can correctly declare that lower library
+minimum even when the Flutter application consuming it has moved to iOS 15 or later. CocoaPods
+carries deployment metadata from those podspecs into generated build targets, and Xcode 27 no
+longer accepts targets below the iOS SDK's supported build range. The application does not control
+metadata from transitive dependencies, so the helper aligns the generated targets with the host
+application's chosen minimum while leaving the packages' published runtime compatibility unchanged.
 This is the supported integration policy for a Flutter application that has moved its own minimum
 to iOS 15 or later.
 
@@ -86,8 +86,8 @@ These cases fail before any project mutation.
 ## When the helper is no longer needed
 
 Keep the helper while a supported dependency graph can validly include deployment metadata below
-the host application's minimum. This is expected while Customer.io supports older iOS versions or
-supported third-party pods continue to declare lower minimums. A `platform` declaration in the
+the host application's minimum. This is expected while dependencies such as Jist or supported
+third-party pods continue to declare lower minimums. A `platform` declaration in the
 application's Podfile alone does not guarantee that every generated target uses the same value.
 
 The helper becomes unnecessary only when a clean install without it proves that every
