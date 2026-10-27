@@ -233,15 +233,15 @@ internal class CustomerIOInAppMessaging(
         builder: CustomerIOBuilder,
         config: Map<String, Any>
     ) {
-        // Site ID is still required. Native in-app reads the key and region from the CustomerIO setup.
+        // Site ID is optional with a public (pk_) key. Native in-app reads the key and region from the CustomerIO setup.
         val siteId = config.getAs<String>("siteId")
-
-        if (siteId.isNullOrBlank()) {
-            SDKComponent.logger.error("Site ID is required to initialize InAppMessaging module")
-            return
+        val configBuilder = if (siteId.isNullOrBlank()) {
+            MessagingInAppModuleConfig.Builder()
+        } else {
+            MessagingInAppModuleConfig.Builder(siteId = siteId)
         }
         val module = ModuleMessagingInApp(
-            MessagingInAppModuleConfig.Builder(siteId = siteId)
+            configBuilder
                 .setEventListener(CustomerIOInAppEventListener { method, args ->
                     this.activity?.get()?.runOnUiThread {
                         flutterCommunicationChannel.invokeMethod(method, args)
