@@ -1,3 +1,9 @@
+## [5.1.0](https://github.com/customerio/customerio-flutter/compare/5.0.0...5.1.0) (2026-10-27)
+
+### Features
+
+* **MBL-2652:** make InAppConfig.siteId optional with a pk_ key ([#432](https://github.com/customerio/customerio-flutter/issues/432)) ([5057b87](https://github.com/customerio/customerio-flutter/commit/5057b870c2e52fedb9875096685c813c5cafe0f4))
+
 ## [5.0.0](https://github.com/customerio/customerio-flutter/compare/4.10.0...5.0.0) (2026-10-26)
 
 ### ⚠ BREAKING CHANGES
