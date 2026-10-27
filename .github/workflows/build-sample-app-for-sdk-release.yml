@@ -17,7 +17,48 @@ on:
         default: ""
 
 jobs:
+  wait-for-pub-dev:
+    name: Wait until customer_io is downloadable from pub.dev
+    runs-on: ubuntu-latest
+    # The wait fails on its own after 60 minutes; the extra time lets it report what is missing.
+    timeout-minutes: 70
+    outputs:
+      sdk_version: ${{ steps.sdk-version.outputs.sdk_version }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # tags for the manual-run fallback below
+
+      - name: Resolve the published SDK version
+        id: sdk-version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          SDK_VERSION_INPUT: ${{ inputs.sdk_version }}
+        run: |
+          # Manual runs fall back to the latest tag, like `Capture Git Context` in
+          # reusable-build-sample-apps.yml. The release path must pass the version:
+          # `git describe` names the previous release on a release commit.
+          if [[ -n "$SDK_VERSION_INPUT" ]]; then
+            sdk_version="$SDK_VERSION_INPUT"
+          elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            sdk_version="$(git describe --tags --abbrev=0)"
+          else
+            echo "::error::A release build needs sdk_version passed in from the job that published the release."
+            exit 1
+          fi
+          echo "Sample apps will be built against customer_io $sdk_version"
+          echo "sdk_version=$sdk_version" >> "$GITHUB_OUTPUT"
+
+      - name: Wait until customer_io is downloadable
+        uses: customerio/mobile-ci-tools/github-actions/wait-until-downloadable/v1@main
+        with:
+          ecosystem: pub
+          version: ${{ steps.sdk-version.outputs.sdk_version }}
+          packages: customer_io
+
   build-primary-app:
+    needs: wait-for-pub-dev
     uses: ./.github/workflows/reusable-build-sample-apps.yml
     with:
       use_latest_sdk_version: true
@@ -25,5 +66,5 @@ jobs:
       android_flavor: token
       cio_workspace_name: "Mobile: Flutter"
       is_primary_app: true
-      sdk_version: ${{ inputs.sdk_version }}
+      sdk_version: ${{ needs.wait-for-pub-dev.outputs.sdk_version }}
     secrets: inherit
