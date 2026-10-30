@@ -40,75 +40,119 @@
 
 ## [4.7.2](https://github.com/customerio/customerio-flutter/compare/4.7.1...4.7.2) (2026-09-30)
 
+### Upgrade notes
+
+* **Android:** The bundled Android SDK no longer adds OkHttp's `okhttp-sse` and `logging-interceptor` libraries to your app as transitive dependencies. What to do: if your own Android code uses classes from either library, declare `com.squareup.okhttp3:okhttp-sse` or `com.squareup.okhttp3:logging-interceptor` as a direct dependency in your app's Gradle file. ([#415](https://github.com/customerio/customerio-flutter/issues/415)) ([0f0dcd2](https://github.com/customerio/customerio-flutter/commit/0f0dcd2b841cacb24a0731bc635d523c77c92053))
+
 ### Bug Fixes
 
-* **android:** include native rich push image memory fixes ([#415](https://github.com/customerio/customerio-flutter/issues/415)) ([0f0dcd2](https://github.com/customerio/customerio-flutter/commit/0f0dcd2b841cacb24a0731bc635d523c77c92053))
+* **Android:** Updates the bundled Android SDK from 4.22.0 to 4.23.2 to reduce the memory rich push notifications use. Images are now downscaled to fit the notification, and images larger than 5 MiB are skipped while the notification still displays without them. iOS stays on 4.9.0. ([#415](https://github.com/customerio/customerio-flutter/issues/415)) ([0f0dcd2](https://github.com/customerio/customerio-flutter/commit/0f0dcd2b841cacb24a0731bc635d523c77c92053))
+  * [Android 4.23.0](https://github.com/customerio/customerio-android/releases/tag/4.23.0): adds a native Kotlin API to observe whether an inline in-app message is available. This API is not exposed in Dart.
+  * [Android 4.23.1](https://github.com/customerio/customerio-android/releases/tag/4.23.1): in-app messaging works when your app uses OkHttp 5.
+  * [Android 4.23.2](https://github.com/customerio/customerio-android/releases/tag/4.23.2): rich push images are bounded in size and decoded at notification size.
 
 ## [4.7.1](https://github.com/customerio/customerio-flutter/compare/4.7.0...4.7.1) (2026-09-29)
 
 ### Bug Fixes
 
-* **messagingpush:** handle Flutter rich push off main thread (MBL-2548) ([#414](https://github.com/customerio/customerio-flutter/issues/414)) ([402eb27](https://github.com/customerio/customerio-flutter/commit/402eb2715c326b1ca419b5c3bddbb76d872983ad))
+* **Push (Android):** Fixes app freezes (ANRs) that could happen when a rich push notification with an image arrived over a slow network. The plugin now processes incoming push messages on a background thread instead of Flutter's main thread. ([#414](https://github.com/customerio/customerio-flutter/issues/414)) ([402eb27](https://github.com/customerio/customerio-flutter/commit/402eb2715c326b1ca419b5c3bddbb76d872983ad))
 
 ## [4.7.0](https://github.com/customerio/customerio-flutter/compare/4.6.0...4.7.0) (2026-09-25)
 
 ### Features
 
-* update Customer.io native SDKs (iOS 4.9.0, Android 4.22.0) ([#412](https://github.com/customerio/customerio-flutter/issues/412)) ([ba9e448](https://github.com/customerio/customerio-flutter/commit/ba9e448a73ced60c3736f4539335d7d1025b0aac))
+* **Geofencing:** Updates the bundled native SDKs to iOS 4.9.0 and Android 4.22.0, which add support for polygon geofences. The SDK detects entry and exit using the shape you draw instead of the circle around it. Circular geofences work as before, and no code changes are needed. ([#412](https://github.com/customerio/customerio-flutter/issues/412)) ([ba9e448](https://github.com/customerio/customerio-flutter/commit/ba9e448a73ced60c3736f4539335d7d1025b0aac))
 
 ## [4.6.0](https://github.com/customerio/customerio-flutter/compare/4.5.0...4.6.0) (2026-09-17)
 
 ### Features
 
-* **in-app:** allow overriding the in-app message color scheme ([#410](https://github.com/customerio/customerio-flutter/issues/410)) ([60a068e](https://github.com/customerio/customerio-flutter/commit/60a068eb9bf0a35dc6f9c9a12c32a8792335b445))
+* **In-app:** You can now choose whether in-app messages render in light or dark mode instead of always following the device setting. This helps if your app has its own appearance setting. Set `InAppConfig.colorScheme` at initialization, or call `CustomerIO.inAppMessaging.setColorScheme` at runtime, with `CioColorScheme.auto` (the default), `CioColorScheme.light`, or `CioColorScheme.dark`. Messages already on screen update to the new scheme. This release also updates the bundled iOS SDK to 4.8.1, which fixes build failures caused by a new release of one of the iOS SDK's dependencies. Android stays on 4.21.1. ([#410](https://github.com/customerio/customerio-flutter/issues/410)) ([60a068e](https://github.com/customerio/customerio-flutter/commit/60a068eb9bf0a35dc6f9c9a12c32a8792335b445))
 
 ## [4.5.0](https://github.com/customerio/customerio-flutter/compare/4.4.0...4.5.0) (2026-09-15)
 
+### Upgrade notes
+
+* **Inbox:** The Visual Notification Inbox no longer includes built-in English text. When the inbox is empty, it shows a dimmed bell icon instead of a message, and it has no screen reader labels unless you provide them. What to do: if you use `NotificationInboxBell` or `NotificationInboxView`, set `InAppConfig.accessibilityLabels` to a `NotificationInboxAccessibilityLabels` with your localized `bell`, `bellWithUnreadCount` (include the `{count}` placeholder), `loadingIndicator`, and `emptyState` strings. ([#408](https://github.com/customerio/customerio-flutter/issues/408)) ([b922e67](https://github.com/customerio/customerio-flutter/commit/b922e6758361e240d6e7bf4a13b6f6a744337982))
+
 ### Features
 
-* **inbox:** let apps configure visual inbox accessibility labels ([#408](https://github.com/customerio/customerio-flutter/issues/408)) ([b922e67](https://github.com/customerio/customerio-flutter/commit/b922e6758361e240d6e7bf4a13b6f6a744337982))
+* **Inbox:** You can now set the Visual Notification Inbox screen reader labels with `InAppConfig.accessibilityLabels`, so the inbox uses your own localized strings. This release updates the bundled native SDKs to iOS 4.8.0 and Android 4.21.1. ([#408](https://github.com/customerio/customerio-flutter/issues/408)) ([b922e67](https://github.com/customerio/customerio-flutter/commit/b922e6758361e240d6e7bf4a13b6f6a744337982))
+  * [iOS 4.7.7](https://github.com/customerio/customerio-ios/releases/tag/4.7.7): fixes a crash when the Visual Notification Inbox lost its network connection while loading.
+  * [iOS 4.8.0](https://github.com/customerio/customerio-ios/releases/tag/4.8.0) and [Android 4.21.0](https://github.com/customerio/customerio-android/releases/tag/4.21.0): the inbox empty state shows a dimmed bell instead of English text, and you supply the accessibility labels.
+  * [Android 4.21.1](https://github.com/customerio/customerio-android/releases/tag/4.21.1): spaces in the query values of in-app "open URL" actions are no longer lost.
 
 ## [4.4.0](https://github.com/customerio/customerio-flutter/compare/4.3.1...4.4.0) (2026-08-26)
 
+### Upgrade notes
+
+* **iOS:** If your app uses UIScene with Flutter deep linking enabled, the plugin now takes the native SDK's single deep link callback, so it can't be combined with a `deepLinkCallback` you set on the native `SDKConfigBuilder`. All push and in-app links, including `http` and `https` links, go to your Flutter router, which now decides whether to open a browser. What to do: handle these routes in your Dart router, or set `FlutterDeepLinkingEnabled` to `false` in `Info.plist` to keep your own native routing. ([#399](https://github.com/customerio/customerio-flutter/issues/399)) ([6dbd5f3](https://github.com/customerio/customerio-flutter/commit/6dbd5f3bbbf5685c719c2bf3d678c52c2cc47630))
+
 ### Features
 
-* route SDK deep links through Flutter scenes ([#399](https://github.com/customerio/customerio-flutter/issues/399)) ([6dbd5f3](https://github.com/customerio/customerio-flutter/commit/6dbd5f3bbbf5685c719c2bf3d678c52c2cc47630))
+* **iOS:** In apps that use UIScene with Flutter deep linking enabled, links from push notifications, in-app messages, and the Visual Notification Inbox now open through your Flutter router, even when a tap launches the app. If Flutter doesn't handle a link, or no Flutter screen is ready within about three seconds, the plugin falls back to `UIApplication.open`. Apps that use only an AppDelegate, or that set `FlutterDeepLinkingEnabled` to `false`, are unchanged. This release also updates the bundled iOS SDK to 4.7.6, which fixes a crash when a modal in-app message was dismissed. Android stays on 4.20.2. ([#399](https://github.com/customerio/customerio-flutter/issues/399)) ([6dbd5f3](https://github.com/customerio/customerio-flutter/commit/6dbd5f3bbbf5685c719c2bf3d678c52c2cc47630))
 
 ## [4.3.1](https://github.com/customerio/customerio-flutter/compare/4.3.0...4.3.1) (2026-08-21)
 
 ### Bug Fixes
 
-* restore Flutter package publishing ([#398](https://github.com/customerio/customerio-flutter/issues/398)) ([545b47b](https://github.com/customerio/customerio-flutter/commit/545b47b9e82af21d8642ba2d7b9f4a9e51629653))
+* Publishes the 4.3.0 changes to pub.dev. Version 4.3.0 was tagged on GitHub but was never published to pub.dev, so use 4.3.1 or later to get them. ([#398](https://github.com/customerio/customerio-flutter/issues/398)) ([545b47b](https://github.com/customerio/customerio-flutter/commit/545b47b9e82af21d8642ba2d7b9f4a9e51629653))
 
 ## [4.3.0](https://github.com/customerio/customerio-flutter/compare/4.2.1...4.3.0) (2026-08-21)
 
+### Upgrade notes
+
+* **Live Activities (iOS):** If your app uses UIScene with Flutter deep linking and you added a manual `CustomerIOLiveActivities.handleWidgetUrl` call to your `SceneDelegate`, the plugin now does this for you. Keeping both reports each tap twice. What to do: remove that call from your `SceneDelegate` before you upgrade, and keep `CioAppDelegateWrapper` as your app delegate. UIScene apps need Flutter 3.44.8 or later. ([#394](https://github.com/customerio/customerio-flutter/issues/394)) ([febd7ed](https://github.com/customerio/customerio-flutter/commit/febd7ed72c309fbab70ca61ac45c8f2d5120de72))
+
 ### Features
 
-* add Flutter UIScene lifecycle adapter (MBL-2277) ([#394](https://github.com/customerio/customerio-flutter/issues/394)) ([febd7ed](https://github.com/customerio/customerio-flutter/commit/febd7ed72c309fbab70ca61ac45c8f2d5120de72))
+* **Live Activities (iOS):** Adds UIScene support, which apps built with Xcode 27 need in order to launch. In UIScene apps that use Flutter deep linking, the plugin records Live Activity taps and sends any redirect URL to your Flutter router. Apps that use only an AppDelegate, or that set `FlutterDeepLinkingEnabled` to `false`, keep calling `CustomerIOLiveActivities.handleWidgetUrl` themselves. ([#394](https://github.com/customerio/customerio-flutter/issues/394)) ([febd7ed](https://github.com/customerio/customerio-flutter/commit/febd7ed72c309fbab70ca61ac45c8f2d5120de72))
+* Updates the bundled native SDKs to iOS 4.7.5 and Android 4.20.2. No code changes are needed. ([#397](https://github.com/customerio/customerio-flutter/issues/397)) ([c911fcf](https://github.com/customerio/customerio-flutter/commit/c911fcf74eede6482f04bc794811cefb47bb71db))
+  * [iOS 4.7.3](https://github.com/customerio/customerio-ios/releases/tag/4.7.3): requests for in-app and inbox content run at a higher priority, so other background work no longer delays them.
+  * [iOS 4.7.4](https://github.com/customerio/customerio-ios/releases/tag/4.7.4): other notification handlers in your app keep receiving notification callbacks, whether you register them before or after the SDK initializes.
+  * [iOS 4.7.5](https://github.com/customerio/customerio-ios/releases/tag/4.7.5) and [Android 4.20.2](https://github.com/customerio/customerio-android/releases/tag/4.20.2): in-app requests include your app's bundle ID or package name, so in-app messages can be targeted to a specific app.
 
 ## [4.2.1](https://github.com/customerio/customerio-flutter/compare/4.2.0...4.2.1) (2026-08-07)
 
+### Bug Fixes
+
+* Updates the bundled native SDKs to iOS 4.7.2 and Android 4.20.1. No code changes are needed. ([#382](https://github.com/customerio/customerio-flutter/issues/382)) ([f40b916](https://github.com/customerio/customerio-flutter/commit/f40b916d1d06ebdb526b6ccca4f4e26c09dc6d50)) ([#379](https://github.com/customerio/customerio-flutter/issues/379)) ([5db379f](https://github.com/customerio/customerio-flutter/commit/5db379f0cdbb7bd5b9b070f081b3a245f86929f5))
+  * [iOS 4.7.1](https://github.com/customerio/customerio-ios/releases/tag/4.7.1): in-app messages whose page rules contain a dot (`.`) now match and display.
+  * [iOS 4.7.2](https://github.com/customerio/customerio-ios/releases/tag/4.7.2) and [Android 4.20.1](https://github.com/customerio/customerio-android/releases/tag/4.20.1): geofence entry and exit events are more accurate and reliable.
+
 ## [4.2.0](https://github.com/customerio/customerio-flutter/compare/4.1.3...4.2.0) (2026-07-30)
 
+### Features
+
+* **Inbox:** Adds the Visual Notification Inbox, with the `NotificationInboxBell` and `NotificationInboxView` widgets exported from `customer_io_widgets.dart`. To respond to inbox events, call `CustomerIO.inAppMessaging.setInboxEventListener`. While a listener is registered, the SDK doesn't open message links itself, so your app must handle the `actionValue`. ([#375](https://github.com/customerio/customerio-flutter/issues/375)) ([79380f7](https://github.com/customerio/customerio-flutter/commit/79380f7eaab514812f54463d60903aac3ee894d3))
+* **Geofencing:** Adds an optional geofencing module. To enable it, set `customerio_geofence_enabled=true` in `android/gradle.properties` and add the `customer_io/geofence` subspec (CocoaPods) or `CIO_GEOFENCE` (Swift Package Manager) on iOS. Then pass `GeofenceConfig` in `CustomerIOConfig`. Enabling geofencing also enables the location module, and `CustomerIO.geofence.refreshFromCurrentLocation()` refreshes nearby geofences. ([#371](https://github.com/customerio/customerio-flutter/issues/371)) ([f961466](https://github.com/customerio/customerio-flutter/commit/f9614661ff443108c5b5ea382dbfd898221559e6))
+* **Live Activities:** Adds Live Activities on iOS and Live Notifications on Android. Configure activity types with `liveNotificationsConfig` in `CustomerIOConfig`, and use `CustomerIO.liveActivities` to start, update, and end them with a `LiveActivityPayload`. On iOS this is opt-in with the `liveactivities` subspec (CocoaPods) or `CIO_LIVE_ACTIVITIES` (Swift Package Manager), and needs a Widget Extension and `NSSupportsLiveActivities` in `Info.plist`. ([#373](https://github.com/customerio/customerio-flutter/issues/373)) ([1d395a2](https://github.com/customerio/customerio-flutter/commit/1d395a287624906003f9f16c94d71ebc376778a5))
+* Updates the bundled native SDKs to iOS 4.7.0 and Android 4.20.0, which add these features. On Android, in-app messages now also follow the device's light or dark mode. ([#373](https://github.com/customerio/customerio-flutter/issues/373)) ([1d395a2](https://github.com/customerio/customerio-flutter/commit/1d395a287624906003f9f16c94d71ebc376778a5))
+
 ## [4.1.3](https://github.com/customerio/customerio-flutter/compare/4.1.2...4.1.3) (2026-07-24)
+
+### Bug Fixes
+
+* **iOS:** Updates the bundled iOS SDK to 4.6.1 to fix Flutter plugins that register app lifecycle callbacks, such as `quick_actions`, so they work when Customer.io wraps your app delegate. Android stays on 4.18.2. ([#366](https://github.com/customerio/customerio-flutter/issues/366)) ([683fb7b](https://github.com/customerio/customerio-flutter/commit/683fb7b28dbc376dde6104327c1b04cad120981b))
+  * [iOS 4.6.0](https://github.com/customerio/customerio-ios/releases/tag/4.6.0): in-app messages follow the device's light or dark mode.
 
 ## [4.1.2](https://github.com/customerio/customerio-flutter/compare/4.1.1...4.1.2) (2026-06-23)
 
 ### Bug Fixes
 
-* update native SDKs — iOS 4.5.3 (resolve duplicate event delivery bugs) and Android 4.18.2 (scope in-app polling to process lifecycle) ([#352](https://github.com/customerio/customerio-flutter/issues/352)) ([852d9bf](https://github.com/customerio/customerio-flutter/commit/852d9bfb12c27abdbeb2dad94d1e26439576787b))
+* Updates the bundled native SDKs to iOS 4.5.3 and Android 4.18.2. On iOS, this fixes a timing issue that could deliver the same event twice. On Android, in-app message polling now continues as users move between screens, instead of restarting each time. This stops a message that failed to load from being retried over and over when a modal is dismissed. ([#352](https://github.com/customerio/customerio-flutter/issues/352)) ([852d9bf](https://github.com/customerio/customerio-flutter/commit/852d9bfb12c27abdbeb2dad94d1e26439576787b))
 
 ## [4.1.1](https://github.com/customerio/customerio-flutter/compare/4.1.0...4.1.1) (2026-06-16)
 
 ### Bug Fixes
 
-* release native SDK update (iOS 4.5.1, Android 4.18.1) ([#349](https://github.com/customerio/customerio-flutter/issues/349)) ([7216e8d](https://github.com/customerio/customerio-flutter/commit/7216e8dad174d8576b69c03750739354a24f653d))
+* Updates the bundled native SDKs to iOS 4.5.1 and Android 4.18.1. On Android, other apps can no longer launch the SDK's notification-click activity, and the in-app message WebView can no longer open local files. iOS 4.5.1 has no changes that affect your app. ([#349](https://github.com/customerio/customerio-flutter/issues/349)) ([7216e8d](https://github.com/customerio/customerio-flutter/commit/7216e8dad174d8576b69c03750739354a24f653d))
 
 ## [4.1.0](https://github.com/customerio/customerio-flutter/compare/4.0.2...4.1.0) (2026-06-05)
 
 ### Features
 
-* update native SDKs to iOS 4.5.0 and Android 4.18.0 ([#346](https://github.com/customerio/customerio-flutter/issues/346)) ([b17dcb0](https://github.com/customerio/customerio-flutter/commit/b17dcb0f3e4a23f2705b02d173fc2123571a152f))
+* Updates the bundled native SDKs to iOS 4.5.0 and Android 4.18.0, which send fewer duplicate events. Repeated `identify` calls for the same user with no new attributes are now sent only once per app session on both platforms. On Android, back-to-back automatically tracked screen views with the same name are sent once. ([#346](https://github.com/customerio/customerio-flutter/issues/346)) ([b17dcb0](https://github.com/customerio/customerio-flutter/commit/b17dcb0f3e4a23f2705b02d173fc2123571a152f))
 
 ## [4.0.2](https://github.com/customerio/customerio-flutter/compare/4.0.1...4.0.2) (2026-05-21)
 
