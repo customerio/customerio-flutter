@@ -5,6 +5,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'src/app.dart';
 import 'src/auth.dart';
+import 'src/background_push.dart';
 import 'src/quick_action_probe.dart';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -16,6 +17,11 @@ final FlutterLocalNotificationsPlugin localNotificationsPlugin =
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Register before anything else awaits, so a background push that launched
+  // the app reaches the handler.
+  await CustomerIO.pushMessaging
+      .setBackgroundPushHandler(onCustomerIOBackgroundPush);
 
   // Initialize FCM (flutter-fire)
   await Firebase.initializeApp(

@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import io.customer.customer_io.bridge.NativeModuleBridge
+import io.customer.customer_io.bridge.nativeMapArgs
 import io.customer.customer_io.bridge.nativeNoArgs
 import io.customer.customer_io.liveactivities.CustomerIOLiveActivities
 import io.customer.customer_io.utils.getAs
@@ -44,14 +45,33 @@ internal class CustomerIOPushMessaging(
         when (call.method) {
             "getRegisteredDeviceToken" -> call.nativeNoArgs(result, ::getRegisteredDeviceToken)
             "onMessageReceived" -> pushDispatcher.dispatch(call, result, ::onMessageReceived)
+            "registerBackgroundPushHandler" -> call.nativeMapArgs(result, ::registerBackgroundPushHandler)
+            "clearBackgroundPushHandler" -> call.nativeNoArgs(result, ::clearBackgroundPushHandler)
             else -> super.onMethodCall(call, result)
         }
     }
 
     override fun onDetachedFromEngine() {
         super.onDetachedFromEngine()
+        if (mainIsolate === this) mainIsolate = null
+        onDetach.toList().forEach { it() }
+        onDetach.clear()
         pushDispatcher.close()
         pushExecutor.shutdownNow()
+    }
+
+    /** Saves the handles for pushes that start the process, and sends pushes to this isolate while it runs. */
+    private fun registerBackgroundPushHandler(args: Map<String, Any>) {
+        BackgroundPushHandles(
+            dispatcherHandle = args.getAs<Number>("dispatcherHandle")!!.toLong(),
+            handlerHandle = args.getAs<Number>("handlerHandle")!!.toLong(),
+        ).save(applicationContext)
+        mainIsolate = this
+    }
+
+    private fun clearBackgroundPushHandler() {
+        BackgroundPushHandles.clear(applicationContext)
+        mainIsolate = null
     }
 
     private fun getRegisteredDeviceToken(): String? {
@@ -123,5 +143,13 @@ internal class CustomerIOPushMessaging(
             }.build(),
         )
         builder.addCustomerIOModule(module)
+    }
+
+    /** Run when this engine detaches, for silent pushes still waiting on its isolate. Main thread only. */
+    val onDetach = mutableSetOf<() -> Unit>()
+
+    companion object {
+        /** The running engine whose Dart code last registered a silent push handler. Main thread only. */
+        var mainIsolate: CustomerIOPushMessaging? = null
     }
 }

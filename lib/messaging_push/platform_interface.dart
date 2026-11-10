@@ -1,5 +1,6 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+import 'background_push.dart';
 import 'method_channel.dart';
 
 /// The default instance of [CustomerIOMessagingPushPlatform] to use
@@ -49,6 +50,24 @@ abstract class CustomerIOMessagingPushPlatform extends PlatformInterface {
   Future<bool> onMessageReceived(Map<String, dynamic> message,
       {bool handleNotificationTrigger = true}) {
     throw UnimplementedError('onMessageReceived() has not been implemented.');
+  }
+
+  /// Registers [handler] to receive Customer.io silent pushes when Customer.io
+  /// handles push in your app. Pass `null` to stop. The plugin remembers the
+  /// registration across launches until then.
+  ///
+  /// [handler] must be a top-level or static function annotated with
+  /// `@pragma('vm:entry-point')`. Register it at the start of `main`, so a push
+  /// that launches the app in the background reaches it.
+  ///
+  /// On Android the handler runs from a WorkManager job, on the isolate that
+  /// registered it while that engine runs, and otherwise on a background
+  /// isolate the plugin starts, which shares no state with the rest of the
+  /// app. On iOS it runs on the main isolate and needs `CioAppDelegateWrapper`.
+  /// iOS gives a push about 30 seconds, and Customer.io completes it after 25.
+  Future<void> setBackgroundPushHandler(BackgroundPushHandler? handler) {
+    throw UnimplementedError(
+        'setBackgroundPushHandler() has not been implemented.');
   }
 
   /// Handles push notification received when app is background. Since FCM

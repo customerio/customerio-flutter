@@ -17,6 +17,12 @@ You'll find our complete [SDK documentation here](https://customer.io/docs/sdk/f
 If a CocoaPods build reports that a generated dependency target is below the deployment range
 supported by Xcode, follow the [deployment-target normalization guide](doc/cocoapods-deployment-target-normalization.md).
 
+# Silent push
+
+Silent pushes show nothing and hand your app the message's data. Register a Dart handler with
+`CustomerIO.pushMessaging.setBackgroundPushHandler`, or receive them in your `firebase_messaging`
+handlers. See the [silent push guide](doc/silent-push.md).
+
 # Live Activities
 
 Enable the activity types you use via `liveNotificationsConfig` in your `CustomerIOConfig`. On iOS, Live Activities are opt-in: add the `liveactivities` pod subspec (CocoaPods) or set `customerio_live_activities_enabled=true` in `android/gradle.properties` (Swift Package Manager), plus a Widget Extension that renders the SDK's built-in templates.

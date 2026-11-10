@@ -11,5 +11,11 @@
         <meta-data
             android:name="io.customer.sdk.android.core.SDK_VERSION"
             android:value="@string/customer_io_wrapper_sdk_client_version" />
+
+        <!-- Lets a silent push that starts the process reach the app's Dart handler. -->
+        <provider
+            android:name=".messagingpush.BackgroundPushInitProvider"
+            android:authorities="${applicationId}.customerio-background-push-init"
+            android:exported="false" />
     </application>
 </manifest>

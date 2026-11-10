@@ -15,6 +15,7 @@ import 'messaging_push/platform_interface.dart';
 
 export 'liveActivities/live_activity_payload.dart';
 export 'liveActivities/platform_interface.dart';
+export 'messaging_push/background_push.dart';
 
 class CustomerIO {
   static CustomerIO? _instance;
