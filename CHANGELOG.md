@@ -1,3 +1,9 @@
+## [5.2.0](https://github.com/customerio/customerio-flutter/compare/5.1.2...5.2.0) (2026-11-11)
+
+### Features
+
+* add a Dart handler for Customer.io silent pushes (MBL-2666) ([#443](https://github.com/customerio/customerio-flutter/issues/443)) ([66114eb](https://github.com/customerio/customerio-flutter/commit/66114eb0197786e9e847fe18a786e089888e7865))
+
 ## [5.1.2](https://github.com/customerio/customerio-flutter/compare/5.1.1...5.1.2) (2026-11-11)
 
 ### Bug Fixes
