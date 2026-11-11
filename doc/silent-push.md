@@ -23,7 +23,7 @@ Your data as text keys and text values, plus two keys Customer.io adds:
 | `CIO-Background-Delivery-Token` | The device token it was sent to |
 
 The SDK records the Delivered metric when the push arrives, before your code runs. It never records
-Opened. Silent push needs Customer.io Android SDK 5.1.0 and iOS SDK 5.2.0, which this plugin
+Opened. Silent push needs Customer.io Android SDK 5.1.1 and iOS SDK 5.2.1, which this plugin
 release uses.
 
 Delivery is best effort:
