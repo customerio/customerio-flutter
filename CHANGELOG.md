@@ -1,3 +1,9 @@
+## [5.1.2](https://github.com/customerio/customerio-flutter/compare/5.1.1...5.1.2) (2026-11-11)
+
+### Bug Fixes
+
+* **MBL-2765:** add FlutterFramework dependency to the SwiftPM manifest ([#444](https://github.com/customerio/customerio-flutter/issues/444)) ([7ea809c](https://github.com/customerio/customerio-flutter/commit/7ea809c82e88e45473918149fc923bb87f62025a))
+
 ## [5.1.1](https://github.com/customerio/customerio-flutter/compare/5.1.0...5.1.1) (2026-10-30)
 
 ### Bug Fixes
