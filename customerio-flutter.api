@@ -77,6 +77,17 @@ public final class CustomerIO {
 	static public val pushMessaging: CustomerIOMessagingPushPlatform;
 }
 
+public final class CustomerIOBackgroundPush {
+	public fun new(
+		required String deliveryId,
+		required String deliveryToken,
+		required Map<String, String> data
+	): CustomerIOBackgroundPush;
+	public val data: Map<String, String>;
+	public val deliveryId: String;
+	public val deliveryToken: String;
+}
+
 public final class CustomerIOConfig {
 	public fun new(
 		required String cdpApiKey,
@@ -182,6 +193,9 @@ public final class CustomerIOMessagingPushPlatform {
 		Map<String, dynamic> message,
 		bool handleNotificationTrigger
 	): Future<bool> async;
+	public fun setBackgroundPushHandler(
+		FutureOr<void> Function(CustomerIOBackgroundPush)? handler
+	): Future<void> async;
 	static public var instance: CustomerIOMessagingPushPlatform;
 }
 
