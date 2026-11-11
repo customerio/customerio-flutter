@@ -10,6 +10,8 @@ public class CustomerIOMessagingPush: NSObject, FlutterPlugin {
     private static let backgroundPushHandlerKey = "io.customer.customer_io.background_push_handler_registered"
     /// The engine whose Dart isolate gets silent pushes: the last to register a handler, or else the first engine.
     private static weak var backgroundPushReceiver: CustomerIOMessagingPush?
+    /// Whether Dart registered a handler during this launch. Main thread only.
+    private static var backgroundPushHandlerRegisteredThisLaunch = false
 
     public static func register(with _: FlutterPluginRegistrar) {}
 
@@ -47,6 +49,7 @@ public class CustomerIOMessagingPush: NSObject, FlutterPlugin {
         case "registerBackgroundPushHandler":
             call.nativeMapArgs(result: result) { _ in
                 UserDefaults.standard.set(true, forKey: Self.backgroundPushHandlerKey)
+                Self.backgroundPushHandlerRegisteredThisLaunch = true
                 Self.backgroundPushReceiver = self
             }
 
@@ -75,7 +78,23 @@ public class CustomerIOMessagingPush: NSObject, FlutterPlugin {
             "onBackgroundPushReceived",
             arguments: ["deliveryId": push.deliveryID, "deliveryToken": push.deliveryToken, "data": push.data]
         ) { result in
-            completionHandler(result is FlutterError ? .failed : .newData)
+            if result is FlutterError {
+                completionHandler(.failed)
+            } else if (result as AnyObject?) === FlutterMethodNotImplemented {
+                // No Dart handler answered, for example when the push was dropped from the channel buffer.
+                completionHandler(.noData)
+            } else {
+                completionHandler(.newData)
+            }
+        }
+        // An app version that no longer registers a handler would hold every push until the SDK's timeout, so stop
+        // taking pushes if Dart doesn't register within that time.
+        if !backgroundPushHandlerRegisteredThisLaunch {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 25) {
+                if !backgroundPushHandlerRegisteredThisLaunch {
+                    UserDefaults.standard.removeObject(forKey: backgroundPushHandlerKey)
+                }
+            }
         }
         return true
     }

@@ -59,7 +59,9 @@ void main() async {
 The handler gets your data without the two Customer.io keys. The plugin remembers the registration
 across launches: on Android a push that starts your app runs the handler without your `main`, and on
 iOS it waits for `main` to register the handler again. To stop, call
-`setBackgroundPushHandler(null)`.
+`setBackgroundPushHandler(null)`. A later version of your app that no longer registers a handler
+also stops it, after the first push that finds none: on iOS one that waits 25 seconds without
+`main` registering, and on Android one whose handler function is gone from the app.
 
 If you turned automatic push tracking off, record Delivered yourself from an isolate where
 `CustomerIO.initialize` has run:

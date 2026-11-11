@@ -67,15 +67,18 @@ class CustomerIOMessagingPushMethodChannel
 }
 
 /// Runs a push on the background isolate, with the handler found by the
-/// handle native stored when the app registered it.
+/// handle native stored when the app registered it. Returns false when this
+/// build of the app no longer has that handler.
 @visibleForTesting
-Future<void> handleBackgroundIsolateCall(MethodCall call) async {
+Future<bool> handleBackgroundIsolateCall(MethodCall call) async {
   final arguments = call.arguments as Map;
   final handler = PluginUtilities.getCallbackFromHandle(
     CallbackHandle.fromRawHandle(
         arguments[NativeMethodParams.handlerHandle] as int),
-  ) as BackgroundPushHandler;
+  );
+  if (handler is! BackgroundPushHandler) return false;
   await handler(_backgroundPush(arguments));
+  return true;
 }
 
 CustomerIOBackgroundPush _backgroundPush(Map arguments) =>

@@ -54,7 +54,8 @@ abstract class CustomerIOMessagingPushPlatform extends PlatformInterface {
 
   /// Registers [handler] to receive Customer.io silent pushes when Customer.io
   /// handles push in your app. Pass `null` to stop. The plugin remembers the
-  /// registration across launches until then.
+  /// registration across launches until then, or until a push finds no
+  /// handler in a later version of the app.
   ///
   /// [handler] must be a top-level or static function annotated with
   /// `@pragma('vm:entry-point')`. Register it at the start of `main`, so a push

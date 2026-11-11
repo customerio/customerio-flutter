@@ -48,9 +48,16 @@ internal class BackgroundPushWorker(
 
         return withContext(Dispatchers.Main) {
             val mainIsolate = CustomerIOPushMessaging.mainIsolate
+            // A later app version may no longer have the handler it saved, so stop taking pushes for it.
+            val forgetHandler = {
+                if (BackgroundPushHandles.read(applicationContext) == handles) BackgroundPushHandles.clear(applicationContext)
+            }
             val channel = mainIsolate?.flutterCommunicationChannel
                 ?: BackgroundPushIsolate.channel(applicationContext, handles.dispatcherHandle)
-                ?: return@withContext Result.success()
+            if (channel == null) {
+                forgetHandler()
+                return@withContext Result.success()
+            }
             suspendCancellableCoroutine { continuation ->
                 val finish = { result: Result -> if (continuation.isActive) continuation.resume(result) }
                 // Runs the push again if the app's engine goes away before its handler answers.
@@ -58,7 +65,11 @@ internal class BackgroundPushWorker(
                 mainIsolate?.onDetach?.add(retry)
                 val arguments = arguments(inputData, handles.handlerHandle)
                 channel.invokeMethod("onBackgroundPushReceived", arguments, object : MethodChannel.Result {
-                    override fun success(result: Any?) = done(Result.success())
+                    override fun success(result: Any?) {
+                        // The background isolate answers false when it can't find the handler.
+                        if (result == false) forgetHandler()
+                        done(Result.success())
+                    }
 
                     override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) {
                         SDKComponent.logger.error("Flutter silent push handler failed: $errorMessage")

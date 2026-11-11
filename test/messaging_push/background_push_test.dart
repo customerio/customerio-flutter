@@ -105,7 +105,7 @@ void main() {
   });
 
   test('the background isolate runs the handler found by its handle', () async {
-    await handleBackgroundIsolateCall(
+    final handled = await handleBackgroundIsolateCall(
       MethodCall('onBackgroundPushReceived', {
         ...pushArguments,
         'handlerHandle': PluginUtilities.getCallbackHandle(
@@ -114,6 +114,21 @@ void main() {
       }),
     );
 
+    expect(handled, isTrue);
     expectRecordedPush();
+  });
+
+  test('the background isolate answers false for a handler the app no '
+      'longer has', () async {
+    // A handle saved by an earlier build, for a function this build lacks.
+    final handled = await handleBackgroundIsolateCall(
+      const MethodCall('onBackgroundPushReceived', {
+        ...pushArguments,
+        'handlerHandle': 1234567,
+      }),
+    );
+
+    expect(handled, isFalse);
+    expect(handledPushes, isEmpty);
   });
 }
