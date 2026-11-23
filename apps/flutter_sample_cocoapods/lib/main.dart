@@ -1,4 +1,6 @@
 import 'package:customer_io/customer_io.dart';
+// material_ui needs Flutter 3.47, this package supports 3.44.
+// ignore: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';

@@ -1,6 +1,8 @@
 import 'package:customer_io/config/in_app_config.dart';
 import 'package:customer_io/customer_io.dart';
 import 'package:customer_io/customer_io_enums.dart';
+// material_ui needs Flutter 3.47, this package supports 3.44.
+// ignore: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';

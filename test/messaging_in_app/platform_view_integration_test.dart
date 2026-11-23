@@ -1,5 +1,7 @@
 import 'package:customer_io/customer_io_widgets.dart';
 import 'package:flutter/foundation.dart';
+// material_ui needs Flutter 3.47, this package supports 3.44.
+// ignore: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

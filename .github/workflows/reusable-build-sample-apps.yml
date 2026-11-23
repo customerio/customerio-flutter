@@ -194,11 +194,20 @@ jobs:
             echo "SDK_VERSION=${{ env.SDK_RELEASE_VERSION }}" >> "$ENV_FILE"
           fi
 
+      # Flutter 3.50 requires Gradle 9.3.1, and the sample apps are on Gradle 8.14 with AGP 8.11. Build with
+      # the pinned Flutter until the samples move to Gradle 9 and AGP 9.
+      - name: Select pinned Flutter
+        id: flutter-pin
+        env:
+          SAMPLE_APP_NAME: ${{ inputs.sample_app_name }}
+        run: echo "version=$(<"apps/$SAMPLE_APP_NAME/.flutter-version")" >> "$GITHUB_OUTPUT"
+
       # Make sure to fetch dependencies only after updating the version numbers and workspace credentials
 
       - name: Setup flutter environment and install dependencies
         uses: ./.github/actions/setup-flutter
         with:
+          flutter-version: ${{ steps.flutter-pin.outputs.version }}
           install-sample-dependencies: ${{ inputs.verification_only && 'false' || 'true' }}
 
       - name: Use SDK release version for sample app (if needed)
