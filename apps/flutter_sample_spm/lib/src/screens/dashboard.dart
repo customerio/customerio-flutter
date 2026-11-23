@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:customer_io/customer_io.dart';
 import 'package:customer_io/customer_io_inapp.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+// material_ui needs Flutter 3.47, this package supports 3.44.
+// ignore: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart' show MethodChannel;
