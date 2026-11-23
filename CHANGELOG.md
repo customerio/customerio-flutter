@@ -1,3 +1,9 @@
+## [5.2.1](https://github.com/customerio/customerio-flutter/compare/5.2.0...5.2.1) (2026-11-23)
+
+### Bug Fixes
+
+* deliver pushes from other providers in the sample notification extensions ([#446](https://github.com/customerio/customerio-flutter/issues/446)) ([70a0b8e](https://github.com/customerio/customerio-flutter/commit/70a0b8ed69763eb44b99f7d567f88c5149a0c26b))
+
 ## [5.2.0](https://github.com/customerio/customerio-flutter/compare/5.1.2...5.2.0) (2026-11-11)
 
 ### Features
