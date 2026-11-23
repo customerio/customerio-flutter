@@ -198,9 +198,10 @@ jobs:
       # the pinned Flutter until the samples move to Gradle 9 and AGP 9.
       - name: Select pinned Flutter
         id: flutter-pin
-        env:
-          SAMPLE_APP_NAME: ${{ inputs.sample_app_name }}
-        run: echo "version=$(<"apps/$SAMPLE_APP_NAME/.flutter-version")" >> "$GITHUB_OUTPUT"
+        # Runs in the sample app directory, the job default.
+        run: |
+          version="$(cat .flutter-version)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       # Make sure to fetch dependencies only after updating the version numbers and workspace credentials
 
