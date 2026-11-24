@@ -1,3 +1,9 @@
+## [5.2.2](https://github.com/customerio/customerio-flutter/compare/5.2.1...5.2.2) (2026-11-24)
+
+### Bug Fixes
+
+* update Customer.io native Android SDK to 5.1.2 ([#447](https://github.com/customerio/customerio-flutter/issues/447)) ([401c3ad](https://github.com/customerio/customerio-flutter/commit/401c3ad38be2e9eab997f76fb455896c1fdffc62))
+
 ## [5.2.1](https://github.com/customerio/customerio-flutter/compare/5.2.0...5.2.1) (2026-11-23)
 
 ### Bug Fixes
