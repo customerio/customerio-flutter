@@ -275,10 +275,12 @@ internal class CustomerIOInAppMessaging(
      * Tells the native SDK which activity is resumed. Call after the SDK is initialized: Flutter
      * initializes it after the activity has already resumed, so without this a host-window modal
      * waits for the next resume. The native call does nothing for the default presentation.
+     * Never throws: a failed seed only delays the first modal to the next resume, so it must not
+     * fail initialization.
      */
     internal fun seedHostActivity() {
         val currentActivity = activity?.get() ?: return
-        inAppMessagingModule?.seedHostActivity(currentActivity)
+        runCatching { inAppMessagingModule?.seedHostActivity(currentActivity) }
     }
 
     /**
