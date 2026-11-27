@@ -281,6 +281,7 @@ internal class CustomerIOInAppMessaging(
     internal fun seedHostActivity() {
         val currentActivity = activity?.get() ?: return
         runCatching { inAppMessagingModule?.seedHostActivity(currentActivity) }
+            .onFailure { logger.debug("Could not seed the host activity for in-app modals: ${it.message}") }
     }
 
     /**
