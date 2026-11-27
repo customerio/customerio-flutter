@@ -18,10 +18,14 @@ class InAppConfig {
   /// that element unlabeled rather than falling back to English.
   final NotificationInboxAccessibilityLabels? accessibilityLabels;
 
+  /// Android-only in-app options. Ignored on iOS.
+  final InAppConfigAndroid? android;
+
   InAppConfig({
     this.siteId,
     this.colorScheme,
     this.accessibilityLabels,
+    this.android,
   });
 
   Map<String, dynamic> toMap() {
@@ -31,6 +35,8 @@ class InAppConfig {
     // an empty object" on the native side, where both parsers key off the map's presence.
     final Map<String, dynamic>? labels = accessibilityLabels?.toMap();
     final String? siteId = this.siteId;
+    // Same gate as the labels: an InAppConfigAndroid with nothing set is not sent.
+    final Map<String, dynamic>? android = this.android?.toMap();
     return {
       if (siteId != null && siteId.isNotEmpty) 'siteId': siteId,
       // Omitted rather than defaulted to 'auto': the native SDKs already default to AUTO, and
@@ -39,6 +45,27 @@ class InAppConfig {
       if (colorScheme != null) 'colorScheme': colorScheme!.rawValue,
       if (labels != null && labels.isNotEmpty)
         'notificationInboxAccessibilityLabels': labels,
+      if (android != null && android.isNotEmpty) 'android': android,
+    };
+  }
+}
+
+/// In-app options that apply to Android only. They have no effect on iOS.
+class InAppConfigAndroid {
+  /// How modal in-app messages are shown on Android. Use
+  /// [ModalPresentationAndroid.hostWindow] when your main activity uses
+  /// `singleInstance`, a custom or empty `taskAffinity`, or a document launch
+  /// mode, where modal messages can behave incorrectly. Defaults to
+  /// [ModalPresentationAndroid.activity].
+  final ModalPresentationAndroid? modalPresentation;
+
+  InAppConfigAndroid({this.modalPresentation});
+
+  Map<String, dynamic> toMap() {
+    return {
+      // Omitted when unset so the native SDK keeps its own default.
+      if (modalPresentation != null)
+        'modalPresentation': modalPresentation!.rawValue,
     };
   }
 }

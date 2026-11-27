@@ -252,12 +252,20 @@ public final class InAppConfig {
 	public fun new(
 		String? siteId,
 		CioColorScheme? colorScheme,
-		NotificationInboxAccessibilityLabels? accessibilityLabels
+		NotificationInboxAccessibilityLabels? accessibilityLabels,
+		InAppConfigAndroid? android
 	): InAppConfig;
 	public fun toMap(): Map<String, dynamic>;
 	public val accessibilityLabels: NotificationInboxAccessibilityLabels?;
+	public val android: InAppConfigAndroid?;
 	public val colorScheme: CioColorScheme?;
 	public val siteId: String?;
+}
+
+public final class InAppConfigAndroid {
+	public fun new(ModalPresentationAndroid? modalPresentation): InAppConfigAndroid;
+	public fun toMap(): Map<String, dynamic>;
+	public val modalPresentation: ModalPresentationAndroid?;
 }
 
 public final class InAppEvent {
@@ -434,6 +442,13 @@ public final class MetricEvent {
 	static public val delivered: MetricEvent;
 	static public val opened: MetricEvent;
 	static public val values: List<MetricEvent>;
+}
+
+public final class ModalPresentationAndroid {
+	static public val activity: ModalPresentationAndroid;
+	static public val hostWindow: ModalPresentationAndroid;
+	public val rawValue: String;
+	static public val values: List<ModalPresentationAndroid>;
 }
 
 public final class NotificationInbox {

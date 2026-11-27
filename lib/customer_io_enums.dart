@@ -36,6 +36,22 @@ enum PushClickBehaviorAndroid {
   final String rawValue;
 }
 
+/// How modal in-app messages are shown on Android. Android only; has no effect
+/// on iOS.
+enum ModalPresentationAndroid {
+  /// Shows modal messages in a separate activity. The default.
+  activity(rawValue: 'ACTIVITY'),
+
+  /// Shows modal messages in the window of the app's current activity. Use it
+  /// when your main activity uses `singleInstance`, a custom or empty
+  /// `taskAffinity`, or a document launch mode.
+  hostWindow(rawValue: 'HOST_WINDOW');
+
+  const ModalPresentationAndroid({required this.rawValue});
+
+  final String rawValue;
+}
+
 /// Enum class to define how CustomerIO SDK should handle screen view events.
 /// all - to send screen events to destinations for analytics purposes and to display in-app messages.
 /// inApp - to only display in-app messages and not send screen events to destinations.

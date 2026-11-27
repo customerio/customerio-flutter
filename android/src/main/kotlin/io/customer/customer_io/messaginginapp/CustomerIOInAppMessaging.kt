@@ -254,10 +254,34 @@ internal class CustomerIOInAppMessaging(
                     inboxAccessibilityLabelsFrom(config)?.let { labels ->
                         setNotificationInboxAccessibilityLabels(labels)
                     }
+                    modalPresentationRawValueFrom(config)?.let { rawValue ->
+                        val modalPresentation = modalPresentationFrom(rawValue)
+                        if (modalPresentation == null) {
+                            logger.error(
+                                "Unrecognized in-app android.modalPresentation '$rawValue', expected " +
+                                    "one of ACTIVITY, HOST_WINDOW. Keeping the default."
+                            )
+                        } else {
+                            setModalPresentation(modalPresentation)
+                        }
+                    }
                 }
                 .build(),
         )
         builder.addCustomerIOModule(module)
+    }
+
+    /**
+     * Tells the native SDK which activity is resumed. Call after the SDK is initialized: Flutter
+     * initializes it after the activity has already resumed, so without this a host-window modal
+     * waits for the next resume. The native call does nothing for the default presentation.
+     * Never throws: a failed seed only delays the first modal to the next resume, so it must not
+     * fail initialization.
+     */
+    internal fun seedHostActivity() {
+        val currentActivity = activity?.get() ?: return
+        runCatching { inAppMessagingModule?.seedHostActivity(currentActivity) }
+            .onFailure { logger.debug("Could not seed the host activity for in-app modals: ${it.message}") }
     }
 
     /**

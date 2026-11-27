@@ -281,6 +281,10 @@ class CustomerIOPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             }
         }.build()
 
+        // The Flutter activity resumed before this call, so hand it to in-app messaging for
+        // host-window modals.
+        modules.filterIsInstance<CustomerIOInAppMessaging>().forEach { it.seedHostActivity() }
+
         logger.info("Customer.io instance initialized successfully from app")
     }.onFailure { ex ->
         logger.error("Failed to initialize Customer.io instance from app, ${ex.message}")
