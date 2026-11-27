@@ -1,3 +1,9 @@
+## [5.3.0](https://github.com/customerio/customerio-flutter/compare/5.2.2...5.3.0) (2026-11-27)
+
+### Features
+
+* **in-app:** add Android modal presentation option and update Android SDK to 5.2.0 ([#449](https://github.com/customerio/customerio-flutter/issues/449)) ([52000f0](https://github.com/customerio/customerio-flutter/commit/52000f007e187cf3514e00b72124b3fbf143a17b))
+
 ## [5.2.2](https://github.com/customerio/customerio-flutter/compare/5.2.1...5.2.2) (2026-11-24)
 
 ### Bug Fixes
