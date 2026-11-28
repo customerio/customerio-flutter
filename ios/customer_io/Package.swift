@@ -144,7 +144,7 @@ let package = Package(
         .package(name: "FlutterFramework", path: "../FlutterFramework"),
         // Pinned exactly, matching `native_sdk_version` in pubspec.yaml and the podspec, so one
         // plugin version always resolves one native SDK across every package manager.
-        .package(url: "https://github.com/customerio/customerio-ios.git", exact: "5.3.1")
+        .package(url: "https://github.com/customerio/customerio-ios.git", exact: "5.3.2")
     ],
     targets: [
         .target(
